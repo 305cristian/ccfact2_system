@@ -1,0 +1,1129 @@
+DEBUG - 2025-08-15 16:10:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 16:10:07 --> [DEPRECATED] Creation of dynamic property CodeIgniter\View\View::$session is deprecated in APPPATH\Modules\Login\Views\viewLogin.php on line 80.
+ 1 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Login\\Views\\viewLogin.php')
+ 2 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Login\\Views\\viewLogin', [], true)
+ 4 APPPATH\Modules\Login\Controllers\IndexController.php(37): view('Modules\\Login\\Views\\viewLogin', [...])
+ 5 SYSTEMPATH\CodeIgniter.php(933): Modules\Login\Controllers\IndexController->index()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Login\Controllers\IndexController))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:10:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2025-08-15 16:10:24 --> Error connecting to the database: mysqli_sql_exception: No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión in C:\laragon\www\ccfact2\system\Database\MySQLi\Connection.php:201
+Stack trace:
+#0 C:\laragon\www\ccfact2\system\Database\MySQLi\Connection.php(201): mysqli->real_connect('localhost', 'root', Object(SensitiveParameterValue), 'cc_fact', 3306, '', 0)
+#1 C:\laragon\www\ccfact2\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#2 C:\laragon\www\ccfact2\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#3 C:\laragon\www\ccfact2\app\Modules\Login\Models\LoginModel.php(37): CodeIgniter\Database\BaseConnection->query('SELECT id,emp_n...')
+#4 C:\laragon\www\ccfact2\app\Modules\Login\Controllers\IndexController.php(72): Modules\Login\Models\LoginModel->loginValidate('root')
+#5 C:\laragon\www\ccfact2\app\Modules\Login\Controllers\IndexController.php(48): Modules\Login\Controllers\IndexController->checkCredencialesDb('root', 'root')
+#6 C:\laragon\www\ccfact2\system\CodeIgniter.php(933): Modules\Login\Controllers\IndexController->login()
+#7 C:\laragon\www\ccfact2\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Login\Controllers\IndexController))
+#8 C:\laragon\www\ccfact2\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\laragon\www\ccfact2\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#10 C:\laragon\www\ccfact2\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\laragon\www\ccfact2\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 {main}
+
+Next CodeIgniter\Database\Exceptions\DatabaseException: No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión in C:\laragon\www\ccfact2\system\Database\MySQLi\Connection.php:246
+Stack trace:
+#0 C:\laragon\www\ccfact2\system\Database\BaseConnection.php(419): CodeIgniter\Database\MySQLi\Connection->connect(false)
+#1 C:\laragon\www\ccfact2\system\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+#2 C:\laragon\www\ccfact2\app\Modules\Login\Models\LoginModel.php(37): CodeIgniter\Database\BaseConnection->query('SELECT id,emp_n...')
+#3 C:\laragon\www\ccfact2\app\Modules\Login\Controllers\IndexController.php(72): Modules\Login\Models\LoginModel->loginValidate('root')
+#4 C:\laragon\www\ccfact2\app\Modules\Login\Controllers\IndexController.php(48): Modules\Login\Controllers\IndexController->checkCredencialesDb('root', 'root')
+#5 C:\laragon\www\ccfact2\system\CodeIgniter.php(933): Modules\Login\Controllers\IndexController->login()
+#6 C:\laragon\www\ccfact2\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Login\Controllers\IndexController))
+#7 C:\laragon\www\ccfact2\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#8 C:\laragon\www\ccfact2\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#9 C:\laragon\www\ccfact2\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#10 C:\laragon\www\ccfact2\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#11 {main}
+CRITICAL - 2025-08-15 16:10:24 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
+Main connection [MySQLi]: No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión
+[Method: POST, Route: index/login]
+in SYSTEMPATH\Database\BaseConnection.php on line 465.
+ 1 SYSTEMPATH\Database\BaseConnection.php(614): CodeIgniter\Database\BaseConnection->initialize()
+ 2 APPPATH\Modules\Login\Models\LoginModel.php(37): CodeIgniter\Database\BaseConnection->query('SELECT id,emp_nombre,emp_apellido,emp_dni,emp_username,emp_password,is_root,emp_telefono,emp_email,emp_celular,fk_cargo,fk_bodega_main FROM cc_empleados WHERE BINARY emp_username = "root" AND emp_estado=1 ')
+ 3 APPPATH\Modules\Login\Controllers\IndexController.php(72): Modules\Login\Models\LoginModel->loginValidate('root')
+ 4 APPPATH\Modules\Login\Controllers\IndexController.php(48): Modules\Login\Controllers\IndexController->checkCredencialesDb('root', 'root')
+ 5 SYSTEMPATH\CodeIgniter.php(933): Modules\Login\Controllers\IndexController->login()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Login\Controllers\IndexController))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:11:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 16:11:57 --> Session: Sessions is enabled, and one exists. Please don't $session->start();
+DEBUG - 2025-08-15 16:11:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:12:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:12:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:12:32 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:12:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:12:57 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Modules\Admin\Views\proveedores\proveedoresView.php"
+[Method: GET, Route: admin/proveedores/managamentProveedores]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Modules\\Admin\\Views\\proveedores\\proveedoresView.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Admin\\Views\\proveedores\\proveedoresView', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ProveedoresController.php(31): view('Modules\\Admin\\Views\\proveedores\\proveedoresView')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ProveedoresController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ProveedoresController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:13:03 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:13:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:13:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:08 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:15:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:25:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:25:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:25:48 --> Error: Undefined constant "Modules\Admin\Controllers\viewDirectory"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 31.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:28:35 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:28:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:28:37 --> ErrorException: Undefined property: Modules\Admin\Controllers\ClientesController::$viewDirectory
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 31.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined property: Modules\\Admin\\Controllers\\ClientesController::$viewDirectory', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 31)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:29:23 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:29:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:29:26 --> ErrorException: Undefined property: Modules\Admin\Controllers\ClientesController::$viewDirectory
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 31.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined property: Modules\\Admin\\Controllers\\ClientesController::$viewDirectory', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 31)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:34:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:34:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:34:54 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:49:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:49:49 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:49:49 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:51:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:51:34 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:57:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:57:12 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:57:13 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 16:57:29 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 16:57:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 16:57:32 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:03:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:03:25 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:03:32 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:03:32 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:03:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:03:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:03:51 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:04:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:04:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:04:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:04:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:05:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:05:04 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:05:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:05:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:05:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:06:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:06:04 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:06:08 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:06:11 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:06:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:07:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:07:10 --> ErrorException: Cannot use [] for reading
+[Method: GET, Route: admin/4]
+in APPPATH\Config\View.php on line 93.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()
+DEBUG - 2025-08-15 17:07:36 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:07:36 --> Error: Cannot use [] for reading
+[Method: GET, Route: admin/4]
+in APPPATH\Config\View.php on line 93.
+ 1 SYSTEMPATH\Config\Factories.php(236): Config\View->__construct()
+ 2 SYSTEMPATH\Config\Factories.php(170): CodeIgniter\Config\Factories::createInstance('config', 'Config\\View', [])
+ 3 SYSTEMPATH\Config\Factories.php(189): CodeIgniter\Config\Factories::__callStatic('config', [])
+ 4 SYSTEMPATH\Common.php(208): CodeIgniter\Config\Factories::get('config', 'Config\\View')
+ 5 SYSTEMPATH\Config\Services.php(507): config('Config\\View')
+ 6 SYSTEMPATH\Config\BaseService.php(312): CodeIgniter\Config\Services::renderer('C:\\laragon\\www\\ccfact2\\app\\Config/../Views', null, false)
+ 7 SYSTEMPATH\Config\BaseService.php(251): CodeIgniter\Config\BaseService::__callStatic('renderer', [...])
+ 8 SYSTEMPATH\Config\Services.php(503): CodeIgniter\Config\BaseService::getSharedInstance('renderer', null, null)
+ 9 SYSTEMPATH\Config\BaseService.php(321): CodeIgniter\Config\Services::renderer()
+10 SYSTEMPATH\Config\BaseService.php(202): CodeIgniter\Config\BaseService::__callStatic('renderer', [])
+11 SYSTEMPATH\Config\Services.php(840): CodeIgniter\Config\BaseService::get('renderer')
+12 SYSTEMPATH\Config\BaseService.php(312): CodeIgniter\Config\Services::validation(Object(Config\Validation), false)
+13 SYSTEMPATH\Config\BaseService.php(251): CodeIgniter\Config\BaseService::__callStatic('validation', [...])
+14 SYSTEMPATH\Config\Services.php(835): CodeIgniter\Config\BaseService::getSharedInstance('validation', null)
+15 SYSTEMPATH\Config\BaseService.php(321): CodeIgniter\Config\Services::validation()
+16 APPPATH\Controllers\BaseController.php(101): CodeIgniter\Config\BaseService::__callStatic('validation', [])
+17 SYSTEMPATH\CodeIgniter.php(904): App\Controllers\BaseController->initController(Object(CodeIgniter\HTTP\IncomingRequest), Object(CodeIgniter\HTTP\Response), Object(CodeIgniter\Log\Logger))
+18 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+19 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+20 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+21 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+22 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:08:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:08:04 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:10:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:10:14 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:11:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:11:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:11:32 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:11:38 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:13:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:13:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:13:58 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:15:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:15:12 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:15:12 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:15:16 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:15:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:17:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:17:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:17:31 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:17:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:17:37 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:17:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:17:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:17:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:23:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:23:17 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 23.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:23:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:23:52 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 23.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:25:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:25:59 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 23.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:26:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:26:21 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 23.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:26:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:26:49 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:26:49 --> ErrorException: Undefined variable $viewDirectory
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 78.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(78): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $viewDirectory', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 78)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:27:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:27:01 --> ErrorException: Undefined variable $viewDirectory
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 78.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(78): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $viewDirectory', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 78)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:27:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:27:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:27:22 --> ErrorException: Undefined variable $viewDirectory
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 78.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(78): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $viewDirectory', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 78)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:27:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:27:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:27:28 --> ErrorException: Undefined variable $viewDirectory
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 78.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(78): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $viewDirectory', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 78)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:27:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:27:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:28:04 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:28:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:28:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:28:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:28:18 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Modules/Admin/Views/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Modules/Admin/Views/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules/Admin/Views/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('Modules/Admin/Views/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:28:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:28:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:28:30 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Modules/Admin/Views/sidebar.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Modules/Admin/Views/sidebar.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules/Admin/Views/sidebar', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(30): view('Modules/Admin/Views/sidebar', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:29:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:29:11 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:30:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:30:13 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:30:29 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:30:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:37:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:37:16 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:37:16 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "/Modules/Admin/Views/sidebar.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('/Modules/Admin/Views/sidebar.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('/Modules/Admin/Views/sidebar', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('/Modules/Admin/Views/sidebar', [...])
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:50:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:50:59 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:50:59 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "C:\laragon\www\ccfact2\Modules/Admin/Views/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('C:\\laragon\\www\\ccfact2\\Modules/Admin/Views/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('C:\\laragon\\www\\ccfact2\\Modules/Admin/Views/clientes/viewClientes', [], true)
+ 3 APPPATH\Controllers\BaseController.php(117): view('C:\\laragon\\www\\ccfact2\\Modules/Admin/Views/clientes/viewClientes', [])
+ 4 APPPATH\Modules\Admin\Controllers\ClientesController.php(32): App\Controllers\BaseController->moduleView('Admin', 'clientes/viewClientes')
+ 5 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:51:38 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:51:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:51:40 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "C:\laragon\www\ccfact2\Modules\{Admin}\Views\{clientes\viewClientes}.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('C:\\laragon\\www\\ccfact2\\Modules\\{Admin}\\Views\\{clientes\\viewClientes}.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('C:\\laragon\\www\\ccfact2\\Modules\\{Admin}\\Views\\{clientes\\viewClientes}', [], true)
+ 3 APPPATH\Controllers\BaseController.php(117): view('C:\\laragon\\www\\ccfact2\\Modules\\{Admin}\\Views\\{clientes\\viewClientes}', [])
+ 4 APPPATH\Modules\Admin\Controllers\ClientesController.php(32): App\Controllers\BaseController->moduleView('Admin', 'clientes\\viewClientes')
+ 5 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:53:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:53:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:53:52 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:54:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:54:05 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:54:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:54:06 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:54:07 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:54:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:54:09 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:54:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:54:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:54:31 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:54:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:54:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:54:47 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:54:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:54:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:54:52 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:55:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:55:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:55:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:55:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 17:55:19 --> Error: Call to undefined method Modules\Admin\Controllers\ClientesController::view()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 32.
+ 1 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 2 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:55:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:55:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 17:58:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 17:58:56 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ClientesController::$views is deprecated in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 17:58:56 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 25.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 17:59:16 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 17:59:18 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ClientesController::$views is deprecated in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 17:59:18 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 25.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 18:01:38 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 18:01:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 18:01:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 18:01:48 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(34): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 18:48:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 18:48:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 18:48:26 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "Admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('Admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(34): view('Admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 18:54:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 18:54:20 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ClientesController::$view is deprecated in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 18:54:20 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 25.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 18:58:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 18:58:03 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ClientesController::$view is deprecated in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 18:58:03 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 25.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:00:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-08-15 19:00:05 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ClientesController::$view is deprecated in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 24.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 19:00:05 --> Error: Call to undefined method CodeIgniter\View\View::addNamespace()
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 25.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ClientesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:00:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:00:21 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:00:21 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(32): view('admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:01:41 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:01:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:01:45 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "@admin/clientes/viewClientes.php"
+[Method: GET, Route: admin/clientes/managamentClientes]
+in SYSTEMPATH\Exceptions\FrameworkException.php on line 39.
+ 1 SYSTEMPATH\View\View.php(214): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('@admin/clientes/viewClientes.php')
+ 2 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('@admin/clientes/viewClientes', [], true)
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(32): view('@admin/clientes/viewClientes')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:03:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:03:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:11:12 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:11:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:12:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:12:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:12:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:57:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:57:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:57:43 --> ErrorException: Undefined variable $listaTipoDocumento
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 91.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(91): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $listaTipoDocumento', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 91)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('\\Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('\\Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:58:12 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:58:12 --> ErrorException: Undefined variable $listaTipoDocumento
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 91.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(91): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $listaTipoDocumento', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 91)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('\\Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('\\Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:58:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:58:45 --> ErrorException: Undefined variable $listaTipoDocumento
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 91.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(91): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $listaTipoDocumento', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 91)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('\\Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('\\Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:58:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:58:52 --> ErrorException: Undefined variable $listaTipoDocumento
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 91.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(91): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $listaTipoDocumento', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 91)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('\\Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('\\Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:58:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:58:59 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:58:59 --> ErrorException: Undefined variable $listaTipoDocumento
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 91.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(91): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $listaTipoDocumento', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 91)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('\\Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('\\Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 19:59:08 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:59:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:59:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:59:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:59:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 19:59:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 19:59:56 --> ErrorException: Undefined variable $user
+[Method: GET, Route: admin/clientes/managamentClientes]
+in APPPATH\Modules\Admin\Views\clientes\viewClientes.php on line 89.
+ 1 APPPATH\Modules\Admin\Views\clientes\viewClientes.php(89): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined variable $user', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php', 89)
+ 2 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Views\\clientes\\viewClientes.php')
+ 3 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 4 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('\\Modules\\Admin\\Views\\clientes\\viewClientes', [], true)
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(31): view('\\Modules\\Admin\\Views\\clientes\\viewClientes')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->index()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:03:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:03:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:04:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:04:07 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:09:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:09:16 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:09:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:32:29 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:32:33 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:32:35 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 20:32:35 --> ErrorException: file_get_contents(): Invalid php:// URL specified
+[Method: POST, Route: admin/clientes/getClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 41.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->errorHandler(2, 'file_get_contents(): Invalid php:// URL specified', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 41)
+ 2 APPPATH\Modules\Admin\Controllers\ClientesController.php(41): file_get_contents('php://inpu')
+ 3 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 4 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 5 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 6 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 7 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 8 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:34:16 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 20:34:16 --> ErrorException: Undefined property: Modules\Admin\Controllers\ClientesController::$cliModel
+[Method: POST, Route: admin/clientes/getClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 43.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(43): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Undefined property: Modules\\Admin\\Controllers\\ClientesController::$cliModel', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 43)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:35:49 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 20:35:49 --> ErrorException: Attempt to read property "ciruc" on string
+[Method: POST, Route: admin/clientes/getClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 46.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Attempt to read property "ciruc" on string', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 46)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:36:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:36:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:37:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 20:37:01 --> ErrorException: Attempt to read property "ciruc" on string
+[Method: POST, Route: admin/clientes/getClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 46.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Attempt to read property "ciruc" on string', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 46)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:37:31 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 20:37:31 --> ErrorException: Attempt to read property "ciruc" on string
+[Method: POST, Route: admin/clientes/getClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 46.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Attempt to read property "ciruc" on string', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 46)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:37:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+CRITICAL - 2025-08-15 20:37:34 --> ErrorException: Attempt to read property "ciruc" on string
+[Method: POST, Route: admin/clientes/getClientes]
+in APPPATH\Modules\Admin\Controllers\ClientesController.php on line 46.
+ 1 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): CodeIgniter\Debug\Exceptions->errorHandler(2, 'Attempt to read property "ciruc" on string', 'C:\\laragon\\www\\ccfact2\\app\\Modules\\Admin\\Controllers\\ClientesController.php', 46)
+ 2 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 3 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 4 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 5 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 6 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 7 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:38:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:39:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:39:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:39:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+ERROR - 2025-08-15 20:39:55 --> mysqli_sql_exception: Table 'cc_fact.cc_clientes0' doesn't exist in C:\laragon\www\ccfact2\system\Database\MySQLi\Connection.php:327
+Stack trace:
+#0 C:\laragon\www\ccfact2\system\Database\MySQLi\Connection.php(327): mysqli->query('SELECT `tb1`.*,...', 0)
+#1 C:\laragon\www\ccfact2\system\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT `tb1`.*,...')
+#2 C:\laragon\www\ccfact2\system\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT `tb1`.*,...')
+#3 C:\laragon\www\ccfact2\system\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `tb1`.*,...', Array, false)
+#4 C:\laragon\www\ccfact2\app\Modules\Admin\Models\ClienteModel.php(43): CodeIgniter\Database\BaseBuilder->get()
+#5 C:\laragon\www\ccfact2\app\Modules\Admin\Controllers\ClientesController.php(46): Modules\Admin\Models\ClienteModel->getClientes('1900827294')
+#6 C:\laragon\www\ccfact2\system\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+#7 C:\laragon\www\ccfact2\system\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+#8 C:\laragon\www\ccfact2\system\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(NULL, Object(Config\Cache), false)
+#9 C:\laragon\www\ccfact2\system\Boot.php(363): CodeIgniter\CodeIgniter->run()
+#10 C:\laragon\www\ccfact2\system\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+#11 C:\laragon\www\ccfact2\public\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+#12 {main}
+CRITICAL - 2025-08-15 20:39:55 --> CodeIgniter\Database\Exceptions\DatabaseException: Table 'cc_fact.cc_clientes0' doesn't exist
+[Method: POST, Route: admin/clientes/getClientes]
+in SYSTEMPATH\Database\BaseConnection.php on line 684.
+ 1 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = :tb1.clie_dni:', [...], false)
+ 2 APPPATH\Modules\Admin\Models\ClienteModel.php(43): CodeIgniter\Database\BaseBuilder->get()
+ 3 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): Modules\Admin\Models\ClienteModel->getClientes('1900827294')
+ 4 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 5 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 6 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 7 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 8 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 9 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 20:39:55 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: Table 'cc_fact.cc_clientes0' doesn't exist
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 332.
+ 1 SYSTEMPATH\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = \'1900827294\'')
+ 2 SYSTEMPATH\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = \'1900827294\'')
+ 3 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = :tb1.clie_dni:', [...], false)
+ 4 APPPATH\Modules\Admin\Models\ClienteModel.php(43): CodeIgniter\Database\BaseBuilder->get()
+ 5 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): Modules\Admin\Models\ClienteModel->getClientes('1900827294')
+ 6 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 7 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 8 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 9 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+10 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+11 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-08-15 20:39:55 --> [Caused by] mysqli_sql_exception: Table 'cc_fact.cc_clientes0' doesn't exist
+in SYSTEMPATH\Database\MySQLi\Connection.php on line 327.
+ 1 SYSTEMPATH\Database\MySQLi\Connection.php(327): mysqli->query('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = \'1900827294\'', 0)
+ 2 SYSTEMPATH\Database\BaseConnection.php(729): CodeIgniter\Database\MySQLi\Connection->execute('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = \'1900827294\'')
+ 3 SYSTEMPATH\Database\BaseConnection.php(646): CodeIgniter\Database\BaseConnection->simpleQuery('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = \'1900827294\'')
+ 4 SYSTEMPATH\Database\BaseBuilder.php(1649): CodeIgniter\Database\BaseConnection->query('SELECT `tb1`.*, `tb2`.`id` `id_documento`, `tb2`.`doc_nombre`, `tb3`.`id` `id_parroquia`, `tb3`.`prr_nombre`, `tb4`.`id` `id_canton`, `tb4`.`ctn_nombre`, `tb5`.`id` `id_provincia`, `tb5`.`prv_nombre`
+FROM `cc_clientes0` `tb1`
+LEFT JOIN `cc_tipo_documento` `tb2` ON `tb1`.`fk_tipo_documento` = `tb2`.`id`
+LEFT JOIN `cc_parroquia` `tb3` ON `tb1`.`fk_parroquia` = `tb3`.`id`
+LEFT JOIN `cc_canton` `tb4` ON `tb3`.`fk_canton` = `tb4`.`id`
+LEFT JOIN `cc_provincia` `tb5` ON `tb4`.`fk_provincia` = `tb5`.`id`
+WHERE `tb1`.`clie_dni` = :tb1.clie_dni:', [...], false)
+ 5 APPPATH\Modules\Admin\Models\ClienteModel.php(43): CodeIgniter\Database\BaseBuilder->get()
+ 6 APPPATH\Modules\Admin\Controllers\ClientesController.php(46): Modules\Admin\Models\ClienteModel->getClientes('1900827294')
+ 7 SYSTEMPATH\CodeIgniter.php(933): Modules\Admin\Controllers\ClientesController->getClientes()
+ 8 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Admin\Controllers\ClientesController))
+ 9 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+10 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+11 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+12 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-08-15 20:42:39 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:42:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:07 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:20 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:43:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:44:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:45:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:45:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:49:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:49:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 20:49:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:35:36 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:35:40 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:35:41 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:35:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:35:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:36:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:36:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:36:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:36:56 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:36:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:37:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:37:27 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:37:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:38:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:38:24 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:38:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:38:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:39:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:39:01 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:39:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:39:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:39:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-08-15 21:40:57 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.

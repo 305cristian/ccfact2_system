@@ -1,0 +1,81 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 31 oct. 2023, 16:23:52
+    Author     : CRISTIAN PAZ
+*/
+.multiselect {
+    box-sizing: content-box;
+    display: block;
+    position: relative;
+    width: 100%;
+    min-height: 0px;
+    text-align: left;
+    color: #35495e;
+
+}
+.multiselect__select {
+    position: absolute;
+    width: 30px;
+    height: 25px; /*Alto del componente*/
+    right: 1px;
+    top: 10px;
+    padding: 4px 8px;
+
+
+
+}
+.multiselect__tags {
+    min-height: 0px;
+    display: block;
+    padding: 0px 4px 0px 8px;
+    border-radius: 0px;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+    font-size: 12px;
+    padding-top: 5px;
+    height: 38px; /*Alto del componente*/
+}
+.multiselect, .multiselect__input, .multiselect__single {
+    font-family: inherit;
+    font-size: 12px;
+}
+.multiselect__element{
+    background-color: #f4f6f6;
+    color:#000;
+}
+.multiselect__option--highlight,
+.multiselect__option--selected{
+    background-color: var(--colorSystem) !important;
+    color:#fff !important;
+}
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+    color:#fff;
+    background-color: var(--colorSystem)!important;
+}
+.nav-link, .nav-link:hover {
+    color: #000;
+}
+
+
+@keyframes modalFadeIn {
+    from {
+        transform: translateY(-50%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+
+.modal.fade .modal-dialog {
+    animation-name: modalFadeIn;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+

@@ -1,0 +1,144 @@
+.info-box {
+    min-height: 150px;
+    background: #fff;
+    width: 97%;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 0px;
+}
+.info-box:hover {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+.info-box:before {
+    content:"";
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 0px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+
+}
+.info-box:hover:before {
+    width: 100%;
+}
+
+.info-box small {
+    font-size: 14px;
+}
+.info-box .progress {
+    background: rgba(0, 0, 0, 0.2);
+    margin: 5px -10px 5px 0;
+    height: 2px;
+}
+.info-box .progress,
+.info-box .progress .progress-bar {
+    border-radius: 0;
+}
+.info-box .progress .progress-bar {
+    background: #fff;
+}
+.info-box .info-box-icon {
+    float: left;
+    height: 70px;
+    width: 70px;
+    text-align: center;
+    font-size: 30px;
+    line-height: 74px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50px;
+    transition: all .2s;
+}
+.info-box .info-box-icon2 {
+    float: left;
+    height: 70px;
+    width: 70px;
+    text-align: center;
+    font-size: 30px;
+    line-height: 74px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0px;
+    transition: all .2s;
+}
+.info-box:hover .info-box-icon {
+    transform: scale(1.1);
+}
+.info-box:active .info-box-icon {
+    transform: scale(1);
+}
+.info-box .info-box-icon2 {
+    float: left;
+    height: 70px;
+    width: 70px;
+    text-align: center;
+    font-size: 30px;
+    line-height: 74px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0px;
+    transition: all .2s;
+}
+.info-box:hover .info-box-icon2 {
+    transform: scale(1.1);
+}
+.info-box:active .info-box-icon2 {
+    transform: scale(1);
+}
+
+.info-box-icon.push-bottom {
+    margin-top: 20px;
+}
+.info-box-icon > img {
+    max-width: 100%;
+}
+.info-box-content {
+    padding: 10px 10px 10px 0;
+    margin-left: 20px;
+}
+.info-box-number {
+    font-weight: 300;
+    font-size: 21px;
+}
+.info-box-text,
+.progress-description {
+    display: block;
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+}
+.info-box-title {
+    font-weight: 600;
+}
+.info-icon {
+    font-size: 30px;
+    margin: 20px 0px;
+}
+.progress-description {
+    margin: 0;
+}
+
+ .bg-mod-gradient-primary {
+ 	background: #007bff linear-gradient(180deg, #6bb0fa, #014cd8) repeat-x!important;
+ 	color: #fff
+ }
+  .bg-mod-gradient-gray {
+ 	background: #6c757d linear-gradient(180deg, #b0b7be, #545c62) repeat-x!important;
+ 	color: #fff
+ }
+  .bg-mod-gradient-info {
+ 	background: #17a2b8 linear-gradient(180deg, #67e3f7, #1279a1) repeat-x!important;
+ 	color: #fff
+ }
+  .bg-mod-gradient-success {
+ 	background: #28a745 linear-gradient(180deg, #71ee8e, #309223) repeat-x!important;
+ 	color: #fff
+ }
+  .bg-mod-gradient-warning {
+ 	background: #ffc107 linear-gradient(180deg, #f3d782, #ffdd07) repeat-x!important;
+ 	color: #1f2d3d
+ }
+ 
+ 
