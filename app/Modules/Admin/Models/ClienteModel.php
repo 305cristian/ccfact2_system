@@ -27,12 +27,14 @@ class ClienteModel extends \CodeIgniter\Model {
                             tb4.id id_canton,
                             tb4.ctn_nombre,
                             tb5.id id_provincia,
-                            tb5.prv_nombre');
+                            tb5.prv_nombre,
+                            tb6.tps_descripcion');
 
         $builder->join('cc_tipo_documento tb2', 'tb1.fk_tipo_documento = tb2.id', 'left');
         $builder->join('cc_parroquia tb3', 'tb1.fk_parroquia = tb3.id', 'left');
         $builder->join('cc_canton tb4', 'tb3.fk_canton = tb4.id', 'left');
         $builder->join('cc_provincia tb5', 'tb4.fk_provincia = tb5.id', 'left');
+        $builder->join('cc_tipo_sujetos tb6', 'tb1.fk_tipo_sujeto = tb6.id', 'left');
 
         if (!empty($ciruc)) {
             $builder->where('tb1.clie_dni', $ciruc);
@@ -49,20 +51,7 @@ class ClienteModel extends \CodeIgniter\Model {
 
     public function searchClientes($dataSearch) {
         $builder = $this->db->table('cc_clientes tb1');
-        $builder->select('tb1.*,
-                            tb2.doc_nombre,
-                            tb3.id id_parroquia,
-                            tb3.prr_nombre,
-                            tb4.id id_canton,
-                            tb4.ctn_nombre,
-                            tb5.id id_provincia,
-                            tb5.prv_nombre');
-
-        $builder->join('cc_tipo_documento tb2', 'tb1.fk_tipo_documento = tb2.id', 'left');
-        $builder->join('cc_parroquia tb3', 'tb1.fk_parroquia = tb3.id', 'left');
-        $builder->join('cc_canton tb4', 'tb3.fk_canton = tb4.id', 'left');
-        $builder->join('cc_provincia tb5', 'tb4.fk_provincia = tb5.id', 'left');
-
+        $builder->select('tb1.clie_nombres, tb1.clie_apellidos, tb1.clie_razon_social, tb1.clie_dni');
         $builder->like('tb1.clie_razon_social', $dataSearch);
 
         $builder->limit(10);

@@ -1,0 +1,580 @@
+DEBUG - 2025-10-06 13:45:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 13:45:30 --> [DEPRECATED] Creation of dynamic property CodeIgniter\View\View::$session is deprecated in APPPATH\Modules\Login\Views\viewLogin.php on line 80.
+ 1 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Login\\Views\\viewLogin.php')
+ 2 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Login\\Views\\viewLogin', [], true)
+ 4 APPPATH\Modules\Login\Controllers\IndexController.php(37): view('Modules\\Login\\Views\\viewLogin', [...])
+ 5 SYSTEMPATH\CodeIgniter.php(933): Modules\Login\Controllers\IndexController->index()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Login\Controllers\IndexController))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 13:45:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 13:45:42 --> Session: Sessions is enabled, and one exists. Please don't $session->start();
+DEBUG - 2025-10-06 13:45:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 14:06:04 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:06:14 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:06:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:06:15 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:06:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 14:06:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:06:53 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:06:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:06:54 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:06:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 14:07:30 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:34 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:34 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:44 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:44 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:44 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:45 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:45 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:46 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:07:46 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:07:46 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:08 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:08 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:09 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:09 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:25 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:25 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:25 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:26 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+WARNING - 2025-10-06 14:10:26 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 14:10:26 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:27 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:27 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:29 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:29 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:35 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:35 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 14:10:36 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 14:10:36 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 17:01:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 17:01:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:01:50 --> [DEPRECATED] Creation of dynamic property CodeIgniter\View\View::$session is deprecated in APPPATH\Modules\Login\Views\viewLogin.php on line 80.
+ 1 SYSTEMPATH\View\View.php(226): include('C:\\laragon\\www\\ccfact2\\app\\Modules\\Login\\Views\\viewLogin.php')
+ 2 SYSTEMPATH\View\View.php(229): CodeIgniter\View\View->CodeIgniter\View\{closure}()
+ 3 SYSTEMPATH\Common.php(1167): CodeIgniter\View\View->render('Modules\\Login\\Views\\viewLogin', [], true)
+ 4 APPPATH\Modules\Login\Controllers\IndexController.php(37): view('Modules\\Login\\Views\\viewLogin', [...])
+ 5 SYSTEMPATH\CodeIgniter.php(933): Modules\Login\Controllers\IndexController->index()
+ 6 SYSTEMPATH\CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(Modules\Login\Controllers\IndexController))
+ 7 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:01:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:01:59 --> Session: Sessions is enabled, and one exists. Please don't $session->start();
+DEBUG - 2025-10-06 17:01:59 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 17:02:07 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:02:12 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:02:12 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:02:13 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:02:13 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:02:50 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:02:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:02:51 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:02:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:03:00 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:03:00 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:03:05 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:03:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:03:06 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:03:06 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:03:17 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:03:17 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:03:33 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:03:33 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:03:34 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:03:34 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:14 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:15 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:15 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:18 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:18 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:18 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:18 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:18 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:19 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:19 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:38 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:38 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:39 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:39 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:47 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:47 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:04:48 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:04:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:07:48 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:07:48 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:07:49 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:07:49 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:07:58 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:07:58 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:08:54 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:08:54 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:08:55 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:08:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:01 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:02 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:05 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:05 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:06 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:07 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+DEBUG - 2025-10-06 17:09:10 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:14 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:14 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:14 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:22 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:22 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:26 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:27 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:28 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:28 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:33 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:33 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:41 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:41 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:42 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:42 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:42 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:42 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:43 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:43 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:50 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:50 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:51 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\ConfigCuentasController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\ConfigCuentasController.php on line 28.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\ConfigCuentasController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:51 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:52 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:52 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:53 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:53 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\CuentasContablesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\CuentasContablesController.php on line 27.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\CuentasContablesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:53 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:55 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\RetencionesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\RetencionesController.php on line 23.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\RetencionesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.
+WARNING - 2025-10-06 17:09:55 --> [DEPRECATED] Creation of dynamic property Modules\Admin\Controllers\RetencionesController::$dirViewModule is deprecated in APPPATH\Modules\Admin\Controllers\RetencionesController.php on line 23.
+ 1 SYSTEMPATH\CodeIgniter.php(903): Modules\Admin\Controllers\RetencionesController->__construct()
+ 2 SYSTEMPATH\CodeIgniter.php(498): CodeIgniter\CodeIgniter->createController()
+ 3 SYSTEMPATH\CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH\Boot.php(363): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH\Boot.php(68): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH\index.php(59): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+DEBUG - 2025-10-06 17:09:55 --> Session: Class initialized using 'CodeIgniter\Session\Handlers\FileHandler' driver.

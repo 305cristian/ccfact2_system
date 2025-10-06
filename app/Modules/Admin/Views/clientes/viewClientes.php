@@ -46,12 +46,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <div class="col-md-3 mb-2">
-                    <label for="selectStock" class="col-form-label col-form-label-sm"><i class="fal fa-qrcode"></i> CI/RUC</label>
-                    <input  v-model="cirucCliente" type="number" class="form-control" id="selectStock" placeholder="Digite la CI/RUC" />                               
+                    <label for="cirucCliente" class="col-form-label col-form-label-sm"><i class="fal fa-qrcode"></i> CI/RUC</label>
+                    <input  v-model="cirucCliente" type="number" class="form-control" id="cirucCliente" placeholder="Digite la CI/RUC" />                               
                 </div>
 
                 <div class="col-md-2  mb-2" style="position: relative; top: 30px">
-                    <button class="btn btn-system-2" @click="getClientes()"><span class="fas fa-search"></span> Buscar Clientes</button>
+                    <button class="btn btn-system-2" @click="getClientes()">
+                        <span v-if='loading'><i class="loading-spin"></i> Buscando...</span>
+                        <span v-else><i class="fas fa-search"></i> Buscar Clientes</span>
+                    </button>
                 </div>
                 <div id="panelBtnCreate" class="col-md-2  mb-2" style="position: relative; top: 30px">
                     <button class="btn btn-system-2" data-bs-toggle="modal" data-bs-target="#modalClientes"><span class="fas fa-user-tie"></span> Crear Cliente</button>
@@ -76,8 +79,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var admin = '<?= $admin ?>';
     var listaTipoDocumento = <?php echo json_encode($listaTipoDocumento) ?>;
     var listaProvincia = <?php echo json_encode($listaProvincia) ?>;
-//    var listaCanton = <?php // echo json_encode($listaCanton)           ?>;
-//    var listaParroquia = <?php // echo json_encode($listaParroquia)           ?>;
 
     var v = new Vue({
         el: "#app",
@@ -92,6 +93,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             //TODO: VARIABLES
             estadoSave: true,
+            loading: false,
 
             //TODO: V-MODELS
             cirucCliente: '',
@@ -113,6 +115,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 clieTipoCliente: '',
                 clieTipoDocumento: '',
                 clieDiasCredito: '',
+                clieCupoCredito: '',
                 clieEstado: true
             },
 
@@ -163,6 +166,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
 
                 try {
+                    v.loading = true;
                     let response = await axios.post(this.url + '/admin/clientes/getClientes', datos);
                     if (response.data.status === "success") {
                         v.listaClientes = response.data.data;
@@ -181,6 +185,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    v.loading = false;
                 }
             },
             async getCantones() {
@@ -204,13 +210,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             setTipoCliente() {
                 if (v.newCliente.clieTipoDocumento === '1') {
-                    v.newCliente.clieTipoCliente = "JURIDICO";
+                    v.newCliente.clieTipoCliente = "2";
                 } else if (v.newCliente.clieTipoDocumento === '2') {
-                    v.newCliente.clieTipoCliente = "NATURAL";
+                    v.newCliente.clieTipoCliente = "1";
                 } else if (v.newCliente.clieTipoDocumento === '3') {
-                    v.newCliente.clieTipoCliente = "EXTRANGERO";
+                    v.newCliente.clieTipoCliente = "4";
                 } else {
-                    v.newCliente.clieTipoCliente = "OTROS";
+                    v.newCliente.clieTipoCliente = "4";
                 }
             },
             setRazonSocial() {
@@ -219,8 +225,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 v.newCliente.clieRazonSocial = `${nombres.toUpperCase()} ${apellidos.toUpperCase()}`;
             },
 
-           async loadCliente(clie) {
-                
+            async loadCliente(clie) {
+                swalLoading('Cargando...', );
                 v.newCliente = {
                     clieCiruc: clie.clie_dni,
                     clieNombres: clie.clie_nombres,
@@ -233,18 +239,23 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     clieEmail: clie.clie_email,
                     clieDireccion: clie.clie_direccion,
                     clieParroquia: clie.fk_parroquia,
-                    clieTipoCliente: clie.clie_tipo,
+                    clieTipoCliente: clie.fk_tipo_sujeto,
                     clieTipoDocumento: clie.fk_tipo_documento,
                     clieDiasCredito: clie.clie_dias_credito,
-                    clieEstado: clie.clie_estado ==="1"?true:false
+                    clieCupoCredito: clie.clie_cupo_credito,
+                    clieEstado: clie.clie_estado === "1" ? true : false
                 };
-                v.canton= clie.id_canton;
-                v.provincia= clie.id_provincia;
+                v.canton = clie.id_canton;
+                v.provincia = clie.id_provincia;
                 v.ciRucAux = clie.clie_dni;
                 v.idEdit = clie.id;
-                
-               await v.getCantones();
-               await v.getParroquias();
+
+                $("#clieProvincia").selectpicker('val', clie.id_provincia);
+
+                await v.getCantones();
+                await v.getParroquias();
+
+                Swal.close();
             },
 
             async saveUpdateCliente() {
@@ -258,6 +269,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     url = this.url + '/admin/clientes/updateCliente';
                 }
                 try {
+                    v.loading = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -282,6 +294,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    v.loading = false;
                 }
 
             },
@@ -302,7 +316,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     clieTipoCliente: '',
                     clieTipoDocumento: '',
                     clieDiasCredito: '',
-                    clieEstado: ''
+                    clieCupoCredito: '',
+                    clieEstado: true
                 };
                 v.provincia = '';
                 v.canton = '';

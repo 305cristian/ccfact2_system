@@ -101,7 +101,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </select>
                 </div>
                 <div class="col-md-2  mb-2" style="position: relative; top: 30px">
-                    <button class="btn btn-system-2" @click="getProductos()"><span class="fas fa-search"></span> Buscar Productos</button>
+                    <button class="btn btn-system-2" @click="getProductos()">
+                        <span v-if='loading'><i class="loading-spin"></i> Buscando...</span>
+                        <span v-else><i class="fas fa-search"></i> Buscar Productos</span>
+                    </button>
                 </div>
                 <div id="panelBtnCreate" class="col-md-2  mb-2" style="position: relative; top: 30px">
                     <button class="btn btn-system-2" data-bs-toggle="modal" data-bs-target="#modalProductos"><span class="fas fa-box-archive"></span> Crear Producto</button>
@@ -151,6 +154,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             //TODO: VARIABLES
             estadoSave: true,
             ivaActual: ivaActual,
+            loading: false,
 
             //TODO: V-MODELS
             idEdit: '',
@@ -276,12 +280,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //let datos = Object.fromEntries(Object.entries(dataFilter).filter(([_, value]) => value !== undefined && value !== ""));
 
                 try {
+                    v.loading = true;
                     let response = await axios.post(this.url + '/admin/productos/getProductos', datos);
                     if (response.data) {
                         v.listaProductos = response.data;
                         panelMain.style.display = "block";
                         panelBtnCreate.style.display = "none";
-                        
+
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron productos en los parametros seleccionados');
                         panelMain.style.display = "none";
@@ -294,6 +299,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    v.loading = false;
                 }
             },
             async getSubgrupo(idGrupo) {
@@ -314,6 +321,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             async loadProducto(prod) {
+                swalLoading('Cargando...', );
                 await v.getSubgrupo(prod.id_grupo);
                 await v.getPreciosProducto(prod.id);
                 v.newProducto = {
@@ -359,7 +367,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 v.nameAux = prod.prod_nombre;
                 v.codeAux = prod.prod_codigo;
 
-
+                Swal.close();
 
 
             },
@@ -394,6 +402,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 datos.append('tipoPrecioId', v.tipoPrecioId);
                 datos.append('grupo', v.idGrupo);
                 try {
+                    v.loading = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -420,6 +429,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    v.loading = false;
                 }
             },
             async consultarAutoCodigo() {

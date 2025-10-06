@@ -12,11 +12,16 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
+<div v-if="loading" class="loading-data">
+    <h5 style="font-family: ">Cargando Productos...</h5>
+</div>
 <div class="table-responsive">
 
     <table id="tblProductos" class="table table-striped nowrap display" style="width: 100%">
         <thead class="bg-system text-white">
             <tr>
+                <td>ACCIONES</td>
+
                 <td>ID</td>
                 <td>CÓDIGO</td>
                 <td>NOMBRE</td>
@@ -39,12 +44,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <td>CTA. CONT. COMPRAS</td>
                 <td>CTA. CONT. VENTAS</td>
                 <td>ESTADO</td>
-                <td>ACCIONES</td>
             </tr>
         </thead>
 
         <tbody>
             <tr v-for="lp of listaProductos">
+                <td>
+                    <template v-if="admin">
+                        <button @click="loadProducto(lp), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalProductos"><i class="fas fa-edit"></i> </button>
+                    </template>
+                </td>
                 <td>{{zfill(lp.id)}}</td>
                 <td>{{lp.prod_codigo}}</td>
                 <td>{{lp.prod_nombre}}</td>
@@ -70,11 +79,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <td v-if="lp.prod_estado == 1"><span class="badge bg-success"><i class="fas fa-check-double"></i>  Activo</span></td>
                 <td v-else><span class="badge bg-danger"><i class="fas fa-stop-circle"></i> Inactivo</span></td>
 
-                <td>
-                    <template v-if="admin">
-                        <button @click="loadProducto(lp), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalProductos"><i class="fas fa-edit"></i> </button>
-                    </template>
-                </td>
+
             </tr>
         </tbody>
     </table>

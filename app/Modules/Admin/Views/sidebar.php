@@ -147,20 +147,32 @@
 
         </li>
 
-        <!--PROVEEDORES-->
+        <!--CONTABILIDAD-->
         <li class="nav-item margin">
             <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fas fa-dollar-circle sidebarColorIcon"></i><p>Contabilidad<i class="fas fa-angle-left right text-white"></i></p></a>
             <ul class="nav nav-treeview">
-                <li class="nav-item sidebarSubMenuColor">
-                    <a href="#" class="nav-link">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/cuentascontables/managamentCuentas' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/cuentascontables/managamentCuentas')" class="nav-link"  style="cursor: pointer">
                         <i class="far fa-circle nav-icon sidebarColorIcon"></i>
                         <p>Plan de Cuentas</p>
                     </a>
                 </li>
-                <li class="nav-item sidebarSubMenuColor">
-                    <a href="#" class="nav-link">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/cuentasconfig/managamentCuentasConfig' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/cuentasconfig/managamentCuentasConfig')" class="nav-link"  style="cursor: pointer">
                         <i class="far fa-circle nav-icon sidebarColorIcon"></i>
                         <p>Conf. Cuentas</p>
+                    </a>
+                </li>
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/retenciones/managamentRetenciones' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/retenciones/managamentRetenciones')" class="nav-link"  style="cursor: pointer">
+                        <i class="far fa-circle nav-icon sidebarColorIcon"></i>
+                        <p>Retenciones</p>
+                    </a>
+                </li>
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/bancos/managamentBancos' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/bancos/managamentBancos')" class="nav-link"  style="cursor: pointer">
+                        <i class="far fa-circle nav-icon sidebarColorIcon"></i>
+                        <p>Bancos</p>
                     </a>
                 </li>
 

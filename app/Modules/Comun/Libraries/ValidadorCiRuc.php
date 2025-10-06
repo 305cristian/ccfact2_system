@@ -15,7 +15,7 @@ namespace Modules\Comun\Libraries;
  * @date 16 ago 2025
  * @time 6:13:14 p.m.
  */
-class ValidadorCiRuc  {
+class ValidadorCiRuc {
 
     protected $docIdent;
 
@@ -24,7 +24,6 @@ class ValidadorCiRuc  {
     }
 
     public function validarNumeroDocumento($clieTipoDocumento, $clieCiruc) {
-
 
         $valida = true;
 
@@ -41,15 +40,15 @@ class ValidadorCiRuc  {
             if ($keyDigito >= 0 && $keyDigito <= 5) {
                 // RUC Persona Natural
                 $valida = $this->docIdent->validarRucPersonaNatural($clieCiruc);
-                $clieTipoCliente = "NATURAL";
+                $clieTipoCliente = 1;
             } elseif ($keyDigito == 6) {
                 // RUC Sociedad Pública
                 $valida = $this->docIdent->validarRucSociedadPublica($clieCiruc);
-                $clieTipoCliente = "JURIDICA PUBLICA";
+                $clieTipoCliente = 3;
             } elseif ($keyDigito == 9) {
                 // RUC Sociedad Privada
                 $valida = $this->docIdent->validarRucSociedadPrivada($clieCiruc);
-                $clieTipoCliente = "JURIDICA PRIVADA";
+                $clieTipoCliente = 2;
             } else {
                 $valida = false;
             }
@@ -67,12 +66,22 @@ class ValidadorCiRuc  {
                 ];
             }
             $valida = $this->docIdent->validarCedula(trim($clieCiruc));
+            $clieTipoCliente = 1;
             if ($valida == false) {
                 return[
                     'status' => "warning",
                     'msg' => "El número de cédula es invalido...",
                 ];
             }
+        } else {
+            $clieTipoCliente = 4;
+        }
+
+        if ($valida) {
+            return[
+                'status' => "success",
+                'data' => $clieTipoCliente,
+            ];
         }
     }
 }

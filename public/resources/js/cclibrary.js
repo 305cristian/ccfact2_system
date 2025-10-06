@@ -55,7 +55,12 @@ function sweet_msg_toast(status, msg) {
 
     const Toast = Swal.mixin({
         toast: true,
-        animation: true,
+        showClass: {
+            popup: 'swal2-show'
+        },
+        hideClass: {
+            popup: 'swal2-hide'
+        },
         position: position,
         showConfirmButton: false,
         timer: 4000,
@@ -145,3 +150,26 @@ function  _loading_upd() {
         return Promise.reject(error);
     });
 }
+
+function swalLoading(title, text) {
+
+    var titulo = "Procesando...";
+    var texto = "<h5>Procesando su solicitado, espere por favor...</h5>";
+
+    if (title) {
+        titulo = title;
+    }
+    if (text) {
+        texto = text;
+    }
+
+    Swal.fire({
+        title: titulo,
+        html: texto,
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
+

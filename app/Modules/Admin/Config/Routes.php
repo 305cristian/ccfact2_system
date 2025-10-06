@@ -142,13 +142,44 @@ $routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function 
 
     //TODO:PROVEEDORES
     $subroutes->get('proveedores/managamentProveedores', 'ProveedoresController::index');
+    $subroutes->post('proveedores/getProveedores', 'ProveedoresController::getProveedores');
+    $subroutes->post('proveedores/searchProveedores', 'ProveedoresController::searchProveedores');
+    $subroutes->post('proveedores/saveProveedor', 'ProveedoresController::saveProveedor');
+    $subroutes->post('proveedores/updateProveedor', 'ProveedoresController::updateProveedor');
+    $subroutes->post('proveedores/getBancos', 'ProveedoresController::getBancos');
+    $subroutes->post('proveedores/getRetenciones', 'ProveedoresController::getRetenciones');
+    $subroutes->get('proveedores/datosAdicionalesProveedor/(:num)', 'ProveedoresController::datosAdicionalesProveedor/$1');
+
+    //TODO: Retenciones
+    $subroutes->get('retenciones/managamentRetenciones', 'RetencionesController::index');
+    $subroutes->get('retenciones/getRetenciones', 'RetencionesController::getRetenciones');
+    $subroutes->post('retenciones/saveRetenciones', 'RetencionesController::saveRetenciones');
+    $subroutes->post('retenciones/updateRetenciones', 'RetencionesController::updateRetenciones');
+
+    //TODO: Cuentas contables
+    $subroutes->get('cuentascontables/managamentCuentas', 'CuentasContablesController::index');
+    $subroutes->get('cuentascontables/getCuentasContables', 'CuentasContablesController::getCuentasContables');
+    $subroutes->post('cuentascontables/searchCuentasContables', 'CuentasContablesController::searchCuentasContables');
+    $subroutes->get('cuentascontables/getCuentas', 'CuentasContablesController::getCuentas');
+    $subroutes->post('cuentascontables/saveCuenta', 'CuentasContablesController::saveCuenta');
+    $subroutes->post('cuentascontables/updateCuenta', 'CuentasContablesController::updateCuenta');
+
+    //TODO: Cuentas config
+    $subroutes->get('cuentasconfig/managamentCuentasConfig', 'ConfigCuentasController::index');
+    $subroutes->get('cuentasconfig/getCuentasConfig', 'ConfigCuentasController::getCuentasConfig');
+    $subroutes->post('cuentasconfig/saveConfigCuenta', 'ConfigCuentasController::saveConfigCuenta');
+    $subroutes->post('cuentasconfig/updateConfigCuenta', 'ConfigCuentasController::updateConfigCuenta');
+
+    //TODO: Bancos
+    $subroutes->get('bancos/managamentBancos', 'BancosController::index');
+    $subroutes->get('bancos/getBancos', 'BancosController::getBancos');
+    $subroutes->post('bancos/saveBancos', 'BancosController::saveBancos');
+    $subroutes->post('bancos/updateBancos', 'BancosController::updateBancos');
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
 
     $subroutes->get('clientes/getCantones/(:num)', 'IndexController::getCantonesByProvincia/$1');
     $subroutes->get('clientes/getParroquias/(:num)', 'IndexController::getParroquiasByCanton/$1');
-    
 });
-
 

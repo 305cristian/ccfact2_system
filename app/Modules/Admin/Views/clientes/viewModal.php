@@ -45,9 +45,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <div class="mb-2 col-md-4">
                             <label for="clieTipoCliente" class="col-form-label col-form-label-sm"><span style="color: red; font-size:15px ">*</span> Tipo Cliente</label>
                             <select v-model="newCliente.clieTipoCliente" id="clieTipoCliente" class="form-select border">
-                                <option value="NATURAL">Natural</option>
-                                <option value="JURIDICO">Jurídico</option>
-                                <option value="EXTRANGERO">Extrangero</option>
+                                <option value="1">Natural</option>
+                                <option value="2">Jurídico</option>
+                                <option value="4">Extrangero</option>
                             </select>
                              <!--validaciones-->
                             <div v-html="formValidacion.clieTipoCliente" class="text-danger"></div>
@@ -108,7 +108,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </div>
                     </div>
                     <div class="row">
-                        <div  class="mb-6 col-md-10">
+                        <div  class="mb-6 col-md-8">
                             <label for="clieDireccion" class="col-form-label col-form-label-sm"><span style="color: red; font-size:15px ">*</span> Dirección</label>
                             <input v-model="newCliente.clieDireccion" type="text" class="form-control" id="clieDireccion" placeholder="Ingrese dirección" />
                             <!--validaciones-->
@@ -118,11 +118,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <label for="clieDiasCredito" class="col-form-label col-form-label-sm">Días de Crédito</label>
                             <input v-model="newCliente.clieDiasCredito" type="number" class="form-control" id="clieDiasCredito" placeholder="0" />
                         </div>
+                        <div class="mb-2 col-md-2">
+                            <label for="clieCupoCredito" class="col-form-label col-form-label-sm">Cupo de Crédito</label>
+                            <input v-model="newCliente.clieCupoCredito" type="number" class="form-control" id="clieCupoCredito" placeholder="0" />
+                        </div>
                     </div>
                     <div class="row">
                         <div class="mb-2 col-md-4">
                             <label for="clieProvincia" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px ">*</span> Provincia</label>
-                            <select @change="getCantones()" v-model="provincia" class="form-select border" id="clieProvincia">
+                            <select title="Seleccione una provincia" @change="getCantones()" v-model="provincia" class="form-control border  selectpicker" id="clieProvincia" data-live-search="true" data-style="btn-white">
                                 <option v-for="lprv of listaProvincia" v-bind:value="lprv.id">{{lprv.prv_nombre}}</option>
                             </select>
                         </div>
@@ -158,8 +162,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 <div class="modal-footer">
                     <button  class="btn btn-system-2" @click="saveUpdateCliente()">
-                        <span v-if="estadoSave"><i class="fas fa-save"></i> Crear Cliente</span>
-                        <span v-else><i class="fas fa-refresh"></i> Actualizar Cliente</span>
+                        <span v-if="estadoSave">
+                            <span v-if='loading'><i class="loading-spin"></i> Creando...</span>
+                            <span v-else><i class="fas fa-save"></i> Crear Cliente</span>
+                        </span>
+                        <span v-else>
+                            <span  v-if='loading'><i class="loading-spin"></i> Actualizando...</span>
+                            <span  v-else><i class="fas fa-refresh"></i> Actualizar Cliente</span>
+                        </span>
                     </button>
                     <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>
                 </div>

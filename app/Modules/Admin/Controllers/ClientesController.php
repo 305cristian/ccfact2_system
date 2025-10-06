@@ -87,8 +87,9 @@ class ClientesController extends \App\Controllers\BaseController {
         $clieEmail = $this->request->getPost('clieEmail');
         $clieDireccion = $this->request->getPost('clieDireccion');
         $clieParroquia = $this->request->getPost('clieParroquia');
-        $clieTipoCliente = $this->request->getPost('clieTipoCliente');
+        $clieTipoSujeto = $this->request->getPost('clieTipoCliente');
         $clieDiasCredito = $this->request->getPost('clieDiasCredito');
+        $clieCupoCredito = $this->request->getPost('clieCupoCredito');
         $clieEstado = $this->request->getPost('clieEstado');
 
         $this->validation->setRules([
@@ -108,8 +109,11 @@ class ClientesController extends \App\Controllers\BaseController {
         if ($this->validation->withRequest($this->request)->run()) {
 
             $validacion = $this->validateCiRuc->validarNumeroDocumento($clieTipoDocumento, $clieCiruc);
-            if ($validacion) {
+           
+            if ($validacion['status'] === "warning") {
                 return $this->response->setJson($validacion);
+            } else {
+                $clieTipoSujeto = $validacion['data']; //El tipo de sujeto se da de acuerdo al tipo de cedula o ruc o pasaporte
             }
 
             $existe = $this->ccm->getData('cc_clientes', ['clie_dni' => trim($clieCiruc)]);
@@ -130,10 +134,11 @@ class ClientesController extends \App\Controllers\BaseController {
                 'clie_telefono' => $clieTelefono,
                 'clie_celular' => $clieCelular,
                 'clie_email' => $clieEmail,
-                'clie_direccion' => strtoupper($clieDireccion, 'UTF-8'),
+                'clie_direccion' => mb_strtoupper($clieDireccion, 'UTF-8'),
                 'fk_parroquia' => $clieParroquia,
-                'clie_tipo' => $clieTipoCliente,
+                'fk_tipo_sujeto' => $clieTipoSujeto,
                 'clie_dias_credito' => $clieDiasCredito,
+                'clie_cupo_credito' => $clieCupoCredito,
                 'clie_estado' => $clieEstado === "true" ? 1 : 0,
                 'clie_fecha_creacion' => date('Y-m-d H:i:s'),
             ];
@@ -187,6 +192,7 @@ class ClientesController extends \App\Controllers\BaseController {
         $clieParroquia = $this->request->getPost('clieParroquia');
         $clieTipoCliente = $this->request->getPost('clieTipoCliente');
         $clieDiasCredito = $this->request->getPost('clieDiasCredito');
+        $clieCupoCredito = $this->request->getPost('clieCupoCredito');
         $clieEstado = $this->request->getPost('clieEstado');
 
         $idClie = $this->request->getPost('idClie');
@@ -209,8 +215,11 @@ class ClientesController extends \App\Controllers\BaseController {
         if ($this->validation->withRequest($this->request)->run()) {
 
             $validacion = $this->validateCiRuc->validarNumeroDocumento($clieTipoDocumento, $clieCiruc);
-            if ($validacion) {
+
+            if ($validacion['status'] === "warning") {
                 return $this->response->setJson($validacion);
+            } else {
+                $clieTipoCliente = $validacion['data'];//El tipo de sujeto se da de acuerdo al tipo de cedula o ruc o pasaporte
             }
 
             $existeCiruc = $this->ccm->getData('cc_clientes', ['clie_dni' => trim($clieCiruc)], 'clie_dni', $orderBy = null, 1);
@@ -233,8 +242,9 @@ class ClientesController extends \App\Controllers\BaseController {
                 'clie_email' => $clieEmail,
                 'clie_direccion' => mb_strtoupper($clieDireccion, 'UTF-8'),
                 'fk_parroquia' => $clieParroquia,
-                'clie_tipo' => $clieTipoCliente,
+                'fk_tipo_sujeto' => $clieTipoCliente,
                 'clie_dias_credito' => $clieDiasCredito,
+                'clie_cupo_credito' => $clieCupoCredito,
                 'clie_estado' => $clieEstado === "true" ? 1 : 0,
                 'clie_fecha_actualizacion' => date('Y-m-d H:i:s'),
             ];

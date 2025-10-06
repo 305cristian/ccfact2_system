@@ -305,10 +305,11 @@
                 async navigate(uri) {
                     this.pathname = uri;
                     try {
-                        _loading();
+                        swalLoading('Cargando vista...');
                         let response = await axios.get(uri);
                         if (response) {
                             $('#content-main-vue').html(response.data.view);
+                            Swal.close();
                         }
                     } catch (e) {
                         sweet_msg_toast('error',e.response.data.message);
@@ -332,8 +333,7 @@
                 id: 2
 
             },
-            created() {
-            },
+
             computed: {
                 gradient() {
                     let colors = "linear-gradient(45deg";
