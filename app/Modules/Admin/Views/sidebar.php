@@ -82,6 +82,18 @@
                         <p>Proveedor</p>
                     </a>
                 </li>           
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/sectores/managamentSectores' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/sectores/managamentSectores')" class="nav-link" style="cursor: pointer">
+                        <i class="far fa-circle nav-icon sidebarColorIcon"></i>
+                        <p>Sectores</p>
+                    </a>
+                </li>           
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/anillos/managamentAnillos' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/anillos/managamentAnillos')" class="nav-link" style="cursor: pointer">
+                        <i class="far fa-circle nav-icon sidebarColorIcon"></i>
+                        <p>Anillos</p>
+                    </a>
+                </li>           
             </ul>
 
         </li>

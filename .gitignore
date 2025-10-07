@@ -1,0 +1,6 @@
+/writable/
+/test/
+/.idea/
+.env
+.env.example
+.idea

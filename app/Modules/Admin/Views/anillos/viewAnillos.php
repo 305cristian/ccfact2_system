@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <!--
 /**
- * Description of viewBancos
+ * Description of viewAnillos
  *
 /**
  * @author CRISTIAN R. PAZ
- * @date 2 oct 2025
- * @time 3:29:15 p.m.
+ * @date 7 oct 2025
+ * @time 1:37:16 p.m.
  */       
  
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -16,40 +16,40 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 class="card-title text-system"><i class="fas fa-clipboard-check"></i> Bancos</h5>
+            <h5 class="card-title text-system"><i class="fas fa-clipboard-check"></i> Anillos</h5>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table id="tblBancos" class="table table-striped nowrap w-100" >
+                <table id="tblAnillos" class="table table-striped nowrap w-100" >
                     <thead class="bg-system text-white">
                         <tr>
                             <th style="width: 5px">ACIONES</th>
                             <th style="width: 5px">ID</th>
-                            <th>BANCO</th>
-                            <th>TIPO</th>
+                            <th>NOMBRE</th>
+                            <th>DESCRIPCIÓN</th>
                             <th>ESTADO</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for='lb of listaBancos'>
+                        <tr v-for='la of listaAnillos'>
                             <td>
                                 <template v-if="admin">
-                                    <button @click="loadBanco(lb), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalBanco"><i class="fas fa-edit"></i> </button>
+                                    <button @click="loadAnillo(la), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnillos"><i class="fas fa-edit"></i> </button>
                                 </template>
                             </td>
-                            <td>{{zfill(lb.id)}}</td>
-                            <td>{{lb.banc_nombre}}</td>
-                            <td>{{lb.banc_tipo}}</td>
-                            <td v-if="lb.banc_estado == 1"><span class="badge bg-success"><i class="fas fa-check-double"></i>  Activo</span></td>
+                            <td>{{zfill(la.id)}}</td>
+                            <td>{{la.an_nombre}}</td>
+                            <td>{{la.an_descripcion}}</td>
+                            <td v-if="la.an_estado == 1"><span class="badge bg-success"><i class="fas fa-check-double"></i>  Activo</span></td>
                             <td v-else><span class="badge bg-danger"><i class="fas fa-stop-circle"></i> Inactivo</span></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        <!--MODAL BANCOS-->
-        <?php echo view('\Modules\Admin\Views\bancos\viewModal') ?>
-        <!--CLOSE MODAL BANCOS-->
+        <!--MODAL ANILLOS-->
+        <?php echo view('\Modules\Admin\Views\anillos\viewModal') ?>
+        <!--CLOSE MODAL ANILLOS-->
     </div>
 </div>
 
@@ -57,7 +57,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
-
     var v = new Vue({
         el: "#app",
         data: {
@@ -68,53 +67,53 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             //TODO: VARIABLES
             estadoSave: true,
-            idEdit: '',
             loading: false,
+            idEdit: '',
 
             //TODO: V-MODELS
-            listaBancos: [],
-            newBanco: {
-                bancNombre: '',
-                bancTipo: 'BANCO',
-                bancEstado: '1'
+            listaAnillos: [],
+            newAnillo: {
+                anNombre: '',
+                anDescripcion: '',
+                anEstado: '1'
             },
             formValidacion: []
-
         },
         created() {
-            this.getBancos();
+            this.getAnillos();
         },
         methods: {
-            async getBancos() {
-                let {data} = await axios.get(this.url + "/admin/bancos/getBancos");
+            async getAnillos() {
+                let {data} = await axios.get(this.url + "/admin/anillos/getAnillos");
                 if (data) {
-                    v.listaBancos = data;
+                    v.listaAnillos = data;
                 } else {
-                    sweet_msg_dialog('warning', data.msg);
+                    sweet_msg_dialog('warning', 'No se pudieron cargar los anillos');
                 }
                 if (v.admin) {
-                    dataTableModalBtn('#tblBancos', 'Lista de Banos', '#modalBanco', 'CREAR BANCO');
+                    dataTableModalBtn('#tblAnillos', 'Lista de Anillos', '#modalAnillos', 'CREAR ANILLO');
                 } else {
-                    dataTable('#tblBancos', 'Lista de Banos');
+                    dataTable('#tblAnillos', 'Lista de Anillos');
                 }
             },
-            loadBanco(data) {
-                this.newBanco = {
-                    bancNombre: data.banc_nombre,
-                    bancTipo: data.banc_tipo,
-                    bancEstado: data.banc_estado
+            loadAnillo(data) {
+                this.newAnillo = {
+                    anNombre: data.an_nombre,
+                    anDescripcion: data.an_descripcion,
+                    anEstado: data.an_estado
                 };
                 this.idEdit = data.id;
-                this.nameAux = data.banc_nombre;
+                this.nameAux = data.an_nombre;
             },
-            async saveUpdateBanco() {
-                let datos = this.formData(this.newBanco);
-                let url = this.url + '/admin/bancos/saveBancos';
+            async saveUpdateAnillo() {
+                let datos = this.formData(this.newAnillo);
+
+                let url = this.url + '/admin/anillos/saveAnillo';
 
                 if (this.idEdit !== '') {
-                    datos.append('idBanc', this.idEdit);
+                    datos.append('idAnillo', this.idEdit);
                     datos.append('nameAux', this.nameAux);
-                    url = this.url + '/admin/bancos/updateBancos';
+                    url = this.url + '/admin/anillos/updateAnillo';
                 }
 
                 try {
@@ -123,13 +122,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
                         this.clear();
-                        this.getBancos();
-                        $('#modalBanco').modal('hide');
+                        this.getAnillos();
+                        $('#modalAnillos').modal('hide');
                         $('.modal-backdrop').remove();
-                    } else if (response.data.status === 'existe') {
-                        sweet_msg_dialog('warning', response.data.msg);
                     } else if (response.data.status === 'vacio') {
                         this.formValidacion = response.data.msg;
+                    } else if (response.data.status === 'existe') {
+                        sweet_msg_dialog('warning',response.data.msg);
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
@@ -138,10 +137,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                this.newBanco = {
-                    bancNombre: '',
-                    bancTipo: 'BANCO',
-                    bancEstado: '1'
+                this.newAnillo = {
+                    anNombre: '',
+                    anDescripcion: '',
+                    anEstado: '1'
                 };
                 this.estadoSave = true;
                 this.idEdit = '';
@@ -158,8 +157,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 return zFill(num, 3);
             }
         }
-
     });
-
 </script>
-

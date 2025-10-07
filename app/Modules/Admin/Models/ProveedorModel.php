@@ -136,4 +136,21 @@ class ProveedorModel extends \CodeIgniter\Model {
             return false;
         }
     }
+
+    public function getSectores() {
+        $builder = $this->db->table('cc_sectores tb1');
+        $builder->select('tb1.*, tb2.an_nombre');
+        $builder->join('cc_anillo tb2', 'tb2.id = tb1.fk_anillo');
+        $builder->orderBy('tb1.id', 'DESC');
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return false;
+        }
+    }
+
+   
 }

@@ -150,6 +150,18 @@ $routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function 
     $subroutes->post('proveedores/getRetenciones', 'ProveedoresController::getRetenciones');
     $subroutes->get('proveedores/datosAdicionalesProveedor/(:num)', 'ProveedoresController::datosAdicionalesProveedor/$1');
 
+    //ANILLOS
+    $subroutes->get('anillos/managamentAnillos', 'AnillosController::index');
+    $subroutes->get('anillos/getAnillos', 'AnillosController::getAnillos');
+    $subroutes->post('anillos/saveAnillo', 'AnillosController::saveAnillo');
+    $subroutes->post('anillos/updateAnillo', 'AnillosController::updateAnillo');
+    
+    //SECTORES
+    $subroutes->get('sectores/managamentSectores', 'SectoresController::index');
+    $subroutes->get('sectores/getSectores', 'SectoresController::getSectores');
+    $subroutes->post('sectores/saveSector', 'SectoresController::saveSector');
+    $subroutes->post('sectores/updateSector', 'SectoresController::updateSector');
+
     //TODO: Retenciones
     $subroutes->get('retenciones/managamentRetenciones', 'RetencionesController::index');
     $subroutes->get('retenciones/getRetenciones', 'RetencionesController::getRetenciones');
