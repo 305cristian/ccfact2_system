@@ -19,8 +19,7 @@ class AnillosController extends \App\Controllers\BaseController {
 
     //put your code here
 
-
-
+    protected $dirViewModule;
 
     public function __construct() {
         $this->dirViewModule = 'Modules\Admin\Views';
@@ -58,7 +57,7 @@ class AnillosController extends \App\Controllers\BaseController {
         ]);
 
         if ($this->validation->withRequest($this->request)->run()) {
-            
+
             $existe = $this->ccm->getData('cc_anillo', ['an_nombre' => $anNombre]);
 
             if (count($existe) > 0) {
@@ -66,7 +65,7 @@ class AnillosController extends \App\Controllers\BaseController {
                 $response['msg'] = '<h5>Ya existe un anillo registrado con el nombre ' . $anNombre . '</h5>';
                 return $this->response->setJSON($response);
             }
-            
+
             $datos = [
                 'an_nombre' => mb_strtoupper($anNombre, 'UTF-8'),
                 'an_descripcion' => $anDescripcion,

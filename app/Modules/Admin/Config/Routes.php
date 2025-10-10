@@ -187,6 +187,12 @@ $routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function 
     $subroutes->get('bancos/getBancos', 'BancosController::getBancos');
     $subroutes->post('bancos/saveBancos', 'BancosController::saveBancos');
     $subroutes->post('bancos/updateBancos', 'BancosController::updateBancos');
+    
+    //TODO: MOTIVOS
+    $subroutes->get('motivos/managamentMotivos', 'MotivosAjustesController::index');
+    $subroutes->get('motivos/getMotivos', 'MotivosAjustesController::getMotivos');
+    $subroutes->post('motivos/saveMotivo', 'MotivosAjustesController::saveMotivo');
+    $subroutes->post('motivos/updateMotivo', 'MotivosAjustesController::updateMotivo');
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

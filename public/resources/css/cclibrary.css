@@ -6,23 +6,128 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     Created on : 31 oct. 2023, 16:23:52
     Author     : CRISTIAN PAZ
 */
+
+.cart {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    /*box-shadow: 0 4px 15px rgba(0,0,0,0.08);*/
+    overflow: hidden;
+    margin-bottom: 25px;
+}
+.cart-header {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--colorSystem2) 70%, white),
+        color-mix(in srgb, var(--colorSystem) 70%, white))
+        repeat-x !important;
+    color: white;
+    padding: 8px 8px 8px 12px;
+    border: none;
+    width: auto;
+}
+
+.cart-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.summary-card {
+    border-left: 5px solid var(--colorSystem);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 30px;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    min-width: 30%;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0f2fe;
+    font-size: 0.95rem;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    padding-top: 15px;
+    margin-top: 15px;
+    border-top: 2px solid var(--colorSystem);
+}
+
+.summary-label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.summary-value {
+    font-weight: 600;
+    color: #374151;
+}
+
+
+
+.quantity-control button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.quantity-control button:hover {
+    transform: scale(1.1);
+}
+
+.quantity-control input {
+    max-width: 80px !important;
+    text-align: center;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px;
+    font-weight: 600;
+}
+
+.form-group-custom {
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+
+    .btn-group-custom {
+        grid-template-columns: 1fr;
+    }
+
+}
+
 .multiselect {
     box-sizing: content-box;
     display: block;
     position: relative;
     width: 100%;
-    min-height: 0px;
+    min-height: 10px;
     text-align: left;
     color: #35495e;
 
 }
 .multiselect__select {
     position: absolute;
-    width: 30px;
-    height: 25px; /*Alto del componente*/
+    max-width: 30px;
+    max-height: 25px; /*Alto del componente*/
     right: 1px;
     top: 10px;
-    padding: 4px 8px;
+    padding: 6px 8px;
 
 
 
@@ -31,16 +136,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     min-height: 0px;
     display: block;
     padding: 0px 4px 0px 8px;
-    border-radius: 0px;
-    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
     background: #fff;
-    font-size: 12px;
+    font-size: 13px;
     padding-top: 5px;
-    height: 38px; /*Alto del componente*/
+    padding-left: 15px;
+    height: 39px; /*Alto del componente*/
 }
 .multiselect, .multiselect__input, .multiselect__single {
     font-family: inherit;
-    font-size: 12px;
+    font-size: 13px;
 }
 .multiselect__element{
     background-color: #f4f6f6;
@@ -103,4 +209,70 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     100% {
         transform: rotate(360deg);
     }
+}
+
+.btngr {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary-gradiant{
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: white;
+}
+
+.btn-primary-gradiant:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(51, 153, 255, 1);
+    color: white;
+}
+
+.btn-danger-gradiant {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.btn-danger-gradiant:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+    color: white;
+}
+
+.btn-success-gradiant {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+}
+
+.btn-success-gradiant:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 204, 153, 1);
+    color: white;
+}
+
+.btn-warning-gradiant {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+}
+
+.btn-warning-gradiant:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 204, 153, 1);
+    color: white;
+}
+
+.table thead th {
+    padding: 12px;
+}
+.table tbody td {
+    padding: 15px;
+}
+.borderspk{
+    border: 1px solid #cccccc !important;
+    border-radius: 5px
+      
 }

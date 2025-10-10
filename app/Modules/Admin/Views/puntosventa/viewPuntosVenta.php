@@ -151,7 +151,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         track-by="id"
                                         :multiple="true"
                                         :searchable="true"
-                                        :taggable="true"                                      
                                         :options-limit="10"
                                         :show-no-results="true"
                                         :options="listaEmpleados"                                    

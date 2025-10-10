@@ -33,26 +33,47 @@ function zFill(number, width) {
 }
 function sweet_msg_toast(status, msg) {
 
-    let msg_txt = '<strong style="font-size: 13px; color: black">' + msg + '</strong>';
+    let msg_txt = '<strong style="font-size: 13px">' + msg + '</strong>';
 
-    let colorBackground, colorIcon = '#fff', position = "bottom-center";
+    let colorBackground, colorIcon = '#fff', position = "bottom", borderColor = "#fff", colorText = "#fff";
 
-    if (status == "success")
-        colorIcon = '#11b682';
-    colorBackground = 'black';
+    switch (status) {
+        case 'success':
+            colorIcon = '#00C851';      // verde éxito
+            colorBackground = '#ecfdf5'; // verde oscuro fondo
+            borderColor = '#10b981';
+            colorText = '#00C851';
+            position = "bottom-end";
+            break;
 
-    if (status == "error")
-        colorIcon = '#f27474';
-    colorBackground = 'black';
+        case 'error':
+            colorIcon = '#8B0836';      // rojo error
+            colorBackground = '#FF6467'; // rojo oscuro fondo
+            borderColor = '#FB2C36';
+            colorText = '#8B0836';
+            position = "bottom";
+            break;
 
-    if (status == "info")
-        colorIcon = '#5fb6fd';
-    colorBackground = 'black';
+        case 'info':
+            colorIcon = '#33b5e5';      // azul informativo
+            colorBackground = '#B8E6FE'; // azul oscuro fondo
+            borderColor = '#33b5e5';
+            colorText = '#2C92B8';
+            position = "bottom";
+            break;
 
-    if (status == "warning")
-        colorIcon = '#FFCC00';
-    colorBackground = 'black';
+        case 'warning':
+            colorIcon = '#ffbb33';      // amarillo advertencia
+            colorBackground = '#fffbeb'; // amarillo oscuro fondo
+            borderColor = '#ffbb33';
+            colorText = '#FF8904';
+            position = "bottom";
+            break;
 
+        default:
+            colorIcon = '#cccccc';
+            colorBackground = '#1e1e1e';
+    }
     const Toast = Swal.mixin({
         toast: true,
         showClass: {
@@ -63,19 +84,22 @@ function sweet_msg_toast(status, msg) {
         },
         position: position,
         showConfirmButton: false,
-        timer: 4000,
-        iconColor: '#000',
-        background: colorIcon,
+        timer: 3000,
+        iconColor: colorIcon,
+        background: colorBackground,
         timerProgressBar: true,
+        color: colorText,
         didOpen: (toast) => {
+            toast.style.border = '3px solid ' + borderColor;   // 👈 borde personalizado
+            toast.style.borderRadius = '12px';          // esquinas redondeadas
             toast.addEventListener('mouseenter', Swal.stopTimer);
             toast.addEventListener('mouseleave', Swal.resumeTimer);
         }
-    })
+    });
     Toast.fire({
         icon: status,
         title: msg_txt
-    })
+    });
 }
 function sweet_msg_dialog(status, msg, ruta = '', e = '') {
 
@@ -84,19 +108,19 @@ function sweet_msg_dialog(status, msg, ruta = '', e = '') {
     var colorIcon = '#fff';
     var size = '40%';
 
-    if (status == "success") {
+    if (status === "success") {
         colorIcon = '#11b682';
         title = '! OK';
     }
-    if (status == "error") {
+    if (status === "error") {
         colorIcon = '#f27474';
         msg_txt = '<h5>Se ha detectado un fallo al procesar con la base de datos Comuniquese con el administrador del sistema ' + ' ' + e + ' <h5>';
         size = '30%';
     }
-    if (status == "info") {
+    if (status === "info") {
         colorIcon = '#5fb6fd';
     }
-    if (status == "warning") {
+    if (status === "warning") {
         colorIcon = '#FFCC00';
     }
     Swal.fire({
@@ -110,7 +134,7 @@ function sweet_msg_dialog(status, msg, ruta = '', e = '') {
         allowOutsideClick: false
     }).then((result) => {
         if (status === "success" && ruta !== '') {
-            window.location.href = baseUrl + ruta;
+            window.location.href = siteUrl + ruta;
         }
     });
 

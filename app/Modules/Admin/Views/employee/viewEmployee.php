@@ -226,7 +226,6 @@
                                         track-by="id"
                                         :multiple="true"
                                         :searchable="true"
-                                        :taggable="true"                                      
                                         :options-limit="10"
                                         :show-no-results="true"
                                         :options="listaBodegas"                                    

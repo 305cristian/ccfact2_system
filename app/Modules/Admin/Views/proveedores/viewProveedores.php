@@ -32,13 +32,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         track-by="prov_ruc"
                         :multiple="false"
                         :searchable="true"
-                        :taggable="true"
                         :options-limit="10"
                         :show-no-results="true"
                         :options="listaSearchProveedores"
                         @remove="onRemove($event)"
                         @input="setDataCiruc($event)"
-                        @search-change="searchProveedores($event)"/>
+                        @search-change="searchProveedores($event)">
 
                     <template slot="option" slot-scope="{ option }">
                         <span style="font-size: 12px">{{ option.prov_razon_social+': '}} <strong>{{ option.prov_ruc }} </strong></span>

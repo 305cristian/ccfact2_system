@@ -31,7 +31,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         track-by="clie_dni"
                         :multiple="false"
                         :searchable="true"
-                        :taggable="true"
                         :options-limit="10"
                         :show-no-results="true"
                         :options="listaSearchClientes"

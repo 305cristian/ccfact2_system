@@ -394,24 +394,28 @@ textarea {
 }
 
 fieldset {
-    min-width: 0;
-    padding: 0;
-    margin: 0;
-    border: 0
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 15px;
+    padding-top: 20px;
+    width: auto;
 }
 
 legend {
-    float: left;
-    width: 100%;
-    padding: 0;
-    margin-bottom: .5rem;
-    font-size: calc(1.275rem+ .3vw);
-    line-height: inherit
+    font-size: 15px;
+    font-weight: 500;
+    color: #404040;
+    border-radius: 8px;
+    margin-bottom: 1px;
+    padding: 5px 8px;
+    display: inline-block;
+    width: auto;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
 }
 
 @media (min-width:1200px) {
     legend {
-        font-size: 1.5rem
+        font-size: 15px
     }
 }
 
@@ -2220,6 +2224,7 @@ textarea.form-control-lg {
 .form-select {
     display: block;
     width: 100%;
+    cursor: pointer;
     padding: .375rem 2.25rem .375rem .75rem;
     -moz-padding-start: calc(0.75rem - 3px);
     font-size: 1rem;
@@ -3472,7 +3477,8 @@ fieldset:disabled .btn {
 
 .btn-outline-system:hover {
     color: #fff;
-    background-color: var(--colorSystem2)!important;;
+    background-color: var(--colorSystem2)!important;
+    ;
     border-color: var(--colorSystem2)!important;
 }
 
@@ -3487,7 +3493,8 @@ fieldset:disabled .btn {
 .btn-outline-system.dropdown-toggle.show,
 .btn-outline-system:active {
     color: #fff;
-    background-color: var(--colorSystem2)!important;;
+    background-color: var(--colorSystem2)!important;
+    ;
     border-color: var(--colorSystem2)!important;
 }
 
@@ -3501,7 +3508,8 @@ fieldset:disabled .btn {
 
 .btn-outline-system.disabled,
 .btn-outline-system:disabled {
-    color: var(--colorSystem2)!important;;
+    color: var(--colorSystem2)!important;
+    ;
     background-color: transparent
 }
 
@@ -3528,7 +3536,8 @@ fieldset:disabled .btn {
 .btn-outline-system-2.dropdown-toggle.show,
 .btn-outline-system-2:active {
     color: #fff;
-    background-color: var(--colorSystem)!important;;
+    background-color: var(--colorSystem)!important;
+    ;
     border-color: var(--colorSystem)!important;
 }
 
@@ -3542,7 +3551,7 @@ fieldset:disabled .btn {
 
 .btn-outline-system-2.disabled,
 .btn-outline-system-2:disabled {
-    color: var(--colorSystem)!important;;
+    color: var(--colorSystem)!important;
     background-color: transparent
 }
 
@@ -4769,7 +4778,10 @@ fieldset:disabled .btn {
     background-color: #fff;
     background-clip: border-box;
     border: 1px solid rgba(0, 0, 0, .125);
-    border-radius: .25rem
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 25px;
 }
 
 .card>hr {
@@ -4801,7 +4813,10 @@ fieldset:disabled .btn {
 
 .card-body {
     flex: 1 1 auto;
-    padding: 1rem 1rem
+    padding: 2rem 2rem;
+    border-right:3px solid var(--colorSystem2)!important;
+    background: #fafafa;
+
 }
 
 .card-title {
@@ -4826,11 +4841,18 @@ fieldset:disabled .btn {
 }
 
 .card-header {
-    padding: .5rem 1rem;
+    padding: .7rem 1rem;
     margin-bottom: 0;
     background-color: rgba(0, 0, 0, .03);
     border-bottom: 1px solid rgba(0, 0, 0, .125)
 }
+
+.card-header h5 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
 
 .card-header:first-child {
     border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0
@@ -4929,49 +4951,50 @@ fieldset:disabled .btn {
     }
 }
 
- .card-system:not(.card-outline)>.card-header {
- 	background-color: var(--colorSystem2)!important
- }
- 
- .card-system:not(.card-outline)>.card-header,
- .card-system:not(.card-outline)>.card-header a {
- 	color: #fff
- }
- 
- .card-system:not(.card-outline)>.card-header a.active {
- 	color: #1f2d3d
- }
- 
- .card-system.card-outline {
- 	border-top: 3px solid var(--colorSystem2)!important;
+.card-system:not(.card-outline)>.card-header {
+    background-color: var(--colorSystem)!important
+}
 
- }
- .card-system.card-header {
- 	border-top: 30px solid var(--colorSystem2)!important;
+.card-system:not(.card-outline)>.card-header,
+.card-system:not(.card-outline)>.card-header a {
+    color: #fff
+}
 
- }
- 
- .card-system.card-outline-tabs>.card-header a:hover {
- 	border-top: 3px solid #dee2e6;
- }
- 
- .card-system.card-outline-tabs>.card-header a.active {
- 	border-top: 3px solid var(--colorSystem2)!important;
-        border-left: 3px solid var(--colorSystem2)!important
+.card-system:not(.card-outline)>.card-header a.active {
+    color: #1f2d3d
+}
 
- }
- 
- .bg-gradient-system .btn-tool,
- .bg-system .btn-tool,
- .card-system:not(.card-outline) .btn-tool {
- 	color: rgba(255, 255, 255, .8)
- }
- 
- .bg-gradient-system .btn-tool:hover,
- .bg-system .btn-tool:hover,
- .card-system:not(.card-outline) .btn-tool:hover {
- 	color: #fff
- }
+.card-system.card-outline {
+    border-top: 3px solid var(--colorSystem)!important;
+
+}
+.card-system.card-header {
+    border-top: 30px solid var(--colorSystem)!important;
+
+}
+
+.card-system.card-outline-tabs>.card-header a:hover {
+    border-top: 3px solid #dee2e6;
+}
+
+.card-system.card-outline-tabs>.card-header a.active {
+    border-top: 3px solid var(--colorSystem)!important;
+    border-left: 3px solid var(--colorSystem)!important
+
+}
+
+
+.bg-gradient-system .btn-tool,
+.bg-system .btn-tool,
+.card-system:not(.card-outline) .btn-tool {
+    color: rgba(255, 255, 255, .8)
+}
+
+.bg-gradient-system .btn-tool:hover,
+.bg-system .btn-tool:hover,
+.card-system:not(.card-outline) .btn-tool:hover {
+    color: #fff
+}
 
 .accordion-button {
     position: relative;
@@ -8109,6 +8132,9 @@ fieldset:disabled .btn {
     color: #198754!important
 }
 .text-system {
+    color:  var(--colorSystem2)!important
+}
+.text-system-2 {
     color:  var(--colorSystem)!important
 }
 
@@ -8199,8 +8225,19 @@ fieldset:disabled .btn {
 .bg-transparent {
     background-color: transparent!important
 }
+.bg-cris-system2 {
+    background-color: color-mix(in srgb, var(--colorSystem) 70%, white);
+    color: white;
+}
+.bg-cris-system {
+    background-color: color-mix(in srgb, var(--colorSystem2) 70%, white);
+    color: white;
+}
 .bg-system {
-    background-color: var(--colorSystem)!important
+    background-color: var(--colorSystem);
+}
+.bg-system-2 {
+    background-color: var(--colorSystem2);
 }
 
 .bg-gradient {
@@ -8208,56 +8245,57 @@ fieldset:disabled .btn {
 }
 
 .card-system:not(.card-outline)>.card-header {
- 	background-color: var(--colorSystem)!important
- }
- 
- .card-system:not(.card-outline)>.card-header,
- .card-system:not(.card-outline)>.card-header a {
- 	color: #fff
- }
- 
- .card-system:not(.card-outline)>.card-header a.active {
- 	color: #1f2d3d
- }
- 
- .card-system.card-outline {
- 	border-top: 0px solid var(--colorSystem)!important
- }
- .card-header{
-     border-left:8px solid var(--colorSystem)!important
- }
- .card-header{
-     border-bottom:3px solid var(--colorSystem)!important
- }
- .card-body{
-     border-right:3px solid var(--colorSystem)!important
- }
+    background-color: var(--colorSystem2)!important
+}
 
- 
- .card-system.card-outline-tabs>.card-header a:hover {
- 	border-top: 3px solid #dee2e6
- }
- 
- .card-system.card-outline-tabs>.card-header a.active {
- 	border-top: 3px solid var(--colorSystem)!important
- }
- 
- .bg-system .btn-tool,
- .bg-gradient-system .btn-tool,
- .card-system:not(.card-outline) .btn-tool {
- 	color: rgba(255, 255, 255, .8)
- }
- 
- .bg-system .btn-tool:hover,
- .bg-gradient-system .btn-tool:hover,
- .card-system:not(.card-outline) .btn-tool:hover {
- 	color: #fff
- }
- 
-  .bg-gradient-system {
- 	background: var(--colorSystem) linear-gradient(160deg, var(--colorSystem2), var(--colorSystem)) repeat-x!important;
- 	color: #fff
- }
+.card-system:not(.card-outline)>.card-header,
+.card-system:not(.card-outline)>.card-header a {
+    color: #fff
+}
+
+.card-system:not(.card-outline)>.card-header a.active {
+    color: #1f2d3d
+}
+
+.card-system.card-outline {
+    border-top: 0px solid var(--colorSystem2)!important
+}
+.card-header{
+    border-left:5px solid var(--colorSystem2)!important;
+    border-bottom:3px solid var(--colorSystem2)!important;
+    border-top-left-radius: 10px !important;
+    overflow: hidden;
+
+}
+
+.card-system.card-outline-tabs>.card-header a:hover {
+    border-top: 3px solid #dee2e6
+}
+
+.card-system.card-outline-tabs>.card-header a.active {
+    border-top: 3px solid var(--colorSystem)!important
+}
+
+.bg-system .btn-tool,
+.bg-gradient-system .btn-tool,
+.card-system:not(.card-outline) .btn-tool {
+    color: rgba(255, 255, 255, .8)
+}
+
+.bg-system .btn-tool:hover,
+.bg-gradient-system .btn-tool:hover,
+.card-system:not(.card-outline) .btn-tool:hover {
+    color: #fff
+}
+
+.bg-gradient-system {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--colorSystem2) 80%, white),
+        color-mix(in srgb, var(--colorSystem) 80%, white)
+        )repeat-x!important;
+    color: #fff
+}
 
 .user-select-all {
     -webkit-user-select: all!important;

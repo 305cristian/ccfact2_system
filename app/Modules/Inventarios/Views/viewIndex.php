@@ -31,8 +31,6 @@
                         </div>
                         <div class="p-4">
                             <span class="info-box-icon2 push-bottom"><i class="<?= $smod->md_icon ?>"></i></span>
-
-
                         </div>
                     </div>
                 </a>

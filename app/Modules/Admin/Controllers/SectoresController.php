@@ -21,6 +21,7 @@ class SectoresController extends \App\Controllers\BaseController {
 
     //put your code here
     protected $provModel;
+    protected $dirViewModule;
 
     public function __construct() {
 
