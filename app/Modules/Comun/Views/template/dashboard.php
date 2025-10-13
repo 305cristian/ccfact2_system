@@ -133,6 +133,10 @@
 
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/js/directivasVue.js.js"></script>
+    <script> Vue.use(AllDirectives);</script>
+
+
 
 </head>
 
@@ -268,11 +272,11 @@
         <div class="content-wrapper mt-5">
             <div class="row">
                 <div id='content-main-vue' class="content-header mt-3 pl-4 pr-3">
-                   
+
                     <?php echo $view; ?>
 
                 </div> 
-                 
+
             </div> 
         </div>
         <!-- HASTA AQUI TERMINA EL CONTENT MAIN-->
@@ -295,163 +299,163 @@
 </html>
 
 <script type="text/javascript">
-        var v = new Vue({
-            el: '#app2',
-            data: {
-                pathname: 'url',
-                'bg-system': 'bg-system'
-            },
-            methods: {
-                async navigate(uri) {
-                    this.pathname = uri;
-                    try {
-                        swalLoading('Cargando vista...');
-                        let response = await axios.get(uri);
-                        if (response) {
-                            $('#content-main-vue').html(response.data.view);
-                            Swal.close();
-                        }
-                    } catch (e) {
-                        sweet_msg_toast('error',e.response.data.message);
+    var v = new Vue({
+        el: '#app2',
+        data: {
+            pathname: 'url',
+            'bg-system': 'bg-system'
+        },
+        methods: {
+            async navigate(uri) {
+                this.pathname = uri;
+                try {
+                    swalLoading('Cargando vista...');
+                    let response = await axios.get(uri);
+                    if (response) {
+                        $('#content-main-vue').html(response.data.view);
+                        Swal.close();
                     }
+                } catch (e) {
+                    sweet_msg_toast('error', e.response.data.message);
                 }
             }
-        });
+        }
+    });
 
-        var app = new Vue({
-            el: "#v_app",
-            data: {
-                url: siteUrl,
-                dataEmpleado: {},
-                passActual: '',
-                passNew: '',
-                passConfNew: '',
-                colors: [
-                    {id: 0, hex: "#f12711", disabled: false},
-                    {id: 1, hex: "#f5af19", disabled: false}
-                ],
-                id: 2
+    var app = new Vue({
+        el: "#v_app",
+        data: {
+            url: siteUrl,
+            dataEmpleado: {},
+            passActual: '',
+            passNew: '',
+            passConfNew: '',
+            colors: [
+                {id: 0, hex: "#f12711", disabled: false},
+                {id: 1, hex: "#f5af19", disabled: false}
+            ],
+            id: 2
 
-            },
+        },
 
-            computed: {
-                gradient() {
-                    let colors = "linear-gradient(45deg";
-                    this.colors.forEach(function (e) {
-                        colors += "," + e.hex;
-                    });
-                    colors += ")";
-                    return colors;
-                }
-            },
-
-            methods: {
-
-                async getDataEmpleado() {
-
-                    let datos = {
-                        idUser: userId
-                    };
-                    let response = await  axios.post(this.url + '/admin/empleado', datos);
-                    if (response.data) {
-                        app.dataEmpleado = {
-                            nombre: response.data.emp_nombre,
-                            apellido: response.data.emp_apellido,
-                            usuario: response.data.emp_username,
-                            email: response.data.emp_email,
-                            celular: response.data.emp_celular,
-                            idUser: response.data.id
-                        };
-                    }
-                },
-                async updateEmployee() {
-                    if (!app.dataEmpleado.usuario) {
-                        sweet_msg_toast('warning', 'El nombre de usuario no puede estar vacio');
-                        return false;
-                    }
-                    if (app.dataEmpleado.usuario.length <= 3) {
-                        sweet_msg_toast('warning', 'El nombre de usuario debe contener al menos 4 caracteres');
-                        return false;
-                    }
-                    if (!app.dataEmpleado.nombre) {
-                        sweet_msg_toast('warning', 'El nombre del empleado no puede estar vacio');
-                        return false;
-                    }
-                    if (!app.dataEmpleado.apellido) {
-                        sweet_msg_toast('warning', 'El apellido del empleado no puede estar vacio');
-                        return false;
-                    }
-                    if (!app.dataEmpleado.email) {
-                        sweet_msg_toast('warning', 'El email del empleado no puede estar vacio');
-                        return false;
-                    }
-                    if (!app.dataEmpleado.celular) {
-                        sweet_msg_toast('warning', 'El celular del empleado no puede estar vacio');
-                        return false;
-                    }
-                    try {
-                        let datos = app.dataEmpleado;
-                        let response = await axios.post(this.url + '/admin/updateEmployee', datos);
-                        if (response) {
-                            sweet_msg_dialog('success', 'Datos actualizados exitosamente', '/');
-                        }
-                    } catch (e) {
-                        sweet_msg_dialog('error', '', '', e);
-                    }
-
-                },
-                async resetPassword() {
-                    if (app.passNew.length <= 3) {
-                        sweet_msg_toast('warning', 'La contraseña debe contener al menos 4 caracteres');
-                        return false;
-                    }
-                    try {
-                        let datos = {
-                            passActual: app.passActual,
-                            passNew: app.passNew,
-                            passConfNew: app.passConfNew
-                        };
-                        let response = await axios.post(this.url + '/admin/resetPassword', datos);
-                        if (response.data.estado === 'success') {
-                            sweet_msg_dialog('success', response.data.msg, '/');
-                        } else if (response.data.estado === 'danger') {
-                            sweet_msg_dialog('warning', response.data.msg);
-                        }
-                    } catch (e) {
-                        sweet_msg_dialog('error', '', '', e)
-                    }
-
-                },
-
-                async changeThemes() {
-                    let datos = {
-                        color1: app.colors[0].hex,
-                        color2: app.colors[1].hex
-                    };
-                    let response = await axios.post(this.url + '/admin/changeThemes', datos);
-                    if (response.data) {
-                        sweet_msg_dialog('success', 'Tema actualizado exitosamente', '/');
-                    }
-
-
-                },
-                generateGradient() {
-                    for (let i = 0; i < this.colors.length; i++) {
-                        if (this.colors[i].disabled === false)
-                            this.colors[i].hex = this.randomHex();
-                    }
-                },
-                randomHex() {
-                    return (
-                            "#" +
-                            Math.random()
-                            .toString(16)
-                            .slice(2, 8)
-                            );
-                }
-
+        computed: {
+            gradient() {
+                let colors = "linear-gradient(45deg";
+                this.colors.forEach(function (e) {
+                    colors += "," + e.hex;
+                });
+                colors += ")";
+                return colors;
             }
-        });
+        },
+
+        methods: {
+
+            async getDataEmpleado() {
+
+                let datos = {
+                    idUser: userId
+                };
+                let response = await  axios.post(this.url + '/admin/empleado', datos);
+                if (response.data) {
+                    app.dataEmpleado = {
+                        nombre: response.data.emp_nombre,
+                        apellido: response.data.emp_apellido,
+                        usuario: response.data.emp_username,
+                        email: response.data.emp_email,
+                        celular: response.data.emp_celular,
+                        idUser: response.data.id
+                    };
+                }
+            },
+            async updateEmployee() {
+                if (!app.dataEmpleado.usuario) {
+                    sweet_msg_toast('warning', 'El nombre de usuario no puede estar vacio');
+                    return false;
+                }
+                if (app.dataEmpleado.usuario.length <= 3) {
+                    sweet_msg_toast('warning', 'El nombre de usuario debe contener al menos 4 caracteres');
+                    return false;
+                }
+                if (!app.dataEmpleado.nombre) {
+                    sweet_msg_toast('warning', 'El nombre del empleado no puede estar vacio');
+                    return false;
+                }
+                if (!app.dataEmpleado.apellido) {
+                    sweet_msg_toast('warning', 'El apellido del empleado no puede estar vacio');
+                    return false;
+                }
+                if (!app.dataEmpleado.email) {
+                    sweet_msg_toast('warning', 'El email del empleado no puede estar vacio');
+                    return false;
+                }
+                if (!app.dataEmpleado.celular) {
+                    sweet_msg_toast('warning', 'El celular del empleado no puede estar vacio');
+                    return false;
+                }
+                try {
+                    let datos = app.dataEmpleado;
+                    let response = await axios.post(this.url + '/admin/updateEmployee', datos);
+                    if (response) {
+                        sweet_msg_dialog('success', 'Datos actualizados exitosamente', '/');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e);
+                }
+
+            },
+            async resetPassword() {
+                if (app.passNew.length <= 3) {
+                    sweet_msg_toast('warning', 'La contraseña debe contener al menos 4 caracteres');
+                    return false;
+                }
+                try {
+                    let datos = {
+                        passActual: app.passActual,
+                        passNew: app.passNew,
+                        passConfNew: app.passConfNew
+                    };
+                    let response = await axios.post(this.url + '/admin/resetPassword', datos);
+                    if (response.data.estado === 'success') {
+                        sweet_msg_dialog('success', response.data.msg, '/');
+                    } else if (response.data.estado === 'danger') {
+                        sweet_msg_dialog('warning', response.data.msg);
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e)
+                }
+
+            },
+
+            async changeThemes() {
+                let datos = {
+                    color1: app.colors[0].hex,
+                    color2: app.colors[1].hex
+                };
+                let response = await axios.post(this.url + '/admin/changeThemes', datos);
+                if (response.data) {
+                    sweet_msg_dialog('success', 'Tema actualizado exitosamente', '/');
+                }
+
+
+            },
+            generateGradient() {
+                for (let i = 0; i < this.colors.length; i++) {
+                    if (this.colors[i].disabled === false)
+                        this.colors[i].hex = this.randomHex();
+                }
+            },
+            randomHex() {
+                return (
+                        "#" +
+                        Math.random()
+                        .toString(16)
+                        .slice(2, 8)
+                        );
+            }
+
+        }
+    });
 
 
 </script>

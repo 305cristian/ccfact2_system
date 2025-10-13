@@ -17,17 +17,27 @@
 namespace Modules\AjustesEntrada\Controllers;
 
 use Modules\Comun\Models\SearchsModel;
+use Modules\Comun\Models\ProductoModel;
+use Modules\AjustesEntrada\Libraries\EntradasCartLib;
+use Modules\AjustesEntrada\Models\EntradasModel;
 
 class IndexController extends \App\Controllers\BaseController {
 
     //put your code here
     protected $dirViewModule;
-    protected $searchModel;
+    protected $antradasModel;
+    protected $prodModel;
+    protected $ajenCart;
 
     public function __construct() {
         $this->dirViewModule = 'Modules\AjustesEntrada\Views';
 
-        $this->searchModel = new SearchsModel();
+        //IMPORTACION DE MODELOS
+        $this->antradasModel = new EntradasModel();
+        $this->prodModel = new ProductoModel();
+
+        //IMPORTACION DE LIBRERIAS
+        $this->ajenCart = new EntradasCartLib();
     }
 
     public function index() {
@@ -48,37 +58,112 @@ class IndexController extends \App\Controllers\BaseController {
     }
 
     public function insertProduct() {
-        
-        $dataPost= json_decode(file_get_contents("php://input"));
 
-        $existe = $this->searchProductoCode($dataPost->id);
-        if (!$existe) {
+        $dataPost = json_decode(file_get_contents("php://input"));
+
+        $idProd = $dataPost->id;
+        $cantidad = $dataPost->qty;
+        $permitirDuplicados = $dataPost->permitirDuplicados;
+
+        if ($idProd <= '0' or $idProd == null) {
             $msg['status'] = "warning";
-            $msg['msg'] = "No se ha encontrado el producto con el codigo: " . $dataPost->id;
+            $msg['msg'] = "No pueden haber productos con código 0 o NULO ";
             return $this->response->setJSON($msg);
         }
+
+        $dataProducto = $this->antradasModel->searchProductoData($idProd);
+        if (!$dataProducto) {
+            $msg['status'] = "warning";
+            $msg['msg'] = "No se ha encontrado el producto con el codigo: " . $idProd;
+            return $this->response->setJSON($msg);
+        }
+
+
+        $impuestos = $this->prodModel->getImpuestoTarifa($dataProducto->id);
+        $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
+        $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
+
+        $item = [
+            "id" => (int) $dataProducto->id,
+            "qty" => (float) $cantidad,
+            "codigo" => $dataProducto->prod_codigo,
+            "name" => $dataProducto->prod_nombre,
+            "unidadMedida" => null,
+            "price" => (float) $dataProducto->prod_costopromedio,
+            "stock" => $dataProducto->prod_stockactual,
+            "stockBodega" => 0,
+            "ivaPorcent" => $tarifaIva,
+            "icePorcent" => $tarifaIce,
+            "tieneLote" => $dataProducto->prod_ctrllote,
+            "permitirDuplicados" => $permitirDuplicados,
+//            "lote" => $dataPost->lote ?? null,
+//            "fechaElaboracion" => $dataPost->fechaElaboracion ?? null,
+//            "fechaCaducidad" => $dataPost->fechaCaducidad ?? null,
+        ];
+        $item['servicio'] = $dataProducto->prod_isservicio;
+        $this->ajenCart->insert($item);
 
         $msg['status'] = "success";
         $msg['msg'] = "Producto agregado al carrito";
         return $this->response->setJSON($msg);
     }
 
-//    public function showDetailCart() {
-//        $data['total_articles'] = $this->depachoseppcart->total_articles();
-//        $data['total_items'] = $this->countData($this->depachoseppcart->get_content());
-//        $data['total_cart'] = $this->depachoseppcart->total_cart();
-//        $data['despachos'] = $this->arrayReverse($this->depachoseppcart->get_content());
-//        echo json_encode($data);
-//    }
+    public function updateProduct() {
+        $dataPost = json_decode(file_get_contents("php://input"));
+
+        $idProd = $dataPost->id;
+        $cantidad = $dataPost->qty;
+        $permitirDuplicados = $dataPost->permitirDuplicados;
+
+        if ($idProd <= '0' or $idProd == null) {
+            $msg['status'] = "warning";
+            $msg['msg'] = "No pueden haber productos con código 0 o NULO ";
+            return $this->response->setJSON($msg);
+        }
+
+        $item = [
+            "id" => (int) $idProd,
+            "qty" => (float) $cantidad,
+            "codigo" => $dataPost->codigo,
+            "name" => $dataPost->name,
+            "unidadMedida" => null,
+            "price" => (float) $dataPost->price,
+            "stock" => $dataPost->stock,
+            "stockBodega" => 0,
+            "ivaPorcent" => $dataPost->ivaPorcent,
+            "icePorcent" => $dataPost->icePorcent,
+            "tieneLote" => $dataPost->tieneLote,
+            "permitirDuplicados" => $permitirDuplicados,
+            "lote" => $dataPost->lote ?? null,
+            "fechaElaboracion" => $dataPost->fechaElaboracion ?? null,
+            "fechaCaducidad" => $dataPost->fechaCaducidad ?? null,
+        ];
+        $item['servicio'] = $dataPost->servicio;
+
+        $this->ajenCart->update($item);
+        $msg['status'] = "success";
+        $msg['msg'] = "Producto actualizado";
+        return $this->response->setJSON($msg);
+    }
+
+    public function showDetailCart() {
+        $cartContent = $this->ajenCart->getContent();
+        $data['cartContent'] = $cartContent ? array_reverse($cartContent) : null;
+        $data['totalArticles'] = $this->ajenCart->totalArticles();
+        $data['totalItems'] = $cartContent ? count($cartContent) : null;
+        $data['totalCart'] = $this->ajenCart->totalCart();
+        $data['totalIva'] = $this->ajenCart->totalIva();
+        $data['totalBienes'] = $this->ajenCart->totalBienes();
+        $data['totalServicios'] = $this->ajenCart->totalServicios();
+        $data['totalCartIva'] = $this->ajenCart->totalCartIva();
+        return $this->response->setJSON($data);
+    }
+
+    public function deleteProduct($rowId) {
+        $this->ajenCart->removeItem($rowId);
+    }
 
     public function saveAjuste() {
         return $this->response->setJSON(['status' => "success", 'msg' => "Ajuste registrado exitosamente"]);
-    }
-
-    public function searchProductoCode($codProd) {
-        if ($codProd) {
-            $response = $this->searchModel->searchProductoCode($codProd);
-            return $response ? $response : false;
-        }
     }
 }

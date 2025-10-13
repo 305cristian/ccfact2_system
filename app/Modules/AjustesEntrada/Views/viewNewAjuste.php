@@ -112,7 +112,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <legend>Búsqueda de Productos y Selección des proveedor</legend>
                 <!-- Datos del Producto -->
                 <div class="row">
-                    
+
                     <div class="col-md-4 form-group-custom">
                         <div class="d-flex justify-content-between align-items-center">
                             <vue-multiselect
@@ -140,7 +140,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     <div class="col-md-3 form-group-custom">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Cod. Producto / Cod. Común / Código de Barras" @keyup.enter="insertProductCode($event)">
+                            <input type="text" class="form-control" v-model="codeSearch" placeholder="Cod. Producto / Cod. Común / Código de Barras" @keyup.enter="insertProductCode($event)">
                             <span class="input-group-text"><i class="fas fa-qrcode"></i></span>
                         </div>
                     </div>
@@ -198,6 +198,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaMotivos = <?= json_encode($listaMotivos); ?>;
     var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
 
+    var permitirDuplicados = <?php echo getSettings('PERMITIR_ITEMS_DUPLICADOS'); ?>;
+
     var searchTimeout = null;
 
     var v = new Vue({
@@ -227,61 +229,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             //DATOS DEL CART
-            listaCartData: '',
+            listaCartData: [],
             totalCart: '',
+            totalIva: '',
+            totalCartIva: '',
             totalItems: '',
             totalArticles: '',
-            emptyCar: false,
-
-            cartAjuste: [],
-            subtotal: 0,
-            iva: 0,
-            total: 0,
+            totalBienes: '',
+            totalServicios: '',
+            emptyCar: true,
 
             //VUE-MULTISELECT PROVEEDOR
             listaSearchProveedores: [],
 
+            permitirDuplicados: permitirDuplicados,
+
             //VUE-MULTISELECT PRODUCTOS
             listaSearchProductos: [],
             productoVmodel: null,
+            codeSearch: "",
 
             loading: false
         },
-        mounted() {
-            // Datos de ejemplo
-            this.cartAjuste = [
-                {
-                    codigo: 'PROD001',
-                    nombre: 'Producto 1 - Materia Prima',
-                    lote: 'LOTE001',
-                    fechaElaboracion: '2024-12-31',
-                    fechaCaducidad: '2024-12-31',
-                    cantidad: 10,
-                    precio: 50.00,
-                    stock: 100,
-                    seleccionado: false
-                },
-                {
-                    codigo: 'PROD002',
-                    nombre: 'Producto 2 - Embalaje',
-                    lote: 'LOTE002',
-                    fechaCaducidad: '2025-06-30',
-                    cantidad: 25,
-                    precio: 75.50,
-                    stock: 50,
-                    seleccionado: false
-                }
-            ];
-            this.calcularTotal();
+        created() {
+            this.showDetailCart();
         },
-//        watch: {
-////            cartAjuste: {
-////                handler() {
-////                    this.calcularTotal();
-////                },
-////                deep: true
-////            }
-//        },
         methods: {
 
             async saveAjuste() {
@@ -352,6 +324,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             onRemove() {
                 this.listaSearchProductos = [];
                 this.productoVmodel = "";
+                this.codeSearch = "";
             },
 
             async insertProductCode(evt) {
@@ -360,17 +333,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return false;
                 }
                 let datos = {id: evt.target.value};
-                await this.insertProduct(datos);
+                await this.insertProductCart(datos);
 
                 //LA VALIDACION DE EXISTENCIA DEL PRODUCTO SE LA REALIZARA AL MOMENTO DE INSERTARLO
 
             },
-            async insertProduct(data) {
+            async insertProductCart(item) {
                 this.onRemove();//Removemos datos del anterior producto insertado
 
                 let datos = {
-                    id: data.id,
-                    qty: 1
+                    id: item.id,
+                    qty: 1,
+                    permitirDuplicados: this.permitirDuplicados
                 };
 
                 try {
@@ -389,26 +363,58 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.loading = false;
                 }
 
+                this.showDetailCart();
+            },
 
-//                this.showDetailCart();
+            async updateProductCart(item) {
+                this.onRemove();//Removemos datos del anterior producto insertado
+
+                if (item.qty <= 0) {
+                    item.qty = 1;
+                    sweet_msg_toast('warning', 'La cantidad debe ser mayor a cero');
+                    return false;
+                }
+
+                let datos = item;
+
+                try {
+                    this.loading = true;
+
+                    let {data} = await axios.post(this.url + '/ajustesentrada/updateProduct', datos);
+                    if (data.status === "success") {
+                        sweet_msg_toast('success', data.msg);
+                    } else if (data.status === "warning") {
+                        sweet_msg_toast('warning', data.msg);
+                    }
+
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
+
+                this.showDetailCart();
             },
 
             async showDetailCart() {
 
                 try {
-                    let response = await axios.post(this.url + '/ajustesentrada/showDetailCart');
+                    let {data} = await axios.post(this.url + '/ajustesentrada/showDetailCart');
 
-                    if (response.data.total_items > 0) {
+                    if (data.totalArticles > 0) {
 
                         //TODO DATOS LISTAS
-                        this.listaCartData = response.data.despachos;
-                        this.totalCart = response.data.total_cart;
-                        this.totalItems = response.data.total_items;
-                        this.totalArticles = response.data.total_articles;
+                        this.listaCartData = data.cartContent;
+                        this.totalArticles = data.totalArticles;
+                        this.totalItems = data.totalItems;
+                        this.totalCart = data.totalCart;
+                        this.totalCartIva = data.totalCartIva;
+                        this.totalIva = data.totalIva;
+                        this.totalBienes = data.totalBienes;
+                        this.totalServicios = data.totalServicios;
                         this.emptyCar = false;
 
                     } else {
-                        sweet_msg_dialog('warning', 'No hay productos Agregados');
                         this.emptyCar = true;
                         this.listaCartData = [];
                     }
@@ -432,17 +438,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 });
             },
 
-            eliminarProducto(index) {
-                this.cartAjuste.splice(index, 1);
-                this.todosSeleccionados = false;
-            },
-            calcularTotal() {
-                this.subtotal = this.cartAjuste.reduce((sum, item) => sum + (item.cantidad * item.precio), 0);
-                this.iva = this.subtotal * 0; // 0% IVA por defecto
-                this.total = this.subtotal + this.iva;
-            },
-            clear() {
+            async deleteProduct(rowId) {
 
+                try {
+                    this.loading = true;
+                    await axios.post(this.url + '/ajustesentrada/deleteProduct/' + rowId);
+                    this.showDetailCart();
+                    sweet_msg_toast('info', 'Producto eliminado exitosamente');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
+
+
+
+            },
+
+            formatMoney(amount) {
+                return parseFloat(amount).toFixed(2);
             },
 
             formData(obj) {

@@ -43,6 +43,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     min-width: 30%;
 }
 
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin: 10px 0;
+}
+
 .summary-row {
     display: flex;
     justify-content: space-between;
@@ -97,6 +115,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     border-radius: 6px;
     padding: 6px;
     font-weight: 600;
+}
+.price-cell {
+    font-weight: 600;
+    color: var(--primary-color);
+    font-size: 1.05rem;
+}
+
+.badge-type {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--colorSystem2) 80%, #1e40af 100%);
+    color: white;
 }
 
 .form-group-custom {
@@ -274,5 +308,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 .borderspk{
     border: 1px solid #cccccc !important;
     border-radius: 5px
-      
+
 }

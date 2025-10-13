@@ -49,12 +49,8 @@ class SearchsModel extends \CodeIgniter\Model {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos");
 
-//        if ($params->val == "name") {
         $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
-//        } else {
-//            $builder->where("tb1.id",`'`.$params->dataSerach.`'`);
-//            $builder->orWhere("tb1.prod_codigo",`'`.$params->dataSerach.`'`);
-//        }
+
         $builder->limit(15);
 
         $response = $builder->get();

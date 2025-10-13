@@ -79,7 +79,7 @@ class EntradasCartLib {
                         'total_bienes' => 0,
                         'total_servicios' => 0,
                         'tarif_cero' => 0,
-                        'tarif_doce' => 0,
+                        'tarif_ceroneto' => 0,
                         'tarif_iva' => 0,
                         'tarif_ivaneto' => 0,
                         'ci_client' => null
@@ -92,19 +92,19 @@ class EntradasCartLib {
     /**
      * Guardar solo cuando sea necesario
      */
-    private function saveToSession() {
-        if ($this->isDirty) {
-            $this->session->set($this->instance, $this->cart);
-            $this->isDirty = false;
-        }
-    }
+//    private function saveToSession() {
+//        if ($this->isDirty) {
+//            $this->session->set($this->instance, $this->cart);
+//            $this->isDirty = false;
+//        }
+//    }
 
     /**
      * Destructor - guardar automáticamente al finalizar
      */
-    public function __destruct() {
-        $this->saveToSession();
-    }
+//    public function __destruct() {
+//        $this->saveToSession();
+//    }
 
     /**
      * Guardar inmediatamente (fuerza el guardado)
@@ -121,7 +121,7 @@ class EntradasCartLib {
     /**
      * Insert con cálculos optimizados
      */
-    public function insert($items = array(), $update = false) {
+    public function insert($items = [], $update = false) {
         if (!isset($items["id"]) || !isset($items["qty"]) || !isset($items["price"])) {
             throw new \Exception("Id, qty and price are required fields!");
         }
@@ -134,10 +134,13 @@ class EntradasCartLib {
             throw new \Exception("The last row insert method must be an array");
         }
 
+
+
         $rowid = $this->_insert($items, $update);
 
         if ($rowid) {
             $this->isDirty = true;
+            $this->save();
             return true;
         }
 
@@ -170,7 +173,7 @@ class EntradasCartLib {
     /**
      * Insert interno optimizado
      */
-    private function _insert($items = array(), $update = false) {
+    private function _insert($items = [], $update = false) {
         // Generar rowid
         if (isset($items['options'])) {
             $rowid = md5($items['id'] . implode('', $items['options']));
@@ -194,9 +197,11 @@ class EntradasCartLib {
 
         $items["priceneto"] = $price_neto;
         $items["totalpriceneto"] = $price_neto * $qty;
+        echo $price_neto . ' * ' . $qty . ' = ' . $items["totalpriceneto"];
+        echo '<br>';
 
         // ICE
-        $iceporcent = isset($items['iceporcent']) ? (float) $items['iceporcent'] : 0;
+        $iceporcent = isset($items['icePorcent']) ? (float) $items['icePorcent'] : 0;
         $iceval = $iceporcent > 0 ? ($price_neto * $iceporcent) / 100 : 0;
 
         $items['iceval'] = $iceval;
@@ -209,7 +214,8 @@ class EntradasCartLib {
         $items['itembaseiva'] = $base_iva;
         $items['totitembaseiva'] = $base_iva * $qty;
 
-        $ivaporcent = isset($items['ivaporcent']) ? (float) $items['ivaporcent'] : 0;
+        /* iva por cada unidad del producto */
+        $ivaporcent = isset($items['ivaPorcent']) ? (float) $items['ivaPorcent'] : 0;
         $ivaval = ($base_iva * $ivaporcent) / 100;
 
         $items['ivaval'] = $ivaval;
@@ -257,7 +263,7 @@ class EntradasCartLib {
 //        $items["priceneto"] = $price_neto;
 //        $items["totalpriceneto"] = $price_neto * $qty;
 //
-//        $iceporcent = isset($items['iceporcent']) ? (float) $items['iceporcent'] : 0;
+//        $iceporcent = isset($items['icePorcent']) ? (float) $items['icePorcent'] : 0;
 //        $iceval = $iceporcent > 0 ? ($price_neto * $iceporcent) / 100 : 0;
 //
 //        $items['iceval'] = $iceval;
@@ -299,12 +305,12 @@ class EntradasCartLib {
             $meta['total_articles'] -= $oldItem['qty'];
             $meta['total_iva'] -= ($oldItem['totivaval'] ?? 0);
 
-            $ivaporcent = isset($oldItem['ivaporcent']) ? $oldItem['ivaporcent'] : 0;
+            $ivaporcent = isset($oldItem['ivaPorcent']) ? $oldItem['ivaPorcent'] : 0;
             if ($ivaporcent == 0) {
                 $meta['tarif_cero'] -= ($oldItem['price'] * $oldItem['qty']);
-                $meta['tarif_iva'] -= ($oldItem['priceneto'] * $oldItem['qty']);
+                $meta['tarif_ceroneto'] -= ($oldItem['priceneto'] * $oldItem['qty']);
             } else {
-                $meta['tarif_doce'] -= ($oldItem['price'] * $oldItem['qty']);
+                $meta['tarif_iva'] -= ($oldItem['price'] * $oldItem['qty']);
                 $meta['tarif_ivaneto'] -= ($oldItem['priceneto'] * $oldItem['qty']);
             }
 
@@ -321,12 +327,12 @@ class EntradasCartLib {
         $meta['total_articles'] += $newItem['qty'];
         $meta['total_iva'] += ($newItem['totivaval'] ?? 0);
 
-        $ivaporcent = isset($newItem['ivaporcent']) ? $newItem['ivaporcent'] : 0;
+        $ivaporcent = isset($newItem['ivaPorcent']) ? $newItem['ivaPorcent'] : 0;
         if ($ivaporcent == 0) {
             $meta['tarif_cero'] += ($newItem['price'] * $newItem['qty']);
-            $meta['tarif_iva'] += ($newItem['priceneto'] * $newItem['qty']);
+            $meta['tarif_ceroneto'] += ($newItem['priceneto'] * $newItem['qty']);
         } else {
-            $meta['tarif_doce'] += ($newItem['price'] * $newItem['qty']);
+            $meta['tarif_iva'] += ($newItem['price'] * $newItem['qty']);
             $meta['tarif_ivaneto'] += ($newItem['priceneto'] * $newItem['qty']);
         }
 
@@ -346,7 +352,8 @@ class EntradasCartLib {
     /**
      * Obtener contenido sin los metadatos
      */
-    public function get_content() {
+    public function getContent() {
+
         $result = [];
         foreach ($this->cart as $key => $item) {
             if ($key !== '_meta') {
@@ -359,44 +366,44 @@ class EntradasCartLib {
     /**
      * Totales desde cache en memoria
      */
-    public function total_cart() {
-        return $this->cart['_meta']['total_cart'] ?? 0;
+    public function totalCart() {
+        return round($this->cart['_meta']['total_cart'], 4) ?? 0;
     }
 
-    public function total_iva() {
-        return $this->cart['_meta']['total_iva'] ?? 0;
+    public function totalIva() {
+        return round($this->cart['_meta']['total_iva'], 4) ?? 0;
     }
 
-    public function totalcart_iva() {
-        return $this->cart['_meta']['totalcart_iva'] ?? 0;
+    public function totalCartIva() {
+        return round($this->cart['_meta']['totalcart_iva'], 4) ?? 0;
     }
 
-    public function total_bienes() {
-        return $this->cart['_meta']['total_bienes'] ?? 0;
+    public function totalBienes() {
+        return round($this->cart['_meta']['total_bienes'], 4) ?? 0;
     }
 
-    public function total_servicios() {
-        return $this->cart['_meta']['total_servicios'] ?? 0;
+    public function totalServicios() {
+        return round($this->cart['_meta']['total_servicios'], 4) ?? 0;
     }
 
-    public function total_articles() {
+    public function totalArticles() {
         return $this->cart['_meta']['total_articles'] ?? 0;
     }
 
-    public function tarif_cero() {
-        return $this->cart['_meta']['tarif_cero'] ?? 0;
+    public function tarifCero() {
+        return round($this->cart['_meta']['tarif_cero'], 4) ?? 0;
     }
 
-    public function tarif_iva() {
-        return $this->cart['_meta']['tarif_iva'] ?? 0;
+    public function tarifCeroNeto() {
+        return round($this->cart['_meta']['tarif_ceroneto'], 4) ?? 0;
     }
 
-    public function tarif_doce() {
-        return $this->cart['_meta']['tarif_doce'] ?? 0;
+    public function tarifIva() {
+        return round($this->cart['_meta']['tarif_iva'], 2) ?? 0;
     }
 
-    public function tarif_ivaneto() {
-        return $this->cart['_meta']['tarif_ivaneto'] ?? 0;
+    public function tarifIvaNeto() {
+        return round($this->cart['_meta']['tarif_ivaneto'], 4) ?? 0;
     }
 
 //    public function update2($item = array(), $rowidRand) {
@@ -422,7 +429,7 @@ class EntradasCartLib {
 //        return true;
 //    }
 
-    public function update($item = array()) {
+    public function update($item = []) {
         if ($this->cart === null) {
             throw new \Exception("Cart does not exist!");
         }
@@ -454,7 +461,7 @@ class EntradasCartLib {
         return true;
     }
 
-    public function remove_item($rowid = '') {
+    public function removeItem($rowid = '') {
         if ($this->cart === null) {
             throw new \Exception("Cart does not exist!");
         }
@@ -471,7 +478,7 @@ class EntradasCartLib {
 
         unset($this->cart[$rowid]);
         $this->isDirty = true;
-
+        $this->save();
         return true;
     }
 
@@ -485,19 +492,20 @@ class EntradasCartLib {
                 'total_bienes' => 0,
                 'total_servicios' => 0,
                 'tarif_cero' => 0,
-                'tarif_doce' => 0,
+                'tarif_ceroneto' => 0,
                 'tarif_iva' => 0,
                 'tarif_ivaneto' => 0,
                 'ci_client' => null
             ]
         ];
         $this->isDirty = true;
-        $this->saveToSession();
+        $this->save();
         return true;
     }
 
     public function setClientCI($data) {
         $this->cart['_meta']['ci_client'] = $data;
+        $this->save();
         $this->isDirty = true;
     }
 
