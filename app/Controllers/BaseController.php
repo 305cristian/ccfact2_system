@@ -2,17 +2,19 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Logger;
+use App\Libraries\User;
+use App\Models\CcModel;
+use App\Models\ModulesModel;
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use Config\Database;
+use Config\Services;
 use Psr\Log\LoggerInterface;
-use App\Libraries\User;
-use App\Libraries\Logger;
-use App\Libraries\ValidadorEc;
-use App\Models\CcModel;
-use App\Models\ModulesModel;
+use function registerInstanceCI4;
 
 /**
  * Class BaseController
@@ -96,11 +98,11 @@ abstract class BaseController extends Controller {
 
         registerInstanceCI4($this); // Registering controller instance for helpers;
 
-        $this->db = \Config\Database::connect();
+        $this->db = Database::connect();
 
-        $this->session = \Config\Services::session();
+        $this->session = Services::session();
 
-        $this->validation = \Config\Services::validation();
+        $this->validation = Services::validation();
 
         $this->user = new User();
 

@@ -62,6 +62,32 @@ class SearchsModel extends \CodeIgniter\Model {
         }
     }
 
+    public function searchProductosStock($params) {
+
+        $unwantedArray = [
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+            'ñ' => 'n', 'Ñ' => 'N',
+        ];
+        $newStringData = strtr($params->dataSerach, $unwantedArray);
+
+        $builder = $this->db->table('cc_productos tb1');
+        $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos, IFNULL(tb2.stk_stock, 0) AS stk_stock");
+        $builder->join('cc_stock_bodega tb2', 'tb2.fk_producto = tb1.id','left');
+
+        $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
+
+        $builder->limit(15);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return false;
+        }
+    }
+
     public function searchProductoCode($codProd) {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos");

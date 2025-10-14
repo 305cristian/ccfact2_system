@@ -31,6 +31,7 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
     $subroutes->post('updateProduct', 'IndexController::updateProduct');
     $subroutes->post('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
+    $subroutes->post('changeBodega/(:num)', 'IndexController::changeBodega/$1');
     $subroutes->post('showDetailCart', 'IndexController::showDetailCart');
     $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
 });
@@ -38,6 +39,7 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
     $subroutes->post('proveedores/searchProveedor', 'SearchsController::searchProveedor');
     $subroutes->post('productos/searchProductos', 'SearchsController::searchProductos');
+    $subroutes->post('productos/searchProductosStock', 'SearchsController::searchProductosStock');
     $subroutes->get('productos/searchProductoCode/(:segment)', 'SearchsController::searchProductoCode/$1');
 });
 

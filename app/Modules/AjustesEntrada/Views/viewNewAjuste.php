@@ -36,42 +36,56 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
                     <!-- Subacuenta -->
                     <div class="col-md-3 form-group-custom">
-                        <div class="input-group">                  
+                        <div class="d-flex justify-content-between align-items-center border">                  
                             <span class="input-group-text bg-cris-system" id="basic-addon1"><i class="fas fa-receipt me-2"></i> Sustento</span>
-                            <select title="Seleccione un sustento" v-model="formDataAjuste.ajenSustento" class="form-control selectpicker show-tick borderspk" data-live-search="true" data-style="btn-white">
-                                <option v-for="ls of listaSustentos" v-bind:value="ls.sus_codigo">{{ls.sus_nombre}}</option>
-                            </select>
+                            <vue-select  
+                                class="flex-grow-1"
+                                :options="listaSustentos"
+                                label="sus_nombre"
+                                v-model="formDataAjuste.ajenSustento"
+                                placeholder="Seleccione un sustento"/>
                         </div>
                     </div>
 
                     <!-- Bodega -->
                     <div class="col-md-2 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system"><i class="fas fa-warehouse me-2"></i>Bodega</span>
-                            <select title="Seleccione una bodega" v-model="formDataAjuste.ajenBodega" class="form-control selectpicker show-tick borderspk"  data-live-search="true" data-style="btn-white">
-
-                                <option v-for="lb of listaBodegas" v-bind:value="lb.id">{{lb.bod_nombre}}</option>
-                            </select>
+                        <div class="d-flex justify-content-between align-items-center border">
+                            <span class="input-group-text bg-cris-system">
+                                <span v-if='loadingBodega'><i class="loading-spin"></i></span>
+                                <span v-else><i class="fas fa-warehouse me-2"></i></span>
+                                Bodega
+                            </span>
+                            <vue-select 
+                                class="flex-grow-1" 
+                                @input='changeBodega()' 
+                                :options="listaBodegas" 
+                                label="bod_nombre" 
+                                v-model="formDataAjuste.ajenBodega" 
+                                placeholder="Seleccione una bodega"/>
                         </div>
                     </div>
                     <!-- Motivo de Ajuste -->
                     <div class="col-md-2 form-group-custom">
-                        <div class="input-group">
+                        <div class="d-flex justify-content-between align-items-center border">
                             <span class="input-group-text bg-cris-system"><i class="fas fa-tag me-2"></i>Motivo</span>
-                            <select title="Seleccione un motivo" v-model="formDataAjuste.ajenMotivo" class="form-control selectpicker show-tick borderspk" data-live-search="true" data-style="btn-white">
-
-                                <option v-for="lm of listaMotivos" v-bind:value="lm.id">{{lm.mot_nombre}}</option>
-
-                            </select>
+                            <vue-select 
+                                class="flex-grow-1"
+                                :options="listaMotivos"
+                                label="mot_nombre"
+                                v-model="formDataAjuste.ajenMotivo"
+                                placeholder="Seleccione un motivo"/>
                         </div>
                     </div>
                     <!-- Centro de Costo -->
                     <div class="col-md-3 form-group-custom">
-                        <div class="input-group">
+                        <div class="d-flex justify-content-between align-items-center border">
                             <span class="input-group-text bg-cris-system"><i class="fas fa-project-diagram me-2"></i>Centro de Costo</span>
-                            <select title="Seleccione un centro de costos" v-model="formDataAjuste.ajenCentrocosto" class="form-control selectpicker show-tick borderspk" data-live-search="true" data-style="btn-white">
-                                <option v-for="lcc of listaCentroCostos" v-bind:value="lcc.id">{{lcc.cc_nombre}}</option>
-                            </select>
+                            <vue-select 
+                                class="flex-grow-1"
+                                :options="listaCentroCostos"
+                                label="cc_nombre"
+                                v-model="formDataAjuste.ajenCentrocosto"
+                                placeholder="Seleccione un centro de costos"/>
                         </div>
                     </div>
                 </div>
@@ -88,7 +102,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="col-md-3 form-group-custom">
                         <div class="input-group">
                             <span class="input-group-text bg-cris-system"><i class="fas fa-toggle-on me-2"></i>Estado</span>
-                            <select title="Seleccione un estado" v-model="formDataAjuste.ajenEstado" class="form-control selectpicker show-tick borderspk" data-style="btn-white">               
+                            <select title="Seleccione un estado" v-model="formDataAjuste.ajenEstado" class="form-select show-tick borderspk" data-style="btn-white">               
                                 <option value="2">ARCHIVAR</option>
                                 <option value="1">BORRADOR</option>
                             </select>
@@ -121,17 +135,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 placeholder="Buscar Productos"
                                 label="prod_nombre"
                                 track-by="id"
+                                :disabled='loading'
                                 :multiple="false"
                                 :searchable="true"
                                 :options-limit="10"
                                 :show-no-results="true"
                                 :options="listaSearchProductos"
                                 @remove="onRemove($event)"
-                                @input="insertProduct($event)"
+                                @input="insertProductCart($event)"
                                 @search-change="searchProductos($event)">
 
                                 <template slot="option" slot-scope="{ option }">
-                                    <span style="font-size: 12px"><strong>{{ option.codigos+': '}}</strong> {{  option.prod_nombre}} </span>
+                                    <div class="producto-option-row">
+                                        <div class="row g-2 align-items-center w-100">
+                                            <div class="col-auto">
+                                                <span class="badge bg-primary">{{ option.codigos }}</span>
+                                            </div>
+                                            <div class="col">
+                                                <span class="fw-semibold text-dark">{{ option.prod_nombre }}</span>
+                                            </div>
+                                            <div class="col-auto">
+                                                <span class="badge bg-info text-dark">{{ option.stk_stock }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </template>
                             </vue-multiselect>
                             <span class="input-group-text" style="border-radius: 0px 5px 5px 0px"><i class="fas fa-search"></i></span>
@@ -140,7 +167,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     <div class="col-md-3 form-group-custom">
                         <div class="input-group">
-                            <input type="text" class="form-control" v-model="codeSearch" placeholder="Cod. Producto / Cod. Común / Código de Barras" @keyup.enter="insertProductCode($event)">
+                            <input type="text" class="form-control" v-model="codeSearch" :disabled='loading' placeholder="Cod. Producto / Cod. Común / Código de Barras" @keyup.enter="insertProductCode($event)">
                             <span class="input-group-text"><i class="fas fa-qrcode"></i></span>
                         </div>
                     </div>
@@ -176,7 +203,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <!--VIEW CART-->
 
             <!-- Botones de Control -->
-            <div class="row mt-4 mb-5">
+            <div v-if="!emptyCar" class="row mt-4 mb-5">
                 <div class="col-12 d-flex gap-3 justify-content-end">
                     <button class="btngr btn-danger-gradiant" style="min-width: 150px;">
                         <i class="fas fa-times-circle me-2"></i>Cancelar
@@ -199,13 +226,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
 
     var permitirDuplicados = <?php echo getSettings('PERMITIR_ITEMS_DUPLICADOS'); ?>;
+    var bodegaIdAje = '<?= $bodegaId; ?>';
 
     var searchTimeout = null;
 
     var v = new Vue({
         el: '#app',
         components: {
-            "vue-multiselect": window.VueMultiselect.default
+            "vue-multiselect": window.VueMultiselect.default,
+            "vue-select": VueSelect.VueSelect
         },
         data: {
             url: siteUrl,
@@ -249,10 +278,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             productoVmodel: null,
             codeSearch: "",
 
-            loading: false
+            loading: false,
+            loadingBodega: false
         },
         created() {
             this.showDetailCart();
+        },
+        mounted() {
+            let bodegaSeleccionada = this.listaBodegas.find(b => b.id === bodegaIdAje);
+            this.formDataAjuste.ajenBodega = bodegaSeleccionada;
         },
         methods: {
 
@@ -306,7 +340,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let datos = {dataSerach: dataSerach};
                 searchTimeout = setTimeout(async () => {
                     try {
-                        let {data} = await axios.post(this.url + '/comun/productos/searchProductos', datos);
+                        let {data} = await axios.post(this.url + '/comun/productos/searchProductosStock', datos);
                         if (data !== false) {
                             this.listaSearchProductos = data;
                         } else {
@@ -341,10 +375,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async insertProductCart(item) {
                 this.onRemove();//Removemos datos del anterior producto insertado
 
+                if (this.formDataAjuste.ajenBodega === "") {
+                    sweet_msg_toast('warning', 'Debe selecionar una bodega');
+                    return false;
+                }
+
                 let datos = {
                     id: item.id,
                     qty: 1,
+                    bodega: this.formDataAjuste.ajenBodega.id,
                     permitirDuplicados: this.permitirDuplicados
+
                 };
 
                 try {
@@ -425,21 +466,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
 
-            agregarProducto() {
-                this.cartAjuste.push({
-                    codigo: 'PROD001',
-                    nombre: 'Producto de Ejemplo',
-                    lote: '',
-                    fechaCaducidad: '',
-                    cantidad: 1,
-                    precio: 100.00,
-                    stock: 0,
-                    seleccionado: false
-                });
+            async changeBodega() {
+                if (this.emptyCar !== false) {
+                    let bodegaId = this.formDataAjuste.ajenBodega.id;
+                    if (bodegaId) {
+                        try {
+                            this.loadingBodega = true;
+                            let {data} = await axios.post(this.url + '/ajustesentrada/changeBodega/' + bodegaId);
+                            if (data.status === 'success') {
+                                sweet_msg_toast('success', data.msg);
+                            }
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                        } finally {
+                            this.loadingBodega = false;
+                        }
+                    }
+
+                } else {
+                    this.formDataAjuste.ajenBodega = bodegaIdAje;
+                    sweet_msg_dialog('warning', 'Existen productos cargados al carrito<br> No se puede cambiar de bodega');
+                }
+
             },
 
             async deleteProduct(rowId) {
-
                 try {
                     this.loading = true;
                     await axios.post(this.url + '/ajustesentrada/deleteProduct/' + rowId);
@@ -450,9 +501,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } finally {
                     this.loading = false;
                 }
-
-
-
             },
 
             formatMoney(amount) {

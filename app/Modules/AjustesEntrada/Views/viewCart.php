@@ -65,7 +65,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </button>    
                         </td>
                         <td><span class="badge-type">{{ item.id }}</span></td>
-                        <td><strong>{{ item.name }}</strong></td>
+                        <td><strong>{{ item.name }} <span class="text-info"><i class="fas fa-angles-right"></i> {{item.unidadMedida}}</span></strong></td>
                         <td>
                             <div v-if="item.tieneLote === '1' " class="input-group">
                                 <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
@@ -73,8 +73,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <input v-model="item.fechaCaducidad" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 100px;">
                             </div>
                             <div v-else> <p style="font-size: 0.9rem; color: #d1d5db;">El producto no maneja lotes</p></div>
-
-
                         </td>
 
                         <td>
@@ -101,7 +99,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 
     <!-- Resumen de totales -->
-    <div class="d-flex justify-content-end align-items-end">
+    <div v-if="!emptyCar" class="d-flex justify-content-end align-items-end">
         <div class="summary-card">
             <div class="summary-row">
                 <span class="summary-label">SubTotal:</span>

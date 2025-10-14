@@ -310,3 +310,51 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     border-radius: 5px
 
 }
+
+.v-select {
+    min-width: 0;
+}
+
+.v-select .vs__dropdown-toggle {
+    display: flex;
+    align-items: stretch;
+    border: none !important;
+    height: 38px;
+}
+
+.v-select .vs__selected-options {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.v-select .vs__selected {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.vs__dropdown-option {
+    padding: 10px 12px !important;
+    min-width: auto;
+
+}
+
+.v-select .vs__search {
+    color: rgba(0, 0, 0, 0.4) !important;
+}
+.v-select .vs__clear{
+    display: flex;
+    align-items: stretch;
+}
+.v-select .vs__dropdown-menu {
+    width: auto !important;
+    min-width: 100% !important;
+    white-space: normal !important;
+}
+
+.producto-option-row {
+    cursor: pointer;
+}
+
+

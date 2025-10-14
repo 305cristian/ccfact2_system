@@ -54,6 +54,9 @@
 
     <!--estilos para vue multiselect y search-->
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/vueMultiselect/vue-multiselect.min.css">
+    
+    <!--estilos para vue select y search-->
+    <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.css">
 
 
     <!--estilos genericos-->
@@ -96,6 +99,9 @@
 
     <!-- VUE-MULTISELECT-->
     <script src="<?php echo base_url(); ?>/resources/plugins/vueMultiselect/vue-multiselect.min.js"></script>
+    
+    <!-- VUE-SELECT-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.js"></script>
 
     <!--libreria del dashboard-->
     <script src="<?php echo base_url(); ?>/resources/plugins/adminlte/jquery.overlayScrollbars.min.js"></script>

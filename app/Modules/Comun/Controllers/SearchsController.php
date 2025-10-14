@@ -50,6 +50,18 @@ class SearchsController extends \App\Controllers\BaseController {
         }
         return $this->response->setJSON(false);
     }
+    public function searchProductosStock() {
+
+        $data = json_decode(file_get_contents("php://input"));
+
+        if ($data->dataSerach) {
+            $response = $this->searchModel->searchProductosStock($data);
+            if ($response) {
+                return $this->response->setJSON($response);
+            }
+        }
+        return $this->response->setJSON(false);
+    }
 
     public function searchProductoCode($codProd) {
         if ($codProd) {

@@ -20,7 +20,14 @@ class EntradasModel extends \CodeIgniter\Model {
 
     public function searchProductoData($codProd) {
         $builder = $this->db->table('cc_productos tb1');
-        $builder->select("tb1.id, tb1.prod_nombre, tb1.prod_codigo, tb1.prod_costopromedio, tb1.prod_isservicio, tb1.prod_stockactual, tb1.prod_ctrllote");
+        $builder->select("tb1.id,"
+                . " tb1.prod_nombre,"
+                . " tb1.prod_codigo,"
+                . " tb1.prod_costopromedio,"
+                . " tb1.prod_isservicio,"
+                . " tb1.prod_stockactual,"
+                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+        $builder->join('cc_unidades_medida tb2','tb2.id = tb1.fk_unidadmedida');
         if (ctype_digit($codProd)) {
             $builder->where('tb1.id', $codProd);
         } else {

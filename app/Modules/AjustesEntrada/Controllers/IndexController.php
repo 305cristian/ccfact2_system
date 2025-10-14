@@ -46,11 +46,14 @@ class IndexController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
-        $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1]);
-        $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1]);
-        $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo' => "AJUSTES"]);
-        $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1]);
+        $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
+        $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
+        $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo' => "AJUSTES"], 'id, mot_nombre');
+        $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
 
+        $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+
+        $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;
         $send['view'] = view($this->dirViewModule . '\viewNewAjuste', $data);
         $send['user'] = $this->user;
         $send['ccm'] = $this->ccm;
@@ -64,6 +67,7 @@ class IndexController extends \App\Controllers\BaseController {
         $idProd = $dataPost->id;
         $cantidad = $dataPost->qty;
         $permitirDuplicados = $dataPost->permitirDuplicados;
+        $idBodega = $dataPost->bodega;
 
         if ($idProd <= '0' or $idProd == null) {
             $msg['status'] = "warning";
@@ -78,6 +82,8 @@ class IndexController extends \App\Controllers\BaseController {
             return $this->response->setJSON($msg);
         }
 
+        $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stk_stock');
+        $stockBodega = $dataStockBodega ? $dataStockBodega->stk_stock : $dataProducto->prod_stockactual;
 
         $impuestos = $this->prodModel->getImpuestoTarifa($dataProducto->id);
         $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
@@ -88,17 +94,14 @@ class IndexController extends \App\Controllers\BaseController {
             "qty" => (float) $cantidad,
             "codigo" => $dataProducto->prod_codigo,
             "name" => $dataProducto->prod_nombre,
-            "unidadMedida" => null,
+            "unidadMedida" => $dataProducto->um_nombre_corto,
             "price" => (float) $dataProducto->prod_costopromedio,
             "stock" => $dataProducto->prod_stockactual,
-            "stockBodega" => 0,
+            "stockBodega" => $stockBodega,
             "ivaPorcent" => $tarifaIva,
             "icePorcent" => $tarifaIce,
             "tieneLote" => $dataProducto->prod_ctrllote,
             "permitirDuplicados" => $permitirDuplicados,
-//            "lote" => $dataPost->lote ?? null,
-//            "fechaElaboracion" => $dataPost->fechaElaboracion ?? null,
-//            "fechaCaducidad" => $dataPost->fechaCaducidad ?? null,
         ];
         $item['servicio'] = $dataProducto->prod_isservicio;
         $this->ajenCart->insert($item);
@@ -161,6 +164,15 @@ class IndexController extends \App\Controllers\BaseController {
 
     public function deleteProduct($rowId) {
         $this->ajenCart->removeItem($rowId);
+    }
+
+    public function changeBodega($bodegaId) {
+        $this->session->set('bodegaIdAje', $bodegaId);
+        return $this->response->setJSON([
+                    'status' => 'success',
+                    'msg' => 'Bodega seleccionada correctamente',
+                    'bodegaId' => $bodegaId
+        ]);
     }
 
     public function saveAjuste() {
