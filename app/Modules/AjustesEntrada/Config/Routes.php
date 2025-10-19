@@ -30,9 +30,10 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     $subroutes->get('nuevoAjuste', 'IndexController::index');
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
     $subroutes->post('updateProduct', 'IndexController::updateProduct');
-    $subroutes->post('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
-    $subroutes->post('changeBodega/(:num)', 'IndexController::changeBodega/$1');
+    $subroutes->get('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
+    $subroutes->get('changeBodega/(:num)', 'IndexController::changeBodega/$1');
     $subroutes->post('showDetailCart', 'IndexController::showDetailCart');
+    $subroutes->post('cancelarAjuste', 'IndexController::cancelarAjuste');
     $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
 });
 

@@ -121,7 +121,8 @@ class EntradasCartLib {
     /**
      * Insert con cálculos optimizados
      */
-    public function insert($items = [], $update = false) {
+    public function insert($items = [], $update = false, $rowid_ = null) {
+
         if (!isset($items["id"]) || !isset($items["qty"]) || !isset($items["price"])) {
             throw new \Exception("Id, qty and price are required fields!");
         }
@@ -136,7 +137,7 @@ class EntradasCartLib {
 
 
 
-        $rowid = $this->_insert($items, $update);
+        $rowid = $this->_insert($items, $update, $rowid_);
 
         if ($rowid) {
             $this->isDirty = true;
@@ -173,12 +174,20 @@ class EntradasCartLib {
     /**
      * Insert interno optimizado
      */
-    private function _insert($items = [], $update = false) {
+    private function _insert($items = [], $update = false, $rowid_) {
         // Generar rowid
-        if (isset($items['options'])) {
-            $rowid = md5($items['id'] . implode('', $items['options']));
+        echo 'rowid: '.$rowid_;
+        $randonNumer = rand(1, 1000000);
+
+        if (!empty($rowid_)) {
+            $rowid = $rowid_;
         } else {
-            $rowid = md5($items["id"]);
+
+            if (isset($items['options'])) {
+                $rowid = ($items["permitirDuplicados"] ? md5($items['id'] . $randonNumer . implode('', $items['options'])) : md5($items['id'] . implode('', $items['options'])));
+            } else {
+                $rowid = ($items["permitirDuplicados"] ? md5($items["id"] . $randonNumer) : md5($items["id"]));
+            }
         }
 
         $items["rowid"] = $rowid;
@@ -197,8 +206,6 @@ class EntradasCartLib {
 
         $items["priceneto"] = $price_neto;
         $items["totalpriceneto"] = $price_neto * $qty;
-        echo $price_neto . ' * ' . $qty . ' = ' . $items["totalpriceneto"];
-        echo '<br>';
 
         // ICE
         $iceporcent = isset($items['icePorcent']) ? (float) $items['icePorcent'] : 0;
@@ -210,7 +217,7 @@ class EntradasCartLib {
         $items['totalpriceice'] = ($price_neto + $iceval) * $qty;
 
         // IVA
-        $base_iva = $price_neto + $iceval;
+        $base_iva = $price_neto + $iceval;/* La base imponible para el iva es el precio neto del producto + ICE si es que lo tiene */
         $items['itembaseiva'] = $base_iva;
         $items['totitembaseiva'] = $base_iva * $qty;
 
@@ -429,7 +436,7 @@ class EntradasCartLib {
 //        return true;
 //    }
 
-    public function update($item = []) {
+    public function update($item = [], $rowidRand) {
         if ($this->cart === null) {
             throw new \Exception("Cart does not exist!");
         }
@@ -437,7 +444,8 @@ class EntradasCartLib {
         if (isset($item['options'])) {
             $rowid = md5($item['id'] . implode('', $item['options']));
         } else {
-            $rowid = md5($item["id"]);
+//            $rowid = md5($item["id"]);
+            $rowid = $rowidRand;
         }
 
         if (!isset($this->cart[$rowid])) {
@@ -448,7 +456,7 @@ class EntradasCartLib {
             throw new \Exception("Can not update the options!");
         }
 
-        $this->insert($item, true);
+        $this->insert($item, true, $rowidRand);
         return true;
     }
 

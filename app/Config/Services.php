@@ -4,6 +4,10 @@ namespace Config;
 
 use CodeIgniter\Config\BaseService;
 use App\Libraries\ValidadorEc;
+use App\Libraries\User;
+use App\Libraries\Logger;
+use App\Models\CcModel;
+
 /**
  * Services Configuration file.
  *
@@ -36,4 +40,24 @@ class Services extends BaseService {
         return new ValidadorEc();
     }
 
+    public static function ccModel(bool $getShared = true) {
+        if ($getShared) {
+            return static::getSharedInstance('ccModel');
+        }
+        return new CcModel();
+    }
+
+    public static function userSecion(bool $getShared = true) {
+        if ($getShared) {
+            return static::getSharedInstance('userSecion');
+        }
+        return new User();
+    }
+
+    public static function logs305(bool $getShared = true) {
+        if ($getShared) {
+            return static::getSharedInstance('logs305');
+        }
+        return new Logger();
+    }
 }

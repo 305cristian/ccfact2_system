@@ -50,7 +50,6 @@ class IndexController extends \App\Controllers\BaseController {
                 $this->session->start();
 
                 return redirect('welcome');
-                
             } else if ($validation['request']['msg'] == 'fail') {
                 $send['validation'] = '<span><i class="fas fa-warning"></i></span> Contraseña incorrecta';
             } else if ($validation['request']['msg'] == 'no_user') {
@@ -69,42 +68,39 @@ class IndexController extends \App\Controllers\BaseController {
 //        $p= password_hash($password, PASSWORD_DEFAULT);
 //        echo $p;
 
-        $respuesta = $this->lModel->loginValidate($username);
+        $user = $this->lModel->loginValidate($username);
         $resp = [];
-        if ($respuesta) {
-            $resp['request'] = $this->decriptPassword($respuesta, $password);
+        if ($user) {
+            $resp['request'] = $this->decriptPassword($user, $password);
         } else {
             $resp['request']['msg'] = 'no_user';
         }
         return $resp;
     }
 
-    public function decriptPassword($respuesta, $password) {
+    public function decriptPassword($user, $password) {
         $msg = [];
-        if (password_verify($password, $respuesta[0]->emp_password)) {
+        if (password_verify($password, $user->emp_password)) {
 
-            $USER = [];
-            foreach ($respuesta as $user) {
-                $USER = [
-                    'id' => $user->id,
-                    'user_dni' => $user->emp_dni,
-                    'apellidos' => $user->emp_apellido,
-                    'nombres' => $user->emp_nombre,
-                    'telefono' => $user->emp_telefono,
-                    'celular' => $user->emp_celular,
-                    'email' => $user->emp_email,
-                    'root' => $user->is_root,
-                    'bodega_main' => $user->fk_bodega_main,
-                    'cargo_empleado' => $user->fk_cargo,
-                ];
-                $_SESSION['userdata'] = $USER;
-                $this->session->set($USER);
-            }
+            $USER = [
+                'id' => $user->id,
+                'user_dni' => $user->emp_dni,
+                'apellidos' => $user->emp_apellido,
+                'nombres' => $user->emp_nombre,
+                'telefono' => $user->emp_telefono,
+                'celular' => $user->emp_celular,
+                'email' => $user->emp_email,
+                'root' => $user->is_root,
+                'bodega_main' => $user->fk_bodega_main,
+                'cargo_empleado' => $user->fk_cargo,
+            ];
+
+            $this->session->set($USER);
+
             $msg['msg'] = 'success';
         } else {
             $msg['msg'] = 'fail';
         }
         return $msg;
     }
-
 }

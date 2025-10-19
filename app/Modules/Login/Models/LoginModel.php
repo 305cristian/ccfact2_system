@@ -20,30 +20,28 @@ class LoginModel extends \CodeIgniter\Model {
     public function loginValidate($username) {
         
         //TODO: Metodo de consultas 1 recomendado
-        $query='SELECT id,'
-                . 'emp_nombre,'
-                . 'emp_apellido,'
-                . 'emp_dni,'
-                . 'emp_username,'
-                . 'emp_password,'
-                . 'is_root,'
-                . 'emp_telefono,'
-                . 'emp_email,'
-                . 'emp_celular,'
-                . 'fk_cargo,'
-                . 'fk_bodega_main'
-                . ' FROM cc_empleados WHERE BINARY emp_username = "'.$username.'" AND emp_estado=1 ';
+        $query = 'SELECT id,
+            emp_nombre,
+            emp_apellido,
+            emp_dni,
+            emp_username,
+            emp_password, 
+            is_root,
+            emp_telefono,
+            emp_email,
+            emp_celular,
+            fk_cargo,
+            fk_bodega_main
+            FROM cc_empleados 
+            WHERE BINARY emp_username = ? AND emp_estado=1';
 
-        $resultado= $this->db->query($query);
+         $resultado = $this->db->query($query, [$username]);
         if($resultado->getNumRows() > 0){
-            return $resultado->getResult();
+            return $resultado->getRow();
         }else{
             return false;
         }
-//        //TODO: Metodo de consultas 2
-//        $data=$this->db->table('cc_empleados');
-//        $data->where(['emp_username'=>$username,'emp_password'=>$password]);
-//        return $data->get()->getResult();
+
     }
 
 }

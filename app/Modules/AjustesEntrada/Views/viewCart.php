@@ -65,7 +65,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </button>    
                         </td>
                         <td><span class="badge-type">{{ item.id }}</span></td>
-                        <td><strong>{{ item.name }} <span class="text-info"><i class="fas fa-angles-right"></i> {{item.unidadMedida}}</span></strong></td>
+                        <td>
+                            <span class="text-danger">{{item.ivaPorcent != '0.00'? '*':'' }}</span>
+                            <strong>{{ item.name }} <span class="text-info"><i class="fas fa-angles-right"></i> {{item.unidadMedida}}</span></strong>
+                        </td>
                         <td>
                             <div v-if="item.tieneLote === '1' " class="input-group">
                                 <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">

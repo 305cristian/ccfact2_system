@@ -155,7 +155,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                                 <span class="fw-semibold text-dark">{{ option.prod_nombre }}</span>
                                             </div>
                                             <div class="col-auto">
-                                                <span class="badge bg-info text-dark">{{ option.stk_stock }}</span>
+                                                <span class="badge bg-info text-dark">{{ option.stb_stock }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -205,11 +205,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <!-- Botones de Control -->
             <div v-if="!emptyCar" class="row mt-4 mb-5">
                 <div class="col-12 d-flex gap-3 justify-content-end">
-                    <button class="btngr btn-danger-gradiant" style="min-width: 150px;">
+                    <button @click="cancelarAjuste()" class="btngr btn-danger-gradiant" style="min-width: 150px;" :disabled="loadingProcess">
                         <i class="fas fa-times-circle me-2"></i>Cancelar
                     </button>
-                    <button class="btngr btn-primary-gradiant" style="min-width: 150px;" @click="saveAjuste()">
-                        <i class="fas fa-save me-2"></i>Grabar Ajuste
+                    <button class="btngr btn-primary-gradiant" style="min-width: 150px;" @click="saveAjuste()" :disabled="loadingProcess">
+                        <span v-if="loadingProcess"><i class="loading-spin"></i>Grabando...</span>
+                        <span v-else><i class="fas fa-save me-2"></i>Grabar Ajuste</span>
                     </button>
                 </div>
             </div>
@@ -220,6 +221,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <script type="text/javascript">
 
+    var fechaActual = DateTime.now().toFormat('yyyy-MM-dd');
     var listaSustentos = <?= json_encode($listaSustentos); ?>;
     var listaBodegas = <?= json_encode($listaBodegas); ?>;
     var listaMotivos = <?= json_encode($listaMotivos); ?>;
@@ -249,7 +251,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 ajenSustento: '',
                 ajenBodega: '',
                 ajenCentrocosto: '',
-                ajenFecha: new Date().toISOString().split('T')[0],
+                ajenFecha: fechaActual,
                 ajenMotivo: '',
                 ajenEstado: '',
                 ajenObservaciones: '',
@@ -279,36 +281,63 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             codeSearch: "",
 
             loading: false,
-            loadingBodega: false
+            loadingBodega: false,
+            loadingProcess: false
         },
         created() {
             this.showDetailCart();
         },
         mounted() {
-            let bodegaSeleccionada = this.listaBodegas.find(b => b.id === bodegaIdAje);
-            this.formDataAjuste.ajenBodega = bodegaSeleccionada;
+            this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
+            ;
         },
         methods: {
 
+            validarCampos() {
+                const campos = [
+                    {key: 'ajenFecha', msg: 'Debe seleccionar una fecha'},
+                    {key: 'ajenSustento', msg: 'Debe seleccionar un sustento'},
+                    {key: 'ajenBodega', msg: 'Debe seleccionar una bodega'},
+                    {key: 'ajenCentrocosto', msg: 'Debe seleccionar un centro de costos'},
+                    {key: 'ajenMotivo', msg: 'Debe seleccionar un motivo de ajuste'},
+                    {key: 'ajenEstado', msg: 'Debe seleccionar un estado'},
+                    {key: 'ajenProveedor', msg: 'Debe seleccionar un proveedor'},
+                ];
+
+                for (const campo of campos) {
+                    if (!this.formDataAjuste[campo.key]) {
+                        return {status: true, msg: campo.msg};
+                    }
+                }
+
+                return {status: false};
+            },
+
             async saveAjuste() {
 
-                this.formDataAjuste.ajenProveedor = this.formDataAjuste.ajenProveedor ? this.formDataAjuste.ajenProveedor.id : "-1";
-                let datos = this.formData(this.formDataAjuste);
+                let statusValidation = this.validarCampos();
+                if (statusValidation.status) {
+                    sweet_msg_toast('warning', statusValidation.msg);
+                    return false;
+                }
 
                 try {
-                    this.loading = true;
+                    this.loadingProcess = true;
+                    let datos = this.formData(this.formDataAjuste);
 
                     let {data} = await axios.post(this.url + '/ajustesentrada/saveAjuste', datos);
                     if (data.status === "success") {
                         sweet_msg_dialog('success', data.msg, '/ajustesentrada/nuevoAjuste');
                     } else if (data.status === "warning") {
                         sweet_msg_dialog('warning', data.msg);
+                    } else if(data.status === "error"){
+                         sweet_msg_dialog('error', '', '', data.msg);
                     }
 
                 } catch (e) {
-                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                    sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
                 } finally {
-                    this.loading = false;
+                    this.loadingProcess = false;
                 }
 
 
@@ -368,8 +397,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
                 let datos = {id: evt.target.value};
                 await this.insertProductCart(datos);
-
-                //LA VALIDACION DE EXISTENCIA DEL PRODUCTO SE LA REALIZARA AL MOMENTO DE INSERTARLO
 
             },
             async insertProductCart(item) {
@@ -472,7 +499,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (bodegaId) {
                         try {
                             this.loadingBodega = true;
-                            let {data} = await axios.post(this.url + '/ajustesentrada/changeBodega/' + bodegaId);
+                            let {data} = await axios.get(this.url + '/ajustesentrada/changeBodega/' + bodegaId);
                             if (data.status === 'success') {
                                 sweet_msg_toast('success', data.msg);
                             }
@@ -484,7 +511,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
 
                 } else {
-                    this.formDataAjuste.ajenBodega = bodegaIdAje;
+                    this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
+                    ;
                     sweet_msg_dialog('warning', 'Existen productos cargados al carrito<br> No se puede cambiar de bodega');
                 }
 
@@ -493,7 +521,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async deleteProduct(rowId) {
                 try {
                     this.loading = true;
-                    await axios.post(this.url + '/ajustesentrada/deleteProduct/' + rowId);
+                    await axios.get(this.url + '/ajustesentrada/deleteProduct/' + rowId);
                     this.showDetailCart();
                     sweet_msg_toast('info', 'Producto eliminado exitosamente');
                 } catch (e) {
@@ -501,6 +529,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } finally {
                     this.loading = false;
                 }
+            },
+            async cancelarAjuste() {
+                Swal.fire({
+                    title: "Esta seguro que desea cancelar el Ajuste?",
+                    html: "<h6>Esta acción borrara toda las lista cargada.</h6>",
+                    icon:'warning',
+                    width: "30%",
+                    showCancelButton: true,
+                    confirmButtonText: "Si, Continuar",
+                    confirmButtonColor: "#bb2d3b"
+                }).then(async(result) => {
+                    if (result.isConfirmed) {
+                        try {
+                            this.loading = true;
+                            await axios.post(this.url + '/ajustesentrada/cancelarAjuste');
+                            this.showDetailCart();
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                        } finally {
+                            this.loading = false;
+                        }
+                    }
+                });
+
+
             },
 
             formatMoney(amount) {
@@ -510,7 +563,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             formData(obj) {
                 var formData = new FormData();
                 for (var key in obj) {
-                    formData.append(key, obj[key]);
+                    let value = obj[key];
+
+                    // Si es null o undefined, agregar como está
+                    if (value === null || value === undefined) {
+                        formData.append(key, '');
+                        continue;
+                    }
+                    if (typeof value === 'object') {
+                        value = value.id || value.sus_codigo || value.codigo || value.value || JSON.stringify(value);
+                    }
+                    formData.append(key, value);
                 }
                 return formData;
             },

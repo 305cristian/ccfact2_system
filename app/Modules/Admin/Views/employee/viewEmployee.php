@@ -336,6 +336,9 @@
         created() {
             this.getEmpleados();
         },
+        mounted(){
+          $('.selectpicker').selectpicker();  
+        },
         methods: {
 
             setIdPaswordReset(idEmp) {

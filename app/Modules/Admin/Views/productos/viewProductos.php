@@ -319,7 +319,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             async loadProducto(prod) {
-                swalLoading('Cargando...', );
+                swalLoading('Cargando...','' );
                 await v.getSubgrupo(prod.id_grupo);
                 await v.getPreciosProducto(prod.id);
                 v.newProducto = {

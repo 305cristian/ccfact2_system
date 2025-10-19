@@ -16,16 +16,19 @@
 
 namespace Modules\AjustesEntrada\Controllers;
 
-use Modules\Comun\Models\SearchsModel;
 use Modules\Comun\Models\ProductoModel;
 use Modules\AjustesEntrada\Libraries\EntradasCartLib;
+use Modules\AjustesEntrada\Libraries\EntradasLib;
+use Modules\AjustesEntrada\Libraries\EntradasAsientosLib;
 use Modules\AjustesEntrada\Models\EntradasModel;
 
 class IndexController extends \App\Controllers\BaseController {
 
     //put your code here
     protected $dirViewModule;
-    protected $antradasModel;
+    protected $entradasModel;
+    protected $entradasLib;
+    protected $entradasAsientoLib;
     protected $prodModel;
     protected $ajenCart;
 
@@ -33,11 +36,13 @@ class IndexController extends \App\Controllers\BaseController {
         $this->dirViewModule = 'Modules\AjustesEntrada\Views';
 
         //IMPORTACION DE MODELOS
-        $this->antradasModel = new EntradasModel();
+        $this->entradasModel = new EntradasModel();
         $this->prodModel = new ProductoModel();
 
         //IMPORTACION DE LIBRERIAS
         $this->ajenCart = new EntradasCartLib();
+        $this->entradasLib = new EntradasLib();
+        $this->entradasAsientoLib = new EntradasAsientosLib();
     }
 
     public function index() {
@@ -75,15 +80,15 @@ class IndexController extends \App\Controllers\BaseController {
             return $this->response->setJSON($msg);
         }
 
-        $dataProducto = $this->antradasModel->searchProductoData($idProd);
+        $dataProducto = $this->entradasModel->searchProductoData($idProd);
         if (!$dataProducto) {
             $msg['status'] = "warning";
             $msg['msg'] = "No se ha encontrado el producto con el codigo: " . $idProd;
             return $this->response->setJSON($msg);
         }
 
-        $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stk_stock');
-        $stockBodega = $dataStockBodega ? $dataStockBodega->stk_stock : $dataProducto->prod_stockactual;
+        $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock',null,1);
+        $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : $dataProducto->prod_stockactual;
 
         $impuestos = $this->prodModel->getImpuestoTarifa($dataProducto->id);
         $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
@@ -102,6 +107,9 @@ class IndexController extends \App\Controllers\BaseController {
             "icePorcent" => $tarifaIce,
             "tieneLote" => $dataProducto->prod_ctrllote,
             "permitirDuplicados" => $permitirDuplicados,
+            "lote" => null,
+            "fechaElaboracion" => null,
+            "fechaCaducidad" => null,
         ];
         $item['servicio'] = $dataProducto->prod_isservicio;
         $this->ajenCart->insert($item);
@@ -129,7 +137,7 @@ class IndexController extends \App\Controllers\BaseController {
             "qty" => (float) $cantidad,
             "codigo" => $dataPost->codigo,
             "name" => $dataPost->name,
-            "unidadMedida" => null,
+            "unidadMedida" => $dataPost->unidadMedida,
             "price" => (float) $dataPost->price,
             "stock" => $dataPost->stock,
             "stockBodega" => 0,
@@ -143,27 +151,42 @@ class IndexController extends \App\Controllers\BaseController {
         ];
         $item['servicio'] = $dataPost->servicio;
 
-        $this->ajenCart->update($item);
+        $rowidRand = $dataPost->rowid; //Parte clave para los items duplicados en el cart
+        $this->ajenCart->update($item, $rowidRand);
+
         $msg['status'] = "success";
         $msg['msg'] = "Producto actualizado";
         return $this->response->setJSON($msg);
     }
 
-    public function showDetailCart() {
+    public function showDetailCart($key = 0) {
         $cartContent = $this->ajenCart->getContent();
-        $data['cartContent'] = $cartContent ? array_reverse($cartContent) : null;
-        $data['totalArticles'] = $this->ajenCart->totalArticles();
-        $data['totalItems'] = $cartContent ? count($cartContent) : null;
-        $data['totalCart'] = $this->ajenCart->totalCart();
-        $data['totalIva'] = $this->ajenCart->totalIva();
-        $data['totalBienes'] = $this->ajenCart->totalBienes();
-        $data['totalServicios'] = $this->ajenCart->totalServicios();
-        $data['totalCartIva'] = $this->ajenCart->totalCartIva();
-        return $this->response->setJSON($data);
+        $dataCart['cartContent'] = $cartContent ? array_reverse($cartContent) : null;
+        $dataCart['totalArticles'] = $this->ajenCart->totalArticles();
+        $dataCart['totalItems'] = $cartContent ? count($cartContent) : null;
+        $dataCart['totalCart'] = $this->ajenCart->totalCart();
+        $dataCart['totalIva'] = $this->ajenCart->totalIva();
+        $dataCart['totalBienes'] = $this->ajenCart->totalBienes();
+        $dataCart['totalServicios'] = $this->ajenCart->totalServicios();
+        $dataCart['totalCartIva'] = $this->ajenCart->totalCartIva();
+        $dataCart['tarifCero'] = $this->ajenCart->tarifCero();
+        $dataCart['tarifIva'] = $this->ajenCart->tarifIva();
+        $dataCart['tarifCeroNeto'] = $this->ajenCart->tarifCeroNeto();
+        $dataCart['tarifIvaNeto'] = $this->ajenCart->tarifIvaNeto();
+
+        if ($key === 0) {
+            return $this->response->setJSON($dataCart);
+        } else {
+            return json_decode(json_encode($dataCart));
+        }
     }
 
     public function deleteProduct($rowId) {
         $this->ajenCart->removeItem($rowId);
+    }
+
+    public function cancelarAjuste() {
+        $this->ajenCart->destroy();
     }
 
     public function changeBodega($bodegaId) {
@@ -176,6 +199,123 @@ class IndexController extends \App\Controllers\BaseController {
     }
 
     public function saveAjuste() {
-        return $this->response->setJSON(['status' => "success", 'msg' => "Ajuste registrado exitosamente"]);
+
+        $dataAjuste = json_decode(json_encode($this->request->getPost()));
+
+        // Validamos campos antes de procesar
+        $statusValidation = $this->validarCampos($dataAjuste);
+        if ($statusValidation['status']) {
+            return $this->response->setJSON([
+                        'status' => "warning",
+                        'msg' => $statusValidation['msg']
+            ]);
+        }
+
+
+        try {
+            $cartData = $this->showDetailCart(1);
+            $this->db->transBegin();
+
+            $ajusteId = $this->entradasLib->saveAjuste($cartData, $dataAjuste);
+
+            if (!$ajusteId) {
+                throw new \Exception('Ha ocurrido un error al registrar el Ajuste');
+            }
+
+            foreach ($cartData->cartContent as $val) {
+
+                // Validación de control de lotes
+                $lote = null;
+                if ($val->tieneLote === '1') {
+                    if ((empty($val->lote) || empty($val->fechaElaboracion) || empty($val->fechaCaducidad))) {
+                        $this->db->transRollback();
+                        return $this->response->setJSON([
+                                    'status' => 'warning',
+                                    'msg' => 'El producto ' . $val->name . ' maneja control de lotes<br> Por favor revise el LOTE y sus respectivas FECHAS',
+                        ]);
+                    }
+
+                    $existeLote = $this->ccm->getData('cc_lotes', ['lot_lote' => $val->lote, 'fk_producto' => $val->id], '*', null, 1);
+                    if ($existeLote) {
+                        $lote = $existeLote->id;
+                    } else {
+                        $lote = $this->saveLote($ajusteId, $val);
+                    }
+                }
+                $ajusteIdDet = $this->entradasLib->saveAjusteDetalle($ajusteId, $val, $lote);
+
+                if (!$ajusteIdDet) {
+                    throw new \Exception('Ha ocurrido un error al registrar el producto ' . $val->name . ' en el detalle del ajuste');
+                }
+
+                // Actualizamos el kardex solo si el ajuste está aprobado y no es servicio
+                if ($dataAjuste->ajenEstado === '2' && $val->servicio === '0') {
+
+                    $kardexOk = $this->entradasLib->updateKardex($ajusteId, $val, $lote, $dataAjuste);
+                    if (!$kardexOk) {
+                        throw new \Exception('Error al actualizar el kardex del producto ' . $val->name);
+                    }
+                }
+            }
+
+            if ($dataAjuste->ajenEstado === '2') {
+                $this->entradasAsientoLib->generarAsiento($ajusteId);
+            }
+
+            //SI TODO MARCHO BIEN REALIZO EL COMMIT
+            $this->db->transCommit();
+            $this->ajenCart->destroy();
+            $this->logs->logSuccess('Ajuste registrado exitosamente ID: ' . $ajusteId);
+            log_message('info', "[Ajuste Entrada] Ajuste registrado exitosamente ID: , DocID: {$ajusteId}");
+            return $this->response->setJSON([
+                        'status' => "success",
+                        'msg' => "Ajuste registrado exitosamente"
+            ]);
+        } catch (\Throwable $exc) {
+            $this->db->transRollback();
+            $this->logs->logDanger('Ha ocurrido un error al registrar el Ajuste');
+            return $this->response->setJSON([
+                        'status' => 'error',
+                        'msg' => 'Error al tratar de crear el Ajuste: ' . $exc->getMessage()
+            ]);
+        }
+    }
+
+    public function validarCampos($data) {
+
+        $campos = [
+            'ajenFecha' => 'Debe seleccionar una fecha',
+            'ajenSustento' => 'Debe seleccionar un sustento',
+            'ajenBodega' => 'Debe seleccionar una bodega',
+            'ajenCentrocosto' => 'Debe seleccionar un centro de costos',
+            'ajenMotivo' => 'Debe seleccionar un motivo de ajuste',
+            'ajenEstado' => 'Debe seleccionar un estado',
+            'ajenProveedor' => 'Debe seleccionar un proveedor',
+        ];
+
+        // Validar campos genéricos
+        foreach ($campos as $campo => $mensaje) {
+            if (empty($data->$campo)) {
+                return [
+                    'status' => true,
+                    'msg' => $mensaje
+                ];
+            }
+        }
+
+        // Si todo está correcto
+        return ['status' => false];
+    }
+
+    public function saveLote($ajusteId, $producto) {
+        $dataLote = [
+            'lot_lote' => $producto->lote,
+            'lot_fecha_elaboracion' => $producto->fechaElaboracion,
+            'lot_fecha_caducidad' => $producto->fechaCaducidad,
+            'lot_documento_id' => $ajusteId,
+            'fk_producto' => $producto->id,
+        ];
+        $lote = $this->ccm->guardar($dataLote, 'cc_lotes');
+        return $lote;
     }
 }

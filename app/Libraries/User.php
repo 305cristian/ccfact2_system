@@ -14,11 +14,8 @@
 
 namespace app\Libraries;
 
-if (!isset($_SESSION)) {
-    session_start();
-}
-
 use App\Models\Roles;
+use Config\Services;
 
 class User extends \App\Controllers\BaseController {
 
@@ -36,64 +33,58 @@ class User extends \App\Controllers\BaseController {
     protected $ci;
     public $rol;
 
-    public function __construct() {
+    public function __construct($session = null) {
 
-        global $_CI4;
-        $this->ci = $_CI4;
-        
+        $this->session = $session ?? Services::session();
+
         $this->rol = new Roles();
 
         $this->id = '';
-        if (!empty($this->ci->session->get('id'))) {
-            $this->id = $this->ci->session->get('id');
+        if (!empty($this->session->get('id'))) {
+            $this->id = $this->session->get('id');
         }
-        if (!empty($this->ci->session->get('user_dni'))) {
-            $this->user_dni = $this->ci->session->get('user_dni');
+        if (!empty($this->session->get('user_dni'))) {
+            $this->user_dni = $this->session->get('user_dni');
         }
-        if (!empty($this->ci->session->get('apellidos'))) {
-            $this->apellidos = $this->ci->session->get('apellidos');
+        if (!empty($this->session->get('apellidos'))) {
+            $this->apellidos = $this->session->get('apellidos');
         }
-        if (!empty($this->ci->session->get('nombres'))) {
-            $this->nombres = $this->ci->session->get('nombres');
+        if (!empty($this->session->get('nombres'))) {
+            $this->nombres = $this->session->get('nombres');
         }
-        if (!empty($this->ci->session->get('celular'))) {
-            $this->celular = $this->ci->session->get('celular');
+        if (!empty($this->session->get('celular'))) {
+            $this->celular = $this->session->get('celular');
         }
-        if (!empty($this->ci->session->get('telefono'))) {
-            $this->telefono = $this->ci->session->get('telefono');
+        if (!empty($this->session->get('telefono'))) {
+            $this->telefono = $this->session->get('telefono');
         }
-        if (!empty($this->ci->session->get('email'))) {
-            $this->email = $this->ci->session->get('email');
+        if (!empty($this->session->get('email'))) {
+            $this->email = $this->session->get('email');
         }
-        if (!empty($this->ci->session->get('root'))) {
-            $this->root = $this->ci->session->get('root');
+        if (!empty($this->session->get('root'))) {
+            $this->root = $this->session->get('root');
         }
-        if (!empty($this->ci->session->get('bodega_main'))) {
-            $this->bodega_main = $this->ci->session->get('bodega_main');
+        if (!empty($this->session->get('bodega_main'))) {
+            $this->bodega_main = $this->session->get('bodega_main');
         }
-        if (!empty($this->ci->session->get('cargo_empleado'))) {
-            $this->cargo_empleado = $this->ci->session->get('cargo_empleado');
+        if (!empty($this->session->get('cargo_empleado'))) {
+            $this->cargo_empleado = $this->session->get('cargo_empleado');
         }
-    }
-
-    public function getAllModules() {
-        
     }
 
     public function validatePermisos($persmiso, $user) {
         if ($this->root == 1) {
             return true;
         }
-        
+
         $response = $this->rol->validatePermisos($persmiso, $user);
         return $response;
-        
     }
 
     public function validateSession() {
-        $userId = $this->id;
-        if (empty($userId)) {
-            $this->ci->session->set('message', '!Atencion, su sesión ha caducado');
+
+        if (empty($this->id)) {
+            $this->session->set('message', '!Atencion, su sesión ha caducado');
             echo '<script>window.location.replace("' . site_url() . '") </script>';
             die();
         }

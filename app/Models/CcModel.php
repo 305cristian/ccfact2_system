@@ -27,7 +27,7 @@ class CcModel extends \CodeIgniter\Model {
         }
     }
 
-    function eliminar($table_name, $where = null) {
+    public function eliminar($table_name, $where = null) {
         $builder = $this->db->table($table_name);
         if ($where) {
             foreach ($where as $col => $val) {
@@ -36,15 +36,20 @@ class CcModel extends \CodeIgniter\Model {
         } else {
             $builder->where('id >', '0');
         }
-
         $builder->delete($where);
-        return $this->db->affectedRows();
+
+        if ($this->db->affectedRows() > 0) {
+            return $this->db->affectedRows();
+        } else {
+            $error = $this->db->error();
+            throw new \Exception('Error al eliminar registro en la tabla ' . $table_name . ': ' . $error['message']);
+        }
     }
 
-    function actualizar($table_name, $data_set, $where_data) {
+    public function actualizar($table_name, $data_set, $where_data) {
         $builder = $this->db->table($table_name);
         $builder->update($data_set, $where_data);
-//        var_dump($builder);
+
         if ($this->db->affectedRows() > 0) {
             return $this->db->affectedRows();
         } else {
@@ -57,7 +62,7 @@ class CcModel extends \CodeIgniter\Model {
         }
     }
 
-    function getData($table_name, $where_data = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null) {
+    public function getData($table_name, $where_data = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null) {
 
         $builder = $this->db->table($table_name);
 
@@ -82,22 +87,35 @@ class CcModel extends \CodeIgniter\Model {
                 $builder->orderBy($order, $tipo);
             }
         }
-//        var_dump($builder);
+
+        if ($rows_num > 0) {
+            $builder->limit($rows_num);
+        }
+
 
         $query = $builder->get();
 
+        if ($query === false) {
+//            $sql = $this->db->getLastQuery();
+            $error = $this->db->error();
+            throw new \Exception('Error en la consulta: ' . $error['message']);
+//            throw new \Exception('Error en la consulta: ' . $error['message'].$sql);
+        }
+
         if ($rows_num == 1) {
-            $builder->limit($rows_num);
-            return $query->getRow();
+            $row = $query->getRow();
+            return $row ?: null; // ← devuelve null si no hay resultado
         } elseif ($rows_num > 1) {
-            $builder->limit($rows_num);
             return $query->getResult();
         } elseif ($rows_num == 0) {
             return $query->getResult();
         }
     }
 
-    function get($table_name, $where_data = null, $or_where=null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null) {
+//     $error = $this->db->error();
+//            throw new \Exception('Error al eliminar registro en la tabla ' . $table_name . ': ' . $error['message']);
+
+    public function get($table_name, $where_data = null, $or_where = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null) {
 
         $builder = $this->db->table($table_name);
 
@@ -128,22 +146,27 @@ class CcModel extends \CodeIgniter\Model {
                 $builder->orderBy($order, $tipo);
             }
         }
-//        var_dump($builder);
+        if ($rows_num > 0) {
+            $builder->limit($rows_num);
+        }
 
         $query = $builder->get();
 
+        if ($query === false) {
+            $error = $this->db->error();
+            throw new \Exception('Error en la consulta: ' . $error['message']);
+        }
+
         if ($rows_num == 1) {
-            $builder->limit($rows_num);
             return $query->getRow();
         } elseif ($rows_num > 1) {
-            $builder->limit($rows_num);
             return $query->getResult();
         } elseif ($rows_num == 0) {
             return $query->getResult();
         }
     }
 
-    function getJoin($table_name, $where_data, $join_cluase, $fields = '', $rows_num = 0, $order_by = null, $group_by = null) {
+    public function getJoin($table_name, $where_data, $join_cluase, $fields = '', $rows_num = 0, $order_by = null, $group_by = null) {
         $builder = $this->db->table($table_name);
 
         if ($where_data) {
@@ -175,19 +198,46 @@ class CcModel extends \CodeIgniter\Model {
                 $builder->orderBy($order, $tipo);
             }
         }
+        if ($rows_num > 0) {
+            $builder->limit($rows_num);
+        }
+
+        $query = $builder->get();
+
+        if ($query === false) {
+            $error = $this->db->error();
+            throw new \Exception('Error en la consulta: ' . $error['message']);
+        }
 
         if ($rows_num == 1) {
-
-            $builder->limit($rows_num);
-            $query = $builder->get();
             return $query->getRow();
         } else {
-            $query = $builder->get();
             return $query->getResult();
         }
     }
 
-    function getValue($table_name, $id, $val, $id_column_name = 'id', $alias_v = null, $empty_v = -1) {
+    function getById($table_name, $id, $fields = '', $id_column_name = 'id') {
+
+        $builder = $this->db->table($table_name);
+
+        if (!empty($fields)) {
+            $builder->select($fields);
+        } else {
+            $builder->select('*');
+        }
+        $builder->where($id_column_name, $id);
+
+        $query = $builder->get();
+
+        if ($query === false) {
+            $error = $this->db->error();
+            throw new \Exception('Error en la consulta: ' . $error['message']);
+        }
+
+        return $query->getRow();
+    }
+
+    public function getValue($table_name, $id, $val, $id_column_name = 'id', $alias_v = null, $empty_v = -1) {
 
         $builder = $this->db->table($table_name);
 
@@ -195,6 +245,11 @@ class CcModel extends \CodeIgniter\Model {
         $builder->select($val, FALSE);
 
         $query = $builder->get();
+
+        if ($query === false) {
+            $error = $this->db->error();
+            throw new \Exception('Error en la consulta: ' . $error['message']);
+        }
 
         if ($query->getRow()) {
             if ($alias_v != null) {
@@ -204,6 +259,35 @@ class CcModel extends \CodeIgniter\Model {
             }
         } else {
             return $empty_v;
+        }
+    }
+
+    function getValueWhere($table_name, $where_data, $val, $alias_val = null, $empty_val = -1) {
+
+        $builder = $this->db->table($table_name);
+        $builder->select($val, FALSE);
+
+        if ($where_data) {
+            foreach ($where_data as $key => $value) {
+                $builder->where($key, $value);
+            }
+        }
+
+        $query = $builder->get();
+
+        if ($query === false) {
+            $error = $this->db->error();
+            throw new \Exception('Error en la consulta: ' . $error['message']);
+        }
+
+        if ($query->getRow()) {
+            if ($alias_val != null) {
+                return $query->getRow()->{$alias_val};
+            } else {
+                return $query->getRow()->$val;
+            }
+        } else {
+            return $empty_val;
         }
     }
 }

@@ -136,6 +136,10 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/toast/toastr.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/toast/alert.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/sweetAlert2/sweetAlert2_11.js"></script>
+    
+    <!-- para fechas-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/luxonDate/luxon.min.js"></script>
+    <script>  var {DateTime} = luxon;</script>
 
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>

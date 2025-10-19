@@ -355,7 +355,6 @@ class ProductosController extends \App\Controllers\BaseController {
                 return $this->response->setJson($response);
             }
             $datos = [
-                'prod_fechacreacion' => date('Y-m-d'),
                 'prod_nombre' => mb_strtoupper(trim($prodNombre), 'UTF-8'),
                 'prod_codigo' => trim($prodCodigo),
                 'prod_codigobarras' => trim($prodCodigoBarras),
