@@ -180,7 +180,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 }
 .multiselect, .multiselect__input, .multiselect__single {
     font-family: inherit;
-    font-size: 13px;
+    font-size: 15px;
 }
 .multiselect__element{
     background-color: #f4f6f6;

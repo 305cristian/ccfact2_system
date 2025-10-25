@@ -13,30 +13,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to c
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
 <table class="table">
-    <template>
-        <tr  >
+    <tbody>
+
+        <tr>
             <td><i class="fas fa-book-alt"></i><strong style="color:red">ALL PERMISOS</strong></td>
             <td><input @click="selectAllPermisos()" type="checkbox" v-model='selectAll'></td>
         </tr>
-    </template>
 
-    <template v-for="lm of listaAllModulos">
+    <template v-for="lm of listaAllModulos" :key="lm.id">
 
-        <tr @click="seletedRowModSubMod(lm.id)" :class="lm.id" :id=" 'check'+lm.id ">
+        <tr @click="seletedRowModSubMod(lm.id)" :class="lm.id" :id=" 'check'+lm.id " >
             <td><i :class="lm.md_icon"></i><strong>{{lm.md_nombre}}</strong></td>
             <td><input  :id="'checkmod'+lm.id " type="checkbox"></td>
         </tr>
 
-        <template v-for="lsm of listaAllSubModulos" v-if="lm.id == lsm.md_padre">
+        <template v-for="lsm of listaAllSubModulos" :key="lsm.id">
 
-            <tr @click="seletedRowModSubMod(lsm.id)" :class="lsm.id" :id=" 'check'+lsm.id ">
+            <tr  v-if="lm.id == lsm.md_padre" @click="seletedRowModSubMod(lsm.id)" :class="lsm.id" :id=" 'check'+lsm.id " >
                 <td>       <i :class="lsm.md_icon"></i>{{lsm.md_nombre}}</td>
                 <td><input :id="'checkmod'+lsm.id " type="checkbox"></td>
             </tr>
 
 
-            <template v-for="la of listaAllAcciones" v-if="lsm.id == la.fk_modulo">
-                <tr @click="seletedRowAcc(la.id)" :class=" '_'+la.id" :id=" 'check2'+la.id ">
+            <template v-for="la of listaAllAcciones" :key="la.id">
+                <tr  v-if="lsm.id == la.fk_modulo" @click="seletedRowAcc(la.id)" :class=" '_'+la.id" :id=" 'check2'+la.id " >
                     <td>             <i class="far fa-circle"></i>{{la.ac_nombre}}</td>
                     <td><input :id="'checkacc'+la.id "  type="checkbox"></td>
                 </tr>
@@ -45,8 +45,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         </template>
 
-        <template v-for="la of listaAllAcciones" v-if="lm.id == la.fk_modulo">
-            <tr @click="seletedRowAcc(la.id)" :class=" '_'+la.id" :id=" 'check2'+la.id ">
+        <template v-for="la of listaAllAcciones" >
+            <tr v-if="lm.id == la.fk_modulo" @click="seletedRowAcc(la.id)" :class=" '_'+la.id" :id=" 'check2'+la.id ">
                 <td>             <i class="far fa-circle"></i>{{la.ac_nombre}}</td>
                 <td><input :id="'checkacc'+la.id " type="checkbox"></td>
             </tr>
@@ -54,6 +54,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 
     </template>
+</tbody>
 
 </table>
 

@@ -32,8 +32,8 @@ class Logger {
         $this->log($log, 'INFO');
     }
 
-    public function logDanger($log) {
-        $this->log($log, 'DANGER');
+    public function logError($log) {
+        $this->log($log, 'ERROR');
     }
 
     public function logWarning($log) {

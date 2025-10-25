@@ -262,7 +262,7 @@ class CcModel extends \CodeIgniter\Model {
         }
     }
 
-    function getValueWhere($table_name, $where_data, $val, $alias_val = null, $empty_val = -1) {
+    function getValueWhere($table_name, $where_data, $val, $alias_val = null) {
 
         $builder = $this->db->table($table_name);
         $builder->select($val, FALSE);
@@ -287,7 +287,7 @@ class CcModel extends \CodeIgniter\Model {
                 return $query->getRow()->$val;
             }
         } else {
-            return $empty_val;
+            return false;
         }
     }
 }

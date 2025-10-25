@@ -61,36 +61,41 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
+    if (window.appCuentasConf) {
+        window.appCuentasConf.unmount();
+    }
+
+    window.appCuentasConf = Vue.createApp({
+
         components: {
-            "vue-multiselect": window.VueMultiselect.default
+            "vue-multiselect": window['vue-multiselect'].Multiselect
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
-            idEdit: '',
-            codeAux: '',
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
+                idEdit: '',
+                codeAux: '',
 
-            //TODO: V-MODELS
-            listaCuentasConfig: [],
-            listaSearchCuentasContables: [],
-            newConfigCuenta: {
-                ctcfCodigo: '',
-                ctcfNombre: '',
-                ctcfDetalle: '',
-                fkCuentaContableDet: '',
-                ctcfEstado: '1'
-            },
-            formValidacion: []
+                //TODO: V-MODELS
+                listaCuentasConfig: [],
+                listaSearchCuentasContables: [],
+                newConfigCuenta: {
+                    ctcfCodigo: '',
+                    ctcfNombre: '',
+                    ctcfDetalle: '',
+                    fkCuentaContableDet: '',
+                    ctcfEstado: '1'
+                },
+                formValidacion: []
 
-
+            };
 
         },
         created() {
@@ -100,11 +105,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getCuentasConfig() {
                 let {data} = await axios.get(this.url + "/admin/cuentasconfig/getCuentasConfig");
                 if (data) {
-                    v.listaCuentasConfig = data;
+                    this.listaCuentasConfig = data;
                 } else {
                     sweet_msg_dialog('warning', data.msg);
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblCuentasConfig', 'Lista de Cuentas Configuradas', '#modalCuentaConfig', 'CONFIGURAR CUENTA');
                 } else {
                     dataTable('#modalCuentaConfig', 'Lista de Cuentas Configuradas');
@@ -123,7 +128,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.codeAux = data.ctcf_codigo;
             },
             async saveUpdateConfigCuenta() {
-                this.newConfigCuenta.fkCuentaContableDet = v.newConfigCuenta.fkCuentaContableDet.ctad_codigo;
+                this.newConfigCuenta.fkCuentaContableDet = this.newConfigCuenta.fkCuentaContableDet.ctad_codigo;
 
                 let datos = this.formData(this.newConfigCuenta);
 
@@ -141,7 +146,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
                         this.clear();
-                        this.getConfigCuentas();
+                        this.getCuentasConfig();
                         $('#modalCuentaConfig').modal('hide');
                         $('.modal-backdrop').remove();
                     } else if (response.data.status === 'existe') {
@@ -160,16 +165,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let {data} = await axios.post(this.url + '/admin/cuentascontables/searchCuentasContables', datos);
                     if (data !== false) {
-                        v.listaSearchCuentasContables = data;
+                        this.listaSearchCuentasContables = data;
                     } else {
-                        v.listaSearchCuentasContables = [];
+                        this.listaSearchCuentasContables = [];
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data.message);
-                    v.listaSearchCuentasContables = [];
+                    this.listaSearchCuentasContables = [];
                 }
             },
-             clear() {
+            clear() {
                 this.newConfigCuenta = {
                     ctcfCodigo: '',
                     ctcfNombre: '',
@@ -192,5 +197,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         }
 
     });
-
+    window.appCuentasConf.mount('#app');
 </script>

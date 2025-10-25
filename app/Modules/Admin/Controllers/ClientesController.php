@@ -42,10 +42,7 @@ class ClientesController extends \App\Controllers\BaseController {
         $data['listaProvincia'] = $this->ccm->getData('cc_provincia');
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\clientes\viewClientes', $data);
-
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
-        //return view($this->dirTemplate . '\dashboard', $send);
     }
 
     public function getClientes() {

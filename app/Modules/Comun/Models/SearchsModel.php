@@ -76,6 +76,10 @@ class SearchsModel extends \CodeIgniter\Model {
         $builder->join('cc_stock_bodega tb2', 'tb2.fk_producto = tb1.id','left');
 
         $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
+        
+        if($params->bodegaId){
+          $builder->where('tb2.fk_bodega',$params->bodegaId);  
+        }
 
         $builder->limit(15);
 

@@ -223,42 +223,48 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaBodegas =<?php echo json_encode($listaBodegas); ?>;
     var listaEmpleados =<?php echo json_encode($listaEmpleados); ?>;
 
-    var v = new Vue({
-        el: '#app',
+    if (window.appPuntoVenta) {
+        window.appPuntoVenta.unmount();
+    }
+
+    window.appPuntoVenta = Vue.createApp({
+
         components: {
-            'vue-multiselect': window.VueMultiselect.default
+            'vue-multiselect': window['vue-multiselect'].Multiselect
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
+                //TODO: VARIABLES
+                estadoSave: true,
 
-            //TODO: V-MODELS
-            idEdit: '',
-            newPV: {
-                pvEstablecimiento: '',
-                pvEmision: '',
-                pvComprobante: '',
-                pvAuthSri: '',
-                pvFechaVenceAuthSri: '',
-                pvSecInicial: '',
-                pvSecFinal: '',
-                pvIsElectronica: '0',
-                pvBodega: '',
-                pvEstado: '1',
-            },
-            pvEmpleados: '',
+                //TODO: V-MODELS
+                idEdit: '',
+                newPV: {
+                    pvEstablecimiento: '',
+                    pvEmision: '',
+                    pvComprobante: '',
+                    pvAuthSri: '',
+                    pvFechaVenceAuthSri: '',
+                    pvSecInicial: '',
+                    pvSecFinal: '',
+                    pvIsElectronica: '0',
+                    pvBodega: '',
+                    pvEstado: '1',
+                },
+                pvEmpleados: '',
 
-            //TODO: LISTAS
-            listaPuntoVenta: [],
-            listaComprobantes: listaComprobantes,
-            listaBodegas: listaBodegas,
-            listaEmpleados: listaEmpleados,
-            formValidacion: []
+                //TODO: LISTAS
+                listaPuntoVenta: [],
+                listaComprobantes: listaComprobantes,
+                listaBodegas: listaBodegas,
+                listaEmpleados: listaEmpleados,
+                formValidacion: []
+            };
         },
         created() {
             this.getPuntosVenta();
@@ -268,9 +274,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.post(this.url + '/admin/pventa/showEmpleados/' + idPv);
                     if (response.data) {
-                        v.pvEmpleados = response.data;
+                        this.pvEmpleados = response.data;
                     } else {
-                        v.pvEmpleados = '';
+                        this.pvEmpleados = '';
                         sweet_msg_toast('warning', 'El punto de venta no tiene empleados registrados.');
                     }
                 } catch (e) {
@@ -282,11 +288,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/pventa/getPuntosVenta');
                     if (response.data) {
-                        v.listaPuntoVenta = response.data;
+                        this.listaPuntoVenta = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron puntos de venta registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblPuntoVenta', 'Lista de puntos de venta', '#modalPuntoVenta', 'CREAR PUNTO DE VENTA');
                     } else {
                         dataTable('#tblPuntoVenta', 'Lista de puntos de venta');
@@ -297,7 +303,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadPuntoVenta(pv) {
-                v.newPV = {
+                this.newPV = {
                     pvComprobante: pv.fk_comprobante,
                     pvEstablecimiento: pv.pv_establecimiento,
                     pvEmision: pv.pv_emision,
@@ -312,17 +318,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 $('#pvComprobante').selectpicker('val', pv.fk_comprobante);
                 $('#pvBodega').selectpicker('val', pv.pv_fk_bodega);
 
-                v.idEdit = pv.id;
-                v.nameAux = pv.fk_comprobante;
+                this.idEdit = pv.id;
+                this.nameAux = pv.fk_comprobante;
 
-                v.showEmpleados(pv.id);
+                this.showEmpleados(pv.id);
 
             },
             async saveUpdatePuntoVenta() {
-                let datos = v.formData(v.newPV);
+                let datos = this.formData(this.newPV);
 
-                if (v.pvEmpleados) {
-                    let empleadoId = v.pvEmpleados.map(data => data.id);
+                if (this.pvEmpleados) {
+                    let empleadoId = this.pvEmpleados.map(data => data.id);
                     datos.append('pvEmpleado', empleadoId);
                 } else {
                     datos.append('pvEmpleado', "");
@@ -330,9 +336,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 let url = this.url + '/admin/pventa/savePuntoVenta';
 
-                if (v.idEdit != '') {
-                    datos.append('idPV', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idPV', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/pventa/updatePuntoVenta';
                 }
 
@@ -341,8 +347,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getPuntosVenta();
+                        this.clear();
+                        this.getPuntosVenta();
                         $('#modalPuntoVenta').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -352,7 +358,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -360,7 +366,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newPV = {
+                this.newPV = {
                     pvEstablecimiento: '',
                     pvEmision: '',
                     pvComprobante: '',
@@ -374,11 +380,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
                 $('#pvComprobante').selectpicker('val', '');
                 $('#pvBodega').selectpicker('val', '');
-                v.pvEmpleados = '';
+                this.pvEmpleados = '';
 
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -392,5 +398,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appPuntoVenta.mount('#app');
 
 </script>

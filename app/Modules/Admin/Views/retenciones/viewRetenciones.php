@@ -63,38 +63,43 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
+    if (window.appRetenciones) {
+        window.appRetenciones.unmount();
+    }
+
+    window.appRetenciones = Vue.createApp({
+
         components: {
-            "vue-multiselect": window.VueMultiselect.default
+            "vue-multiselect": window['vue-multiselect'].Multiselect
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
-            idEdit: '',
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
+                idEdit: '',
 
-            //TODO: V-MODELS
-            listaSearchCuentasContables: [],
-            listaRetenciones: [],
-            newRetencion: {
-                retCodigo: '',
-                retNombre: '',
-                retPorcentaje: '',
-                retCtaCompras: '',
-                retCtaVentas: '',
-                retImpuesto: 'RENTA',
-                retValCompra: '',
-                retValVenta: ''
-            },
-            formValidacion: []
+                //TODO: V-MODELS
+                listaSearchCuentasContables: [],
+                listaRetenciones: [],
+                newRetencion: {
+                    retCodigo: '',
+                    retNombre: '',
+                    retPorcentaje: '',
+                    retCtaCompras: '',
+                    retCtaVentas: '',
+                    retImpuesto: 'RENTA',
+                    retValCompra: '',
+                    retValVenta: ''
+                },
+                formValidacion: []
 
-
+            };
 
         },
         created() {
@@ -104,11 +109,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getRetenciones() {
                 let {data} = await axios.get(this.url + "/admin/retenciones/getRetenciones");
                 if (data) {
-                    v.listaRetenciones = data;
+                    this.listaRetenciones = data;
                 } else {
                     sweet_msg_dialog('warning', data.msg);
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblRetenciones', 'Lista de Retenciones', '#modalRetenciones', 'CREAR RETENCIÓN');
                 } else {
                     dataTable('#tblRetenciones', 'Lista de Retenciones');
@@ -125,7 +130,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
                 this.newRetencion.retCtaCompras = {ctad_codigo: data.ret_cta_compras};
                 this.newRetencion.retCtaVentas = {ctad_codigo: data.ret_cta_ventas};
-                
+
                 this.idEdit = data.id;
                 this.codeAux = data.ret_codigo;
 
@@ -134,8 +139,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async saveUpdateRetencion() {
 
 
-                this.newRetencion.retCtaCompras = v.newRetencion.retCtaCompras.ctad_codigo;
-                this.newRetencion.retCtaVentas = v.newRetencion.retCtaVentas.ctad_codigo;
+                this.newRetencion.retCtaCompras = this.newRetencion.retCtaCompras.ctad_codigo;
+                this.newRetencion.retCtaVentas = this.newRetencion.retCtaVentas.ctad_codigo;
 
 
                 let datos = this.formData(this.newRetencion);
@@ -173,13 +178,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let {data} = await axios.post(this.url + '/admin/cuentascontables/searchCuentasContables', datos);
                     if (data !== false) {
-                        v.listaSearchCuentasContables = data;
+                        this.listaSearchCuentasContables = data;
                     } else {
-                        v.listaSearchCuentasContables = [];
+                        this.listaSearchCuentasContables = [];
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data.message);
-                    v.listaSearchCuentasContables = [];
+                    this.listaSearchCuentasContables = [];
                 }
 
             },
@@ -209,10 +214,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     formData.append(key, obj[key]);
                 }
                 return formData;
-            },
+            }
 
         }
 
     });
-
+    window.appRetenciones.mount('#app');
 </script>

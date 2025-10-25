@@ -46,9 +46,18 @@ class IndexController extends \App\Controllers\BaseController {
     }
 
     public function index() {
+        $view = $this->parametrosIndex();
+        return view($this->dirTemplate . '\dashboard', $view);
+    }
+
+    public function indexAux() {
+        $view = $this->parametrosIndex();
+        return $this->response->setJSON($view);
+    }
+
+    public function parametrosIndex() {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
-        $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
         $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
@@ -60,9 +69,16 @@ class IndexController extends \App\Controllers\BaseController {
 
         $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;
         $send['view'] = view($this->dirViewModule . '\viewNewAjuste', $data);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
-        return view($this->dirTemplate . '\dashboard', $send);
+
+        return $send;
+    }
+
+    public function responseSetJSON($status, $mensaje, $data = null) {
+        return $this->response->setJSON([
+                    'status' => $status,
+                    'msg' => $mensaje,
+                    'data' => $data,
+        ]);
     }
 
     public function insertProduct() {
@@ -87,7 +103,7 @@ class IndexController extends \App\Controllers\BaseController {
             return $this->response->setJSON($msg);
         }
 
-        $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock',null,1);
+        $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock', null, 1);
         $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : $dataProducto->prod_stockactual;
 
         $impuestos = $this->prodModel->getImpuestoTarifa($dataProducto->id);
@@ -205,10 +221,7 @@ class IndexController extends \App\Controllers\BaseController {
         // Validamos campos antes de procesar
         $statusValidation = $this->validarCampos($dataAjuste);
         if ($statusValidation['status']) {
-            return $this->response->setJSON([
-                        'status' => "warning",
-                        'msg' => $statusValidation['msg']
-            ]);
+            return $this->responseSetJSON("warning", $statusValidation['msg']);
         }
 
 
@@ -219,7 +232,8 @@ class IndexController extends \App\Controllers\BaseController {
             $ajusteId = $this->entradasLib->saveAjuste($cartData, $dataAjuste);
 
             if (!$ajusteId) {
-                throw new \Exception('Ha ocurrido un error al registrar el Ajuste');
+                $this->db->transRollback();
+                $this->responseSetJSON('error', 'Ha ocurrido un error al registrar el Ajuste');
             }
 
             foreach ($cartData->cartContent as $val) {
@@ -229,10 +243,10 @@ class IndexController extends \App\Controllers\BaseController {
                 if ($val->tieneLote === '1') {
                     if ((empty($val->lote) || empty($val->fechaElaboracion) || empty($val->fechaCaducidad))) {
                         $this->db->transRollback();
-                        return $this->response->setJSON([
-                                    'status' => 'warning',
-                                    'msg' => 'El producto ' . $val->name . ' maneja control de lotes<br> Por favor revise el LOTE y sus respectivas FECHAS',
-                        ]);
+                        return $this->responseSetJSON(
+                                        'warning',
+                                        'El producto ' . $val->name . ' maneja control de lotes<br> Por favor revise el LOTE y sus respectivas FECHAS',
+                        );
                     }
 
                     $existeLote = $this->ccm->getData('cc_lotes', ['lot_lote' => $val->lote, 'fk_producto' => $val->id], '*', null, 1);
@@ -245,21 +259,27 @@ class IndexController extends \App\Controllers\BaseController {
                 $ajusteIdDet = $this->entradasLib->saveAjusteDetalle($ajusteId, $val, $lote);
 
                 if (!$ajusteIdDet) {
-                    throw new \Exception('Ha ocurrido un error al registrar el producto ' . $val->name . ' en el detalle del ajuste');
+                    $this->db->transRollback();
+                    return $this->responseSetJSON('error', 'Ha ocurrido un error al registrar el producto ' . $val->name . ' en el detalle del ajuste');
                 }
 
                 // Actualizamos el kardex solo si el ajuste está aprobado y no es servicio
                 if ($dataAjuste->ajenEstado === '2' && $val->servicio === '0') {
 
                     $kardexOk = $this->entradasLib->updateKardex($ajusteId, $val, $lote, $dataAjuste);
-                    if (!$kardexOk) {
-                        throw new \Exception('Error al actualizar el kardex del producto ' . $val->name);
+                    if ($kardexOk['status'] !== 'success') {
+                        $this->db->transRollback();
+                        return $this->responseSetJSON($kardexOk['status'], $kardexOk['msg']);
                     }
                 }
             }
 
             if ($dataAjuste->ajenEstado === '2') {
-                $this->entradasAsientoLib->generarAsiento($ajusteId);
+                $responseAsiento = $this->entradasAsientoLib->generarAsiento($ajusteId);
+                if ($responseAsiento['status'] !== 'success') {
+                    $this->db->transRollback();
+                    return $this->responseSetJSON($responseAsiento['status'], $responseAsiento['msg']);
+                }
             }
 
             //SI TODO MARCHO BIEN REALIZO EL COMMIT
@@ -267,17 +287,12 @@ class IndexController extends \App\Controllers\BaseController {
             $this->ajenCart->destroy();
             $this->logs->logSuccess('Ajuste registrado exitosamente ID: ' . $ajusteId);
             log_message('info', "[Ajuste Entrada] Ajuste registrado exitosamente ID: , DocID: {$ajusteId}");
-            return $this->response->setJSON([
-                        'status' => "success",
-                        'msg' => "Ajuste registrado exitosamente"
-            ]);
+            return $this->responseSetJSON("success", "Ajuste registrado exitosamente");
         } catch (\Throwable $exc) {
+
             $this->db->transRollback();
-            $this->logs->logDanger('Ha ocurrido un error al registrar el Ajuste');
-            return $this->response->setJSON([
-                        'status' => 'error',
-                        'msg' => 'Error al tratar de crear el Ajuste: ' . $exc->getMessage()
-            ]);
+            $this->logs->logError('Ha ocurrido un error al registrar el Ajuste');
+            return $this->responseSetJSON('error', 'Error al tratar de crear el Ajuste: ' . $exc->getMessage());
         }
     }
 

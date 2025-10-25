@@ -104,28 +104,34 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            url: siteUrl,
+    if (window.appTipoProducto) {
+        window.appTipoProducto.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
+    window.appTipoProducto = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: V-MODELS
-            idEdit: '',
-            newTP: {
-                tpNombre: '',
-                tpDescripcion: '',
-                tpEstado: '1'
-            },
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: LISTAS
-            listaTipoProducto: [],
-            formValidacion: []
+                //TODO: VARIABLES
+                estadoSave: true,
+
+                //TODO: V-MODELS
+                idEdit: '',
+                newTP: {
+                    tpNombre: '',
+                    tpDescripcion: '',
+                    tpEstado: '1'
+                },
+
+                //TODO: LISTAS
+                listaTipoProducto: [],
+                formValidacion: []
+            }
 
         },
         created() {
@@ -136,11 +142,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/tiposprod/getTiposProducto');
                     if (response.data) {
-                        v.listaTipoProducto = response.data;
+                        this.listaTipoProducto = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron tipos de producto registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblTipoProducto', 'Lista de tipos de producto', '#modalTP', 'CREAR TIPO DE PRODUCTYO');
                     } else {
                         dataTable('#tblTipoProducto', 'Lista de tipos de producto');
@@ -151,22 +157,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadTipoProducto(tp) {
-                v.newTP = {
+                this.newTP = {
                     tpNombre: tp.tp_nombre,
                     tpDescripcion: tp.tp_descripcion,
                     tpEstado: tp.tp_estado
                 };
-                v.idEdit = tp.id;
-                v.nameAux = tp.tp_nombre;
+                this.idEdit = tp.id;
+                this.nameAux = tp.tp_nombre;
 
             },
             async saveUpdateTipoProducto() {
-                let datos = v.formData(v.newTP);
+                let datos = this.formData(this.newTP);
                 let url = this.url + '/admin/tiposprod/saveTipoProducto';
 
-                if (v.idEdit != '') {
-                    datos.append('idTP', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idTP', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/tiposprod/updateTipoProducto';
                 }
 
@@ -175,8 +181,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getTiposProducto();
+                        this.clear();
+                        this.getTiposProducto();
                         $('#modalTP').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -186,7 +192,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -203,14 +209,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 return txt;
             },
             clear() {
-                v.newTP = {
+                this.newTP = {
                     tpNombre: '',
                     tpDescripcion: '',
                     tpEstado: '1'
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -225,5 +231,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appTipoProducto.mount('#app');
 
 </script>

@@ -45,61 +45,70 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var admin = '<?= $admin ?>';
     var listaOnlyModulos =<?php echo json_encode($listaModulos) ?>
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            url: siteUrl,
+    if (window.appModulos) {
+        window.appModulos.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
+    window.appModulos = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            estadoSave2: true,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: V-MODELS
-            idEdit: '',
-            idEdit2: '',
+                //TODO: PERMISOS
+                admin: admin,
 
-            newModulo: {
-                nombreModulo: '',
-                descripcionModulo: '',
-                estadoModulo: '1',
-                urlModulo: '',
-                tipoModulo: 'modulo',
-                iconoModulo: '',
-                ordenModulo: '',
-                padreModulo: '',
-            },
+                //TODO: VARIABLES
+                estadoSave: true,
+                estadoSave2: true,
 
-            newAccion: {
-                nombreAccion: '',
-                detalleAccion: '',
-                estado: '1',
-                moduloAccion: '-1',
-                subModuloAccion: '',
-            },
+                //TODO: V-MODELS
+                idEdit: '',
+                idEdit2: '',
 
-            //TODO: LISTAS
-            listaOnlyModulos: listaOnlyModulos,
-            listaOnlySubModulos: [],
-            listaModulos: [],
-            listaAcciones: [],
+                newModulo: {
+                    nombreModulo: '',
+                    descripcionModulo: '',
+                    estadoModulo: '1',
+                    urlModulo: '',
+                    tipoModulo: 'modulo',
+                    iconoModulo: '',
+                    ordenModulo: '',
+                    padreModulo: '',
+                },
 
-            //TODO: FORM-VALIDATION
-            formValidacion: [],
-            formValidacion2: []
+                newAccion: {
+                    nombreAccion: '',
+                    detalleAccion: '',
+                    estado: '1',
+                    moduloAccion: '-1',
+                    subModuloAccion: '',
+                },
+
+                //TODO: LISTAS
+                listaOnlyModulos: listaOnlyModulos,
+                listaOnlySubModulos: [],
+                listaModulos: [],
+                listaAcciones: [],
+
+                //TODO: FORM-VALIDATION
+                formValidacion: [],
+                formValidacion2: []
+            }
         },
         created() {
             this.getModulos();
             this.getAcciones();
-            document.getElementById('parent').style.display = 'none';
 
+        },
+        mounted() {
+            document.getElementById('parent').style.display = 'none';
+            $('#selectModulo').selectpicker();
         },
         methods: {
 
             toggleTipo() {
-                if (v.newModulo.tipoModulo == 'modulo') {
+                if (this.newModulo.tipoModulo === 'modulo') {
                     document.getElementById('parent').style.display = 'none';
                 } else {
                     document.getElementById('parent').style.display = 'block';
@@ -109,11 +118,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/modacc/getModulos');
                     if (response.data) {
-                        v.listaModulos = response.data;
+                        this.listaModulos = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se han encontrado módulos registrados');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblModulos', 'Lista de Módulos', '#modalModulos', 'NUEVO MÓDULO');
                     } else {
                         dataTable('#tblModulos', 'Lista de Módulos');
@@ -124,12 +133,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             async saveUpdateModulo() {
-                let datos = v.formData(v.newModulo);
+                let datos = this.formData(this.newModulo);
                 let url = this.url + '/admin/modacc/saveModulo';
 
-                if (v.idEdit != '') {
-                    datos.append('idModulo', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRO MODULO CON EL MISMO NOMBRE
+                if (this.idEdit !== '') {
+                    datos.append('idModulo', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRO MODULO CON EL MISMO NOMBRE
                     url = this.url + '/admin/modacc/updateModulo';
                 }
 
@@ -138,8 +147,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getModulos();
+                        this.clear();
+                        this.getModulos();
                         $('#modalModulos').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -149,7 +158,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -158,7 +167,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             loadModulo(modulo) {
-                v.newModulo = {
+                this.newModulo = {
                     nombreModulo: modulo.md_nombre,
                     descripcionModulo: modulo.md_descripcion,
                     estadoModulo: modulo.md_estado,
@@ -168,18 +177,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     ordenModulo: modulo.md_orden,
                     padreModulo: modulo.md_padre
                 };
-                v.nameAux = modulo.md_nombre;
-                v.idEdit = modulo.id;
+                this.nameAux = modulo.md_nombre;
+                this.idEdit = modulo.id;
             },
             async getAcciones() {
                 try {
                     let response = await axios.get(this.url + '/admin/modacc/getAcciones');
                     if (response.data) {
-                        v.listaAcciones = response.data;
+                        this.listaAcciones = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se han encontrado acciones registrados');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblAcciones', 'Lista de Acciones', '#modalAcciones', 'NUEVA ACCIÓN');
                     } else {
                         dataTable('#tblAcciones', 'Lista de Acciones');
@@ -191,12 +200,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             async loadSubModulo() {
                 let datos = {
-                    idModulo: v.newAccion.moduloAccion
+                    idModulo: this.newAccion.moduloAccion
                 };
                 try {
                     let response = await axios.post(this.url + '/admin/modacc/getSubModulo', datos);
                     if (response.data) {
-                        v.listaOnlySubModulos = response.data;
+                        this.listaOnlySubModulos = response.data;
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
@@ -204,12 +213,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             async saveUpdateAccion() {
-                let datos = v.formData(v.newAccion);
+                let datos = this.formData(this.newAccion);
                 let url = this.url + '/admin/modacc/saveAccion';
 
-                if (v.idEdit2 != '') {
-                    datos.append('idAccion', v.idEdit2);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA ACCION CON EL MISMO NOMBRE
+                if (this.idEdit2 !== '') {
+                    datos.append('idAccion', this.idEdit2);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA ACCION CON EL MISMO NOMBRE
                     url = this.url + '/admin/modacc/updateAccion';
                 }
                 try {
@@ -217,8 +226,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getAcciones();
+                        this.clear();
+                        this.getAcciones();
                         $('#modalAcciones').modal('hide');
                         $('.modal-backdrop').remove();
                     } else if (response.data.status === 'existe') {
@@ -227,7 +236,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion2 = response.data.msg;
+                        this.formValidacion2 = response.data.msg;
 
                     }
                 } catch (e) {
@@ -236,18 +245,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             loadAccion(accion) {
-
-                v.newAccion = {
+                console.log(accion);
+                this.newAccion = {
                     nombreAccion: accion.ac_nombre,
                     detalleAccion: accion.ac_detalle,
                     estado: accion.ac_estado,
                     moduloAccion: accion.fk_modulo,
                     subModuloAccion: accion.fk_submodulo
                 };
-                v.nameAux = accion.ac_nombre;
-                v.idEdit2 = accion.id;
+                this.nameAux = accion.ac_nombre;
+                this.idEdit2 = accion.id;
                 $('#selectModulo').selectpicker('val', accion.fk_modulo);
-                v.loadSubModulo();
+                this.loadSubModulo();
             },
 
             formData(obj) {
@@ -259,9 +268,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             clear() {
                 //TODO: MODULOS
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.newModulo = {
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.newModulo = {
                     nombreModulo: '',
                     descripcionModulo: '',
                     estado: '1',
@@ -269,21 +278,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     tipoModulo: '',
                     iconModulo: '',
                     numOrdenModulo: '',
-                    mpadreModulo: ''
+                    padreModulo: ''
                 };
-                v.formValidacion = [];
+                this.formValidacion = [];
 
                 //TODO: ACCIONES
-                v.estadoSave2 = true;
-                v.idEdit2 = '';
-                v.newAccion = {
+                this.estadoSave2 = true;
+                this.idEdit2 = '';
+                this.newAccion = {
                     nombreAccion: '',
                     detalleAccion: '',
                     estado: '1',
                     moduloAccion: '',
                     subModuloAccion: ''
                 };
-                v.formValidacion2 = [];
+                this.formValidacion2 = [];
 
             },
 
@@ -292,5 +301,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appModulos.mount('#app');
 
 </script>

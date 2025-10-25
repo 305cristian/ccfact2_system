@@ -199,39 +199,45 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
-        data: {
+    if (window.appEmpresa) {
+        window.appEmpresa.unmount();
+    }
 
-            url: siteUrl,
-            //PERMISOS
-            admin: admin,
+    window.appEmpresa = Vue.createApp({
 
-            //TODO: VARIABLES
-            idEdit: '',
-            estadoSave: true,
+        data() {
 
-            //TODO: V-MODELS
-            newEmpresa: {
-                empRuc: '',
-                empRasonSocial: '',
-                empRepLegal: '',
-                empNombreComercial: '',
-                empCiudad: '',
-                empDireccion: '',
-                empMision: '',
-                empVision: '',
-                empObjetivos: '',
-                empTelefono: '',
-                empCelular: '',
-                empEmail: '',
-                empFechaCreacion: ''
+            return{
+                url: siteUrl,
+                //PERMISOS
+                admin: admin,
 
-            },
+                //TODO: VARIABLES
+                idEdit: '',
+                estadoSave: true,
 
-            //TODO: LISTAS
-            listaEmpresa: [],
-            formValidacion: []
+                //TODO: V-MODELS
+                newEmpresa: {
+                    empRuc: '',
+                    empRasonSocial: '',
+                    empRepLegal: '',
+                    empNombreComercial: '',
+                    empCiudad: '',
+                    empDireccion: '',
+                    empMision: '',
+                    empVision: '',
+                    empObjetivos: '',
+                    empTelefono: '',
+                    empCelular: '',
+                    empEmail: '',
+                    empFechaCreacion: ''
+
+                },
+
+                //TODO: LISTAS
+                listaEmpresa: [],
+                formValidacion: []
+            }
         },
         created() {
             this.getEmpresa();
@@ -243,7 +249,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     let response = await axios.get(this.url + '/admin/enterprice/getEmpresa');
 
                     if (response.data) {
-                        v.listaEmpresa = response.data;
+                        this.listaEmpresa = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se ha encontrado ninguna empresa registrada');
                     }
@@ -256,7 +262,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             loadEmpresa(emp) {
-                v.newEmpresa = {
+                this.newEmpresa = {
                     empRuc: emp.epr_ruc,
                     empRasonSocial: emp.epr_razon_social,
                     empRepLegal: emp.epr_rep_legal,
@@ -272,17 +278,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     empFechaCreacion: emp.epr_fecha_creacion
 
                 };
-                v.idEdit = emp.id;
-                v.nameAux = emp.epr_ruc;
+                this.idEdit = emp.id;
+                this.nameAux = emp.epr_ruc;
 
             },
             async saveUpdateEmpresa() {
-                let datos = v.formData(v.newEmpresa);
+                let datos = this.formData(this.newEmpresa);
                 let url = this.url + '/admin/enterprice/saveEmpresa';
 
-                if (v.idEdit != '') {
-                    datos.append('idEmpresa', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idEmpresa', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/enterprice/updateEmpresa';
                 }
 
@@ -291,8 +297,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getEmpresa();
+                        this.clear();
+                        this.getEmpresa();
                         $('#modalmpresa').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -302,7 +308,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -310,7 +316,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newEmpresa = {
+                this.newEmpresa = {
                     empRuc: '',
                     empRasonSocial: '',
                     empRepLegal: '',
@@ -325,9 +331,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     empEmail: '',
                     empFechaCreacion: ''
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -339,5 +345,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         }
     });
+    window.appEmpresa.mount('#app');
 
 </script>

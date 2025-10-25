@@ -58,35 +58,41 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
+    if (window.appCuentasContables) {
+        window.appCuentasContables.unmount();
+    }
+
+    window.appCuentasContables = Vue.createApp({
+
         components: {
-            "vue-multiselect": window.VueMultiselect.default
+            "vue-multiselect": window['vue-multiselect'].Multiselect
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
-            idEdit: '',
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
+                idEdit: '',
 
-            //TODO: V-MODELS
-            listaCuentasDet: [],
-            newCuenta: {
-                ctadCodigo: '',
-                ctadNombreCuenta: '',
-                ctadCuentaPadre: '',
-                fkCtaContable: '',
-                ctadEstado: '1'
-            },
-            listaCuentas: [],
-            listaSearchCuentasContables: [],
-            formValidacion: []
+                //TODO: V-MODELS
+                listaCuentasDet: [],
+                newCuenta: {
+                    ctadCodigo: '',
+                    ctadNombreCuenta: '',
+                    ctadCuentaPadre: '',
+                    fkCtaContable: '',
+                    ctadEstado: '1'
+                },
+                listaCuentas: [],
+                listaSearchCuentasContables: [],
+                formValidacion: []
 
+            };
 
 
         },
@@ -97,32 +103,32 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         methods: {
             async getCuentas() {
                 let {data} = await axios.get(this.url + '/admin/cuentascontables/getCuentas');
-                v.listaCuentas = data;
+                this.listaCuentas = data;
             },
             async getCuentasContables() {
                 let {data} = await axios.get(this.url + "/admin/cuentascontables/getCuentasContables");
                 if (data) {
-                    v.listaCuentasDet = data;
+                    this.listaCuentasDet = data;
                 } else {
                     sweet_msg_dialog('warning', data.msg);
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblCuentasContables', 'Lista de Cuentas Contables', '#modalCuentasContables', 'CREAR CUENTA');
                 } else {
                     dataTable('#tblCuentasContables', 'Lista de Cuentas Contables');
                 }
             },
             loadCuentaContable(data) {
-                v.newCuenta = {
+                this.newCuenta = {
                     ctadCodigo: data.ctad_codigo,
                     ctadNombreCuenta: data.ctad_nombre_cuenta,
                     ctadEstado: data.ctad_estado
                 };
-                v.newCuenta.ctadCuentaPadre = {ctad_codigo: data.codigo_cuenta_padre};
-                v.newCuenta.fkCtaContable = data.cta_codigo;
+                this.newCuenta.ctadCuentaPadre = {ctad_codigo: data.codigo_cuenta_padre};
+                this.newCuenta.fkCtaContable = data.cta_codigo;
 
-                v.idEdit = data.ctad_codigo;
-                v.codeAux = data.ctad_codigo;
+                this.idEdit = data.ctad_codigo;
+                this.codeAux = data.ctad_codigo;
 
             },
             async searchCuentasContables(dataSerach) {
@@ -130,59 +136,59 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let {data} = await axios.post(this.url + '/admin/cuentascontables/searchCuentasContables', datos);
                     if (data !== false) {
-                        v.listaSearchCuentasContables = data;
+                        this.listaSearchCuentasContables = data;
                     } else {
-                        v.listaSearchCuentasContables = [];
+                        this.listaSearchCuentasContables = [];
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data.message);
-                    v.listaSearchCuentasContables = [];
+                    this.listaSearchCuentasContables = [];
                 }
 
             },
             async saveUpdateCuenta() {
 
-                v.newCuenta.ctadCuentaPadre = this.newCuenta.ctadCuentaPadre.ctad_codigo;
+                this.newCuenta.ctadCuentaPadre = this.newCuenta.ctadCuentaPadre.ctad_codigo;
 
-                let datos = v.formData(v.newCuenta);
+                let datos = this.formData(this.newCuenta);
                 let url = this.url + '/admin/cuentascontables/saveCuenta';
-                if (v.idEdit !== '') {
-                    datos.append('idCta', v.idEdit);
-                    datos.append('codeAux', v.codeAux);
+                if (this.idEdit !== '') {
+                    datos.append('idCta', this.idEdit);
+                    datos.append('codeAux', this.codeAux);
                     url = this.url + '/admin/cuentascontables/updateCuenta';
                 }
                 try {
-                    v.loading = true;
+                    this.loading = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getCuentasContables();
+                        this.clear();
+                        this.getCuentasContables();
                         $('#modalCuentasContables').modal('hide');
                         $('.modal-backdrop').remove();
                     } else if (response.data.status === 'existe') {
                         sweet_msg_dialog('warning', response.data.msg);
                     } else if (response.data.status === 'vacio') {
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
                 } finally {
-                    v.loading = false;
+                    this.loading = false;
                 }
 
             },
             clear() {
-                v.newCuenta = {
+                this.newCuenta = {
                     ctadCodigo: '',
                     ctadNombreCuenta: '',
                     ctadCuentaPadre: null,
                     fkCtaContable: '',
                     ctadEstado: '1'
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -194,5 +200,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         }
 
     });
-
+    window.appCuentasContables.mount('#app');
 </script>

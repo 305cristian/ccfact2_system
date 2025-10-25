@@ -27,7 +27,7 @@ class EntradasModel extends \CodeIgniter\Model {
                 . " tb1.prod_isservicio,"
                 . " tb1.prod_stockactual,"
                 . " tb1.prod_ctrllote, tb2.um_nombre_corto");
-        $builder->join('cc_unidades_medida tb2','tb2.id = tb1.fk_unidadmedida');
+        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
         if (ctype_digit($codProd)) {
             $builder->where('tb1.id', $codProd);
         } else {
@@ -46,5 +46,48 @@ class EntradasModel extends \CodeIgniter\Model {
         } else {
             return false;
         }
+    }
+
+    public function getAjustes() {
+        $builder = $this->db->table('cc_ajuste_entrada tb1');
+        $builder->select('tb1.*,'
+                . ' tb2.bod_nombre,'
+                . 'tb3.prov_razon_social,'
+                . 'CONCAT(tb4.emp_nombre," ", tb4.emp_apellido) user_create,'
+                . 'tb5.cc_nombre');
+        $builder->join('cc_bodegas tb2', 'tb2.id =tb1.fk_bodega');
+        $builder->join('cc_proveedores tb3', 'tb3.id =tb1.fk_proveedor');
+        $builder->join('cc_empleados tb4', 'tb4.id =tb1.fk_user_id');
+        $builder->join('cc_centroscosto tb5', 'tb5.id =tb1.fk_centro_costo');
+        $builder->orderBy('ajen_fecha','ASC');
+        $builder->orderBy('ajen_secuencial','ASC');
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return false;
+        }
+
+
+
+//        foreach ($response as $val) {
+//
+//            $builder = $this->db->table('cc_ajuste_entrada_det tb3');
+//            $builder->select('tb4.codigo, tb4.prod_nombre,'
+//                    . ' tb3.fk_producto,'
+//                    . ' tb3.ajend_itemcantidad,'
+//                    . ' tb3.ajend_itemcosto,'
+//                    . ' tb3.ajend_itemcostoxcantidad,'
+//                    . 'tb5.lot_lote,'
+//                    . 'tb5.lot_fecha_elaboracion,'
+//                    . 'tb5.lot_fecha_caducidad');
+//            $builder->join('cc_productos tb4', 'tb4.id = tb3.fk_producto');
+//            $builder->join('cc_lotes tb5', 'tb5.id = tb3.fk_lote', 'left');
+//            $builder->where('tb3.fk_ajuste', $val->id);
+//            $val->detalle = $builder->get()->getResult();
+//        }
+//        return $response;
     }
 }

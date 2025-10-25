@@ -27,18 +27,15 @@ class EmployeeController extends \App\Controllers\BaseController {
 
     public function index() {
         $this->user->validateSession();
+        $mod['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['user'] = $this->user;
-        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaCargos'] = $this->ccm->getData('cc_cargo', ['carg_estado' => 1]);
         $data['listaDepartamentos'] = $this->ccm->getData('cc_departamento', ['dep_estado' => 1]);
         $data['listaRoles'] = $this->ccm->getData('cc_roles', ['rol_estado' => 1]);
-        $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
+        $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\employee\viewEmployee', $data);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
-//        return view($this->dirTemplate . '\dashboard', $send);
     }
 
     public function getEmpleados() {

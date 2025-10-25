@@ -107,28 +107,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
-        data: {
-            url: siteUrl,
-            //TODO: PERMISOS
-            admin: admin,
+    if (window.appTipoPrecio) {
+        window.appTipoPrecio.unmount();
+    }
 
-            //TODO: VARIABLES
-            estadoSave: true,
+    window.appTipoPrecio = Vue.createApp({
 
-            //TODO: V-MODELS
-            idEdit: '',
-            newTipoPrecio: {
-                tpNombre: '',
-                tpDescripcion: '',
-                tpEstado: '1'
-            },
+        data() {
+            return {
+                url: siteUrl,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: LISTAS
-            listaTiposPrecio: [],
-            formValidacion: []
+                //TODO: VARIABLES
+                estadoSave: true,
 
+                //TODO: V-MODELS
+                idEdit: '',
+                newTipoPrecio: {
+                    tpNombre: '',
+                    tpDescripcion: '',
+                    tpEstado: '1'
+                },
+
+                //TODO: LISTAS
+                listaTiposPrecio: [],
+                formValidacion: []
+            };
         },
         created() {
             this.getTiposPrecios();
@@ -139,11 +144,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/tiposprice/getTipoPrecio');
                     if (response.data) {
-                        v.listaTiposPrecio = response.data;
+                        this.listaTiposPrecio = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron tipos de precios registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblTipoprecio', 'Lista de Tipos de PrecioS', '#modalTipoPrecio', 'CREAR TIPO DE PRECIO');
                     } else {
                         dataTable('#tblTipoprecio', 'Lista de Tipos de Precios');
@@ -155,22 +160,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             loadTipoPrecio(tpc) {
-                v.newTipoPrecio = {
+                this.newTipoPrecio = {
                     tpNombre: tpc.tpc_nombre,
                     tpDescripcion: tpc.tpc_descripcion,
                     tpEstado: tpc.tpc_estado
                 };
-                v.idEdit = tpc.id;
-                v.nameAux = tpc.tpc_nombre;
+                this.idEdit = tpc.id;
+                this.nameAux = tpc.tpc_nombre;
 
             },
             async saveUpdateTipoPrecio() {
-                let datos = v.formData(v.newTipoPrecio);
+                let datos = this.formData(this.newTipoPrecio);
                 let url = this.url + '/admin/tiposprice/saveTipoPrecio';
 
-                if (v.idEdit != '') {
-                    datos.append('idTp', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idTp', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/tiposprice/updateTipoPrecio';
                 }
 
@@ -179,8 +184,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getTiposPrecios();
+                        this.clear();
+                        this.getTiposPrecios();
                         $('#modalTipoPrecio').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -190,7 +195,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -198,14 +203,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newTipoPrecio = {
+                this.newTipoPrecio = {
                     tpNombre: "",
                     tpDescripcion: "",
                     tpEstado: "1"
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -219,5 +224,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appTipoPrecio.mount('#app');
 
 </script>

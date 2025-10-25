@@ -114,29 +114,35 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            url: siteUrl,
-            //TODO: PERMISOS
-            admin: admin,
+    if (window.appSustentos) {
+        window.appSustentos.unmount();
+    }
 
-            //TODO: VARIABLES
-            estadoSave: true,
+    window.appSustentos = Vue.createApp({
 
-            //TODO: V-MODELS
-            idEdit: '',
-            newSustento: {
-                sustentoCodigo: '',
-                sustentoNombre: '',
-                sustentoTipoComprobante: '',
-                sustentoEstado: '1'
-            },
+        data() {
+            return {
+                url: siteUrl,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: LISTAS
-            listaSustentos: [],
-            formValidacion: []
+                //TODO: VARIABLES
+                estadoSave: true,
 
+                //TODO: V-MODELS
+                idEdit: '',
+                newSustento: {
+                    sustentoCodigo: '',
+                    sustentoNombre: '',
+                    sustentoTipoComprobante: '',
+                    sustentoEstado: '1'
+                },
+
+                //TODO: LISTAS
+                listaSustentos: [],
+                formValidacion: []
+
+            }
         },
         created() {
             this.getSustentos();
@@ -146,11 +152,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/sustento/getSustentos');
                     if (response.data) {
-                        v.listaSustentos = response.data;
+                        this.listaSustentos = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron sustentos registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblSustentos', 'Lista de Sustentos', '#modalSustentos', 'CREAR SUSTENTO');
                     } else {
                         dataTable('#tblSustentos', 'Lista de Sustentos');
@@ -161,23 +167,23 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadSustento(sus) {
-                v.newSustento = {
+                this.newSustento = {
                     sustentoCodigo: sus.sus_codigo,
                     sustentoNombre: sus.sus_nombre,
                     sustentoTipoComprobante: sus.sus_tipo_comprobante,
                     sustentoEstado: sus.sus_estado
                 };
-                v.idEdit = sus.id;
-                v.nameAux = sus.sus_nombre;
+                this.idEdit = sus.id;
+                this.nameAux = sus.sus_nombre;
 
             },
             async saveUpdateSustento() {
-                let datos = v.formData(v.newSustento);
+                let datos = this.formData(this.newSustento);
                 let url = this.url + '/admin/sustento/saveSustento';
 
-                if (v.idEdit != '') {
-                    datos.append('idSus', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit !== '') {
+                    datos.append('idSus', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/sustento/updateSustento';
                 }
 
@@ -186,8 +192,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getSustentos();
+                        this.clear();
+                        this.getSustentos();
                         $('#modalSustentos').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -197,7 +203,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -205,15 +211,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newSustento = {
+                this.newSustento = {
                     sustentoCodigo: '',
                     sustentoNombre: '',
                     sustentoTipoComprobante: '',
                     sustentoEstado: '1'
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -227,5 +233,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appSustentos.mount('#app');
 
 </script>

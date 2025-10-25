@@ -104,28 +104,34 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
+    if (window.appSettings) {
+        window.appSettings.unmount();
+    }
 
-        data: {
-            url: siteUrl,
-            //PERMISOS
-            admin: admin,
 
-            //V-MODELS
-            idEdit: '',
-            newSett: {
-                nombreSett: '',
-                valueSett: '',
-                detalleSett: ''
-            },
+    window.appSettings = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
+        data() {
+            return {
+                url: siteUrl,
+                //PERMISOS
+                admin: admin,
 
-            //TODO: LISTAS
-            listaSettings: [],
-            formValidacion: []
+                //V-MODELS
+                idEdit: '',
+                newSett: {
+                    nombreSett: '',
+                    valueSett: '',
+                    detalleSett: ''
+                },
+
+                //TODO: VARIABLES
+                estadoSave: true,
+
+                //TODO: LISTAS
+                listaSettings: [],
+                formValidacion: []
+            }
         },
         created() {
             this.getSettings();
@@ -135,11 +141,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/sett/getSettings');
                     if (response.data) {
-                        v.listaSettings = response.data;
+                        this.listaSettings = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron variables de configuración registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblSettings', 'Lista de variables', '#modalSettings', 'CREAR VARIABLE');
                     } else {
                         dataTable('#tblSettings', 'Lista de variables');
@@ -150,22 +156,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             loadSetting(sett) {
-                v.newSett = {
+                this.newSett = {
                     nombreSett: sett.st_nombre,
                     valueSett: sett.st_value,
                     detalleSett: sett.st_detalle
                 };
-                v.idEdit = sett.id;
-                v.nameAux = sett.st_nombre;
+                this.idEdit = sett.id;
+                this.nameAux = sett.st_nombre;
 
             },
             async saveUpdateSettings() {
-                let datos = v.formData(v.newSett);
+                let datos = this.formData(this.newSett);
                 let url = this.url + '/admin/sett/saveSettings';
 
-                if (v.idEdit != '') {
-                    datos.append('idSett', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit !== '') {
+                    datos.append('idSett', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/sett/updateSettings';
                 }
 
@@ -174,8 +180,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getSettings();
+                        this.clear();
+                        this.getSettings();
                         $('#modalSettings').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -185,7 +191,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -193,14 +199,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newSett = {
+                this.newSett = {
                     nombreSett: '',
                     valueSett: '',
                     detalleSett: ''
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -214,5 +220,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    window.appSettings.mount('#app');
 </script>

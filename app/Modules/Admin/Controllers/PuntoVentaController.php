@@ -38,10 +38,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $dataview['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1]);
         $dataview['listaEmpleados'] = $this->ccm->getData('cc_empleados', ['emp_estado' => 1], 'CONCAT(emp_nombre," ",emp_apellido) empleado ,id');
         $send['view'] = view($this->dirViewModule . '\puntosventa\viewPuntosVenta', $dataview);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
-//        return view($this->dirTemplate . '\dashboard', $send);
     }
 
     public function getPuntosVenta() {

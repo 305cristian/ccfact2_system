@@ -60,31 +60,35 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
+    if (window.appSectores) {
+        window.appSectores.unmount();
+    }
+    window.appSectores = Vue.createApp({
 
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
-            idEdit: '',
-            nombreAux: '',
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
+                idEdit: '',
+                nombreAux: '',
 
-            //TODO: V-MODELS
-            listaAnillos: [],
-            listaSectores: [],
-            newSector: {
-                secNombre: '',
-                secDescripcion: '',
-                fkAnillo: '',
-                secEstado: '1'
-            },
-            formValidacion: []
+                //TODO: V-MODELS
+                listaAnillos: [],
+                listaSectores: [],
+                newSector: {
+                    secNombre: '',
+                    secDescripcion: '',
+                    fkAnillo: '',
+                    secEstado: '1'
+                },
+                formValidacion: []
+            }
         },
         created() {
             this.getSectores();
@@ -94,11 +98,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getSectores() {
                 let {data} = await axios.get(this.url + "/admin/sectores/getSectores");
                 if (data) {
-                    v.listaSectores = data;
+                    this.listaSectores = data;
                 } else {
                     sweet_msg_dialog('warning', 'No se pudieron cargar los sectores');
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblSectores', 'Lista de Sectores', '#modalSectores', 'CREAR SECTOR');
                 } else {
                     dataTable('#tblSectores', 'Lista de Sectores');
@@ -107,7 +111,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getAnillos() {
                 let {data} = await axios.get(this.url + "/admin/anillos/getAnillos");
                 if (data) {
-                    v.listaAnillos = data;
+                    this.listaAnillos = data;
                 }
             },
             loadSector(data) {
@@ -177,5 +181,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    appSectores.mount('#app');
 </script>

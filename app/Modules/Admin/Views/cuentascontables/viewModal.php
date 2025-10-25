@@ -51,7 +51,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             :searchable="true"
                             :options="listaSearchCuentasContables"
                             @search-change="searchCuentasContables($event)">
-                            <template slot="option" slot-scope="{ option }">
+                            <template #option="{ option }">
                                 <span style="font-size: 12px">{{ option.ctad_codigo }}: <strong>{{ option.ctad_nombre_cuenta }}</strong></span>
                             </template>
                         </vue-multiselect>

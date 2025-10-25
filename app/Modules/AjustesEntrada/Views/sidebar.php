@@ -18,22 +18,22 @@
             <!--AJUSTES DE ENTRADA-->
             <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fas fa-sign-in-alt me-3 sidebarColorIcon"></i><p>AJUSTES DE ENTRADA<i class="fas fa-angle-left right text-white"></i></p></a>
             <ul class="nav nav-treeview">
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/productos/managamentProductos' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/admin/productos/managamentProductos')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/ajustesentrada/indexAux' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/ajustesentrada/indexAux')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-folder-blank nav-icon sidebarColorIcon"></i>
                         <p> Nuevo Ajuste</p>
                     </a>
                 </li>
 
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/grupos/managamentGrupos' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/admin/grupos/managamentGrupos')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/ajustesentrada/gestionAjustes' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/ajustesentrada/gestionAjustes')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-clipboard-list nav-icon sidebarColorIcon"></i>
                         <p>Listar Ajustes</p>
                     </a>
                 </li>
 
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/marcas/managamentMarcas' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/admin/marcas/managamentMarcas')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/ajustesentrada/ajusteInicial' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/ajustesentrada/ajusteInicial')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-file-upload nav-icon sidebarColorIcon"></i>
                         <p>Cragar Ajuste Inicial</p>
                     </a>

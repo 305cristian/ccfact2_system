@@ -96,15 +96,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             </div>
         </div>
     </div>
+</div>
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
-        var admin = '<?= $admin ?>';
+    var admin = '<?= $admin ?>';
 
-        var v = new Vue({
-            el: '#app',
-            data: {
+    if (window.appUnidadMedida) {
+        window.appUnidadMedida.unmount();
+    }
+
+    window.appUnidadMedida = Vue.createApp({
+
+        data() {
+            return {
                 url: siteUrl,
 
                 //TODO: PERMISOS
@@ -124,93 +130,95 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //TODO: LISTAS
                 listaUnidadesMedida: [],
                 formValidacion: []
-            },
-            created() {
-                this.getUnidadesMedida();
-            },
-            methods: {
-                async getUnidadesMedida() {
-                    try {
-                        let response = await axios.get(this.url + '/admin/medida/getUnidadesMedida');
-                        if (response.data) {
-                            v.listaUnidadesMedida = response.data;
-                        } else {
-                            sweet_msg_dialog('warning', 'No se han encontrado resultados de unidades de medida');
-                        }
-                        if (v.admin) {
-                            dataTableModalBtn('#tblUnidadMedida', 'Lista unidades de medida', '#modalUM', 'CREAR UNIDAD DE MEDIDA');
-                        } else {
-                            dataTable('#tblUnidadMedida', 'Lista unidades de medida');
-                        }
-                    } catch (e) {
-                        sweet_msg_dialog('error', '', '', e.response.data.message);
-                    }
-
-                },
-                loadUnidadMedida(um) {
-                    v.newUM = {
-                        unNombre: um.um_nombre,
-                        unNombreCorto: um.um_nombre_corto,
-                        umEstado: um.um_estado
-                    };
-                    v.idEdit = um.id;
-                    v.nameAux = um.um_nombre;
-
-                },
-                async saveUpdateUnidadMedida() {
-                    let datos = v.formData(v.newUM);
-                    let url = this.url + '/admin/medida/saveUnidadMedida';
-
-                    if (v.idEdit != '') {
-                        datos.append('idUM', v.idEdit);
-                        datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
-                        url = this.url + '/admin/medida/updateUnidadMedida';
-                    }
-
-                    try {
-                        let response = await axios.post(url, datos);
-                        if (response.data.status === 'success') {
-
-                            sweet_msg_dialog('success', response.data.msg);
-                            v.clear();
-                            v.getUnidadesMedida();
-                            $('#modalUM').modal('hide');
-                            $('.modal-backdrop').remove();
-
-                        } else if (response.data.status === 'existe') {
-
-                            sweet_msg_dialog('warning', response.data.msg);
-
-                        } else if (response.data.status === 'vacio') {
-
-                            v.formValidacion = response.data.msg;
-
-                        }
-                    } catch (e) {
-                        sweet_msg_dialog('error', '', '', e.response.data.message);
-                    }
-                },
-                clear() {
-                    v.newUM = {
-                        unNombre: '',
-                        unNombreCorto: '',
-                        umEstado: '1'
-                    };
-                    v.estadoSave = true;
-                    v.idEdit = '';
-                    v.formValidacion = [];
-                },
-                formData(obj) {
-                    var formData = new FormData();
-                    for (var key in obj) {
-                        formData.append(key, obj[key]);
-                    }
-                    return formData;
-                },
-                zfill(num) {
-                    return zFill(num, 3);
-                }
             }
-        });
+        },
+        created() {
+            this.getUnidadesMedida();
+        },
+        methods: {
+            async getUnidadesMedida() {
+                try {
+                    let response = await axios.get(this.url + '/admin/medida/getUnidadesMedida');
+                    if (response.data) {
+                        this.listaUnidadesMedida = response.data;
+                    } else {
+                        sweet_msg_dialog('warning', 'No se han encontrado resultados de unidades de medida');
+                    }
+                    if (this.admin) {
+                        dataTableModalBtn('#tblUnidadMedida', 'Lista unidades de medida', '#modalUM', 'CREAR UNIDAD DE MEDIDA');
+                    } else {
+                        dataTable('#tblUnidadMedida', 'Lista unidades de medida');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response.data.message);
+                }
 
-    </script>
+            },
+            loadUnidadMedida(um) {
+                this.newUM = {
+                    unNombre: um.um_nombre,
+                    unNombreCorto: um.um_nombre_corto,
+                    umEstado: um.um_estado
+                };
+                this.idEdit = um.id;
+                this.nameAux = um.um_nombre;
+
+            },
+            async saveUpdateUnidadMedida() {
+                let datos = this.formData(this.newUM);
+                let url = this.url + '/admin/medida/saveUnidadMedida';
+
+                if (this.idEdit != '') {
+                    datos.append('idUM', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                    url = this.url + '/admin/medida/updateUnidadMedida';
+                }
+
+                try {
+                    let response = await axios.post(url, datos);
+                    if (response.data.status === 'success') {
+
+                        sweet_msg_dialog('success', response.data.msg);
+                        this.clear();
+                        this.getUnidadesMedida();
+                        $('#modalUM').modal('hide');
+                        $('.modal-backdrop').remove();
+
+                    } else if (response.data.status === 'existe') {
+
+                        sweet_msg_dialog('warning', response.data.msg);
+
+                    } else if (response.data.status === 'vacio') {
+
+                        this.formValidacion = response.data.msg;
+
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response.data.message);
+                }
+            },
+            clear() {
+                this.newUM = {
+                    unNombre: '',
+                    unNombreCorto: '',
+                    umEstado: '1'
+                };
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
+            },
+            formData(obj) {
+                var formData = new FormData();
+                for (var key in obj) {
+                    formData.append(key, obj[key]);
+                }
+                return formData;
+            },
+            zfill(num) {
+                return zFill(num, 3);
+            }
+        }
+    });
+    window.appUnidadMedida.mount('#app');
+
+</script>

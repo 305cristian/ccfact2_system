@@ -58,28 +58,34 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
-        data: {
-            url: siteUrl,
+    if (window.appBancos) {
+        window.appBancos.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
+    window.appBancos = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            idEdit: '',
-            loading: false,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: V-MODELS
-            listaBancos: [],
-            newBanco: {
-                bancNombre: '',
-                bancTipo: 'BANCO',
-                bancEstado: '1'
-            },
-            formValidacion: []
+                //TODO: PERMISOS
+                admin: admin,
 
+                //TODO: VARIABLES
+                estadoSave: true,
+                idEdit: '',
+                loading: false,
+
+                //TODO: V-MODELS
+                listaBancos: [],
+                newBanco: {
+                    bancNombre: '',
+                    bancTipo: 'BANCO',
+                    bancEstado: '1'
+                },
+                formValidacion: []
+
+            };
         },
         created() {
             this.getBancos();
@@ -88,11 +94,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getBancos() {
                 let {data} = await axios.get(this.url + "/admin/bancos/getBancos");
                 if (data) {
-                    v.listaBancos = data;
+                    this.listaBancos = data;
                 } else {
                     sweet_msg_dialog('warning', data.msg);
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblBancos', 'Lista de Banos', '#modalBanco', 'CREAR BANCO');
                 } else {
                     dataTable('#tblBancos', 'Lista de Banos');
@@ -160,6 +166,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         }
 
     });
+    window.appBancos.mount('#app');
 
 </script>
 

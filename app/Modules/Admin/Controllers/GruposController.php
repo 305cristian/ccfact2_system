@@ -33,8 +33,6 @@ class GruposController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\grupossubgrupos\viewGruposSubgrupos');
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
     }
 

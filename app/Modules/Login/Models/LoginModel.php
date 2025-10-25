@@ -30,6 +30,7 @@ class LoginModel extends \CodeIgniter\Model {
             emp_telefono,
             emp_email,
             emp_celular,
+            emp_foto,
             fk_cargo,
             fk_bodega_main
             FROM cc_empleados 

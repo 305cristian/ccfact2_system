@@ -93,6 +93,7 @@ class IndexController extends \App\Controllers\BaseController {
                 'root' => $user->is_root,
                 'bodega_main' => $user->fk_bodega_main,
                 'cargo_empleado' => $user->fk_cargo,
+                'foto' => $user->emp_foto,
             ];
 
             $this->session->set($USER);

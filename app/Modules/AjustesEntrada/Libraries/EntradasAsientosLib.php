@@ -80,6 +80,12 @@ class EntradasAsientosLib {
             // DÉBITO 1: Inventario TARIFA 0% (si aplica)
             if ($ajuste->ajen_tarifacero_neto > 0) {
                 $cuentaDebeTarifa0 = $this->obtenerCuentaBodega($bodega, 'bod_ctacont0', '010');
+                if (!$cuentaDebeTarifa0) {
+                    return [
+                        'status' => 'warning',
+                        'msg' => 'No se ha configurado la cuenta DEBE para ajustes de entrada (Código: 010)',
+                    ];
+                }
 
                 $totalDebito = $ajuste->ajen_tarifacero_neto;
 
@@ -100,6 +106,12 @@ class EntradasAsientosLib {
             // DÉBITO 2: Inventario TARIFA 12% + IVA (si aplica)
             if ($ajuste->ajen_tarifaiva_neto > 0) {
                 $cuentaDebeTarifaImp = $this->obtenerCuentaBodega($bodega, 'bod_ctacont_iva', '011');
+                if (!$cuentaDebeTarifaImp) {
+                    return [
+                        'status' => 'warning',
+                        'msg' => 'No se ha configurado la cuenta DEBE para ajustes de entrada (Código: 011)',
+                    ];
+                }
 
                 $totalDebito = $ajuste->ajen_tarifaiva_neto + $ajuste->ajen_totaliva;
 
@@ -120,9 +132,11 @@ class EntradasAsientosLib {
             // ==================== HABER ====================
             // CRÉDITO: Cuenta de ajuste de inventario (contrapartida)
             $cuentaHaber = $this->cuentasConfigLib->obtenerSettingCuentaContable('012');
-
             if (empty($cuentaHaber)) {
-                throw new \Exception('No se ha configurado la cuenta HABER para ajustes de entrada (Código: 012)');
+                return [
+                    'status' => 'warning',
+                    'msg' => ' No se ha configurado la cuenta HABER para ajustes de entrada (Código: 012)',
+                ];
             }
 
             $totalCredito = $ajuste->ajen_tarifacero_neto + $ajuste->ajen_tarifaiva_neto + $ajuste->ajen_totaliva;
@@ -144,12 +158,15 @@ class EntradasAsientosLib {
             $validacion = $this->asientoLib->validarAsientoCuadrado($asientoId);
 
             if (!$validacion) {
-                throw new \Exception('El asiento contable no está cuadrado. ');
+                return [
+                    'status' => 'warning',
+                    'msg' => ' El asiento contable no está cuadrado.',
+                ];
             }
 
-            $this->logs->logInfo('Asiento #'.$asientoId.' generado para Ajuste #'.$ajusteId.' ');
+            $this->logs->logInfo('Asiento #' . $asientoId . ' generado para Ajuste #' . $ajusteId . ' ');
 
-            return $asientoId;
+            return ['status' => 'success', 'data' => $asientoId];
         } catch (\Throwable $e) {
             throw new \Exception('Error al generar asiento contable: ' . $e->getMessage() . $e->getTraceAsString());
         }
@@ -171,12 +188,10 @@ class EntradasAsientosLib {
 
         // Prioridad 2: Cuenta configurada en config_cuentas
         $cuentaConfig = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoFallback);
-
         if (!empty($cuentaConfig)) {
             return $cuentaConfig;
         }
 
-        // Si no hay configuración, lanzar error
-        throw new \Exception("No se encontró cuenta contable para {$campo}. Configure la bodega o el código {$codigoFallback}");
+        return false;
     }
 }

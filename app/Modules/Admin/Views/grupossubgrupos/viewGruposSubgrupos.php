@@ -42,45 +42,50 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            url: siteUrl,
+    if (window.appGrupos) {
+        window.appGrupos.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
+    window.appGrupos = Vue.createApp({
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            //TODO: V-MODELS
-            idEdit: '',
-            newGrupo: {
-                grNombre: '',
-                grDescripcion: '',
-                grEstado: '1',
-                grIcon: ''
-            },
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: LISTAS 
-            listaGrupos: [],
-            formValidacion: [],
+                //TODO: VARIABLES
+                estadoSave: true,
+                //TODO: V-MODELS
+                idEdit: '',
+                newGrupo: {
+                    grNombre: '',
+                    grDescripcion: '',
+                    grEstado: '1',
+                    grIcon: ''
+                },
 
-            //TODO: VARIABLES PARA SUBGRUPOS
-            estadoSave2: true,
-            //TODO: V-MODELS
-            idEdit2: '',
-            newSubGrupo: {
-                sgrNombre: '',
-                sgrDescripcion: '',
-                sgrEstado: '1',
-                sgrIcon: '',
-                sgrGrupo: ''
-            },
+                //TODO: LISTAS 
+                listaGrupos: [],
+                formValidacion: [],
 
-            //TODO: LISTAS
-            listaSubGrupos: [],
-            formValidacion2: []
+                //TODO: VARIABLES PARA SUBGRUPOS
+                estadoSave2: true,
+                //TODO: V-MODELS
+                idEdit2: '',
+                newSubGrupo: {
+                    sgrNombre: '',
+                    sgrDescripcion: '',
+                    sgrEstado: '1',
+                    sgrIcon: '',
+                    sgrGrupo: ''
+                },
 
+                //TODO: LISTAS
+                listaSubGrupos: [],
+                formValidacion2: []
+
+            }
         },
         created() {
             this.getGrupos();
@@ -91,11 +96,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/grupos/getGrupos');
                     if (response.data) {
-                        v.listaGrupos = response.data;
+                        this.listaGrupos = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron grupos registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblGrupos', 'Lista de grupos', '#modalGrupo', 'CREAR GRUPO');
                     } else {
                         dataTable('#tblGrupos', 'Lista de grupos');
@@ -106,24 +111,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadGrupo(gr) {
-                v.newGrupo = {
+                this.newGrupo = {
                     grNombre: gr.gr_nombre,
                     grDescripcion: gr.gr_descripcion,
                     grEstado: gr.gr_estado,
                     grIcon: gr.gr_icon
                 };
-                v.idEdit = gr.id;
-                v.nameAux = gr.gr_nombre;
+                this.idEdit = gr.id;
+                this.nameAux = gr.gr_nombre;
 
             },
 
             async saveUpdateGrupo() {
-                let datos = v.formData(v.newGrupo);
+                let datos = this.formData(this.newGrupo);
                 let url = this.url + '/admin/grupos/saveGrupo';
 
-                if (v.idEdit != '') {
-                    datos.append('idGrupo', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idGrupo', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/grupos/updateGrupo';
                 }
 
@@ -132,8 +137,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getGrupos();
+                        this.clear();
+                        this.getGrupos();
                         $('#modalGrupo').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -143,7 +148,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -151,26 +156,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newGrupo = {
+                this.newGrupo = {
                     grNombre: '',
                     grDescripcion: '',
                     grEstado: '1',
                     grIcon: ''
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
 
-                v.newSubGrupo = {
+                this.newSubGrupo = {
                     sgrNombre: '',
                     sgrDescripcion: '',
                     sgrEstado: '1',
                     sgrIcon: '',
                     sgrGrupo: ''
                 };
-                v.estadoSave2 = true;
-                v.idEdit2 = '';
-                v.formValidacion2 = [];
+                this.estadoSave2 = true;
+                this.idEdit2 = '';
+                this.formValidacion2 = [];
 
             },
 
@@ -178,11 +183,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/grupos/getSubGrupos');
                     if (response.data) {
-                        v.listaSubGrupos = response.data;
+                        this.listaSubGrupos = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron subgrupos registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblSubGrupos', 'Lista de subgrupos', '#modalSubGrupo', 'CREAR SUBGRUPO');
                     } else {
                         dataTable('#tblSubGrupos', 'Lista de subgrupos');
@@ -193,25 +198,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadSubGrupo(sgr) {
-                v.newSubGrupo = {
+                this.newSubGrupo = {
                     sgrNombre: sgr.sgr_nombre,
                     sgrDetalle: sgr.sgr_detalle,
                     sgrEstado: sgr.sgr_estado,
                     sgrIcon: sgr.sgr_icon,
                     sgrGrupo: sgr.fk_grupo
                 };
-                v.idEdit2 = sgr.id;
-                v.nameAux2 = sgr.sgr_nombre;
+                this.idEdit2 = sgr.id;
+                this.nameAux2 = sgr.sgr_nombre;
 
 
             },
             async saveUpdateSubGrupo() {
-                let datos = v.formData(v.newSubGrupo);
+                let datos = this.formData(this.newSubGrupo);
                 let url = this.url + '/admin/grupos/saveSubGrupo';
 
-                if (v.idEdit2 != '') {
-                    datos.append('idSubGrupo', v.idEdit2);
-                    datos.append('nameAux', v.nameAux2);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit2 != '') {
+                    datos.append('idSubGrupo', this.idEdit2);
+                    datos.append('nameAux', this.nameAux2);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/grupos/updateSubGrupo';
                 }
 
@@ -220,8 +225,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getSubGrupos();
+                        this.clear();
+                        this.getSubGrupos();
                         $('#modalSubGrupo').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -231,7 +236,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion2 = response.data.msg;
+                        this.formValidacion2 = response.data.msg;
 
                     }
                 } catch (e) {
@@ -251,5 +256,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appGrupos.mount('#app');
 
 </script>

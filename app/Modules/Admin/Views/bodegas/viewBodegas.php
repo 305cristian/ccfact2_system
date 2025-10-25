@@ -109,30 +109,36 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            url: siteUrl,
+    if (window.appBodegas) {
+        window.appBodegas.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
+    window.appBodegas = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            //TODO: V-MODELS
-            idEdit: '',
-            newBodega: {
-                bodNombre: '',
-                bodDescripcion: '',
-                bodIva0: '',
-                bodIva: '',
-                bodEstado: '1'
-            },
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: LISTAS
-            listaBodegas: [],
-            formValidacion: []
+                //TODO: PERMISOS
+                admin: admin,
 
+                //TODO: VARIABLES
+                estadoSave: true,
+                //TODO: V-MODELS
+                idEdit: '',
+                newBodega: {
+                    bodNombre: '',
+                    bodDescripcion: '',
+                    bodIva0: '',
+                    bodIva: '',
+                    bodEstado: '1'
+                },
+
+                //TODO: LISTAS
+                listaBodegas: [],
+                formValidacion: []
+
+            };
         },
         created() {
             this.getBodegas();
@@ -142,11 +148,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/bodegas/getBodegas');
                     if (response.data) {
-                        v.listaBodegas = response.data;
+                        this.listaBodegas = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron bodgas registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblBodegas', 'Lista de bodegas', '#modalBodega', 'CREAR BODEGA');
                     } else {
                         dataTable('#tblBodegas', 'Lista de bodegas');
@@ -157,22 +163,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadBodega(bod) {
-                v.newBodega = {
+                this.newBodega = {
                     bodNombre: bod.bod_nombre,
                     bodDescripcion: bod.bod_descripcion,
                     bodEstado: bod.bod_estado
                 };
-                v.idEdit = bod.id;
-                v.nameAux = bod.bod_nombre;
+                this.idEdit = bod.id;
+                this.nameAux = bod.bod_nombre;
 
             },
             async saveUpdateBodega() {
-                let datos = v.formData(v.newBodega);
+                let datos = this.formData(this.newBodega);
                 let url = this.url + '/admin/bodegas/saveBodegas';
 
-                if (v.idEdit != '') {
-                    datos.append('idBod', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idBod', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/bodegas/updateBodegas';
                 }
 
@@ -181,8 +187,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getBodegas();
+                        this.clear();
+                        this.getBodegas();
                         $('#modalBodega').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -192,7 +198,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -200,16 +206,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newBodega = {
+                this.newBodega = {
                     bodNombre: '',
                     bodDescripcion: '',
                     bodIva0: '',
                     bodIva: '',
                     bodEstado: '1'
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -223,5 +229,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    window.appBodegas.mount('#app');
 </script>

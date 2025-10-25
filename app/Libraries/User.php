@@ -29,6 +29,7 @@ class User extends \App\Controllers\BaseController {
     public $email;
     public $root;
     public $bodega_main;
+    public $foto;
     public $cargo_empleado;
     protected $ci;
     public $rol;
@@ -66,6 +67,9 @@ class User extends \App\Controllers\BaseController {
         }
         if (!empty($this->session->get('bodega_main'))) {
             $this->bodega_main = $this->session->get('bodega_main');
+        }
+        if (!empty($this->session->get('foto'))) {
+            $this->foto = $this->session->get('foto');
         }
         if (!empty($this->session->get('cargo_empleado'))) {
             $this->cargo_empleado = $this->session->get('cargo_empleado');

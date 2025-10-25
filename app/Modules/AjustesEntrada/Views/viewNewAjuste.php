@@ -142,10 +142,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 :show-no-results="true"
                                 :options="listaSearchProductos"
                                 @remove="onRemove($event)"
-                                @input="insertProductCart($event)"
+                                @select="insertProductCart($event)"
                                 @search-change="searchProductos($event)">
 
-                                <template slot="option" slot-scope="{ option }">
+                                <template #option="{ option }">
                                     <div class="producto-option-row">
                                         <div class="row g-2 align-items-center w-100">
                                             <div class="col-auto">
@@ -232,64 +232,70 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
     var searchTimeout = null;
 
-    var v = new Vue({
-        el: '#app',
+    if (window.appAje) {
+        window.appAje.unmount();
+    }
+
+    window.appAje = Vue.createApp({
+
         components: {
-            "vue-multiselect": window.VueMultiselect.default,
-            "vue-select": VueSelect.VueSelect
+            "vue-multiselect": window['vue-multiselect'].Multiselect,
+            "vue-select": window['vue-select']
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return{
+                url: siteUrl,
 
-            //LISTAS PARA EL PROCESO
-            listaSustentos: listaSustentos,
-            listaBodegas: listaBodegas,
-            listaMotivos: listaMotivos,
-            listaCentroCostos: listaCentroCostos,
+                //LISTAS PARA EL PROCESO
+                listaSustentos: listaSustentos,
+                listaBodegas: listaBodegas,
+                listaMotivos: listaMotivos,
+                listaCentroCostos: listaCentroCostos,
 
-            formDataAjuste: {
-                ajenSustento: '',
-                ajenBodega: '',
-                ajenCentrocosto: '',
-                ajenFecha: fechaActual,
-                ajenMotivo: '',
-                ajenEstado: '',
-                ajenObservaciones: '',
-                ajenProveedor: '',
-                ajenTipo: 'COMPRA_SIN_FACTURA'
-            },
+                formDataAjuste: {
+                    ajenSustento: '',
+                    ajenBodega: '',
+                    ajenCentrocosto: '',
+                    ajenFecha: fechaActual,
+                    ajenMotivo: '',
+                    ajenEstado: '',
+                    ajenObservaciones: '',
+                    ajenProveedor: '',
+                    ajenTipo: 'COMPRA_SIN_FACTURA'
+                },
 
-            //DATOS DEL CART
-            listaCartData: [],
-            totalCart: '',
-            totalIva: '',
-            totalCartIva: '',
-            totalItems: '',
-            totalArticles: '',
-            totalBienes: '',
-            totalServicios: '',
-            emptyCar: true,
+                //DATOS DEL CART
+                listaCartData: [],
+                totalCart: '',
+                totalIva: '',
+                totalCartIva: '',
+                totalItems: '',
+                totalArticles: '',
+                totalBienes: '',
+                totalServicios: '',
+                emptyCar: true,
 
-            //VUE-MULTISELECT PROVEEDOR
-            listaSearchProveedores: [],
+                //VUE-MULTISELECT PROVEEDOR
+                listaSearchProveedores: [],
 
-            permitirDuplicados: permitirDuplicados,
+                permitirDuplicados: permitirDuplicados,
 
-            //VUE-MULTISELECT PRODUCTOS
-            listaSearchProductos: [],
-            productoVmodel: null,
-            codeSearch: "",
+                //VUE-MULTISELECT PRODUCTOS
+                listaSearchProductos: [],
+                productoVmodel: null,
+                codeSearch: "",
 
-            loading: false,
-            loadingBodega: false,
-            loadingProcess: false
+                loading: false,
+                loadingBodega: false,
+                loadingProcess: false
+            }
         },
         created() {
             this.showDetailCart();
         },
         mounted() {
             this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
-            ;
+            
         },
         methods: {
 
@@ -330,8 +336,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         sweet_msg_dialog('success', data.msg, '/ajustesentrada/nuevoAjuste');
                     } else if (data.status === "warning") {
                         sweet_msg_dialog('warning', data.msg);
-                    } else if(data.status === "error"){
-                         sweet_msg_dialog('error', '', '', data.msg);
+                    } else if (data.status === "error") {
+                        sweet_msg_dialog('error', '', '', data.msg);
                     }
 
                 } catch (e) {
@@ -366,7 +372,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             //SEARCH PRODUCTOS
             searchProductos(dataSerach) {
                 clearTimeout(searchTimeout);
-                let datos = {dataSerach: dataSerach};
+                let datos = {
+                    dataSerach: dataSerach,
+                    bodegaId:this.formDataAjuste.ajenBodega.id
+                };
                 searchTimeout = setTimeout(async () => {
                     try {
                         let {data} = await axios.post(this.url + '/comun/productos/searchProductosStock', datos);
@@ -534,7 +543,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 Swal.fire({
                     title: "Esta seguro que desea cancelar el Ajuste?",
                     html: "<h6>Esta acción borrara toda las lista cargada.</h6>",
-                    icon:'warning',
+                    icon: 'warning',
                     width: "30%",
                     showCancelButton: true,
                     confirmButtonText: "Si, Continuar",
@@ -581,5 +590,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
 
     });
+    window.appAje.use(AllDirectives); 
+    window.appAje.mount('#app');
 
 </script>

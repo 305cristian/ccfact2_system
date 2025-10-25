@@ -31,8 +31,6 @@ class AnillosController extends \App\Controllers\BaseController {
         $data['user'] = $this->user; //Esto se envia a la vista para validar roles y permisos
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\anillos\viewAnillos', $data);
-//        $send['user'] = $this->user;//Estos datos se envian solo si se renderiza en el dashboars
-//        $send['ccm'] = $this->ccm;//Estos datos se envian solo si se renderiza en el dashboars
 //        return view($this->dirTemplate . '\dashboard', $send);
         return $this->response->setJSON($send);
     }

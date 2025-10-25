@@ -28,6 +28,7 @@ if (!isset($routes)) {
 $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Controllers'], function ($subroutes) {
 
     $subroutes->get('nuevoAjuste', 'IndexController::index');
+    $subroutes->get('indexAux', 'IndexController::indexAux');
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
     $subroutes->post('updateProduct', 'IndexController::updateProduct');
     $subroutes->get('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
@@ -35,6 +36,14 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     $subroutes->post('showDetailCart', 'IndexController::showDetailCart');
     $subroutes->post('cancelarAjuste', 'IndexController::cancelarAjuste');
     $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
+    
+    //GESTION DE AJUSTES
+    $subroutes->get('gestionAjustes', 'GestionController::index');
+    $subroutes->post('getAjustes', 'GestionController::getAjustes');
+    
+    //AJUSTE INICIAL
+     $subroutes->get('ajusteInicial', 'AjusteInicialController::index');
+    
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

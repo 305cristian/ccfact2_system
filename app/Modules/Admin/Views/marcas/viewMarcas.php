@@ -97,26 +97,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            url: siteUrl,
+    if (window.appMarcas) {
+        window.appMarcas.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            //TODO: V-MODELS
-            idEdit: '',
-            newMarca: {
-                mrcNombre: '',
-                mrcEstado: '1'
-            },
+    window.appMarcas = Vue.createApp({
 
-            //TODO: LISTAS
-            listaMarcas: [],
-            formValidacion: []
+        data() {
+            return {
+                url: siteUrl,
+
+                //TODO: PERMISOS
+                admin: admin,
+
+                //TODO: VARIABLES
+                estadoSave: true,
+                //TODO: V-MODELS
+                idEdit: '',
+                newMarca: {
+                    mrcNombre: '',
+                    mrcEstado: '1'
+                },
+
+                //TODO: LISTAS
+                listaMarcas: [],
+                formValidacion: []
+            }
 
         },
         created() {
@@ -127,11 +134,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/marcas/getMarcas');
                     if (response.data) {
-                        v.listaMarcas = response.data;
+                        this.listaMarcas = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron marcas registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblMarcas', 'Lista de Marcas', '#modalMarca', 'CREAR MARCA');
                     } else {
                         dataTable('#tblMarcas', 'Lista de Marcas');
@@ -142,20 +149,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadMarca(marca) {
-                v.newMarca = {
+                this.newMarca = {
                     mrcNombre: marca.mrc_nombre,
                     mrcEstado: marca.mrc_estado
                 };
-                v.idEdit = marca.id;
-                v.nameAux = marca.mrc_nombre;
+                this.idEdit = marca.id;
+                this.nameAux = marca.mrc_nombre;
             },
             async saveUpdateMarca() {
-                let datos = v.formData(v.newMarca);
+                let datos = this.formData(this.newMarca);
                 let url = this.url + '/admin/marcas/saveMarca';
 
-                if (v.idEdit != '') {
-                    datos.append('idMarca', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idMarca', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/marcas/updateMarca';
                 }
 
@@ -164,8 +171,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getMarcas();
+                        this.clear();
+                        this.getMarcas();
                         $('#modalMarca').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -175,7 +182,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -183,13 +190,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newMarca = {
+                this.newMarca = {
                     mrcNombre: '',
                     mrcEstado: '1'
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
 
             formData(obj) {
@@ -204,5 +211,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    window.appMarcas.mount('#app');
 </script>

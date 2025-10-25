@@ -30,7 +30,6 @@ class ProductosController extends \App\Controllers\BaseController {
     public function index() {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
-        $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $data2['listaUnidadesMedida'] = $this->ccm->getData('cc_unidades_medida', ['um_estado' => 1], '*');
         $data2['listaMarcas'] = $this->ccm->getData('cc_marcas', ['mrc_estado' => 1], '*');
@@ -42,13 +41,12 @@ class ProductosController extends \App\Controllers\BaseController {
         $data2['listaCtaContable'] = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_estado' => 1], 'ctad_codigo, CONCAT(ctad_codigo," ",ctad_nombre_cuenta)cuentadet');
         $data2['listaTiposPvp'] = $this->ccm->getData('cc_tipo_precios', ['tpc_estado' => 1], "*");
 
-        $valAutocodigo = $this->ccm->getData('cc_autocodigo', $where = null, 'cod', $order = null, 1);
+        $valAutocodigo = $this->ccm->getData('cc_autocodigo', $where = null, 'cod', null, 1);
         $autocodigo = str_pad(($valAutocodigo->cod + 1), 6, 0, STR_PAD_LEFT);
         $data2['autocodigo'] = getSettings("ABREVIATURA_AUTO_COD") . $autocodigo;
-
+        $data2['user'] = $this->user;
         $send['view'] = view($this->dirViewModule . '\productos\viewProductos', $data2);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
+
         return $this->response->setJSON($send);
     }
 
@@ -68,15 +66,15 @@ class ProductosController extends \App\Controllers\BaseController {
         if (!empty($data->idProd)) {
             $whereQuery['tb1.id'] = $data->idProd;
         }
-        
+
         if (!empty($data->codProd)) {
             $whereQuery['tb1.id'] = $data->codProd;
         }
-        
-        if(!empty($data->grupo) && $data->grupo != "-1"){
-              $whereQuery['tb5.id'] = $data->grupo;
+
+        if (!empty($data->grupo) && $data->grupo != "-1") {
+            $whereQuery['tb5.id'] = $data->grupo;
         }
-        
+
         if ($data->stock != "-1") {
             if ($data->stock == 1) {
                 $whereQuery['tb1.prod_stockactual >'] = 1;

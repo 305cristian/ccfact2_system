@@ -36,10 +36,7 @@ class RolesController extends \App\Controllers\BaseController {
         $data['listaAllAcciones'] = $this->ccm->getData('cc_acciones', ['ac_estado' => 1]);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\roles\viewRoles', $data);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
          return $this->response->setJSON($send);
-//        return view($this->dirTemplate . '\dashboard', $send);
     }
 
     public function getRoles() {

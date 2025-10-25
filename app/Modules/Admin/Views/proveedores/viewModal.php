@@ -149,24 +149,23 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-12">
                     <div class="row">
                         <div class="col-md-12"> 
-                            <label for="provBanco" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px "></span> # de cuenta Bancaria</label>
-                            <template>
-                                <vue-multiselect 
-                                    v-model="vmodelBancos" 
-                                    tag-placeholder="Banco no encontrado"
-                                    placeholder="Buscar y agregar un banco"
-                                    label="banc_nombre"
-                                    track-by="id"
-                                    :multiple="true"
-                                    :searchable="true"
-                                    :loading="isLoadingBank"
-                                    :options-limit="10"
-                                    :show-no-results="true"
-                                    :options="listaBancos"
-                                    @search-change="getBancos($event)"
-                                    >
-                                </vue-multiselect>
-                            </template>
+                            <label  class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px "></span> # de cuenta Bancaria</label>                        
+                            <vue-multiselect 
+                                v-model="vmodelBancos" 
+                                tag-placeholder="Banco no encontrado"
+                                placeholder="Buscar y agregar un banco"
+                                label="banc_nombre"
+                                track-by="id"
+                                :multiple="true"
+                                :searchable="true"
+                                :loading="isLoadingBank"
+                                :options-limit="10"
+                                :show-no-results="true"
+                                :options="listaBancos"
+                                @search-change="getBancos($event)"
+                                >
+                            </vue-multiselect>
+
                             <div v-if='vmodelBancos.length > 0'>
                                 <table class="table" id="tblProveedorBanco">
                                     <thead class="bg-secondary">
@@ -195,27 +194,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-12">
                     <div class="row">
                         <div class="col-md-12"> 
-                            <label for="provBanco" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px "></span> Retenciones del Proveedor</label>
-                            <template>
-                                <vue-multiselect 
-                                    v-model="vmodelRtenciones" 
-                                    tag-placeholder="Retención no encontrado"
-                                    placeholder="Digite el código de retención (312)"
-                                    label='ret_codigo'
-                                    track-by="id"
-                                    :multiple="true"
-                                    :searchable="true"
-                                    :loading="isLoadingRet"
-                                    :options-limit="10"
-                                    :show-no-results="true"
-                                    :options="listaRetenciones"
-                                    @search-change="getRetenciones($event)"
-                                    >
-                                    <template slot="option" slot-scope="{ option }">
-                                        <span style="font-size: 12px">{{ option.ret_codigo+' - ' }} <strong>{{ option.ret_nombre }}</strong> </span>
-                                    </template>
-                                </vue-multiselect>
-                            </template>
+                            <label  class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px "></span> Retenciones del Proveedor</label>
+                            <vue-multiselect
+                                v-model="vmodelRtenciones" 
+                                tag-placeholder="Retención no encontrado"
+                                placeholder="Digite el código de retención (312)"
+                                label='ret_codigo'
+                                track-by="id"
+                                :multiple="true"
+                                :searchable="true"
+                                :loading="isLoadingRet"
+                                :options-limit="10"
+                                :show-no-results="true"
+                                :options="listaRetenciones"
+                                @search-change="getRetenciones($event)"
+                                >
+                                <template slot="option" slot-scope="{ option }">
+                                    <span style="font-size: 12px">{{ option.ret_codigo+' - ' }} <strong>{{ option.ret_nombre }}</strong> </span>
+                                </template>
+                            </vue-multiselect>
                             <div v-if='vmodelRtenciones.length > 0'>
                                 <table class="table" id="tblRetenciones">
                                     <thead class="bg-secondary">

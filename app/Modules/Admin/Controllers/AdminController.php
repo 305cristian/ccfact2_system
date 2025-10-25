@@ -30,8 +30,7 @@ class AdminController extends \App\Controllers\BaseController {
 
         $send['sidebar'] = view($this->dirViewModule . '\sidebar',$data);
         $send['view'] = view($this->dirViewModule . '\viewControlPanel');
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
+
         return view($this->dirTemplate . '\dashboard', $send);
     }
 

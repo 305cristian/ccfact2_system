@@ -33,8 +33,6 @@ class ModulosAcController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\modulosacciones\viewModAcciones', $data);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
 //        return view($this->dirTemplate . '\dashboard', $send);
     }
@@ -44,8 +42,8 @@ class ModulosAcController extends \App\Controllers\BaseController {
         $response = $this->admModel->getModulos();
         if ($response) {
             return $this->response->setJSON($response);
-        }else{
-           return $this->response->setJSON(false); 
+        } else {
+            return $this->response->setJSON(false);
         }
     }
 
@@ -99,7 +97,7 @@ class ModulosAcController extends \App\Controllers\BaseController {
                 'md_tipo' => $tipoModulo,
                 'md_icon' => $iconoModulo,
                 'md_orden' => $ordenModulo,
-                'md_padre' => $padreModulo
+                'md_padre' => (!empty($padreModulo) ? $padreModulo : null)
             ];
 
             $this->ccm->guardar($datos, 'cc_modulos');
@@ -173,7 +171,7 @@ class ModulosAcController extends \App\Controllers\BaseController {
                 'md_tipo' => $tipoModulo,
                 'md_icon' => $iconoModulo,
                 'md_orden' => $ordenModulo,
-                'md_padre' => $padreModulo
+                'md_padre' => ($padreModulo !=='null'?$padreModulo : null)
             ];
 
             $this->ccm->actualizar('cc_modulos', $datos, ['id' => $idModulo]);
@@ -198,8 +196,8 @@ class ModulosAcController extends \App\Controllers\BaseController {
         $response = $this->admModel->getAcciones();
         if ($response) {
             return $this->response->setJSON($response);
-        }else{
-             return $this->response->setJSON(false);
+        } else {
+            return $this->response->setJSON(false);
         }
     }
 

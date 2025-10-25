@@ -106,28 +106,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: '#app',
+    if (window.appTransacciones) {
+        window.appTransacciones.unmount();
+    }
 
-        data: {
-            url: siteUrl,
-            //PERMISOS
-            admin: admin,
+    window.appTransacciones = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
+        data() {
+            return {
+                url: siteUrl,
+                //PERMISOS
+                admin: admin,
 
-            //TODO: V-MODELS
-            idEdit: '',
-            newTrans: {
-                nombreTrans: '',
-                codigoTrans: '',
-                descripcionTrans: ''
-            },
+                //TODO: VARIABLES
+                estadoSave: true,
 
-            //TODO: LISTAS
-            listaTransacciones: [],
-            formValidacion: []
+                //TODO: V-MODELS
+                idEdit: '',
+                newTrans: {
+                    nombreTrans: '',
+                    codigoTrans: '',
+                    descripcionTrans: ''
+                },
+
+                //TODO: LISTAS
+                listaTransacciones: [],
+                formValidacion: []
+            }
         },
         created() {
             this.getTransacciones();
@@ -137,13 +142,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let response = await axios.get(this.url + '/admin/trans/getTransacciones');
                     if (response.data) {
-                        v.listaTransacciones = response.data;
+                        this.listaTransacciones = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron tipos de transacciones registradas');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblTransacciones', 'Lista de Transacciones', '#modalTransacciones', 'CREAR TRANSACCIÓN');
-                    }else{
+                    } else {
                         dataTable('#tblTransacciones', 'Lista de Transacciones');
                     }
                 } catch (e) {
@@ -152,22 +157,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             loadTransaccion(trans) {
-                v.newTrans = {
+                this.newTrans = {
                     nombreTrans: trans.tr_nombre,
                     codigoTrans: trans.tr_codigo,
                     descripcionTrans: trans.tr_descripcion
                 };
-                v.idEdit = trans.id;
-                v.nameAux = trans.tr_nombre;
+                this.idEdit = trans.id;
+                this.nameAux = trans.tr_nombre;
 
             },
             async saveUpdateTransaccion() {
-                let datos = v.formData(v.newTrans);
+                let datos = this.formData(this.newTrans);
                 let url = this.url + '/admin/trans/saveTransaccion';
 
-                if (v.idEdit != '') {
-                    datos.append('idTrans', v.idEdit);
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA TRANSACCION CON EL MISMO NOMBRE
+                if (this.idEdit !== '') {
+                    datos.append('idTrans', this.idEdit);
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO AYA OTRA TRANSACCION CON EL MISMO NOMBRE
                     url = this.url + '/admin/trans/updateTransaccion';
                 }
 
@@ -176,8 +181,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getTransacciones();
+                        this.clear();
+                        this.getTransacciones();
                         $('#modalTransacciones').modal('hide');
                         $('.modal-backdrop').remove();
 
@@ -187,7 +192,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -195,14 +200,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                v.newTrans = {
+                this.newTrans = {
                     nombreTrans: '',
                     codigoTrans: '',
                     descripcionTrans: ''
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
 
             formData(obj) {
@@ -217,5 +222,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    window.appTransacciones.mount('#app');
 </script>

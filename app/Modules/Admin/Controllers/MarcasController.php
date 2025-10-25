@@ -29,8 +29,6 @@ class MarcasController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\marcas\viewMarcas');
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
     }
 

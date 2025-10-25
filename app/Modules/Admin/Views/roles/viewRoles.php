@@ -108,9 +108,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         </div>
     </div>
 </div>
-<!--<div id="loading-screen-upd" style="display: none">
-    <img src="<?php // echo base_url() ?>/uploads/img/system/spinning.svg" alt="loading"/>
-</div>-->
 
 <script type="text/javascript">
 
@@ -123,52 +120,61 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaAllSubModulos =<?php echo json_encode($listaAllSubModulos) ?>;
     var listaAllAcciones =<?php echo json_encode($listaAllAcciones) ?>;
 
-    var v = new Vue({
-        el: '#app',
-        data: {
-            //TODO: PERMISOS
-            editRol: editRol,
-            admin: admin,
+    if (window.appRoles) {
+        window.appRoles.unmount();
+    }
 
-            //TODO: VARIABLES
-            url: siteUrl,
-            estadoSave: true,
-            nameAux: '',
-            idRol: '',
+    window.appRoles = Vue.createApp({
 
-            //TODO: LISTAS
-            listaRoles: [],
-            listaAllModulos: listaAllModulos,
-            listaAllSubModulos: listaAllSubModulos,
-            listaAllAcciones: listaAllAcciones,
-            checkedModulos: [],
-            checkedAcciones: [],
+        data() {
+            return {
+                //TODO: PERMISOS
+                editRol: editRol,
+                admin: admin,
 
-            //TODO: V-MODELS
-            newRol: {
-                nombreRol: '',
-                estado: '1'
-            },
-            idEdit: '',
-            selectAll: false,
+                //TODO: VARIABLES
+                url: siteUrl,
+                estadoSave: true,
+                nameAux: '',
+                idRol: '',
 
-            //TODO: VALIDACIONES
-            formValidacion: [],
+                //TODO: LISTAS
+                listaRoles: [],
+                listaAllModulos: listaAllModulos,
+                listaAllSubModulos: listaAllSubModulos,
+                listaAllAcciones: listaAllAcciones,
+                checkedModulos: [],
+                checkedAcciones: [],
 
+                //TODO: V-MODELS
+                newRol: {
+                    nombreRol: '',
+                    estado: '1'
+                },
+                idEdit: '',
+                selectAll: false,
+
+                //TODO: VALIDACIONES
+                formValidacion: [],
+
+            }
         },
         created() {
-            this.getRoles();
+          
+        },
+        mounted(){
+              this.getRoles();
         },
         methods: {
             async   getRoles() {
                 try {
                     let response = await axios.get(this.url + '/admin/roles/getRoles');
                     if (response.data) {
-                        v.listaRoles = response.data;
+                        this.listaRoles = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'no se han ncontrado roles registrados');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblRoles', 'Roles', '#modalRol', 'NUEVO ROL', 'fas fa-plus-circle');
                     } else {
                         dataTable('#tblRoles', 'Roles');
@@ -179,24 +185,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             loadRol(rol) {
-                v.newRol = {
+                this.newRol = {
                     nombreRol: rol.rol_nombre,
                     estado: rol.rol_estado
                 };
-                v.nameAux = rol.rol_nombre;
-                v.idEdit = rol.id;
+                this.nameAux = rol.rol_nombre;
+                this.idEdit = rol.id;
             },
             async saveRol() {
 
-                let datos = v.formData(v.newRol);
+                let datos = this.formData(this.newRol);
 
                 try {
                     let response = await axios.post(this.url + '/admin/roles/saveRol', datos);
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear_();
-                        v.getRoles();
+                        this.clear_();
+                        this.getRoles();
 
                     } else if (response.data.status === 'existe') {
 
@@ -204,7 +210,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -214,19 +220,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             async updateRol() {
                 try {
-                    let datos = v.formData(v.newRol);
-                    datos.append('idRol', v.idEdit);
-                    datos.append('nameAux', v.nameAux);
+                    let datos = this.formData(this.newRol);
+                    datos.append('idRol', this.idEdit);
+                    datos.append('nameAux', this.nameAux);
 
                     let response = await axios.post(this.url + '/admin/roles/updateRol', datos);
 
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear_();
+                        this.clear_();
                         $('#modalRol').modal('hide');
                         $('.modal-backdrop').remove();
-                        v.getRoles();
+                        this.getRoles();
 
                     } else if (response.data.status === 'existe') {
 
@@ -234,7 +240,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -243,12 +249,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             async loadPermisosRol(idRol) {
-                v.idRol = idRol;
+                this.idRol = idRol;
                 let datos = {idRol: idRol};
+                 swalLoading('Cargando...', '');
                 let response = await axios.post(this.url + '/admin/roles/loadPermisosRol', datos);
                 if (response.data.listaModulos) {
                     response.data.listaModulos.map((data) => {
-                        v.checkedModulos.push(data.fk_modulo);
+                        this.checkedModulos.push(data.fk_modulo);
                         document.getElementsByClassName(data.fk_modulo)[0].style.background = "#EAF2F8";
                         document.getElementById('checkmod' + data.fk_modulo).checked = true;
 
@@ -256,64 +263,65 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
                 if (response.data.listaAcciones) {
                     response.data.listaAcciones.map((data) => {
-                        v.checkedAcciones.push(data.fk_accion);
+                        this.checkedAcciones.push(data.fk_accion);
                         document.getElementsByClassName('_' + data.fk_accion)[0].style.background = "#EAF2F8";
                         document.getElementById('checkacc' + data.fk_accion).checked = true;
                     });
                 }
+                Swal.close();
             },
             selectAllPermisos() {
-                v.selectAllPermisosMod();
-                v.selectAllPermisosAcc();
+                this.selectAllPermisosMod();
+                this.selectAllPermisosAcc();
             },
 
             selectAllPermisosMod() {
                 v.checkedModulos = [];
-                if (!v.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
-                    for (let i in v.listaAllModulos) {
-                        v.checkedModulos.push(v.listaAllModulos[i].id);
-                        document.getElementsByClassName(v.listaAllModulos[i].id)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkmod' + v.listaAllModulos[i].id).checked = true;
+                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
+                    for (let i in this.listaAllModulos) {
+                        this.checkedModulos.push(this.listaAllModulos[i].id);
+                        document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "#EAF2F8";
+                        document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = true;
                     }
                 } else {
-                    for (let i in v.listaAllModulos) {
-                        v.checkedModulos = [];
-                        document.getElementsByClassName(v.listaAllModulos[i].id)[0].style.background = "transparent";
-                        document.getElementById('checkmod' + v.listaAllModulos[i].id).checked = false;
+                    for (let i in this.listaAllModulos) {
+                        this.checkedModulos = [];
+                        document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "transparent";
+                        document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = false;
 
                     }
                 }
                 v.selectAllPermisosSubMod();
             },
             selectAllPermisosSubMod() {
-                if (!v.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
-                    for (let i in v.listaAllSubModulos) {
-                        v.checkedModulos.push(v.listaAllSubModulos[i].id);
-                        document.getElementsByClassName(v.listaAllSubModulos[i].id)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkmod' + v.listaAllSubModulos[i].id).checked = true;
+                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
+                    for (let i in this.listaAllSubModulos) {
+                        this.checkedModulos.push(this.listaAllSubModulos[i].id);
+                        document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "#EAF2F8";
+                        document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = true;
                     }
                 } else {
-                    for (let i in v.listaAllSubModulos) {
-                        v.checkedModulos = [];
-                        document.getElementsByClassName(v.listaAllSubModulos[i].id)[0].style.background = "transparent";
-                        document.getElementById('checkmod' + v.listaAllSubModulos[i].id).checked = false;
+                    for (let i in this.listaAllSubModulos) {
+                        this.checkedModulos = [];
+                        document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "transparent";
+                        document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = false;
 
                     }
                 }
             },
             selectAllPermisosAcc() {
-                v.checkedAcciones = [];
-                if (!v.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
-                    for (let i in v.listaAllAcciones) {
-                        v.checkedAcciones.push(v.listaAllAcciones[i].id);
-                        document.getElementsByClassName('_' + v.listaAllAcciones[i].id)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkacc' + v.listaAllAcciones[i].id).checked = true;
+                this.checkedAcciones = [];
+                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
+                    for (let i in this.listaAllAcciones) {
+                        this.checkedAcciones.push(this.listaAllAcciones[i].id);
+                        document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "#EAF2F8";
+                        document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = true;
                     }
                 } else {
-                    for (let i in v.listaAllAcciones) {
-                        v.checkedAcciones = [];
-                        document.getElementsByClassName('_' + v.listaAllAcciones[i].id)[0].style.background = "transparent";
-                        document.getElementById('checkacc' + v.listaAllAcciones[i].id).checked = false;
+                    for (let i in this.listaAllAcciones) {
+                        this.checkedAcciones = [];
+                        document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "transparent";
+                        document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = false;
 
                     }
                 }
@@ -321,38 +329,38 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             seletedRowModSubMod(codigo) {
 
-                let existeModulo = v.checkedModulos.includes(codigo);//Pregunto si el modulo esta en el arreglo si se cumple devuelvo TRUE caso contrario si no esta debuelvo falso
+                let existeModulo = this.checkedModulos.includes(codigo);//Pregunto si el modulo esta en el arreglo si se cumple devuelvo TRUE caso contrario si no esta debuelvo falso
 
                 var newArray;
 
                 if (existeModulo) {//Si la condicion es TRUE entro
 
-                    newArray = v.checkedModulos.filter((item) => item !== codigo);
+                    newArray = this.checkedModulos.filter((item) => item !== codigo);
                     document.getElementsByClassName(codigo)[0].style.background = "transparent";
-                    v.checkedModulos = newArray; //Quito el modulo al arreglo checkedModulos
+                    this.checkedModulos = newArray; //Quito el modulo al arreglo checkedModulos
                     document.getElementById('checkmod' + codigo).checked = false;
                 } else {
                     document.getElementsByClassName(codigo)[0].style.background = "#EAF2F8";
                     document.getElementById('checkmod' + codigo).checked = true;
-                    v.checkedModulos.push(codigo); //Agrego el modulo al arreglo checkedModulos
+                    this.checkedModulos.push(codigo); //Agrego el modulo al arreglo checkedModulos
                 }
 
             },
             seletedRowAcc(codigo) {
-                let existeAccion = v.checkedAcciones.includes(codigo);//Pregunto si la accion esta en el arreglo si se cumple devuelvo TRUE caso contrario si no esta debuelvo falso
+                let existeAccion = this.checkedAcciones.includes(codigo);//Pregunto si la accion esta en el arreglo si se cumple devuelvo TRUE caso contrario si no esta debuelvo falso
 
                 var newArray;
 
                 if (existeAccion) {//Si la condicion es TRUE entro
 
-                    newArray = v.checkedAcciones.filter((item) => item !== codigo);
+                    newArray = this.checkedAcciones.filter((item) => item !== codigo);
                     document.getElementsByClassName('_' + codigo)[0].style.background = "transparent";
-                    v.checkedAcciones = newArray; //Quito la accion del arreglo acciones
+                    this.checkedAcciones = newArray; //Quito la accion del arreglo acciones
                     document.getElementById('checkacc' + codigo).checked = false;
                 } else {
                     document.getElementsByClassName('_' + codigo)[0].style.background = "#EAF2F8";
                     document.getElementById('checkacc' + codigo).checked = true;
-                    v.checkedAcciones.push(codigo); //Agrego el modulo al arreglo checkedModulos
+                    this.checkedAcciones.push(codigo); //Agrego el modulo al arreglo checkedModulos
                 }
 
             },
@@ -360,9 +368,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async ASIGNARPERMISOS() {
                 try {
                     let datos = {
-                        rolId: v.idRol,
-                        listaModulos: v.checkedModulos,
-                        listaAcciones: v.checkedAcciones
+                        rolId: this.idRol,
+                        listaModulos: this.checkedModulos,
+                        listaAcciones: this.checkedAcciones
                     }
                     let response = await axios.post(this.url + '/admin/roles/aplicarPermisos', datos);
                     if (response.data.status === 'success') {
@@ -376,43 +384,43 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             clear() {
-                v.newRol = {
+                this.newRol = {
                     nombreRol: '',
                     estado: '1'
                 };
-                v.formValidacion = [];
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.checkedModulos = [];
-                v.checkedAcciones = [];
+                this.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.checkedModulos = [];
+                this.checkedAcciones = [];
 
-                for (let i in v.listaAllModulos) {
-                    v.checkedModulos = [];
-                    document.getElementsByClassName(v.listaAllModulos[i].id)[0].style.background = "transparent";
-                    document.getElementById('checkmod' + v.listaAllModulos[i].id).checked = false;
-
-                }
-                for (let i in v.listaAllSubModulos) {
-                    v.checkedModulos = [];
-                    document.getElementsByClassName(v.listaAllSubModulos[i].id)[0].style.background = "transparent";
-                    document.getElementById('checkmod' + v.listaAllSubModulos[i].id).checked = false;
+                for (let i in this.listaAllModulos) {
+                    this.checkedModulos = [];
+                    document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "transparent";
+                    document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = false;
 
                 }
-                for (let i in v.listaAllAcciones) {
-                    v.checkedAcciones = [];
-                    document.getElementsByClassName('_' + v.listaAllAcciones[i].id)[0].style.background = "transparent";
-                    document.getElementById('checkacc' + v.listaAllAcciones[i].id).checked = false;
+                for (let i in this.listaAllSubModulos) {
+                    this.checkedModulos = [];
+                    document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "transparent";
+                    document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = false;
+
+                }
+                for (let i in this.listaAllAcciones) {
+                    this.checkedAcciones = [];
+                    document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "transparent";
+                    document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = false;
 
                 }
             },
             clear_() {
-                v.newRol = {
+                this.newRol = {
                     nombreRol: '',
                     estado: '1'
                 };
-                v.formValidacion = [];
-                v.estadoSave = true;
-                v.idEdit = '';
+                this.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
             },
             formData(obj) {
                 var formData = new FormData();
@@ -427,5 +435,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    window.appRoles.mount('#app');
 </script>

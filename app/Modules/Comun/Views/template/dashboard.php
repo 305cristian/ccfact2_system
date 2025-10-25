@@ -13,9 +13,14 @@
             <title >Sistema CCFACT</title>      
         <?php endif ?>
         <?php
-        $dni = $ccm->getData('cc_empleados', ['id' => $user->id], 'emp_foto', $order = null, 1);
-        $foto = $dni->emp_foto;
-        if (empty($dni->emp_foto)) {
+        $this->session = Config\Services::session();
+        $nombres = $this->session->get('nombres');
+        $apellidos = $this->session->get('apellidos');
+        $fotoUser = $this->session->get('foto');
+        $userId = $this->session->get('id');
+
+        $foto = $fotoUser;
+        if (empty($fotoUser)) {
             $foto = 'user.png';
         }
         $enterprice = enterprice();
@@ -24,7 +29,7 @@
         <!--constantes globales para archivos js--> 
     <input type="hidden" id="base_Url" value="<?php echo base_url(); ?>">
     <input type="hidden" id="site_Url" value="<?php echo site_url(); ?>">
-    <input type="hidden" id="user_Id" value="<?php echo $user->id ?>">
+    <input type="hidden" id="user_Id" value="<?php echo $userId ?>">
 
 
     <!--ESTILOS CSS-->
@@ -54,7 +59,7 @@
 
     <!--estilos para vue multiselect y search-->
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/vueMultiselect/vue-multiselect.min.css">
-    
+
     <!--estilos para vue select y search-->
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.css">
 
@@ -82,7 +87,7 @@
         var emp_direccion = '<?= $enterprice->epr_direccion; ?>';
 
         var rootElement = document.documentElement;
-        var colorSystem = '<?php echo themeSelect($user->id) ?>';
+        var colorSystem = '<?php echo themeSelect($userId) ?>';
         var color = colorSystem.split(',')[0];
         var color2 = colorSystem.split(',')[1];
         rootElement.style.setProperty("--colorSystem", color);
@@ -94,14 +99,15 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/jquery-3.5.1.min.js"></script>
 
     <!--VUE 2.7 Y AXIOS-->
-    <script src="<?php echo base_url(); ?>/resources/plugins/vue/vue2.7.js"></script>
+    <!--<script src="<?php // echo base_url();      ?>/resources/plugins/vue/vue2.7.js"></script>-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/vue/vue.global_3.5.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/axios/axios.min.js"></script>
 
     <!-- VUE-MULTISELECT-->
-    <script src="<?php echo base_url(); ?>/resources/plugins/vueMultiselect/vue-multiselect.min.js"></script>
-    
+    <script src="<?php echo base_url();   ?>/resources/plugins/vueMultiselect/vue-multiselect.min.js"></script>
+
     <!-- VUE-SELECT-->
-    <script src="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.min.js"></script>
 
     <!--libreria del dashboard-->
     <script src="<?php echo base_url(); ?>/resources/plugins/adminlte/jquery.overlayScrollbars.min.js"></script>
@@ -136,15 +142,16 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/toast/toastr.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/toast/alert.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/sweetAlert2/sweetAlert2_11.js"></script>
-    
+
     <!-- para fechas-->
     <script src="<?php echo base_url(); ?>/resources/plugins/luxonDate/luxon.min.js"></script>
     <script>  var {DateTime} = luxon;</script>
 
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/js/directivasVue.js.js"></script>
-    <script> Vue.use(AllDirectives);</script>
+    <script src="<?php echo base_url(); ?>/resources/js/directivasVue3.js"></script>
+    <!--<script src="<?php echo base_url(); ?>/resources/js/directivasVue.js.js"></script>-->
+<!--    <script> Vue.use(AllDirectives);</script>-->
 
 
 
@@ -179,7 +186,7 @@
                             <a class="nav-link text-white" href="" data-bs-target="#modalSoporte" data-bs-toggle="modal"><span><i class="fas fa-user-doctor-message qx"></i></span> Soporte</a>
                         </li>
                         <li class="nav-item active">
-                            <a class="nav-link text-white" href="#"><span><i class="fas fa-check-circle"></i></span> | <span><i class="fas fa-user-tie"></i> <?= $user->nombres . ' ' . $user->apellidos ?> </span></a>
+                            <a class="nav-link text-white" href="#"><span><i class="fas fa-check-circle"></i></span> | <span><i class="fas fa-user-tie"></i> <?= $nombres . ' ' . $apellidos ?> </span></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" data-widget="fullscreen" href="#" role="button" style="color: white">
@@ -309,163 +316,177 @@
 </html>
 
 <script type="text/javascript">
-    var v = new Vue({
-        el: '#app2',
-        data: {
-            pathname: 'url',
-            'bg-system': 'bg-system'
-        },
-        methods: {
-            async navigate(uri) {
-                this.pathname = uri;
-                try {
-                    swalLoading('Cargando vista...');
-                    let response = await axios.get(uri);
-                    if (response) {
-                        $('#content-main-vue').html(response.data.view);
-                        Swal.close();
-                    }
-                } catch (e) {
-                    sweet_msg_toast('error', e.response.data.message);
-                }
-            }
+
+        if (window.appNavigate) {
+            window.appNavigate.unmount();
         }
-    });
+        window.appNavigate = Vue.createApp({
 
-    var app = new Vue({
-        el: "#v_app",
-        data: {
-            url: siteUrl,
-            dataEmpleado: {},
-            passActual: '',
-            passNew: '',
-            passConfNew: '',
-            colors: [
-                {id: 0, hex: "#f12711", disabled: false},
-                {id: 1, hex: "#f5af19", disabled: false}
-            ],
-            id: 2
-
-        },
-
-        computed: {
-            gradient() {
-                let colors = "linear-gradient(45deg";
-                this.colors.forEach(function (e) {
-                    colors += "," + e.hex;
-                });
-                colors += ")";
-                return colors;
-            }
-        },
-
-        methods: {
-
-            async getDataEmpleado() {
-
-                let datos = {
-                    idUser: userId
-                };
-                let response = await  axios.post(this.url + '/admin/empleado', datos);
-                if (response.data) {
-                    app.dataEmpleado = {
-                        nombre: response.data.emp_nombre,
-                        apellido: response.data.emp_apellido,
-                        usuario: response.data.emp_username,
-                        email: response.data.emp_email,
-                        celular: response.data.emp_celular,
-                        idUser: response.data.id
-                    };
+            data() {
+                return {
+                    pathname: 'url',
+                    'bg-system': 'bg-system'
                 }
             },
-            async updateEmployee() {
-                if (!app.dataEmpleado.usuario) {
-                    sweet_msg_toast('warning', 'El nombre de usuario no puede estar vacio');
-                    return false;
-                }
-                if (app.dataEmpleado.usuario.length <= 3) {
-                    sweet_msg_toast('warning', 'El nombre de usuario debe contener al menos 4 caracteres');
-                    return false;
-                }
-                if (!app.dataEmpleado.nombre) {
-                    sweet_msg_toast('warning', 'El nombre del empleado no puede estar vacio');
-                    return false;
-                }
-                if (!app.dataEmpleado.apellido) {
-                    sweet_msg_toast('warning', 'El apellido del empleado no puede estar vacio');
-                    return false;
-                }
-                if (!app.dataEmpleado.email) {
-                    sweet_msg_toast('warning', 'El email del empleado no puede estar vacio');
-                    return false;
-                }
-                if (!app.dataEmpleado.celular) {
-                    sweet_msg_toast('warning', 'El celular del empleado no puede estar vacio');
-                    return false;
-                }
-                try {
-                    let datos = app.dataEmpleado;
-                    let response = await axios.post(this.url + '/admin/updateEmployee', datos);
-                    if (response) {
-                        sweet_msg_dialog('success', 'Datos actualizados exitosamente', '/');
+            methods: {
+                async navigate(uri) {
+                    this.pathname = uri;
+                    try {
+                        swalLoading('Cargando vista...');
+                        let response = await axios.get(uri);
+                        if (response) {
+                            $('#content-main-vue').html(response.data.view);
+                            Swal.close();
+                        }
+                    } catch (e) {
+                        sweet_msg_toast('error', e.response.data.message);
                     }
-                } catch (e) {
-                    sweet_msg_dialog('error', '', '', e);
+                }
+            }
+        });
+        appNavigate.mount('#app2');
+
+        if (window.appDashboard) {
+            window.appDashboard.unmount();
+        }
+
+        window.appDashboard = Vue.createApp({
+
+            data() {
+                return {
+                    url: siteUrl,
+                    dataEmpleado: {},
+                    passActual: '',
+                    passNew: '',
+                    passConfNew: '',
+                    colors: [
+                        {id: 0, hex: "#f12711", disabled: false},
+                        {id: 1, hex: "#f5af19", disabled: false}
+                    ],
+                    id: 2
                 }
 
             },
-            async resetPassword() {
-                if (app.passNew.length <= 3) {
-                    sweet_msg_toast('warning', 'La contraseña debe contener al menos 4 caracteres');
-                    return false;
+
+            computed: {
+                gradient() {
+                    let colors = "linear-gradient(45deg";
+                    this.colors.forEach(function (e) {
+                        colors += "," + e.hex;
+                    });
+                    colors += ")";
+                    return colors;
                 }
-                try {
+            },
+
+            methods: {
+
+                async getDataEmpleado() {
+
                     let datos = {
-                        passActual: app.passActual,
-                        passNew: app.passNew,
-                        passConfNew: app.passConfNew
+                        idUser: userId
                     };
-                    let response = await axios.post(this.url + '/admin/resetPassword', datos);
-                    if (response.data.estado === 'success') {
-                        sweet_msg_dialog('success', response.data.msg, '/');
-                    } else if (response.data.estado === 'danger') {
-                        sweet_msg_dialog('warning', response.data.msg);
+                    let response = await  axios.post(this.url + '/admin/empleado', datos);
+                    if (response.data) {
+                        this.dataEmpleado = {
+                            nombre: response.data.emp_nombre,
+                            apellido: response.data.emp_apellido,
+                            usuario: response.data.emp_username,
+                            email: response.data.emp_email,
+                            celular: response.data.emp_celular,
+                            idUser: response.data.id
+                        };
                     }
-                } catch (e) {
-                    sweet_msg_dialog('error', '', '', e)
+                },
+                async updateEmployee() {
+                    if (!this.dataEmpleado.usuario) {
+                        sweet_msg_toast('warning', 'El nombre de usuario no puede estar vacio');
+                        return false;
+                    }
+                    if (this.dataEmpleado.usuario.length <= 3) {
+                        sweet_msg_toast('warning', 'El nombre de usuario debe contener al menos 4 caracteres');
+                        return false;
+                    }
+                    if (!this.dataEmpleado.nombre) {
+                        sweet_msg_toast('warning', 'El nombre del empleado no puede estar vacio');
+                        return false;
+                    }
+                    if (!this.dataEmpleado.apellido) {
+                        sweet_msg_toast('warning', 'El apellido del empleado no puede estar vacio');
+                        return false;
+                    }
+                    if (!this.dataEmpleado.email) {
+                        sweet_msg_toast('warning', 'El email del empleado no puede estar vacio');
+                        return false;
+                    }
+                    if (!this.dataEmpleado.celular) {
+                        sweet_msg_toast('warning', 'El celular del empleado no puede estar vacio');
+                        return false;
+                    }
+                    try {
+                        let datos = this.dataEmpleado;
+                        let response = await axios.post(this.url + '/admin/updateEmployee', datos);
+                        if (response) {
+                            sweet_msg_dialog('success', 'Datos actualizados exitosamente', '/');
+                        }
+                    } catch (e) {
+                        sweet_msg_dialog('error', '', '', e);
+                    }
+
+                },
+                async resetPassword() {
+                    if (this.passNew.length <= 3) {
+                        sweet_msg_toast('warning', 'La contraseña debe contener al menos 4 caracteres');
+                        return false;
+                    }
+                    try {
+                        let datos = {
+                            passActual: this.passActual,
+                            passNew: this.passNew,
+                            passConfNew: this.passConfNew
+                        };
+                        let response = await axios.post(this.url + '/admin/resetPassword', datos);
+                        if (response.data.estado === 'success') {
+                            sweet_msg_dialog('success', response.data.msg, '/');
+                        } else if (response.data.estado === 'danger') {
+                            sweet_msg_dialog('warning', response.data.msg);
+                        }
+                    } catch (e) {
+                        sweet_msg_dialog('error', '', '', e)
+                    }
+
+                },
+
+                async changeThemes() {
+                    let datos = {
+                        color1: this.colors[0].hex,
+                        color2: this.colors[1].hex
+                    };
+                    let response = await axios.post(this.url + '/admin/changeThemes', datos);
+                    if (response.data) {
+                        sweet_msg_dialog('success', 'Tema actualizado exitosamente', '/');
+                    }
+
+
+                },
+                generateGradient() {
+                    for (let i = 0; i < this.colors.length; i++) {
+                        if (this.colors[i].disabled === false)
+                            this.colors[i].hex = this.randomHex();
+                    }
+                },
+                randomHex() {
+                    return (
+                            "#" +
+                            Math.random()
+                            .toString(16)
+                            .slice(2, 8)
+                            );
                 }
 
-            },
-
-            async changeThemes() {
-                let datos = {
-                    color1: app.colors[0].hex,
-                    color2: app.colors[1].hex
-                };
-                let response = await axios.post(this.url + '/admin/changeThemes', datos);
-                if (response.data) {
-                    sweet_msg_dialog('success', 'Tema actualizado exitosamente', '/');
-                }
-
-
-            },
-            generateGradient() {
-                for (let i = 0; i < this.colors.length; i++) {
-                    if (this.colors[i].disabled === false)
-                        this.colors[i].hex = this.randomHex();
-                }
-            },
-            randomHex() {
-                return (
-                        "#" +
-                        Math.random()
-                        .toString(16)
-                        .slice(2, 8)
-                        );
             }
-
-        }
-    });
+        });
+        appDashboard.mount('#v_app');
 
 
 </script>

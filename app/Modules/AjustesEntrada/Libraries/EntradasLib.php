@@ -113,26 +113,35 @@ class EntradasLib {
             // 1. Actualizar kardex general
             $kardex = $this->actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId);
             if (!$kardex['kardexId']) {
-                throw new \Exception('Error al actualizar kardex general');
+                return [
+                    'status' => 'error',
+                    'msg' => 'Error al actualizar kardex general.',
+                ];
             }
 
             // 2. Actualizar kardex por bodega
             $kardexBodegaOk = $this->actualizarKardexBodega($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $kardex);
             if (!$kardexBodegaOk) {
-                throw new \Exception('Error al actualizar kardex por bodega');
+                return [
+                    'status' => 'error',
+                    'msg' => 'Error al actualizar kardex por bodega',
+                ];
             }
 
             // 3. Si maneja lotes, actualizar kardex por lote
             if ($loteId) {
                 $kardexLoteOk = $this->actualizarKardexBodegaLote($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $kardex);
                 if (!$kardexLoteOk) {
-                    throw new \Exception('Error al actualizar kardex por lote');
+                    return [
+                        'status' => 'error',
+                        'msg' => 'Error al actualizar kardex por lote',
+                    ];
                 }
             }
 
-            return true;
+            return ['status' => 'success'];
         } catch (\Throwable $e) {
-            throw new \Exception('Error al generar kardex: ' . $e->getMessage(). $e->getTraceAsString());
+            throw new \Exception('Error al generar kardex: ' . $e->getMessage() . $e->getTraceAsString());
         }
     }
 

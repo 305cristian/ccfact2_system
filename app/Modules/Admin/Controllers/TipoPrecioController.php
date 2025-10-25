@@ -29,10 +29,7 @@ class TipoPrecioController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\tipoprecio\viewTipoPrecio');
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
         return $this->response->setJSON($send);
-//        return view($this->dirTemplate . '\dashboard', $send);
     }
 
     public function getTipoPrecio() {

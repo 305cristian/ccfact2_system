@@ -65,29 +65,35 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
 
-    var v = new Vue({
-        el: "#app",
-        data: {
-            url: siteUrl,
+    if (window.appMotivos) {
+        window.appMotivos.unmount();
+    }
 
-            //TODO: PERMISOS
-            admin: admin,
+    window.appMotivos = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
-            idEdit: '',
-            nombreAux: '',
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: V-MODELS
-            listaMotivos: [],
-            newMotivo: {
-                motNombre: '',
-                motDetalle: '',
-                motTipo: 'AJUSTES',
-                motEstado: '1'
-            },
-            formValidacion: []
+                //TODO: PERMISOS
+                admin: admin,
+
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
+                idEdit: '',
+                nombreAux: '',
+
+                //TODO: V-MODELS
+                listaMotivos: [],
+                newMotivo: {
+                    motNombre: '',
+                    motDetalle: '',
+                    motTipo: 'AJUSTES',
+                    motEstado: '1'
+                },
+                formValidacion: []
+            }
         },
         created() {
             this.getMotivos();
@@ -96,11 +102,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getMotivos() {
                 let {data} = await axios.get(this.url + "/admin/motivos/getMotivos");
                 if (data) {
-                    v.listaMotivos = data;
+                    this.listaMotivos = data;
                 } else {
                     sweet_msg_dialog('warning', 'No se pudieron cargar los motivos');
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblMotivosAjuste', 'Lista de Motivos de Ajuste', '#modalMotivosAjuste', 'CREAR MOTIVO');
                 } else {
                     dataTable('#tblMotivosAjuste', 'Lista de Motivos de Ajuste');
@@ -171,5 +177,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
-
+    window.appMotivos.mount('#app');
 </script>

@@ -57,27 +57,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <?php $admin = $user->validatePermisos('admin', $user->id) ?>
     var admin = '<?= $admin ?>';
-    var v = new Vue({
-        el: "#app",
-        data: {
-            url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+    if (window.appAnillo) {
+        window.appAnillo.unmount();
+    }
+    window.appAnillo = Vue.createApp({
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
-            idEdit: '',
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: V-MODELS
-            listaAnillos: [],
-            newAnillo: {
-                anNombre: '',
-                anDescripcion: '',
-                anEstado: '1'
-            },
-            formValidacion: []
+                //TODO: PERMISOS
+                admin: admin,
+
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
+                idEdit: '',
+
+                //TODO: V-MODELS
+                listaAnillos: [],
+                newAnillo: {
+                    anNombre: '',
+                    anDescripcion: '',
+                    anEstado: '1'
+                },
+                formValidacion: []
+            }
         },
         created() {
             this.getAnillos();
@@ -86,11 +92,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getAnillos() {
                 let {data} = await axios.get(this.url + "/admin/anillos/getAnillos");
                 if (data) {
-                    v.listaAnillos = data;
+                    this.listaAnillos = data;
                 } else {
                     sweet_msg_dialog('warning', 'No se pudieron cargar los anillos');
                 }
-                if (v.admin) {
+                if (this.admin) {
                     dataTableModalBtn('#tblAnillos', 'Lista de Anillos', '#modalAnillos', 'CREAR ANILLO');
                 } else {
                     dataTable('#tblAnillos', 'Lista de Anillos');
@@ -128,7 +134,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     } else if (response.data.status === 'vacio') {
                         this.formValidacion = response.data.msg;
                     } else if (response.data.status === 'existe') {
-                        sweet_msg_dialog('warning',response.data.msg);
+                        sweet_msg_dialog('warning', response.data.msg);
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
@@ -158,4 +164,5 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    appAnillo.mount('#app');
 </script>

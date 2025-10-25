@@ -36,7 +36,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         :options="listaSearchProductos"
                         @remove="onRemove"
                         @search-change="searchProductos($event, 'name')"/>
-                    <!--                        @input="setDataProducto('name')"-->                       
 
                     <template slot="option" slot-scope="{ option }">
                         <span style="font-size: 12px">{{ option.prodCode+' - ' }} <strong>{{ option.prodNombre }}</strong> </span>
@@ -138,108 +137,115 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var ivaActual =<?php echo getSettings("IVA"); ?>;
     var autocodigo = '<?php echo $autocodigo; ?>';
 
-    var v = new Vue({
-        el: "#app",
+
+    if (window.appProductos) {
+        window.appProductos.unmount();
+    }
+    window.appProductos = Vue.createApp({
         components: {
-            "vue-multiselect": window.VueMultiselect.default
+            "vue-multiselect": window['vue-multiselect'].Multiselect
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            ivaActual: ivaActual,
-            loading: false,
+                //TODO: VARIABLES
+                estadoSave: true,
+                ivaActual: ivaActual,
+                loading: false,
 
-            //TODO: V-MODELS
-            idEdit: '',
-            idGrupo: '',
-            newProducto: {
-                prodNombre: '',
-                prodCodigo: autocodigo,
-                prodCodigoBarras: '',
-                prodCodigoBarras2: '',
-                prodCodigoBarras3: '',
-                //prodDetalle: '', //no
-                prodExistenciaMinima: '',
-                prodExistenciaMaxima: '',
-                //prodStockActual: '', //no
-                //prodCostoPromedio: '', //no
-                //prodCostoUltimo: '', //no
-                //prodCostoAlto: '', //no
-                prodVenta: true,
-                prodCompra: true,
-                prodIsServicio: false,
-                prodIsGasto: false,
-                prodValorMedida: '',
-                prodUnidadMedida: '',
-                prodSubgrupo: '',
-                prodMarca: '',
-                prodTipoProducto: '',
+                //TODO: V-MODELS
+                idEdit: '',
+                idGrupo: '',
+                newProducto: {
+                    prodNombre: '',
+                    prodCodigo: autocodigo,
+                    prodCodigoBarras: '',
+                    prodCodigoBarras2: '',
+                    prodCodigoBarras3: '',
+                    //prodDetalle: '', //no
+                    prodExistenciaMinima: '',
+                    prodExistenciaMaxima: '',
+                    //prodStockActual: '', //no
+                    //prodCostoPromedio: '', //no
+                    //prodCostoUltimo: '', //no
+                    //prodCostoAlto: '', //no
+                    prodVenta: true,
+                    prodCompra: true,
+                    prodIsServicio: false,
+                    prodIsGasto: false,
+                    prodValorMedida: '',
+                    prodUnidadMedida: '',
+                    prodSubgrupo: '',
+                    prodMarca: '',
+                    prodTipoProducto: '',
 
-                prodIvaPorcentaje: '0',
-                prodIvaPorcentajeId: '1',
+                    prodIvaPorcentaje: '0',
+                    prodIvaPorcentajeId: '1',
 
-                prodIcePorcentaje: '',
-                prodIcePorcentajeId: '',
-                prodTieneICE: '0',
+                    prodIcePorcentaje: '',
+                    prodIcePorcentajeId: '',
+                    prodTieneICE: '0',
 
-                prodIsPromo: false,
-                prodPvpPromo: '',
-                //prodCostoInventario: '',/no
-                prodEspecificaciones: false,
-                prodCtaCompras: '',
-                prodCtaVentas: '',
-                prodIsSuperProducto: false,
-                prodCtrlLote: false,
-                prodFacturarEnNegativo: false,
-                prodFacturarPrecioInferiorCosto: false,
-                prodImagen: '',
-                prodEstado: true
+                    prodIsPromo: false,
+                    prodPvpPromo: '',
+                    //prodCostoInventario: '',/no
+                    prodEspecificaciones: false,
+                    prodCtaCompras: '',
+                    prodCtaVentas: '',
+                    prodIsSuperProducto: false,
+                    prodCtrlLote: false,
+                    prodFacturarEnNegativo: false,
+                    prodFacturarPrecioInferiorCosto: false,
+                    prodImagen: '',
+                    prodEstado: true
 
-            },
-            //V-MODELS FILTROS SEARCH PROD
-            selectGrupo: "",
-            selectStock: "-1",
-            selectEstado: "-1",
-            selectImpuesto: "-1",
+                },
+                //V-MODELS FILTROS SEARCH PROD
+                selectGrupo: "",
+                selectStock: "-1",
+                selectEstado: "-1",
+                selectImpuesto: "-1",
 
-            //TIPO PRECIO PVP
-            price: [],
-            tipoPrecioVal: [],
-            tipoPrecioId: [],
+                //TIPO PRECIO PVP
+                price: [],
+                tipoPrecioVal: [],
+                tipoPrecioId: [],
 
-            //TODO: LISTAS
-            listaUnidadesMedida: listaUnidadesMedida,
-            listaMarcas: listaMarcas,
-            listaTipoProducto: listaTipoProducto,
-            listaImpuestosTarifa: listaImpuestosTarifa,
-            listaImpuestosICE: listaImpuestosICE,
-            listaGrupos: listaGrupos,
-            listaCtaContable: listaCtaContable,
-            listaTiposPvp: listaTiposPvp,
-            listaProductos: [],
+                //TODO: LISTAS
+                listaUnidadesMedida: listaUnidadesMedida,
+                listaMarcas: listaMarcas,
+                listaTipoProducto: listaTipoProducto,
+                listaImpuestosTarifa: listaImpuestosTarifa,
+                listaImpuestosICE: listaImpuestosICE,
+                listaGrupos: listaGrupos,
+                listaCtaContable: listaCtaContable,
+                listaTiposPvp: listaTiposPvp,
+                listaProductos: [],
 
-            keyProducto: [],
-            listaSearchProductos: [],
+                keyProducto: [],
+                listaSearchProductos: [],
 
-            listaSubGrupos: [],
-            formValidacion: []
+                listaSubGrupos: [],
+                formValidacion: []
 
+            };
         },
         created() {
-            panelMain.style.display = "none";
-            this.aplicaIce();
+
+
             this.tipoPrecioId = this.listaTiposPvp.map(ltpc => ltpc.id);
         },
         updated() {
-            v.aplicaIce();
+            this.aplicaIce();
         },
         mounted() {
             $(".selectpicker").selectpicker();
+            this.aplicaIce();
+            panelMain.style.display = "none";
         },
         methods: {
             async searchProductos(dataSerach, val) {
@@ -247,13 +253,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let {data} = await axios.post(this.url + '/admin/productos/searchProductos', datos);
                     if (data !== false) {
-                        v.listaSearchProductos = data;
+                        this.listaSearchProductos = data;
                     } else {
-                        v.listaSearchProductos = [];
+                        this.listaSearchProductos = [];
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data.message);
-                    v.listaSearchProductos = [];
+                    this.listaSearchProductos = [];
                 }
 
             },
@@ -268,20 +274,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             async getProductos() {
                 let datos = {
-                    idProd: v.keyProducto ? v.keyProducto.prodCode : "",
-                    stock: v.selectStock,
-                    estado: v.selectEstado,
-                    impuesto: v.selectImpuesto,
-                    grupo: v.selectGrupo
+                    idProd: this.keyProducto ? this.keyProducto.prodCode : "",
+                    stock: this.selectStock,
+                    estado: this.selectEstado,
+                    impuesto: this.selectImpuesto,
+                    grupo: this.selectGrupo
 
                 };
                 //let datos = Object.fromEntries(Object.entries(dataFilter).filter(([_, value]) => value !== undefined && value !== ""));
 
                 try {
-                    v.loading = true;
+                    this.loading = true;
                     let response = await axios.post(this.url + '/admin/productos/getProductos', datos);
                     if (response.data) {
-                        v.listaProductos = response.data;
+                        this.listaProductos = response.data;
                         panelMain.style.display = "block";
                         panelBtnCreate.style.display = "none";
 
@@ -289,7 +295,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         sweet_msg_dialog('warning', 'No se encontraron productos en los parametros seleccionados');
                         panelMain.style.display = "none";
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblProductos', 'Lista de Productos', '#modalProductos', 'CREAR PRODUCTO');
                     } else {
                         dataTable('#tblProductos', 'Lista de Productos');
@@ -298,18 +304,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
                 } finally {
-                    v.loading = false;
+                    this.loading = false;
                 }
             },
             async getSubgrupo(idGrupo) {
 
                 let datos = {
-                    idGrupo: v.idGrupo ? v.idGrupo : idGrupo
+                    idGrupo: this.idGrupo ? this.idGrupo : idGrupo
                 };
                 try {
                     let response = await axios.post(this.url + '/admin/grupos/getSubgrupoByGrupo', datos);
                     if (response.data) {
-                        v.listaSubGrupos = response.data;
+                        this.listaSubGrupos = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se encontraron subgrupos registradas');
                     }
@@ -319,10 +325,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             async loadProducto(prod) {
-                swalLoading('Cargando...','' );
-                await v.getSubgrupo(prod.id_grupo);
-                await v.getPreciosProducto(prod.id);
-                v.newProducto = {
+                swalLoading('Cargando...', '');
+                await this.getSubgrupo(prod.id_grupo);
+                await this.getPreciosProducto(prod.id);
+                this.newProducto = {
                     prodNombre: prod.prod_nombre,
                     prodCodigo: prod.prod_codigo,
                     prodCodigoBarras: prod.prod_codigobarras,
@@ -360,10 +366,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodEstado: prod.prod_estado === '1' ? true : false
 
                 };
-                v.idGrupo = prod.id_grupo;
-                v.idEdit = prod.id;
-                v.nameAux = prod.prod_nombre;
-                v.codeAux = prod.prod_codigo;
+                this.idGrupo = prod.id_grupo;
+                this.idEdit = prod.id;
+                this.nameAux = prod.prod_nombre;
+                this.codeAux = prod.prod_codigo;
 
                 Swal.close();
 
@@ -374,9 +380,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     let {data} = await axios.get(`${this.url}/admin/productos/getPreciosProducto/${idProducto}`);
                     if (data) {
                         data.map((val, index) => {
-                            let iva = (v.ivaActual / 100) + 1;
-                            v.price[index] = (val.pp_valor * parseFloat(iva)).toFixed(2);
-                            v.tipoPrecioVal[index] = val.pp_valor;
+                            let iva = (this.ivaActual / 100) + 1;
+                            this.price[index] = (val.pp_valor * parseFloat(iva)).toFixed(2);
+                            this.tipoPrecioVal[index] = val.pp_valor;
                         });
                     } else {
                         sweet_msg_toast("warning", "El producto selecionado, no tiene precios establecidos");
@@ -387,37 +393,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             async saveUpdateProducto() {
-                let datos = v.formData(v.newProducto);
+                let datos = this.formData(this.newProducto);
                 let url = this.url + '/admin/productos/saveProducto';
 
-                if (v.idEdit != '') {
-                    datos.append('idProd', v.idEdit);
-                    datos.append('codeAux', v.codeAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO CODIGO
-                    datos.append('nameAux', v.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
+                if (this.idEdit != '') {
+                    datos.append('idProd', this.idEdit);
+                    datos.append('codeAux', this.codeAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO CODIGO
+                    datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
                     url = this.url + '/admin/productos/updateProducto';
                 }
-                datos.append('tipoPrecioVal', v.tipoPrecioVal);
-                datos.append('tipoPrecioId', v.tipoPrecioId);
-                datos.append('grupo', v.idGrupo);
+                datos.append('tipoPrecioVal', this.tipoPrecioVal);
+                datos.append('tipoPrecioId', this.tipoPrecioId);
+                datos.append('grupo', this.idGrupo);
                 try {
-                    v.loading = true;
+                    this.loading = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getProductos();
-                        v.consultarAutoCodigo();//Este invoca al autocodigo para cun nuevo producto
+                        this.clear();
+                        this.getProductos();
+                        this.consultarAutoCodigo();//Este invoca al autocodigo para cun nuevo producto
                         $('#modalProductos').modal('hide');
                         $('.modal-backdrop').remove();
-                        v.tipoPrecioId = this.listaTiposPvp.map(ltpc => ltpc.id);//Esta linea vuelve a  cargar los ID de los N tipos de precio
+                        this.tipoPrecioId = this.listaTiposPvp.map(ltpc => ltpc.id);//Esta linea vuelve a  cargar los ID de los N tipos de precio
                     } else if (response.data.status === 'existe') {
 
                         sweet_msg_dialog('warning', response.data.msg);
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     } else if (response.data.status === 'error') {
                         sweet_msg_dialog('error', response.data.msg);
@@ -428,14 +434,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
                 } finally {
-                    v.loading = false;
+                    this.loading = false;
                 }
             },
             async consultarAutoCodigo() {
                 try {
                     let {data} = await axios.get(`${this.url}/admin/productos/consultarAutoCodigo`);
                     if (data) {
-                        v.newProducto.prodCodigo = data;
+                        this.newProducto.prodCodigo = data;
                     } else {
                         sweet_msg_toast("warning", "No se ha encontrado ningun codigo autogenerado");
                     }
@@ -444,11 +450,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             desglosarIva(index) {
-                let precio = v.price[index];
-                let iva = (v.ivaActual / 100) + 1;
+                let precio = this.price[index];
+                let iva = (this.ivaActual / 100) + 1;
                 let priceSinIva = 0;
                 priceSinIva = precio;
-                if (v.newProducto.prodIvaPorcentajeId === '2') {
+                if (this.newProducto.prodIvaPorcentajeId === '2') {
                     priceSinIva = precio / parseFloat(iva);
                 }
 
@@ -456,24 +462,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
             },
             desglosarIva2() {
-                let iva = (v.ivaActual / 100) + 1;
+                let iva = (this.ivaActual / 100) + 1;
                 let priceSinIva = 0;
-                v.price.map((val, index) => {
+                this.price.map((val, index) => {
                     priceSinIva = val;
-                    if (v.newProducto.prodIvaPorcentajeId === '2') {
+                    if (this.newProducto.prodIvaPorcentajeId === '2') {
                         priceSinIva = val / parseFloat(iva);
                     }
 
-                    v.tipoPrecioVal[index] = priceSinIva;
+                    this.tipoPrecioVal[index] = priceSinIva;
                     document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
                 });
             },
             onRemove() {
-                v.keyProducto = [];
-                v.listaSearchProductos = [];
+                this.keyProducto = [];
+                this.listaSearchProductos = [];
             },
             clear() {
-                v.newProducto = {
+                this.newProducto = {
                     prodNombre: '',
                     prodCodigo: '',
                     prodCodigoBarras: '',
@@ -508,13 +514,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodEstado: true
 
                 };
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
 
                 //Tipos de precio
-                v.price = [];
-                v.tipoPrecioVal = [];
+                this.price = [];
+                this.tipoPrecioVal = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -528,5 +534,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appProductos.mount('#app');
 
 </script>

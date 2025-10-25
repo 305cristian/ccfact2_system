@@ -78,7 +78,7 @@
                     </div>
                     <div class="modal-body">
                         <div class="text-center">
-                            <img :src="this.url+'/uploads/img/employee/'+fotoPerfil " alt='foto empleado'>
+                            <img :src="this.pathUrl+'/uploads/img/employee/'+fotoPerfil " alt='foto empleado'>
                         </div>
                     </div>
 
@@ -283,85 +283,93 @@
     var listaDepartamentos =<?php echo json_encode($listaDepartamentos) ?>;
     var listaRoles =<?php echo json_encode($listaRoles) ?>;
 
-    var v = new Vue({
-        el: '#app',
+    if (window.appUsers) {
+        window.appUsers.unmount();
+    }
+
+    window.appUsers = Vue.createApp({
+
         components: {
-            'vue-multiselect': window.VueMultiselect.default
+            'vue-multiselect': window['vue-multiselect'].Multiselect
         },
-        data: {
-            //TODO: PERMISOS
-            editEmployee: editEmployee,
-            admin: admin,
-            //TODO: variables
-            fotoPerfil: 'user.png',
-            url: siteUrl,
-            estadoSave: true,
-            dniAux: '',
+        data() {
+            return {
+                //TODO: PERMISOS
+                editEmployee: editEmployee,
+                admin: admin,
+                //TODO: variables
+                fotoPerfil: 'user.png',
+                pathUrl: baseUrl,
+                url: siteUrl,
+                estadoSave: true,
+                dniAux: '',
 
-            //TODO: V-MODELS
-            bodegas: '',
-            newEmpleado: {
-                dni: '',
-                nombres: '',
-                apellidos: '',
-                email: '',
-                telefono: '',
-                celular: '',
-                cargo: '',
-                departamento: '',
-                usuario: '',
-                password: '',
-                bodegaMain: '',
-                rol: '',
-                estado: '1'
-            },
-            idEdit: '',
+                //TODO: V-MODELS
+                bodegas: '',
+                newEmpleado: {
+                    dni: '',
+                    nombres: '',
+                    apellidos: '',
+                    email: '',
+                    telefono: '',
+                    celular: '',
+                    cargo: '',
+                    departamento: '',
+                    usuario: '',
+                    password: '',
+                    bodegaMain: '',
+                    rol: '',
+                    estado: '1'
+                },
+                idEdit: '',
 
-            //TODO: LISTAS
-            listaEmpleados: [],
-            listaBodegas: listaBodegas,
-            listaCargos: listaCargos,
-            listaDepartamentos: listaDepartamentos,
-            listaRoles: listaRoles,
+                //TODO: LISTAS
+                listaEmpleados: [],
+                listaBodegas: listaBodegas,
+                listaCargos: listaCargos,
+                listaDepartamentos: listaDepartamentos,
+                listaRoles: listaRoles,
 
-            //TODO: VALIDACIONES
-            formValidacion: [],
+                //TODO: VALIDACIONES
+                formValidacion: [],
 
-            //TODO: RESET PASSWORD
-            confirmPassword: '',
-            newPassword: '',
-            idEmpPR: ''
+                //TODO: RESET PASSWORD
+                confirmPassword: '',
+                newPassword: '',
+                idEmpPR: ''
 
+
+            };
         },
         created() {
             this.getEmpleados();
         },
-        mounted(){
-          $('.selectpicker').selectpicker();  
+        mounted() {
+            $('.selectpicker').selectpicker();
         },
         methods: {
 
             setIdPaswordReset(idEmp) {
-                v.idEmpPR = idEmp;
+                this.idEmpPR = idEmp;
             },
 
             async restablecerContraseña() {
-                if (!v.newPassword) {
+                if (!this.newPassword) {
                     sweet_msg_toast('warning', 'El campo contraseña no puede estar vacío');
                     return false;
                 }
-                if (!v.confirmPassword) {
+                if (!this.confirmPassword) {
                     sweet_msg_toast('warning', 'El campo confirmar contraseña no puede estar vacío');
                     return false;
                 }
-                if (v.newPassword != v.confirmPassword) {
+                if (this.newPassword != v.confirmPassword) {
                     sweet_msg_toast('warning', 'Las contraseñas no coinciden');
                     return false;
                 }
                 let datos = {
-                    idEmpPR: v.idEmpPR,
-                    newPassword: v.newPassword,
-                    confirmPassword: v.confirmPassword,
+                    idEmpPR: this.idEmpPR,
+                    newPassword: this.newPassword,
+                    confirmPassword: this.confirmPassword,
                 }
                 try {
                     let response = await axios.post(this.url + '/admin/employee/resetPassword', datos);
@@ -380,11 +388,11 @@
                 try {
                     let response = await axios.get(this.url + '/admin/employee/getEmpleados');
                     if (response.data) {
-                        v.listaEmpleados = response.data;
+                        this.listaEmpleados = response.data;
                     } else {
                         sweet_msg_dialog('warning', 'No se han encontrado empleados registrados');
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblEmpleados', 'Reporte de empleados', '#modalEmpleado', 'CREAR EMPLEADO', 'fas fa-user-plus');
 
                     } else {
@@ -399,10 +407,10 @@
             async saveEmpleado() {
 
                 try {
-                    let datos = v.formData(v.newEmpleado);
+                    let datos = this.formData(this.newEmpleado);
 
-                    if (v.bodegas) {
-                        let bodegas_id = v.bodegas.map(data => data.id);
+                    if (this.bodegas) {
+                        let bodegas_id = this.bodegas.map(data => data.id);
                         datos.append('bodegas', bodegas_id);
                     } else {
                         datos.append('bodegas', "");
@@ -413,8 +421,8 @@
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-                        v.getEmpleados();
+                        this.clear();
+                        this.getEmpleados();
 
                     } else if (response.data.status === 'existe') {
 
@@ -422,7 +430,7 @@
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -433,11 +441,11 @@
             async updateEmpleado() {
 
                 try {
-                    let datos = v.formData(v.newEmpleado);
-                    datos.append('idEmp', v.idEdit);
-                    datos.append('dniAux', v.dniAux);
-                    if (v.bodegas) {
-                        let bodegas_id = v.bodegas.map(data => data.id);
+                    let datos = this.formData(this.newEmpleado);
+                    datos.append('idEmp', this.idEdit);
+                    datos.append('dniAux', this.dniAux);
+                    if (this.bodegas) {
+                        let bodegas_id = this.bodegas.map(data => data.id);
                         datos.append('bodegas', bodegas_id);
                     } else {
                         datos.append('bodegas', "");
@@ -449,10 +457,10 @@
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
+                        this.clear();
                         $('#modalEmpleado').modal('hide');
                         $('.modal-backdrop').remove();
-                        v.getEmpleados();
+                        this.getEmpleados();
 
                     } else if (response.data.status === 'existe') {
 
@@ -460,7 +468,7 @@
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     }
                 } catch (e) {
@@ -469,7 +477,8 @@
 
             },
             async loadEmpleado(emp) {
-                v.newEmpleado = {
+                swalLoading('Cargando...')
+                this.newEmpleado = {
                     dni: emp.emp_dni,
                     nombres: emp.emp_nombre,
                     apellidos: emp.emp_apellido,
@@ -483,8 +492,8 @@
                     rol: emp.fk_rol,
                     estado: emp.emp_estado
                 };
-                v.dniAux = emp.emp_dni;
-                v.idEdit = emp.id;
+                this.dniAux = emp.emp_dni;
+                this.idEdit = emp.id;
                 $('#selectBodMain').selectpicker('val', emp.fk_bodega_main);
                 $('#selectCargo').selectpicker('val', emp.fk_cargo);
                 $('#selectDep').selectpicker('val', emp.fk_departamento);
@@ -493,11 +502,12 @@
                 let datos = {idEmp: emp.id}
                 let response = await axios.post(this.url + '/admin/employee/getBodegas', datos);
                 if (response.data) {
-                    v.bodegas = response.data;
+                    this.bodegas = response.data;
                 }
+                Swal.close();
             },
             clear() {
-                v.newEmpleado = {
+                this.newEmpleado = {
                     dni: '',
                     nombres: '',
                     apellidos: '',
@@ -512,15 +522,15 @@
                     rol: '',
                     estado: '1'
                 };
-                v.bodegas = '';
-                v.formValidacion = [];
+                this.bodegas = '';
+                this.formValidacion = [];
                 $('#selectBodMain').selectpicker('val', '');
                 $('#selectCargo').selectpicker('val', '');
                 $('#selectDep').selectpicker('val', '');
                 $('#selectRol').selectpicker('val', '');
                 //TODO: PARTE CLAVE PARA IDENTIFICAR SI INSERTA O ACTUALIZA
-                v.estadoSave = true;
-                v.idEdit = '';
+                this.estadoSave = true;
+                this.idEdit = '';
             },
 
             formData(obj) {
@@ -532,9 +542,9 @@
             },
             setFoto(foto) {
                 if (foto) {
-                    v.fotoPerfil = foto;
+                    this.fotoPerfil = foto;
                 } else {
-                    v.fotoPerfil = 'user.png';
+                    this.fotoPerfil = 'user.png';
                 }
 
             },
@@ -544,5 +554,5 @@
 
         }
     });
-
+    window.appUsers.mount('#app');
 </script>

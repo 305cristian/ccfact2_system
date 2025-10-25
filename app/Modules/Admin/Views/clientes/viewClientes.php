@@ -35,10 +35,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         :show-no-results="true"
                         :options="listaSearchClientes"
                         @remove="onRemove($event)"
-                        @input="setDataCiruc($event)"
-                        @search-change="searchClientes($event)"/>
+                        @select="setDataCiruc($event)"
+                        @search-change="searchClientes($event)">
 
-                    <template slot="option" slot-scope="{ option }">
+                    <template #option="{ option }">
                         <span style="font-size: 12px">{{ option.clie_razon_social+': ' }} <strong>{{ option.clie_dni }} </strong></span>
                     </template>
                     </vue-multiselect>
@@ -79,61 +79,69 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaTipoDocumento = <?php echo json_encode($listaTipoDocumento) ?>;
     var listaProvincia = <?php echo json_encode($listaProvincia) ?>;
 
-    var v = new Vue({
-        el: "#app",
+
+    if (window.appClientes) {
+        window.appClientes.unmount();
+    }
+
+    window.appClientes = Vue.createApp({
+
         components: {
-            "vue-multiselect": window.VueMultiselect.default
+            "vue-multiselect": window['vue-multiselect'].Multiselect
         },
-        data: {
-            url: siteUrl,
+        data() {
+            return {
+                url: siteUrl,
 
-            //TODO: PERMISOS
-            admin: admin,
+                //TODO: PERMISOS
+                admin: admin,
 
-            //TODO: VARIABLES
-            estadoSave: true,
-            loading: false,
+                //TODO: VARIABLES
+                estadoSave: true,
+                loading: false,
 
-            //TODO: V-MODELS
-            cirucCliente: '',
-            provincia: '',
-            canton: '',
-            idEdit: '',
-            newCliente: {
-                clieCiruc: '',
-                clieNombres: '',
-                clieApellidos: '',
-                clieRazonSocial: '',
-                clieSexo: '',
-                clieGenero: '',
-                clieTelefono: '',
-                clieCelular: '',
-                clieEmail: '',
-                clieDireccion: '',
-                clieParroquia: '',
-                clieTipoCliente: '',
-                clieTipoDocumento: '',
-                clieDiasCredito: '',
-                clieCupoCredito: '',
-                clieEstado: true
-            },
+                //TODO: V-MODELS
+                cirucCliente: '',
+                provincia: '',
+                canton: '',
+                idEdit: '',
+                newCliente: {
+                    clieCiruc: '',
+                    clieNombres: '',
+                    clieApellidos: '',
+                    clieRazonSocial: '',
+                    clieSexo: '',
+                    clieGenero: '',
+                    clieTelefono: '',
+                    clieCelular: '',
+                    clieEmail: '',
+                    clieDireccion: '',
+                    clieParroquia: '',
+                    clieTipoCliente: '',
+                    clieTipoDocumento: '',
+                    clieDiasCredito: '',
+                    clieCupoCredito: '',
+                    clieEstado: true
+                },
 
-            //TODO: LISTAS
-            listaClientes: [],
-            listaTipoDocumento: listaTipoDocumento,
-            listaProvincia: listaProvincia,
-            listaCanton: [],
-            listaParroquia: [],
+                //TODO: LISTAS
+                listaClientes: [],
+                listaTipoDocumento: listaTipoDocumento,
+                listaProvincia: listaProvincia,
+                listaCanton: [],
+                listaParroquia: [],
 
-            keyCliente: [],
-            listaSearchClientes: [],
+                keyCliente: [],
+                listaSearchClientes: [],
 
-            formValidacion: []
+                formValidacion: []
+            };
         },
         created() {
-            panelMain.style.display = "none";
+
         },
         mounted() {
+            panelMain.style.display = "none";
             $(".selectpicker").selectpicker();
         },
         methods: {
@@ -142,33 +150,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     let {data} = await axios.post(this.url + '/admin/clientes/searchClientes', datos);
                     if (data !== false) {
-                        v.listaSearchClientes = data;
+                        this.listaSearchClientes = data;
                     } else {
-                        v.listaSearchClientes = [];
+                        this.listaSearchClientes = [];
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data.message);
-                    v.listaSearchClientes = [];
+                    this.listaSearchClientes = [];
                 }
 
             },
             setDataCiruc(data) {
-                v.cirucCliente = data ? data.clie_dni : "";
+                this.cirucCliente = data ? data.clie_dni : "";
             },
             onRemove() {
-                v.keyCliente = [];
-                v.listaSearchClientes = [];
+                this.keyCliente = [];
+                this.listaSearchClientes = [];
             },
             async getClientes() {
                 let datos = {
-                    ciruc: v.cirucCliente ? v.cirucCliente : ""
+                    ciruc: this.cirucCliente ? this.cirucCliente : ""
                 };
 
                 try {
-                    v.loading = true;
+                    this.loading = true;
                     let response = await axios.post(this.url + '/admin/clientes/getClientes', datos);
                     if (response.data.status === "success") {
-                        v.listaClientes = response.data.data;
+                        this.listaClientes = response.data.data;
                         panelMain.style.display = "block";
                         panelBtnCreate.style.display = "none";
 
@@ -176,7 +184,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         sweet_msg_dialog('warning', response.data.msg);
                         panelMain.style.display = "none";
                     }
-                    if (v.admin) {
+                    if (this.admin) {
                         dataTableModalBtn('#tblClientes', 'Lista de Clientes', '#modalClientes', 'CREAR CLIENTE');
                     } else {
                         dataTable('#tblClientes', 'Lista de Clientes');
@@ -185,48 +193,48 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
                 } finally {
-                    v.loading = false;
+                    this.loading = false;
                 }
             },
             async getCantones() {
-                let id = v.provincia ? v.provincia : 0;
+                let id = this.provincia ? this.provincia : 0;
                 let {data} = await axios.get(this.url + "/comun/clientes/getCantones/" + id);
                 if (data) {
-                    v.listaCanton = data;
-                    v.listaParroquia = [];
+                    this.listaCanton = data;
+                    this.listaParroquia = [];
                 } else {
-                    v.listaCanton = [];
+                    this.listaCanton = [];
                 }
             },
             async getParroquias() {
-                let id = v.canton ? v.canton : 0;
+                let id = this.canton ? this.canton : 0;
                 let {data} = await axios.get(this.url + "/comun/clientes/getParroquias/" + id);
                 if (data) {
-                    v.listaParroquia = data;
+                    this.listaParroquia = data;
                 } else {
-                    v.listaParroquia = [];
+                    this.listaParroquia = [];
                 }
             },
             setTipoCliente() {
-                if (v.newCliente.clieTipoDocumento === '1') {
-                    v.newCliente.clieTipoCliente = "2";
-                } else if (v.newCliente.clieTipoDocumento === '2') {
-                    v.newCliente.clieTipoCliente = "1";
-                } else if (v.newCliente.clieTipoDocumento === '3') {
-                    v.newCliente.clieTipoCliente = "4";
+                if (this.newCliente.clieTipoDocumento === '1') {
+                    this.newCliente.clieTipoCliente = "2";
+                } else if (this.newCliente.clieTipoDocumento === '2') {
+                    this.newCliente.clieTipoCliente = "1";
+                } else if (this.newCliente.clieTipoDocumento === '3') {
+                    this.newCliente.clieTipoCliente = "4";
                 } else {
-                    v.newCliente.clieTipoCliente = "4";
+                    this.newCliente.clieTipoCliente = "4";
                 }
             },
             setRazonSocial() {
                 let nombres = v.newCliente.clieNombres;
                 let apellidos = v.newCliente.clieApellidos;
-                v.newCliente.clieRazonSocial = `${nombres.toUpperCase()} ${apellidos.toUpperCase()}`;
+                this.newCliente.clieRazonSocial = `${nombres.toUpperCase()} ${apellidos.toUpperCase()}`;
             },
 
             async loadCliente(clie) {
                 swalLoading('Cargando...', );
-                v.newCliente = {
+                this.newCliente = {
                     clieCiruc: clie.clie_dni,
                     clieNombres: clie.clie_nombres,
                     clieApellidos: clie.clie_apellidos,
@@ -244,37 +252,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     clieCupoCredito: clie.clie_cupo_credito,
                     clieEstado: clie.clie_estado === "1" ? true : false
                 };
-                v.canton = clie.id_canton;
-                v.provincia = clie.id_provincia;
-                v.ciRucAux = clie.clie_dni;
-                v.idEdit = clie.id;
+                this.canton = clie.id_canton;
+                this.provincia = clie.id_provincia;
+                this.ciRucAux = clie.clie_dni;
+                this.idEdit = clie.id;
 
                 $("#clieProvincia").selectpicker('val', clie.id_provincia);
 
-                await v.getCantones();
-                await v.getParroquias();
+                await this.getCantones();
+                await this.getParroquias();
 
                 Swal.close();
             },
 
             async saveUpdateCliente() {
 
-                let datos = v.formData(v.newCliente);
+                let datos = this.formData(this.newCliente);
                 let url = this.url + '/admin/clientes/saveCliente';
 
-                if (v.idEdit !== '') {
-                    datos.append('idClie', v.idEdit);
-                    datos.append('ciRucAux', v.ciRucAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO CODIGO
+                if (this.idEdit !== '') {
+                    datos.append('idClie', this.idEdit);
+                    datos.append('ciRucAux', this.ciRucAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO CODIGO
                     url = this.url + '/admin/clientes/updateCliente';
                 }
                 try {
-                    v.loading = true;
+                    this.loading = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
                         sweet_msg_dialog('success', response.data.msg);
-                        v.clear();
-//                        v.getClientes();
+                        this.clear();
+//                        this.getClientes();
                         $('#modalClientes').modal('hide');
                         $('.modal-backdrop').remove();
                     } else if (response.data.status === 'existe') {
@@ -283,7 +291,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     } else if (response.data.status === 'vacio') {
 
-                        v.formValidacion = response.data.msg;
+                        this.formValidacion = response.data.msg;
 
                     } else if (response.data.status === 'error') {
                         sweet_msg_dialog('error', response.data.msg);
@@ -294,13 +302,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
                 } finally {
-                    v.loading = false;
+                    this.loading = false;
                 }
 
             },
 
             clear() {
-                v.newCliente = {
+                this.newCliente = {
                     clieCiruc: '',
                     clieNombres: '',
                     clieApellidos: '',
@@ -318,13 +326,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     clieCupoCredito: '',
                     clieEstado: true
                 };
-                v.provincia = '';
-                v.canton = '';
-                v.listaCanton = [];
-                v.listaParroquia = [];
-                v.estadoSave = true;
-                v.idEdit = '';
-                v.formValidacion = [];
+                this.provincia = '';
+                this.canton = '';
+                this.listaCanton = [];
+                this.listaParroquia = [];
+                this.estadoSave = true;
+                this.idEdit = '';
+                this.formValidacion = [];
             },
             formData(obj) {
                 var formData = new FormData();
@@ -340,5 +348,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         }
     });
+    window.appClientes.mount('#app');
 
 </script>
