@@ -58,4 +58,14 @@ class GestionController extends \App\Controllers\BaseController {
 
         return $this->response->setJSON(false);
     }
+
+    public function getDataDetalle($idAjuste) {
+        $response = $this->entadasModel->getDataDetalle($idAjuste);
+
+        if ($response) {
+            return $this->response->setJSON($response);
+        }
+
+        return $this->response->setJSON(false);
+    }
 }

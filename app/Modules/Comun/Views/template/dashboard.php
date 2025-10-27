@@ -85,6 +85,7 @@
         var emp_logo = '<?= $enterprice->epr_logo; ?>';
         var emp_nombre = '<?= $enterprice->epr_nombre_comercial; ?>';
         var emp_direccion = '<?= $enterprice->epr_direccion; ?>';
+        var emp_website = '<?= $enterprice->epr_pagina_web; ?>';
 
         var rootElement = document.documentElement;
         var colorSystem = '<?php echo themeSelect($userId) ?>';
@@ -93,18 +94,29 @@
         rootElement.style.setProperty("--colorSystem", color);
         rootElement.style.setProperty("--colorSystem2", color2);
 
+        window.empresa = {
+            ruc: '<?= $enterprice->epr_ruc; ?>',
+            telefono: '<?= $enterprice->epr_telefono; ?>',
+            celular: '<?= $enterprice->epr_celular; ?>',
+            email: '<?= $enterprice->epr_email; ?>',
+            logo: '<?= $enterprice->epr_logo; ?>',
+            nombre: '<?= $enterprice->epr_nombre_comercial; ?>',
+            direccion: '<?= $enterprice->epr_direccion; ?>',
+            website: '<?= $enterprice->epr_pagina_web; ?>'
+        };
+
     </script>   
 
     <!--JQUERY-->
     <script src="<?php echo base_url(); ?>/resources/plugins/jquery-3.5.1.min.js"></script>
 
     <!--VUE 2.7 Y AXIOS-->
-    <!--<script src="<?php // echo base_url();      ?>/resources/plugins/vue/vue2.7.js"></script>-->
+    <!--<script src="<?php // echo base_url();               ?>/resources/plugins/vue/vue2.7.js"></script>-->
     <script src="<?php echo base_url(); ?>/resources/plugins/vue/vue.global_3.5.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/axios/axios.min.js"></script>
 
     <!-- VUE-MULTISELECT-->
-    <script src="<?php echo base_url();   ?>/resources/plugins/vueMultiselect/vue-multiselect.min.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/vueMultiselect/vue-multiselect.min.js"></script>
 
     <!-- VUE-SELECT-->
     <script src="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.min.js"></script>
@@ -147,11 +159,23 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/luxonDate/luxon.min.js"></script>
     <script>  var {DateTime} = luxon;</script>
 
+    <!-- para exportacion excel-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/excel/xlsx.full.min.js"></script>
+
+    <!-- para exportacion pdf-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/html2canva/html2canvas.min.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/html2pdf/html2pdf.bundle.min.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.umd.min.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.plugin.autotable.min.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/js/PDFExport.js"></script>
+
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>
     <script src="<?php echo base_url(); ?>/resources/js/directivasVue3.js"></script>
-    <!--<script src="<?php echo base_url(); ?>/resources/js/directivasVue.js.js"></script>-->
-<!--    <script> Vue.use(AllDirectives);</script>-->
+    <script src="<?php echo base_url(); ?>/resources/js/ExcelExport.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/js/PDFCapture.js"></script>
+
+
 
 
 
@@ -484,6 +508,62 @@
                             );
                 }
 
+            }
+        });
+        appDashboard.mixin({
+            mounted() {
+
+                if (!window.__imprimirGlobalRegistrado) {
+                    window.__imprimirGlobalRegistrado = true;
+
+                    $(document).on("click", "[data-print]", function (event) {
+                        event.preventDefault();
+
+                        const targetId = $(this).data("target");
+                        const contentElement = document.getElementById(targetId);
+
+                        if (!contentElement) {
+                            console.error(`Elemento con ID '${elemId}' no encontrado`);
+                            return;
+                        }
+
+                        // Obtiene el contenido HTML a imprimir
+                        const contentHTML = contentElement.innerHTML;
+
+                        // Abre una nueva ventana de impresión
+                        const printWindow = window.open("", "_blank");
+
+                        // Define los estilos y contenido del documento
+                        printWindow.document.open();
+                        printWindow.document.write(`
+                            <!DOCTYPE html>
+                            <html lang="es">
+                            <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                <title>Imprimir</title>
+                                <link rel="stylesheet" href="${baseUrl}resources/plugins/bootstrap5/css/bootstrap.min.css">
+                                <style>
+                                    @media print {  
+                                    }
+
+                                </style>
+                            </head>
+                            <body>
+                                ${contentHTML}
+                                <script>
+                                    window.onload = function() {
+                                        window.focus();
+                                        window.print();
+                                        window.close();
+                                    };
+                                <\/script>
+                            </body>
+                            </html>
+                          `);
+                        printWindow.document.close();
+                    });
+                }
             }
         });
         appDashboard.mount('#v_app');

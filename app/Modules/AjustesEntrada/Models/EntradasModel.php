@@ -59,8 +59,8 @@ class EntradasModel extends \CodeIgniter\Model {
         $builder->join('cc_proveedores tb3', 'tb3.id =tb1.fk_proveedor');
         $builder->join('cc_empleados tb4', 'tb4.id =tb1.fk_user_id');
         $builder->join('cc_centroscosto tb5', 'tb5.id =tb1.fk_centro_costo');
-        $builder->orderBy('ajen_fecha','ASC');
-        $builder->orderBy('ajen_secuencial','ASC');
+        $builder->orderBy('ajen_fecha', 'ASC');
+        $builder->orderBy('ajen_secuencial', 'ASC');
 
         $response = $builder->get();
 
@@ -70,24 +70,45 @@ class EntradasModel extends \CodeIgniter\Model {
             return false;
         }
 
+    }
 
+    public function getDataDetalle($idAjuste) {
+        $builder = $this->db->table('cc_ajuste_entrada tb1');
+        $builder->select('tb1.ajen_secuencial, tb1.ajen_fecha, tb1.ajen_estado, tb1.ajen_observaciones,'
+                . ' tb2.bod_nombre,'
+                . ' tb3.prov_ruc,'
+                . ' tb3.prov_razon_social,'
+                . ' CONCAT(tb4.emp_nombre," ", tb4.emp_apellido) user_create,'
+                . ' tb5.cc_nombre, tb6.mot_nombre');
+        $builder->join('cc_bodegas tb2', 'tb2.id = tb1.fk_bodega');
+        $builder->join('cc_proveedores tb3', 'tb3.id = tb1.fk_proveedor');
+        $builder->join('cc_empleados tb4', 'tb4.id = tb1.fk_user_id');
+        $builder->join('cc_centroscosto tb5', 'tb5.id = tb1.fk_centro_costo');
+        $builder->join('cc_motivos_ajuste tb6', 'tb6.id = tb1.fk_motivo_ajuste');
+        $builder->where('tb1.id', $idAjuste);
 
-//        foreach ($response as $val) {
-//
-//            $builder = $this->db->table('cc_ajuste_entrada_det tb3');
-//            $builder->select('tb4.codigo, tb4.prod_nombre,'
-//                    . ' tb3.fk_producto,'
-//                    . ' tb3.ajend_itemcantidad,'
-//                    . ' tb3.ajend_itemcosto,'
-//                    . ' tb3.ajend_itemcostoxcantidad,'
-//                    . 'tb5.lot_lote,'
-//                    . 'tb5.lot_fecha_elaboracion,'
-//                    . 'tb5.lot_fecha_caducidad');
-//            $builder->join('cc_productos tb4', 'tb4.id = tb3.fk_producto');
-//            $builder->join('cc_lotes tb5', 'tb5.id = tb3.fk_lote', 'left');
-//            $builder->where('tb3.fk_ajuste', $val->id);
-//            $val->detalle = $builder->get()->getResult();
-//        }
-//        return $response;
+        $ajuste = $builder->get()->getRow();
+
+        if ($ajuste) {
+            // Obtener detalle
+            $builderDet = $this->db->table('cc_ajuste_entrada_det tb3');
+            $builderDet->select('tb4.prod_codigo, tb4.prod_nombre,'
+                    . ' tb3.fk_producto,'
+                    . ' tb3.ajend_itemcantidad,'
+                    . ' tb3.ajend_itemcosto,'
+                    . ' tb3.ajend_itemcostoxcantidad,'
+                    . ' tb5.lot_lote,'
+                    . ' tb5.lot_fecha_elaboracion,'
+                    . ' tb5.lot_fecha_caducidad');
+            $builderDet->join('cc_productos tb4', 'tb4.id = tb3.fk_producto');
+            $builderDet->join('cc_lotes tb5', 'tb5.id = tb3.fk_lote', 'left');
+            $builderDet->where('tb3.fk_ajuste_entrada', $idAjuste);
+
+            $ajuste->detalle = $builderDet->get()->getResult();
+            
+            return $ajuste;
+        }else{
+            return false;
+        }
     }
 }

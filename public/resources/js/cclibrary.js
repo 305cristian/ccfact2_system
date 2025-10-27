@@ -197,3 +197,47 @@ function swalLoading(title, text) {
     });
 }
 
+function formatearFechaHoraActual() {
+    const ahora = new Date();
+    return ahora.toLocaleString('es-EC', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function formatearFecha(fecha) {
+    if (!fecha)
+        return '-';
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-EC', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+function formatToUSD(value) {
+    if (isNaN(value))
+        return '$0.00';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+    }).format(value);
+}
+
+function calcularTotalUnidades(dataDetalle) {
+    if (!dataDetalle)
+        return 0;
+    return dataDetalle.reduce((sum, item) =>
+        sum + parseInt(item.ajend_itemcantidad || 0), 0
+            );
+}
+
+
+
+
+

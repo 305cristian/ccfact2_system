@@ -40,6 +40,7 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     //GESTION DE AJUSTES
     $subroutes->get('gestionAjustes', 'GestionController::index');
     $subroutes->post('getAjustes', 'GestionController::getAjustes');
+    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
     
     //AJUSTE INICIAL
      $subroutes->get('ajusteInicial', 'AjusteInicialController::index');
