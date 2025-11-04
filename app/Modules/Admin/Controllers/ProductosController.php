@@ -47,7 +47,11 @@ class ProductosController extends \App\Controllers\BaseController {
         $data2['user'] = $this->user;
         $send['view'] = view($this->dirViewModule . '\productos\viewProductos', $data2);
 
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function consultarAutoCodigo() {

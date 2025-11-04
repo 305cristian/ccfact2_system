@@ -36,7 +36,11 @@ class RolesController extends \App\Controllers\BaseController {
         $data['listaAllAcciones'] = $this->ccm->getData('cc_acciones', ['ac_estado' => 1]);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\roles\viewRoles', $data);
-         return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getRoles() {
@@ -44,7 +48,7 @@ class RolesController extends \App\Controllers\BaseController {
         $response = $this->ccm->getData('cc_roles');
         if ($response) {
             return $this->response->setJSON($response);
-        }else{
+        } else {
             return $this->response->setJSON(false);
         }
     }
@@ -176,16 +180,16 @@ class RolesController extends \App\Controllers\BaseController {
             $response['msg'] = '<h5>Permisos aplicados exitosamente</h5>';
             $this->db->transCommit();
         }
-        
+
         return $this->response->setJSON($response);
     }
-    
+
     public function loadPermisosRol() {
         $datos = json_decode(file_get_contents('php://input'));
-        
-        $response['listaModulos']= $this->admModel->getRolesModulos($datos->idRol);
-        $response['listaAcciones']= $this->admModel->getRolesAcciones($datos->idRol);
-        
+
+        $response['listaModulos'] = $this->admModel->getRolesModulos($datos->idRol);
+        $response['listaAcciones'] = $this->admModel->getRolesAcciones($datos->idRol);
+
         return $this->response->setJSON($response);
     }
 }

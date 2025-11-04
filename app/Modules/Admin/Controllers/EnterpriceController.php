@@ -31,7 +31,11 @@ class EnterpriceController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\empresa\viewEmpresa');
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getEmpresa() {
@@ -39,7 +43,7 @@ class EnterpriceController extends \App\Controllers\BaseController {
         $response = $this->ccm->getData('cc_empresa', $where_data = null, $fields = '*', $order_by = null);
         if ($response) {
             return $this->response->setJSON($response);
-        }else{
+        } else {
             return $this->response->setJSON(false);
         }
     }

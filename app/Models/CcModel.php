@@ -29,20 +29,27 @@ class CcModel extends \CodeIgniter\Model {
 
     public function eliminar($table_name, $where = null) {
         $builder = $this->db->table($table_name);
-        if ($where) {
+
+        if ($where && is_array($where)) {
             foreach ($where as $col => $val) {
                 $builder->where($col, $val);
             }
         } else {
-            $builder->where('id >', '0');
+            throw new \Exception("Se requiere una condición WHERE para eliminar en la tabla {$table_name}");
         }
-        $builder->delete($where);
 
-        if ($this->db->affectedRows() > 0) {
-            return $this->db->affectedRows();
+        $builder->delete();
+
+        $error = $this->db->error();
+        if ($error['message']) {
+            throw new \Exception("Error al eliminar en la tabla {$table_name}: " . $error['message']);
+        }
+
+        $affected = $this->db->affectedRows();
+        if ($affected > 0) {
+            return $affected;
         } else {
-            $error = $this->db->error();
-            throw new \Exception('Error al eliminar registro en la tabla ' . $table_name . ': ' . $error['message']);
+            return 0;
         }
     }
 
@@ -50,16 +57,12 @@ class CcModel extends \CodeIgniter\Model {
         $builder = $this->db->table($table_name);
         $builder->update($data_set, $where_data);
 
-        if ($this->db->affectedRows() > 0) {
-            return $this->db->affectedRows();
-        } else {
-            $error = $this->db->error();
-            if ($error['message']) {
-                throw new \Exception('Error al actualizar en la tabla ' . $table_name . ': ' . $error['message']);
-            } else {
-                return $this->db->affectedRows();
-            }
+        $error = $this->db->error();
+        if ($error['message']) {
+            throw new \Exception('Error al actualizar en la tabla ' . $table_name . ': ' . $error['message']);
         }
+
+        return true;
     }
 
     public function getData($table_name, $where_data = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null) {

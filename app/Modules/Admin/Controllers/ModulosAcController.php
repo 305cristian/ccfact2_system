@@ -33,8 +33,11 @@ class ModulosAcController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\modulosacciones\viewModAcciones', $data);
-        return $this->response->setJSON($send);
-//        return view($this->dirTemplate . '\dashboard', $send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getModulos() {
@@ -171,7 +174,7 @@ class ModulosAcController extends \App\Controllers\BaseController {
                 'md_tipo' => $tipoModulo,
                 'md_icon' => $iconoModulo,
                 'md_orden' => $ordenModulo,
-                'md_padre' => ($padreModulo !=='null'?$padreModulo : null)
+                'md_padre' => ($padreModulo !== 'null' ? $padreModulo : null)
             ];
 
             $this->ccm->actualizar('cc_modulos', $datos, ['id' => $idModulo]);

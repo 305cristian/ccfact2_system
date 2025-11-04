@@ -29,15 +29,18 @@ class SettingsController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\settingtransacciones\viewSettings', $data);
-        return $this->response->setJSON($send);
-        //return view($this->dirTemplate . '\dashboard', $send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getSettings() {
         $response = $this->ccm->getData('cc_settings');
         if ($response) {
             return $this->response->setJSON($response);
-        }else{
+        } else {
             return $this->response->setJSON(false);
         }
     }

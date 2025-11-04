@@ -111,7 +111,7 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/jquery-3.5.1.min.js"></script>
 
     <!--VUE 2.7 Y AXIOS-->
-    <!--<script src="<?php // echo base_url();               ?>/resources/plugins/vue/vue2.7.js"></script>-->
+    <!--<script src="<?php // echo base_url();                 ?>/resources/plugins/vue/vue2.7.js"></script>-->
     <script src="<?php echo base_url(); ?>/resources/plugins/vue/vue.global_3.5.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/axios/axios.min.js"></script>
 
@@ -163,17 +163,15 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/excel/xlsx.full.min.js"></script>
 
     <!-- para exportacion pdf-->
-    <script src="<?php echo base_url(); ?>/resources/plugins/html2canva/html2canvas.min.js"></script>
+<!--    <script src="<?php echo base_url(); ?>/resources/plugins/html2canva/html2canvas.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/html2pdf/html2pdf.bundle.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.umd.min.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.plugin.autotable.min.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/js/PDFExport.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.plugin.autotable.min.js"></script>-->
 
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>
     <script src="<?php echo base_url(); ?>/resources/js/directivasVue3.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/js/ExcelExport.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/js/PDFCapture.js"></script>
+<!--    <script src="<?php echo base_url(); ?>/resources/js/ExcelExport.js"></script>-->
 
 
 
@@ -357,10 +355,15 @@
                     this.pathname = uri;
                     try {
                         swalLoading('Cargando vista...');
-                        let response = await axios.get(uri);
+                        let response = await axios.get(uri, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
                         if (response) {
                             $('#content-main-vue').html(response.data.view);
                             Swal.close();
+                            window.history.pushState({}, '', uri);
                         }
                     } catch (e) {
                         sweet_msg_toast('error', e.response.data.message);

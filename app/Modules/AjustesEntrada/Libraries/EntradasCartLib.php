@@ -176,18 +176,13 @@ class EntradasCartLib {
      */
     private function _insert($items = [], $update = false, $rowid_) {
         // Generar rowid
-        echo 'rowid: '.$rowid_;
         $randonNumer = rand(1, 1000000);
 
         if (!empty($rowid_)) {
             $rowid = $rowid_;
         } else {
 
-            if (isset($items['options'])) {
-                $rowid = ($items["permitirDuplicados"] ? md5($items['id'] . $randonNumer . implode('', $items['options'])) : md5($items['id'] . implode('', $items['options'])));
-            } else {
-                $rowid = ($items["permitirDuplicados"] ? md5($items["id"] . $randonNumer) : md5($items["id"]));
-            }
+            $rowid = ($items["permitirDuplicados"] ? md5($items["id"] . $randonNumer) : md5($items["id"]));
         }
 
         $items["rowid"] = $rowid;
@@ -217,7 +212,7 @@ class EntradasCartLib {
         $items['totalpriceice'] = ($price_neto + $iceval) * $qty;
 
         // IVA
-        $base_iva = $price_neto + $iceval;/* La base imponible para el iva es el precio neto del producto + ICE si es que lo tiene */
+        $base_iva = $price_neto + $iceval; /* La base imponible para el iva es el precio neto del producto + ICE si es que lo tiene */
         $items['itembaseiva'] = $base_iva;
         $items['totitembaseiva'] = $base_iva * $qty;
 

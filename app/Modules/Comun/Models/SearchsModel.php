@@ -23,6 +23,7 @@ class SearchsModel extends \CodeIgniter\Model {
     public function searchProveedores($dataSearch) {
         $builder = $this->db->table('cc_proveedores tb1');
         $builder->select('tb1.id, tb1.prov_nombres, tb1.prov_apellidos, tb1.prov_razon_social, tb1.prov_ruc, CONCAT(tb1.prov_ruc," : ",tb1.prov_razon_social)proveedor ');
+        $builder->where('tb1.prov_estado', 1);
         $builder->like('tb1.prov_razon_social', $dataSearch);
         $builder->orLike('tb1.prov_ruc', $dataSearch);
 
@@ -32,6 +33,23 @@ class SearchsModel extends \CodeIgniter\Model {
 
         if ($response->getNumRows() > 0) {
             return $response->getResult();
+        } else {
+            return false;
+        }
+    }
+
+    public function searchProveedorById($idProveedor) {
+        $builder = $this->db->table('cc_proveedores tb1');
+        $builder->select('tb1.id, tb1.prov_nombres, tb1.prov_apellidos, tb1.prov_razon_social, tb1.prov_ruc, CONCAT(tb1.prov_ruc," : ",tb1.prov_razon_social)proveedor ');
+        $builder->where('tb1.id', $idProveedor);
+        $builder->where('tb1.prov_estado', 1);
+
+        $builder->limit(1);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getRow();
         } else {
             return false;
         }
@@ -73,12 +91,13 @@ class SearchsModel extends \CodeIgniter\Model {
 
         $builder = $this->db->table('cc_productos tb1');
         $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos, IFNULL(tb2.stb_stock, 0) AS stb_stock");
-        $builder->join('cc_stock_bodega tb2', 'tb2.fk_producto = tb1.id','left');
-
-        $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
+        $builder->join('cc_stock_bodega tb2', 'tb2.fk_producto = tb1.id', 'left');
         
-        if($params->bodegaId){
-          $builder->where('tb2.fk_bodega',$params->bodegaId);  
+        $builder->where('tb1.prod_estado',1);
+        $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
+
+        if ($params->bodegaId) {
+            $builder->where('tb2.fk_bodega', $params->bodegaId);
         }
 
         $builder->limit(15);
@@ -99,11 +118,12 @@ class SearchsModel extends \CodeIgniter\Model {
             $builder->where('tb1.id', $codProd);
         } else {
             $builder->where("CAST(tb1.id AS CHAR) =", $codProd);
-        } $builder->orWhere("tb1.prod_codigo", `'` . $codProd . `'`);
-        $builder->orWhere("tb1.prod_codigobarras", `'` . $codProd . `'`);
-        $builder->orWhere("tb1.prod_codigobarras2", `'` . $codProd . `'`);
-        $builder->orWhere("tb1.prod_codigobarras3", `'` . $codProd . `'`);
-
+            $builder->orWhere("tb1.prod_codigo", `'` . $codProd . `'`);
+            $builder->orWhere("tb1.prod_codigobarras", `'` . $codProd . `'`);
+            $builder->orWhere("tb1.prod_codigobarras2", `'` . $codProd . `'`);
+            $builder->orWhere("tb1.prod_codigobarras3", `'` . $codProd . `'`);
+        }
+        $builder->where('tb1.prod_estado',1);
         $builder->limit(1);
 
         $response = $builder->get();

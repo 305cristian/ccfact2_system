@@ -32,7 +32,11 @@ class MotivosAjustesController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\motivosajuste\viewMotivosAjuste');
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getMotivos() {
@@ -110,7 +114,7 @@ class MotivosAjustesController extends \App\Controllers\BaseController {
 
             // Validar nombre único solo si cambió el nombre
 
-            $existe = $this->ccm->getData('cc_motivos_ajuste', ['mot_nombre' =>  mb_strtoupper(trim($motNombre))], '*', null, 1);
+            $existe = $this->ccm->getData('cc_motivos_ajuste', ['mot_nombre' => mb_strtoupper(trim($motNombre))], '*', null, 1);
 
             if ($existe && $existe->mot_nombre !== $nombreAux) {
                 $response['status'] = 'existe';

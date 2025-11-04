@@ -35,7 +35,11 @@ class ConfigCuentasController extends \App\Controllers\BaseController {
         $data['user'] = $this->user; //Esto se envia a la vista para validar roles y permisos
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\cuentasconfig\viewCuentasConfig', $data);
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getCuentasConfig() {

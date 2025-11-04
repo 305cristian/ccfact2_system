@@ -33,8 +33,11 @@ class TransaccionController extends \App\Controllers\BaseController {
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\settingtransacciones\viewTransacciones', $data);
 
-        return $this->response->setJSON($send);
-//        return view($this->dirTemplate . '\dashboard', $send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getTransacciones() {

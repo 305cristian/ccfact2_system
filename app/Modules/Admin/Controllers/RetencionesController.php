@@ -29,8 +29,11 @@ class RetencionesController extends \App\Controllers\BaseController {
         $data['user'] = $this->user; //Esto se envia a la vista para validar roles y permisos
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\retenciones\viewRetenciones', $data);
-//        return view($this->dirTemplate . '\dashboard', $send);
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getRetenciones() {

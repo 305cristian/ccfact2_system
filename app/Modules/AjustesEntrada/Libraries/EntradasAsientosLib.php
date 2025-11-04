@@ -70,7 +70,10 @@ class EntradasAsientosLib {
             $asientoId = $this->asientoLib->guardarAsiento($this->tipotransaccionCod, $ajusteId, $detalle, $ajuste->ajen_fecha);
 
             if (!$asientoId) {
-                throw new \Exception('Error al crear el asiento contable');
+                return [
+                    'status' => 'warning',
+                    'msg' => ' Ha ocurrido un error al generar asiento contable <br>',
+                ];
             }
 
             // Obtener configuración de cuentas de la bodega
@@ -168,7 +171,7 @@ class EntradasAsientosLib {
 
             return ['status' => 'success', 'data' => $asientoId];
         } catch (\Throwable $e) {
-            throw new \Exception('Error al generar asiento contable: ' . $e->getMessage() . $e->getTraceAsString());
+            throw new \Exception('Error al generar asiento contable <br> ' . $e->getMessage());
         }
     }
 

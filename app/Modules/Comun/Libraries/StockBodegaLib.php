@@ -53,7 +53,7 @@ class StockBodegaLib {
                 'fk_bodega' => $bodegaId,
                 'fk_producto' => $productoId
             ];
-            return $this->ccm->actualizar('cc_stock_bodega',$datos, $whereData);
+            return $this->ccm->actualizar('cc_stock_bodega', $datos, $whereData);
         } else {
             $datos = [
                 'fk_bodega' => $bodegaId,
@@ -98,7 +98,7 @@ class StockBodegaLib {
                 'fk_producto' => $productoId,
                 'fk_lote' => $loteId
             ];
-            return $this->ccm->actualizar($datos, $whereData, 'cc_stock_bodega_lote');
+            return $this->ccm->actualizar('cc_stock_bodega_lote', $datos, $whereData);
         } else {
             $datos = [
                 'fk_bodega' => $bodegaId,

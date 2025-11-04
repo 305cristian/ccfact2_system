@@ -39,7 +39,10 @@ class AjusteInicialController extends \App\Controllers\BaseController {
         $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;
         $send['view'] = view($this->dirViewModule . '\viewAjusteInicial', $data);
 
-//        return view($this->dirTemplate . '\dashboard', $send);
-        return $this->response->setJSON($send);
+       if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 }

@@ -42,7 +42,11 @@ class ClientesController extends \App\Controllers\BaseController {
         $data['listaProvincia'] = $this->ccm->getData('cc_provincia');
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\clientes\viewClientes', $data);
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getClientes() {
@@ -106,7 +110,7 @@ class ClientesController extends \App\Controllers\BaseController {
         if ($this->validation->withRequest($this->request)->run()) {
 
             $validacion = $this->validateCiRuc->validarNumeroDocumento($clieTipoDocumento, $clieCiruc);
-           
+
             if ($validacion['status'] === "warning") {
                 return $this->response->setJson($validacion);
             } else {
@@ -216,7 +220,7 @@ class ClientesController extends \App\Controllers\BaseController {
             if ($validacion['status'] === "warning") {
                 return $this->response->setJson($validacion);
             } else {
-                $clieTipoCliente = $validacion['data'];//El tipo de sujeto se da de acuerdo al tipo de cedula o ruc o pasaporte
+                $clieTipoCliente = $validacion['data']; //El tipo de sujeto se da de acuerdo al tipo de cedula o ruc o pasaporte
             }
 
             $existeCiruc = $this->ccm->getData('cc_clientes', ['clie_dni' => trim($clieCiruc)], 'clie_dni', $orderBy = null, 1);

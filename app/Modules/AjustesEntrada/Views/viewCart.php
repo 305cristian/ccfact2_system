@@ -23,7 +23,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         <div class="row">
             <div class="col-md-12">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" v-model="permitirDuplicados">
+                    <input class="form-check-input" type="checkbox" v-model="formDataAjuste.ajenPermitirDuplicados">
                     <label class="form-check-label" for="permitirDuplicados">
                         Permitir items duplicados
                     </label>

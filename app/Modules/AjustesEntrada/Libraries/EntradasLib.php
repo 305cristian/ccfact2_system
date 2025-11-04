@@ -37,28 +37,28 @@ class EntradasLib {
         $this->stockBodLib = new StockBodegaLib();
     }
 
-    public function saveAjuste($cartData, $dataAjuste) {
+    public function saveAjuste($cartData, $dataPostAjuste) {
 
-        $esPendiente = ($dataAjuste->ajenEstado == 1);
+        $esPendiente = ($dataPostAjuste->ajenEstado == 1);
         $secuencial = $this->ccm->getData('cc_ajuste_entrada', null, 'ajen_secuencial', ['ajen_secuencial' => 'DESC'], 1);
 
         $datos = [
             'ajen_secuencial' => (isset($secuencial) ? $secuencial->ajen_secuencial + 1 : 1),
-            'ajen_fecha' => $dataAjuste->ajenFecha,
-            'ajen_observaciones' => $dataAjuste->ajenObservaciones,
-            'ajen_estado' => $dataAjuste->ajenEstado,
-            'ajen_tipo' => $dataAjuste->ajenTipo,
+            'ajen_fecha' => $dataPostAjuste->ajenFecha,
+            'ajen_observaciones' => $dataPostAjuste->ajenObservaciones,
+            'ajen_estado' => $dataPostAjuste->ajenEstado,
+            'ajen_tipo' => $dataPostAjuste->ajenTipo,
             'ajen_fecha_anulacion' => null,
             'ajen_motivo_anulacion' => null,
             'fk_user_anulacion' => null,
-            'fk_motivo_ajuste' => $dataAjuste->ajenMotivo,
-            'fk_bodega' => $dataAjuste->ajenBodega,
+            'fk_motivo_ajuste' => $dataPostAjuste->ajenMotivo,
+            'fk_bodega' => $dataPostAjuste->ajenBodega,
             'fk_user_id' => $this->user->id,
             'ajen_fecha_aprobacion' => $esPendiente ? null : date('Y-m-d H:i:s'),
             'fk_user_id_aprueba' => $esPendiente ? null : $this->user->id,
-            'fk_proveedor' => $dataAjuste->ajenProveedor,
-            'fk_centro_costo' => $dataAjuste->ajenCentrocosto,
-            'codigo_sustento' => $dataAjuste->ajenSustento,
+            'fk_proveedor' => $dataPostAjuste->ajenProveedor,
+            'fk_centro_costo' => $dataPostAjuste->ajenCentrocosto,
+            'codigo_sustento' => $dataPostAjuste->ajenSustento,
             'iva_porcentaje' => getSettings('IVA'),
             'ajen_total_items' => $cartData->totalItems,
             'ajen_total' => $cartData->totalCart,
@@ -70,6 +70,7 @@ class EntradasLib {
             'ajen_tarifaiva' => $cartData->tarifIva,
             'ajen_tarifacero_neto' => $cartData->tarifCeroNeto,
             'ajen_tarifaiva_neto' => $cartData->tarifIvaNeto,
+            'ajen_items_duplicados' => $dataPostAjuste->ajenPermitirDuplicados,
         ];
 
         $save = $this->ccm->guardar($datos, 'cc_ajuste_entrada');
@@ -95,20 +96,59 @@ class EntradasLib {
         return $saveDetalle;
     }
 
+    public function updateAjuste($cartData, $dataPostAjuste, $ajusteId) {
+
+        $esPendiente = ($dataPostAjuste->ajenEstado == 1);
+
+        $datos = [
+            'ajen_fecha' => $dataPostAjuste->ajenFecha,
+            'ajen_observaciones' => $dataPostAjuste->ajenObservaciones,
+            'ajen_estado' => $dataPostAjuste->ajenEstado,
+            'ajen_tipo' => $dataPostAjuste->ajenTipo,
+            'ajen_fecha_anulacion' => null,
+            'ajen_motivo_anulacion' => null,
+            'fk_user_anulacion' => null,
+            'fk_motivo_ajuste' => $dataPostAjuste->ajenMotivo,
+            'fk_bodega' => $dataPostAjuste->ajenBodega,
+            'fk_user_id' => $this->user->id,
+            'ajen_fecha_aprobacion' => $esPendiente ? null : date('Y-m-d H:i:s'),
+            'fk_user_id_aprueba' => $esPendiente ? null : $this->user->id,
+            'fk_proveedor' => $dataPostAjuste->ajenProveedor,
+            'fk_centro_costo' => $dataPostAjuste->ajenCentrocosto,
+            'codigo_sustento' => $dataPostAjuste->ajenSustento,
+            'iva_porcentaje' => getSettings('IVA'),
+            'ajen_total_items' => $cartData->totalItems,
+            'ajen_total' => $cartData->totalCart,
+            'ajen_subtotal_bienes' => $cartData->totalBienes,
+            'ajen_subtotal_servicios' => $cartData->totalServicios,
+            'ajen_totalcartiva' => $cartData->totalCartIva,
+            'ajen_totaliva' => $cartData->totalIva,
+            'ajen_tarifacero' => $cartData->tarifCero,
+            'ajen_tarifaiva' => $cartData->tarifIva,
+            'ajen_tarifacero_neto' => $cartData->tarifCeroNeto,
+            'ajen_tarifaiva_neto' => $cartData->tarifIvaNeto,
+            'ajen_items_duplicados' => $dataPostAjuste->ajenPermitirDuplicados,
+        ];
+
+        $update = $this->ccm->actualizar('cc_ajuste_entrada', $datos, ['id' => $ajusteId]);
+
+        return $update;
+    }
+
     /**
      * Actualiza todo el kardex (general, bodega y lote)
      * 
      * @param int $ajusteId ID del documento (ajuste, compra, venta, etc)
      * @param array $producto Array con datos del producto ['id', 'qty', 'price', 'total']
      * @param int|null $loteId ID del lote (null si no maneja lotes)
-     * @param array $dataAjuste (fecha, estado, bodega, etc)
+     * @param array $dataPostAjuste (fecha, estado, bodega, etc)
      * @return bool
      */
-    public function updateKardex($ajusteId, $producto, $loteId, $dataAjuste) {
+    public function updateKardex($ajusteId, $producto, $loteId, $dataPostAjuste) {
         try {
-            $fecha = $dataAjuste->ajenFecha ?? date('Y-m-d');
+            $fecha = $dataPostAjuste->ajenFecha ?? date('Y-m-d');
             $hora = date('H:i:s');
-            $bodegaId = $dataAjuste->ajenBodega;
+            $bodegaId = $dataPostAjuste->ajenBodega;
 
             // 1. Actualizar kardex general
             $kardex = $this->actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId);

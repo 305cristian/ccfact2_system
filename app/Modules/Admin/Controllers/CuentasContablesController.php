@@ -36,7 +36,11 @@ class CuentasContablesController extends \App\Controllers\BaseController {
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\cuentascontables\viewCuentascontables', $data);
 
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getCuentasContables() {
@@ -131,7 +135,7 @@ class CuentasContablesController extends \App\Controllers\BaseController {
 
         if ($this->validation->withRequest($this->request)->run()) {
 
-            $existe = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_codigo' => $ctadCodigo],'ctad_codigo', $orderBy = null, 1);
+            $existe = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_codigo' => $ctadCodigo], 'ctad_codigo', $orderBy = null, 1);
 
             if ($existe && $existe->ctad_codigo != $codeAux) {
                 $response['status'] = 'existe';
@@ -148,8 +152,8 @@ class CuentasContablesController extends \App\Controllers\BaseController {
             ];
 
             $this->ccm->actualizar('cc_cuenta_contabledet', $datos, ['ctad_codigo' => $id]);
-             $this->logs->logSuccess('SE HA ACTUALIZADO UNA CUENTA CONTABLE CON EL CÓDIGO ' . $id);
-            
+            $this->logs->logSuccess('SE HA ACTUALIZADO UNA CUENTA CONTABLE CON EL CÓDIGO ' . $id);
+
             $response['status'] = 'success';
             $response['msg'] = '<h5>Cuenta actualizada exitosamente</h5>';
         } else {

@@ -32,11 +32,12 @@ class EntradasModel extends \CodeIgniter\Model {
             $builder->where('tb1.id', $codProd);
         } else {
             $builder->where("CAST(tb1.id AS CHAR) =", $codProd);
-        } $builder->orWhere("tb1.prod_codigo", `'` . $codProd . `'`);
-        $builder->orWhere("tb1.prod_codigobarras", `'` . $codProd . `'`);
-        $builder->orWhere("tb1.prod_codigobarras2", `'` . $codProd . `'`);
-        $builder->orWhere("tb1.prod_codigobarras3", `'` . $codProd . `'`);
-
+            $builder->orWhere("tb1.prod_codigo", `'` . $codProd . `'`);
+            $builder->orWhere("tb1.prod_codigobarras", `'` . $codProd . `'`);
+            $builder->orWhere("tb1.prod_codigobarras2", `'` . $codProd . `'`);
+            $builder->orWhere("tb1.prod_codigobarras3", `'` . $codProd . `'`);
+        }
+        $builder->where('tb1.prod_estado',1);
         $builder->limit(1);
 
         $response = $builder->get();
@@ -69,12 +70,12 @@ class EntradasModel extends \CodeIgniter\Model {
         } else {
             return false;
         }
-
     }
 
     public function getDataDetalle($idAjuste) {
         $builder = $this->db->table('cc_ajuste_entrada tb1');
-        $builder->select('tb1.ajen_secuencial, tb1.ajen_fecha, tb1.ajen_estado, tb1.ajen_observaciones,'
+        $builder->select('tb1.ajen_secuencial, tb1.ajen_fecha, tb1.ajen_estado, tb1.ajen_observaciones, tb1.ajen_items_duplicados,'
+                . ' tb2.id id_bodega,'
                 . ' tb2.bod_nombre,'
                 . ' tb3.prov_ruc,'
                 . ' tb3.prov_razon_social,'
@@ -105,9 +106,9 @@ class EntradasModel extends \CodeIgniter\Model {
             $builderDet->where('tb3.fk_ajuste_entrada', $idAjuste);
 
             $ajuste->detalle = $builderDet->get()->getResult();
-            
+
             return $ajuste;
-        }else{
+        } else {
             return false;
         }
     }

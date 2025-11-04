@@ -108,11 +108,14 @@ function sweet_msg_dialog(status, msg, ruta = '', e = '') {
     var colorIcon = '#fff';
     var size = '40%';
 
+    colorIcon = '#f27474';
+
     if (status === "success") {
         colorIcon = '#11b682';
         title = '! OK';
     }
-    if (status === "error") {
+
+    if (status === "error" && msg === '') {
         colorIcon = '#f27474';
         msg_txt = '<h5>Se ha detectado un fallo al procesar con la base de datos Comuniquese con el administrador del sistema ' + ' ' + e + ' <h5>';
         size = '30%';
@@ -235,6 +238,79 @@ function calcularTotalUnidades(dataDetalle) {
     return dataDetalle.reduce((sum, item) =>
         sum + parseInt(item.ajend_itemcantidad || 0), 0
             );
+}
+
+function generarExcel(constentExport, title, ruta) {
+    try {
+
+        if (!constentExport) {
+            sweet_msg_toast('error', 'No se encontró el contenido del reporte');
+            return;
+        }
+
+        // Clonar el contenido
+        const clone = constentExport.cloneNode(true);
+
+        // Obtener HTML limpio
+        let htmlExport = clone.innerHTML;
+
+//        // Agregar estilos inline para Excel (opcional pero recomendado)
+//        htmlExport = `
+//            <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+//                  xmlns:x="urn:schemas-microsoft-com:office:excel" 
+//                  xmlns="http://www.w3.org/TR/REC-html40">
+//            <head>
+//                <meta charset="UTF-8">
+//                <style>
+//                    table { border-collapse: collapse; width: 100%; }
+//                    th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+//                    th { background-color: #e9ecef; font-weight: bold; }
+//                    .text-center { text-align: center; }
+//                    .text-end { text-align: right; }
+//                    .fw-bold { font-weight: bold; }
+//                    .bg-light { background-color: #f8f9fa; }
+//                    .bg-warning { background-color: #ffc107; }
+//                    .bg-success { background-color: #198754; color: white; }
+//                    .bg-danger { background-color: #dc3545; color: white; }
+//                    .badge { padding: 4px 8px; border-radius: 4px; }
+//                </style>
+//            </head>
+//            <body>
+//                ${htmlExport}
+//            </body>
+//            </html>
+//        `;
+
+        // Crear formulario para enviar los datos
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = ruta;
+        form.target = '_blank'; // Opcional: abrir en nueva pestaña
+
+        // Campo: título del documento
+        const inputTitle = document.createElement('input');
+        inputTitle.type = 'hidden';
+        inputTitle.name = 'titleDoc';
+        inputTitle.value = title;
+        form.appendChild(inputTitle);
+
+        // Campo: datos HTML
+        const inputData = document.createElement('input');
+        inputData.type = 'hidden';
+        inputData.name = 'dataHtml';
+        inputData.value = htmlExport;
+        form.appendChild(inputData);
+
+        // Agregar formulario al DOM y enviarlo
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+
+    } catch (error) {
+        sweet_msg_toast('error', 'Error al generar Excel: ' + error.message);
+    }
+
 }
 
 

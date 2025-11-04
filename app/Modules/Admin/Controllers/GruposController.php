@@ -33,7 +33,11 @@ class GruposController extends \App\Controllers\BaseController {
         $data['user'] = $this->user;
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\grupossubgrupos\viewGruposSubgrupos');
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getGrupos() {
@@ -44,9 +48,10 @@ class GruposController extends \App\Controllers\BaseController {
             return $this->response->setJSON(false);
         }
     }
-     public function getSubgrupoByGrupo() {
+
+    public function getSubgrupoByGrupo() {
         $data = json_decode(file_get_contents("php://input"));
-        
+
         $response = $this->ccm->getData('cc_subgrupos', ['fk_grupo' => $data->idGrupo], '*');
         if ($response) {
             return $this->response->setJSON($response);

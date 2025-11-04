@@ -45,8 +45,11 @@ class ProveedoresController extends \App\Controllers\BaseController {
         $data['listaTipoCuentaBanco'] = $this->ccm->getData('cc_banco_tipo_cuenta');
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\proveedores\viewProveedores', $data);
-        return $this->response->setJSON($send);
-        //return view($this->dirTemplate . '\dashboard', $send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getProveedores() {

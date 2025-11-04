@@ -61,7 +61,7 @@ class AsientoContableLib {
             // Obtener índice (periodo contable)
             $periodoContable = getPeriodoContable($fecha);
             if (!$periodoContable) {
-                throw new \Exception('No se ha encontrado un periodo contable habil para la fecha dada');
+                throw new \Exception('No se ha encontrado un periodo contable habil para la fecha dada<br>');
             }
 
             // Obtener siguiente número de asiento en el periodo actual
@@ -95,7 +95,8 @@ class AsientoContableLib {
 
             return $asientoId;
         } catch (\Throwable $exc) {
-            throw new \Exception('Error al generar asiento contable: ' . $exc->getMessage().$exc->getTraceAsString());
+//            throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage());
+            throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage().$exc->getTraceAsString());
         }
     }
 

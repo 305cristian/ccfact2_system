@@ -62,5 +62,28 @@ class IndexController extends \App\Controllers\BaseController {
         }
         return $this->response->setJSON(false);
     }
+    
+     public function generarExcel() {
+        if ($this->request->getPost('dataHtml')) {
+            $title = $this->request->getPost('titleDoc');
+            $dataReport = $this->request->getPost('dataHtml');
+
+            // Establecer la codificación de caracteres
+            header("Content-type: application/vnd.ms-excel; charset=UTF-8");
+            header("Content-Disposition: attachment; filename=" . $title . ".xls");
+            header("Pragma: no-cache");
+            header("Expires: 0");
+
+            // BOM para UTF-8
+            echo "\xEF\xBB\xBF";
+            echo $dataReport;
+            exit();
+        } else {
+            return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'No se proporcionaron datos para exportar.'
+            ]);
+        }
+    }
 
 }

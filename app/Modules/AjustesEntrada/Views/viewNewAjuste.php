@@ -20,7 +20,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 class="card-title text-system"><i class="fas fa-folder-blank"></i> Nuevo Ajuste de Entrada</h5>
+            <h5 v-if="isEdit" class="card-title text-system"><i class="fas fa-folder-blank"></i> Actualizar Ajuste de Entrada</h5>
+            <h5 v-else class="card-title text-system"><i class="fas fa-folder-blank"></i> Nuevo Ajuste de Entrada</h5>
         </div>
         <div class="card-body">
 
@@ -57,7 +58,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </span>
                             <vue-select 
                                 class="flex-grow-1" 
-                                @input='changeBodega()' 
+                                @option:selected="changeBodega"
                                 :options="listaBodegas" 
                                 label="bod_nombre" 
                                 v-model="formDataAjuste.ajenBodega" 
@@ -209,8 +210,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <i class="fas fa-times-circle me-2"></i>Cancelar
                     </button>
                     <button class="btngr btn-primary-gradiant" style="min-width: 150px;" @click="saveAjuste()" :disabled="loadingProcess">
-                        <span v-if="loadingProcess"><i class="loading-spin"></i>Grabando...</span>
-                        <span v-else><i class="fas fa-save me-2"></i>Grabar Ajuste</span>
+                        <span v-if="loadingProcess"><i class="loading-spin"></i>{{isEdit?'Actualizando...':'Grabando...'}}</span>
+                        <span v-else><i class="fas fa-save me-2"></i>{{isEdit?'Actualizar Ajuste':'Grabar Ajuste'}}</span>
                     </button>
                 </div>
             </div>
@@ -226,9 +227,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaBodegas = <?= json_encode($listaBodegas); ?>;
     var listaMotivos = <?= json_encode($listaMotivos); ?>;
     var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
-
-    var permitirDuplicados = <?php echo getSettings('PERMITIR_ITEMS_DUPLICADOS'); ?>;
+    var permitirDuplicados = <?= $permitirDuplicados ?>;
     var bodegaIdAje = '<?= $bodegaId; ?>';
+    var dataAjuste =<?= json_encode($dataAjuste); ?>;
+    var dataProveedor =<?= json_encode($dataProveedor); ?>;
+
 
     var searchTimeout = null;
 
@@ -245,6 +248,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         data() {
             return{
                 url: siteUrl,
+                isEdit: false,
 
                 //LISTAS PARA EL PROCESO
                 listaSustentos: listaSustentos,
@@ -261,7 +265,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     ajenEstado: '',
                     ajenObservaciones: '',
                     ajenProveedor: '',
-                    ajenTipo: 'COMPRA_SIN_FACTURA'
+                    ajenTipo: 'COMPRA_SIN_FACTURA',
+                    ajenPermitirDuplicados: permitirDuplicados
                 },
 
                 //DATOS DEL CART
@@ -278,8 +283,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //VUE-MULTISELECT PROVEEDOR
                 listaSearchProveedores: [],
 
-                permitirDuplicados: permitirDuplicados,
-
                 //VUE-MULTISELECT PRODUCTOS
                 listaSearchProductos: [],
                 productoVmodel: null,
@@ -288,14 +291,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 loading: false,
                 loadingBodega: false,
                 loadingProcess: false
-            }
+            };
         },
         created() {
             this.showDetailCart();
         },
         mounted() {
-            this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
-            
+            this.formDataAjuste.ajenBodega = this.listaBodegas.find(val => val.id === bodegaIdAje);
+
+            if (dataAjuste) {//LOAD DATA, AL ACTUALIZAR EL DOCUMENTO
+                this.isEdit = true;
+                this.formDataAjuste.ajenSustento = this.listaSustentos.find(val => val.sus_codigo === dataAjuste.codigo_sustento);
+                this.formDataAjuste.ajenBodega = this.listaBodegas.find(val => val.id === dataAjuste.fk_bodega);
+                this.formDataAjuste.ajenMotivo = this.listaMotivos.find(val => val.id === dataAjuste.fk_motivo_ajuste);
+                this.formDataAjuste.ajenCentrocosto = this.listaCentroCostos.find(val => val.id === dataAjuste.fk_centro_costo);
+                this.formDataAjuste.ajenObservaciones = dataAjuste.ajen_observaciones;
+                this.formDataAjuste.ajenEstado = dataAjuste.ajen_estado;
+                this.formDataAjuste.ajenProveedor = dataProveedor;
+                this.formDataAjuste.ajenTipo = dataAjuste.ajen_tipo;
+                this.formDataAjuste.ajenPermitirDuplicados = dataAjuste.ajen_items_duplicados;
+            }
+
         },
         methods: {
 
@@ -326,12 +342,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_toast('warning', statusValidation.msg);
                     return false;
                 }
+                let ruta = this.isEdit ? '/ajustesentrada/updateAjuste' : '/ajustesentrada/saveAjuste';
 
                 try {
                     this.loadingProcess = true;
                     let datos = this.formData(this.formDataAjuste);
+                    datos.append('ajusteId', dataAjuste ? dataAjuste.id : '');
 
-                    let {data} = await axios.post(this.url + '/ajustesentrada/saveAjuste', datos);
+                    let {data} = await axios.post(this.url + ruta, datos);
+
                     if (data.status === "success") {
                         sweet_msg_dialog('success', data.msg, '/ajustesentrada/nuevoAjuste');
                     } else if (data.status === "warning") {
@@ -374,7 +393,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 clearTimeout(searchTimeout);
                 let datos = {
                     dataSerach: dataSerach,
-                    bodegaId:this.formDataAjuste.ajenBodega.id
+                    bodegaId: this.formDataAjuste.ajenBodega.id
                 };
                 searchTimeout = setTimeout(async () => {
                     try {
@@ -420,7 +439,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     id: item.id,
                     qty: 1,
                     bodega: this.formDataAjuste.ajenBodega.id,
-                    permitirDuplicados: this.permitirDuplicados
+                    permitirDuplicados: this.formDataAjuste.ajenPermitirDuplicados
 
                 };
 
@@ -521,7 +540,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 } else {
                     this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
-                    ;
+
                     sweet_msg_dialog('warning', 'Existen productos cargados al carrito<br> No se puede cambiar de bodega');
                 }
 
@@ -554,6 +573,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             this.loading = true;
                             await axios.post(this.url + '/ajustesentrada/cancelarAjuste');
                             this.showDetailCart();
+                            this.clear();
+                            window.history.pushState({}, '', this.url + '/ajustesentrada/nuevoAjuste');
+//                            window.location.href = this.url + '/ajustesentrada/nuevoAjuste';
                         } catch (e) {
                             sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                         } finally {
@@ -562,6 +584,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 });
 
+
+            },
+            clear() {
+                this.isEdit = false,
+                        this.formDataAjuste = {
+                            ajenSustento: '',
+                            ajenBodega: this.listaBodegas.find(val => val.id === bodegaIdAje),
+                            ajenCentrocosto: '',
+                            ajenFecha: fechaActual,
+                            ajenMotivo: '',
+                            ajenEstado: '',
+                            ajenObservaciones: '',
+                            ajenProveedor: '',
+                            ajenTipo: 'COMPRA_SIN_FACTURA',
+                            ajenPermitirDuplicados: permitirDuplicados
+                        };
 
             },
 
@@ -590,7 +628,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
 
     });
-    window.appAje.use(AllDirectives); 
+    window.appAje.use(AllDirectives);
     window.appAje.mount('#app');
 
 </script>

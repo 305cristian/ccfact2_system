@@ -45,7 +45,7 @@ function numberDecimal($num) {
 function getPeriodoContable($fecha) {
     $ccm = Services::ccModel();
     $respuesta = $ccm->getData('cc_periodos_contables', ['pc_fecha_inicio <=' => $fecha, 'pc_fecha_fin >=' => $fecha, 'pc_estado' => 'ABIERTO'], 'id', null, 1);
-    return $respuesta->id;
+    return $respuesta ? $respuesta->id : null;
 }
 
 function getNumeroAsiento($fecha) {

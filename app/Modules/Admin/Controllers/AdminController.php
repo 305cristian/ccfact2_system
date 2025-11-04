@@ -28,13 +28,15 @@ class AdminController extends \App\Controllers\BaseController {
 
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
 
-        $send['sidebar'] = view($this->dirViewModule . '\sidebar',$data);
+        $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\viewControlPanel');
 
-        return view($this->dirTemplate . '\dashboard', $send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
-
-   
 
     public function getDataEmpleado() {
         $data = json_decode(file_get_contents('php://input'));
@@ -106,5 +108,4 @@ class AdminController extends \App\Controllers\BaseController {
             return $this->response->setJSON($update);
         }
     }
-    
 }

@@ -38,7 +38,11 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $dataview['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1]);
         $dataview['listaEmpleados'] = $this->ccm->getData('cc_empleados', ['emp_estado' => 1], 'CONCAT(emp_nombre," ",emp_apellido) empleado ,id');
         $send['view'] = view($this->dirViewModule . '\puntosventa\viewPuntosVenta', $dataview);
-        return $this->response->setJSON($send);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
     public function getPuntosVenta() {
@@ -146,6 +150,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         }
         return $this->response->setJson($response);
     }
+
     public function updatePuntoVenta() {
         $pvComprobante = $this->request->getPost('pvComprobante');
         $pvEstablecimiento = $this->request->getPost('pvEstablecimiento');
@@ -158,7 +163,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $pvBodega = $this->request->getPost('pvBodega');
         $pvEstado = $this->request->getPost('pvEstado');
         $pvEmpleado = $this->request->getPost('pvEmpleado');
-              
+
         $idPv = $this->request->getPost('idPV');
 
         $this->db->transBegin();
@@ -197,11 +202,11 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 'pv_fecha_creacionpunto' => date('Y-m-d'),
             ];
 
-            $this->ccm->actualizar('cc_puntos_venta',$datos, ['id'=>$idPv]);
+            $this->ccm->actualizar('cc_puntos_venta', $datos, ['id' => $idPv]);
 
             if (!empty($pvEmpleado)) {
                 $empleados = explode(',', $pvEmpleado);
-                $this->ccm->eliminar('cc_puntoventa_empleado',['fk_punto_venta'=>$idPv]);
+                $this->ccm->eliminar('cc_puntoventa_empleado', ['fk_punto_venta' => $idPv]);
                 foreach ($empleados as $val) {
                     $datosPvEmp = [
                         'fk_punto_venta' => $idPv,
