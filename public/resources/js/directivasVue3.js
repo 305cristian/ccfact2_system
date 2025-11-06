@@ -145,6 +145,33 @@
                 }
             });
 
+            app.directive('tooltip', {
+                mounted(el, binding) {
+                    // Inicializa el tooltip
+                    new bootstrap.Tooltip(el, {
+                        title: binding.value || el.getAttribute('title'),
+                        placement: binding.arg || 'top',
+                        trigger: 'hover'
+                    });
+                },
+                updated(el, binding) {
+                    // Actualiza el tooltip si cambia el valor
+                    const tooltip = bootstrap.Tooltip.getInstance(el);
+                    if (tooltip && binding.value) {
+                        tooltip.setContent({'.tooltip-inner': binding.value});
+                    }
+                },
+                unmounted(el) {
+                    // Destruye el tooltip al desmontar
+                    const tooltip = bootstrap.Tooltip.getInstance(el);
+                    if (tooltip) {
+                        tooltip.dispose();
+                    }
+                }
+            });
+
+
+
 
 
         }
@@ -157,38 +184,38 @@
 // ==================== EJEMPLOS DE USO ====================
 
 /*
-
-// CANTIDAD (solo números enteros)
-<input v-model="item.qty" v-numbers-only="{ decimal: false }" type="text">
-
-// PRECIO (números con decimales)
-<input v-model="item.price" v-numbers-only="{ decimal: true }" type="text">
-
-// MONEDA (formato con símbolo y separadores)
-<input v-currency="{ decimals: 2, symbol: '$' }" type="text">
-
-// EMAIL
-<input v-email-only type="text" placeholder="correo@example.com">
-
-// MAYÚSCULAS
-<input v-uppercase type="text" placeholder="Nombre">
-
-// MINÚSCULAS
-<input v-lowercase type="text" placeholder="usuario@mail.com">
-
-// TELÉFONO (con formato)
-<input v-phone-only="{ format: 'ES' }" type="text" placeholder="123-456-789">
-
-// SIN ESPACIOS
-<input v-no-spaces type="text" placeholder="SinEspacios">
-
-// LIMPIAR ESPACIOS AL SALIR
-<input v-trim type="text" placeholder="Texto">
-
-// MÁXIMO DE CARACTERES
-<input v-max-length="10" type="text" placeholder="Max 10 caracteres">
-
-// AUTOFOCUS (enfoque automático)
-<input v-autofocus type="text" placeholder="Se enfoca automáticamente">
-
-*/
+ 
+ // CANTIDAD (solo números enteros)
+ <input v-model="item.qty" v-numbers-only="{ decimal: false }" type="text">
+ 
+ // PRECIO (números con decimales)
+ <input v-model="item.price" v-numbers-only="{ decimal: true }" type="text">
+ 
+ // MONEDA (formato con símbolo y separadores)
+ <input v-currency="{ decimals: 2, symbol: '$' }" type="text">
+ 
+ // EMAIL
+ <input v-email-only type="text" placeholder="correo@example.com">
+ 
+ // MAYÚSCULAS
+ <input v-uppercase type="text" placeholder="Nombre">
+ 
+ // MINÚSCULAS
+ <input v-lowercase type="text" placeholder="usuario@mail.com">
+ 
+ // TELÉFONO (con formato)
+ <input v-phone-only="{ format: 'ES' }" type="text" placeholder="123-456-789">
+ 
+ // SIN ESPACIOS
+ <input v-no-spaces type="text" placeholder="SinEspacios">
+ 
+ // LIMPIAR ESPACIOS AL SALIR
+ <input v-trim type="text" placeholder="Texto">
+ 
+ // MÁXIMO DE CARACTERES
+ <input v-max-length="10" type="text" placeholder="Max 10 caracteres">
+ 
+ // AUTOFOCUS (enfoque automático)
+ <input v-autofocus type="text" placeholder="Se enfoca automáticamente">
+ 
+ */

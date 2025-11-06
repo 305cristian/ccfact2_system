@@ -67,6 +67,10 @@ class SearchsModel extends \CodeIgniter\Model {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos");
 
+        if (isset($params->estado)) {
+            $builder->where('tb1.prod_estado', 1);
+        }
+
         $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
 
         $builder->limit(15);
@@ -92,8 +96,8 @@ class SearchsModel extends \CodeIgniter\Model {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos, IFNULL(tb2.stb_stock, 0) AS stb_stock");
         $builder->join('cc_stock_bodega tb2', 'tb2.fk_producto = tb1.id', 'left');
-        
-        $builder->where('tb1.prod_estado',1);
+
+        $builder->where('tb1.prod_estado', 1);
         $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
 
         if ($params->bodegaId) {
@@ -115,15 +119,24 @@ class SearchsModel extends \CodeIgniter\Model {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select("tb1.prod_nombre, tb1.id, tb1.prod_codigo, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos");
         if (ctype_digit($codProd)) {
+            // Busca por ID O por cualquier código de barras
+            $builder->groupStart();
             $builder->where('tb1.id', $codProd);
+            $builder->orWhere('tb1.prod_codigo', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
+            $builder->groupEnd();
         } else {
-            $builder->where("CAST(tb1.id AS CHAR) =", $codProd);
-            $builder->orWhere("tb1.prod_codigo", `'` . $codProd . `'`);
-            $builder->orWhere("tb1.prod_codigobarras", `'` . $codProd . `'`);
-            $builder->orWhere("tb1.prod_codigobarras2", `'` . $codProd . `'`);
-            $builder->orWhere("tb1.prod_codigobarras3", `'` . $codProd . `'`);
+            // Busca solo por códigos (no puede ser ID porque tiene letras)
+            $builder->groupStart();
+            $builder->where('tb1.prod_codigo', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
+            $builder->groupEnd();
         }
-        $builder->where('tb1.prod_estado',1);
+        $builder->where('tb1.prod_estado', 1);
         $builder->limit(1);
 
         $response = $builder->get();

@@ -117,7 +117,7 @@ function sweet_msg_dialog(status, msg, ruta = '', e = '') {
 
     if (status === "error" && msg === '') {
         colorIcon = '#f27474';
-        msg_txt = '<h5>Se ha detectado un fallo al procesar con la base de datos Comuniquese con el administrador del sistema ' + ' ' + e + ' <h5>';
+        msg_txt = '<h5>Se ha detectado un fallo al procesar su solicitud<br> Comuniquese con el administrador del sistema ' + ' ' + e + ' <h5>';
         size = '30%';
     }
     if (status === "info") {
@@ -142,41 +142,7 @@ function sweet_msg_dialog(status, msg, ruta = '', e = '') {
     });
 
 }
-function _loading() {
-    window.axios.interceptors.request.use((config) => {
-        document.body.classList.add('loading-indicator');
-        return config;
 
-    }, (error) => {
-        return Promise.reject(error);
-    })
-
-    window.axios.interceptors.response.use((response) => {
-        document.body.classList.remove('loading-indicator');
-        return response;
-    }, function (error) {
-        return Promise.reject(error);
-    })
-}
-
-function  _loading_upd() {
-
-    var content = document.getElementById('loading-screen-upd');
-
-    window.axios.interceptors.request.use((config) => {
-        content.style.display = 'block';
-        return config;
-    }, (error) => {
-        return Promise.reject(error);
-    });
-
-    window.axios.interceptors.response.use((response) => {
-        content.style.display = 'none';
-        return response;
-    }, function (error) {
-        return Promise.reject(error);
-    });
-}
 
 function swalLoading(title, text) {
 
@@ -196,6 +162,34 @@ function swalLoading(title, text) {
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
+        }
+    });
+}
+
+
+function sweetMsgDialogConfirm(mensaje, callbackVerDetalle, dataDetalle, urlRedirect = null) {
+    Swal.fire({
+        icon: 'success',
+        title: '! OK',
+        width: '35%',
+        html: mensaje,
+        allowOutsideClick: false,
+        showDenyButton: true,
+        confirmButtonText: 'Aceptar',
+        denyButtonText: '<i class="fas fa-download me-2"></i> Ver Documento',
+        buttonsStyling: false,
+        customClass: {
+            confirmButton: 'btn btn-primary me-2',
+            denyButton: 'btn btn-outline-primary'
+        },
+        preDeny: () => {
+            // Abre el modal sin cerrar SweetAlert
+            callbackVerDetalle(dataDetalle);
+            return false; // Esto previene que se cierre
+        }
+    }).then((result) => {
+        if (result.isConfirmed && urlRedirect) {
+            window.location.href = urlRedirect;
         }
     });
 }
@@ -240,16 +234,16 @@ function calcularTotalUnidades(dataDetalle) {
             );
 }
 
-function generarExcel(constentExport, title, ruta) {
+function generarExcel(contentExport, title) {
     try {
 
-        if (!constentExport) {
+        if (!contentExport) {
             sweet_msg_toast('error', 'No se encontró el contenido del reporte');
             return;
         }
 
         // Clonar el contenido
-        const clone = constentExport.cloneNode(true);
+        const clone = contentExport.cloneNode(true);
 
         // Obtener HTML limpio
         let htmlExport = clone.innerHTML;
@@ -284,7 +278,7 @@ function generarExcel(constentExport, title, ruta) {
         // Crear formulario para enviar los datos
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = ruta;
+        form.action = siteUrl + '/comun/exportar/generarExcel';
         form.target = '_blank'; // Opcional: abrir en nueva pestaña
 
         // Campo: título del documento

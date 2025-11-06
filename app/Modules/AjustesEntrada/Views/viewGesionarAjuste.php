@@ -19,54 +19,142 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <h5 class="card-title text-system"><i class="fas fa-clipboard-list-check"></i> Gestion de Ajustes de Entrada</h5>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table id="tblAjustes" class="table table-striped nowrap w-100" >
-                    <thead class="bg-system text-white">
-                        <tr>
-                            <th style="width: 5px">ACIONES</th>
-                            <th style="width: 5px">CÓDIGO</th>
-                            <th>FECHA</th>
-                            <th>TOTAL</th>
-                            <th>OBSERVACIONES</th>
-                            <th>BODEGA</th>
-                            <th>C. COSTO</th>
-                            <th>PROVEEDOR</th>
-                            <th>ESTADO</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for='laj of listaAjustes'>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <span><i class="fas fa-ellipsis-v"></i></span>
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                        <li><button class="dropdown-item" href="#" @click.prevent="verDetalle(laj)"><span><i class="fas fa-clipboard-list"></i> Ver Detalle</span></button> </li>
-                                        <li><button :disabled="laj.ajen_estado == 2 ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
-                                        <li><button class="dropdown-item" href="#"><span><i class="fas fa-stop-circle"></i>  Anular Ajuste</span></button></li>
-                                        <li><button class="dropdown-item" href="#"><span><i class="fas fa-clone"></i>  Clonar Ajuste</span> </button></li>
-                                    </ul>
-                                </div>
-                                <!--<button @click="loadAjuste(laj), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnillos"><i class="fas fa-edit"></i> </button>-->
-                            </td>
-                            <td>{{zFill(laj.ajen_secuencial,4)}}</td>
-                            <td>{{laj.ajen_fecha}}</td>
-                            <td>{{laj.ajen_total}}</td>
-                            <td>{{laj.ajen_observaciones}}</td>
-                            <td>{{laj.bod_nombre}}</td>
-                            <td>{{laj.cc_nombre}}</td>
-                            <td>{{laj.prov_razon_social}}</td>
+            <div class="row col-md-12">
 
-                            <td>
-                                <span v-if="laj.ajen_estado == 2" class="badge bg-success"><i class="fas fa-check-double"></i>  ARCHIVADO</span>
-                                <span v-else-if="laj.ajen_estado == 1" class="badge bg-warning"><i class="fas fa-warning"></i>  BORRADOR</span>
-                                <span v-else-if="laj.ajen_estado == -1" class="badge bg-danger"><i class="fas fa-stop-circle"></i>  ANULADO</span>
-                            </td>
+                <div class="col-md-3 form-group-custom">
+                    <div class="input-group">
+                        <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i> Rango de Fechas</span>
+                        <input type="text"  ref="dateRange" v-model='ajenFechas'  placeholder="Seleccione rango de fechas" class="form-control" data-style="btn-white">  
+                    </div>
+                </div>
 
-                        </tr>
-                    </tbody>
-                </table>
+                <!--#Ajuste-->
+                <div class="col-md-2 form-group-custom">
+                    <div class="input-group">
+                        <span class="input-group-text bg-cris-system"><i class="fas fa-input-numeric me-2"></i>#AJUSTE</span>
+                        <input type="number" class="form-control" v-model='ajenSecuencial' placeholder="Ejm. 25">
+                    </div>
+                </div>
+
+                <!-- Bodega -->
+                <div class="col-md-2 form-group-custom">
+                    <div class="d-flex justify-content-between align-items-center border">
+                        <span class="input-group-text bg-cris-system"><i class="fas fa-warehouse me-2"></i> Bodega  </span>
+                        <vue-select 
+                            class="flex-grow-1" 
+                            :options="listaBodegas" 
+                            label="bod_nombre" 
+                            v-model="ajenBodega" 
+                            :reduce="bodega =>bodega.id"
+                            placeholder="Seleccione una bodega"/>
+                    </div>
+                </div>
+                <!-- Motivo de Ajuste -->
+                <div class="col-md-2 form-group-custom">
+                    <div class="d-flex justify-content-between align-items-center border">
+                        <span class="input-group-text bg-cris-system"><i class="fas fa-tag me-2"></i>Motivo</span>
+                        <vue-select 
+                            class="flex-grow-1"
+                            :options="listaMotivos"
+                            label="mot_nombre"
+                            v-model="ajenMotivo"
+                            :reduce ="motivo =>motivo.id"
+                            placeholder="Seleccione un motivo"/>
+                    </div>
+                </div>
+
+                <!-- Centro de Costo -->
+                <div class="col-md-3 form-group-custom">
+                    <div class="d-flex justify-content-between align-items-center border">
+                        <span class="input-group-text bg-cris-system"><i class="fas fa-project-diagram me-2"></i>Centro de Costo</span>
+                        <vue-select 
+                            class="flex-grow-1"
+                            :options="listaCentroCostos"
+                            label="cc_nombre"
+                            v-model="ajenCentrocosto"
+                            :reduce ="cc =>cc.id"
+                            placeholder="Seleccione un centro de costos"/>
+                    </div>
+                </div>
+                <!-- Estado -->
+                <div class="col-md-2 form-group-custom">
+                    <div class="input-group">
+                        <span class="input-group-text bg-cris-system"><i class="fas fa-toggle-on me-2"></i>Estado</span>
+                        <select title="Seleccione un estado" v-model="ajenEstado" class="form-select show-tick borderspk" data-style="btn-white">               
+                            <option value="2">ARCHIVADAS</option>
+                            <option value="1">EN BORRADOR</option>
+                            <option value="-1">ANULADAS</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Botones de Seleccion -->
+                <div class="col-md-3 form-group-custom">
+                    <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                        <input type="radio" class="btn-check" value="AJUSTE_INICIAL" v-model="ajenTipo"  autocomplete="off" >
+                        <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Inicial</label>
+                        <input type="radio" class="btn-check" value="COMPRA_SIN_FACTURA" v-model="ajenTipo" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-file me-2"></i> Compra sin Factura</label>
+                    </div>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-system" @click='searchAjustes()'><i class="fas fa-search"></i>BUSCAR AJUSTES</button>
+
+                </div>
+            </div>
+
+
+            <div v-show='panelMain' >
+                <div class="table-responsive" >
+                    <table id="tblAjustes" class="table table-striped nowrap w-100" >
+                        <thead class="bg-system text-white">
+                            <tr>
+                                <th style="width: 5px">ACIONES</th>
+                                <th style="width: 5px">CÓDIGO</th>
+                                <th>FECHA</th>
+                                <th>TOTAL</th>
+                                <th>OBSERVACIONES</th>
+                                <th>BODEGA</th>
+                                <th>C. COSTO</th>
+                                <th>PROVEEDOR</th>
+                                <th>ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for='laj of listaAjustes'>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <span><i class="fas fa-ellipsis-v"></i></span>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                            <li><button class="dropdown-item" href="#" @click.prevent="verDetalle(laj)"><span><i class="fas fa-clipboard-list"></i> Ver Detalle</span></button> </li>
+                                            <li><button :disabled="laj.ajen_estado == 2 ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
+                                            <li><button class="dropdown-item" href="#" @click.prevent="anularAjuste(laj.id)"><span><i class="fas fa-stop-circle"></i>  Anular Ajuste</span></button></li>
+                                            <li><button class="dropdown-item" href="#"><span><i class="fas fa-clone"></i>  Clonar Ajuste</span> </button></li>
+                                        </ul>
+                                    </div>
+                                    <!--<button @click="loadAjuste(laj), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnillos"><i class="fas fa-edit"></i> </button>-->
+                                </td>
+                                <td>{{zFill(laj.ajen_secuencial,4)}}</td>
+                                <td>{{laj.ajen_fecha}}</td>
+                                <td>{{laj.ajen_total}}</td>
+                                <td>{{laj.ajen_observaciones}}</td>
+                                <td>{{laj.bod_nombre}}</td>
+                                <td>{{laj.cc_nombre}}</td>
+                                <td>{{laj.prov_razon_social}}</td>
+
+                                <td>
+                                    <span v-if="laj.ajen_estado == 2" class="badge bg-success"><i class="fas fa-check-double"></i>  ARCHIVADO</span>
+                                    <span v-else-if="laj.ajen_estado == 1" class="badge bg-warning"><i class="fas fa-warning"></i>  BORRADOR</span>
+                                    <span v-else-if="laj.ajen_estado == -1" class="badge bg-danger"><i class="fas fa-stop-circle"></i>  ANULADO</span>
+                                </td>
+
+                            </tr>
+                        </tbody>
+                    </table>
+                </div> 
             </div> 
 
         </div>
@@ -80,22 +168,49 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <script type="text/javascript">
 
+ var fechaActual = DateTime.now().toFormat('yyyy-MM-dd');
+var listaBodegas = <?= json_encode($listaBodegas); ?>;
+var listaMotivos = <?= json_encode($listaMotivos); ?>;
+var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
+
 if (window.appGestionAje) {
     window.appGestionAje.unmount();
 }
 
 window.appGestionAje = Vue.createApp({
+    components: {
+        "vue-select": window['vue-select']
+    },
 
     data() {
         return {
             url: siteUrl,
             pathUrl: baseUrl,
+            panelMain: false,
+
             empresa: window.empresa,
             idAjuste: '',
             secuencialAjuste: '',
             listaAjustes: [],
             cargandoDetalle: false,
-            modalInstance: null
+            modalInstance: null,
+
+            //LISTAS FILTROS
+            listaBodegas: listaBodegas,
+            listaMotivos: listaMotivos,
+            listaCentroCostos: listaCentroCostos,
+
+            //FILTROS DE BUSQUEDA
+            ajenSecuencial: '',
+            ajenBodega: '',
+            ajenMotivo: '',
+            ajenCentrocosto: '',
+            ajenEstado: '2',
+            ajenTipo: 'COMPRA_SIN_FACTURA',
+            ajenFechas: fechaActual,
+
+            // Variables para Flatpickr
+            flatpickrInstance: null
         };
     },
     created() {
@@ -114,21 +229,44 @@ window.appGestionAje = Vue.createApp({
 
     },
     mounted() {
-        //Cragamos los ajustes
-        this.getAjustes();
+
+         // Inicializar Flatpickr
+        this.flatpickrInstance = flatpickr(this.$refs.dateRange, {
+            mode: 'range',
+            dateFormat: 'Y-m-d',
+            locale: 'es',
+            allowInput: true, 
+            onChange: (selectedDates, dateStr) => {
+                this.ajenFechas = dateStr;
+            }
+        });
         // Inicializar modal de Bootstrap
         this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
     },
     methods: {
 
-        async getAjustes() {
-            try {
+        async searchAjustes() {
 
-                const {data} = await axios.post(this.url + '/ajustesentrada/getAjustes');
-                if (data) {
-                    this.listaAjustes = data;
+            const datos = {
+                ajenSecuencial: this.ajenSecuencial,
+                ajenBodega: this.ajenBodega,
+                ajenMotivo: this.ajenMotivo,
+                ajenCentrocosto: this.ajenCentrocosto,
+                ajenEstado: this.ajenEstado,
+                ajenFechas: this.ajenFechas
+            };
+
+            try {
+                swalLoading('Cargando Ajustes');
+                const {data} = await axios.post(this.url + '/ajustesentrada/searchAjustes', datos);
+                console.log(data.status);
+                if (data.status === 'success') {
+                    this.panelMain = true;
+                    this.listaAjustes = data.data;
+                    Swal.close();
                 } else {
                     sweet_msg_dialog('warning', 'No se han encontrado ajustes registrados en los parametros especificados');
+                    this.panelMain = false;
                 }
                 dataTable('#tblAjustes', 'Listado de ajustes de entrada');
             } catch (e) {
@@ -174,6 +312,37 @@ window.appGestionAje = Vue.createApp({
                 this.cargandoDetalle = false;
             }
         },
+        async anularAjuste(ajusteId) {
+            Swal.fire({
+                title: "¿Está seguro de anular este Ajuste?",
+                text: "Esta acción revertirá los movimientos de stock generados",
+                icon: "warning",
+                input: "textarea",
+                inputPlaceholder: "Ingrese el motivo de anulación...",
+                showCancelButton: true,
+                confirmButtonText: "Sí, anular",
+                confirmButtonColor: "#bb2d3b",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return "Debe ingresar un motivo de anulación";
+                    }
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    swalLoading('Anulando...');
+                    let datos = {
+                        ajusteId: ajusteId,
+                        motivoAnulacion: result.value
+                    };
+                    try {
+                        let {data} = await axios.post(this.url + '/ajustesentrada/anularAjuste', datos);
+                        sweet_msg_dialog(data.status, data.msg);
+                    } catch (e) {
+                        sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
+                    }
+                }
+            });
+        },
 
         // ==========================================
         // EXPORTAR A EXCEL
@@ -181,9 +350,8 @@ window.appGestionAje = Vue.createApp({
 
         generarExcel() {
             const contenido = document.getElementById('contentExport');
-            const ruta = `${this.url}/comun/exportar/generarExcel`;
             const titulo = `Ajuste_Entrada_${this.zFill(this.secuencialAjuste, 5)}`;
-            return generarExcel(contenido, titulo, ruta);
+            return generarExcel(contenido, titulo);
         },
         // ==========================================
         // EXPORTAR A PDF

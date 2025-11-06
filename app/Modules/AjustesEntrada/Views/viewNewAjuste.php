@@ -124,6 +124,60 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             <br>
             <fieldset>
+                <legend>Importar plantilla Excel</legend>
+                <div class="row">
+                    <div class="col-md-12 text-start">
+                        <button 
+                            class="btn btn-sm"
+                            :class="mostrarImportacion ? 'btn-outline-danger' : 'btn-outline-success'"
+                            @click="mostrarImportacion = !mostrarImportacion">
+                            <i v-if="!mostrarImportacion" class="fas fa-file-excel me-2"></i>
+                            <i v-else class="fas fa-eye-slash me-2"></i>
+                            {{ mostrarImportacion ? 'Ocultar Importación Excel' : 'Importar desde Excel' }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mt-3" v-if="mostrarImportacion">
+                    <div class="col-md-4">
+                        <input 
+                            type="file" 
+                            @change="loadFilePicked($event)" 
+                            accept=".xlsx,.xls" 
+                            class="form-control" 
+                            ref="excelInput" />
+                        <small class="text-muted">
+                            Plantilla: Código, Cantidad, Lote, F. Elaboración, F. Caducidad
+                        </small>
+                        <div v-if="excelFilename" class="mt-2 small">
+                            <i class="fas fa-paperclip me-1"></i> {{ excelFilename }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button 
+                            class="btn btn-success w-100"
+                            :disabled="!selectedExcelFile || loadingProcess"
+                            @click="cargarExcel">
+                            <span v-if="loadingProcess">
+                                <i class="loading-spin me-2"></i> Cargando...
+                            </span>
+                            <span v-else>
+                                <i class="fas fa-upload me-2"></i> Cargar datos
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="col-md-3 d-flex align-items-end">
+                        <a :href="url + '/comun/descargar/downloadPlantillaExcel'" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-download me-2"></i> Descargar Plantilla
+                        </a>
+                    </div>
+                </div>
+
+            </fieldset>
+            <br>
+            <fieldset>
                 <legend>Búsqueda de Productos y Selección des proveedor</legend>
                 <!-- Datos del Producto -->
                 <div class="row">
@@ -153,11 +207,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                                 <span class="badge bg-primary">{{ option.codigos }}</span>
                                             </div>
                                             <div class="col">
-                                                <span class="fw-semibold text-dark">{{ option.prod_nombre }}</span>
+                                                <span class="fw-bold text-dark">{{ option.prod_nombre }}</span>
                                             </div>
-                                            <div class="col-auto">
+<!--                                            <div class="col-auto">
                                                 <span class="badge bg-info text-dark">{{ option.stb_stock }}</span>
-                                            </div>
+                                            </div>-->
                                         </div>
                                     </div>
                                 </template>
@@ -218,6 +272,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         </div>
     </div>
+    <!--MODAL DETALLE-->
+    <?php echo view('\Modules\AjustesEntrada\Views\reportes\viewModalReport') ?>
+    <!--CLOSE MODAL DETALLE-->
 </div>
 
 <script type="text/javascript">
@@ -249,6 +306,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             return{
                 url: siteUrl,
                 isEdit: false,
+                mostrarImportacion: false,
+                selectedExcelFile: null,
+                excelFilename: '',
 
                 //LISTAS PARA EL PROCESO
                 listaSustentos: listaSustentos,
@@ -288,6 +348,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 productoVmodel: null,
                 codeSearch: "",
 
+                //PARA MODAL REPORTE
+                idAjuste: '',
+                secuencialAjuste: '',
+                cargandoDetalle: false,
+                modalInstance: null,
+
                 loading: false,
                 loadingBodega: false,
                 loadingProcess: false
@@ -311,9 +377,53 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.formDataAjuste.ajenTipo = dataAjuste.ajen_tipo;
                 this.formDataAjuste.ajenPermitirDuplicados = dataAjuste.ajen_items_duplicados;
             }
-
+            ;
+            this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
         },
         methods: {
+            loadFilePicked(event) {
+                const file = event.target.files?.[0] || null;
+                this.selectedExcelFile = file;
+                this.excelFilename = file ? file.name : '';
+            },
+
+            async cargarExcel() {
+                if (!this.selectedExcelFile) {
+                    sweet_msg_toast('warning', 'Seleccione un archivo Excel primero');
+                    return;
+                }
+                if (!this.formDataAjuste.ajenBodega.id) {
+                    sweet_msg_toast('warning', 'Debe seleccionar una bodega antes de importar');
+                    return;
+                }
+
+                const datos = new FormData();
+                datos.append('file', this.selectedExcelFile);
+                datos.append('bodegaId', this.formDataAjuste.ajenBodega.id);
+                datos.append('permitirDuplicados', this.formDataAjuste.ajenPermitirDuplicados);
+
+                try {
+                    this.loadingProcess = true;
+                    const {data} = await axios.post(this.url + '/ajustesentrada/importarExcel', datos);
+
+                    if (data.status === 'success') {
+                        sweet_msg_dialog('success', (data.msg || 'Importación completada'));
+                        await this.showDetailCart();
+                        this.selectedExcelFile = null;
+                        this.excelFilename = '';
+                        this.$refs.excelInput.value = '';
+                        this.mostrarImportacion = false;
+                    } else if (data.status === 'warning') {
+                        sweet_msg_dialog('warning', data.msg);
+                    } else {
+                        sweet_msg_dialog('error', '', '', data.msg || 'Error al importar');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingProcess = false;
+                }
+            },
 
             validarCampos() {
                 const campos = [
@@ -347,16 +457,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     this.loadingProcess = true;
                     let datos = this.formData(this.formDataAjuste);
-                    datos.append('ajusteId', dataAjuste ? dataAjuste.id : '');
+                    datos.append('ajusteId', this.isEdit ? dataAjuste.id : '');
 
                     let {data} = await axios.post(this.url + ruta, datos);
 
                     if (data.status === "success") {
-                        sweet_msg_dialog('success', data.msg, '/ajustesentrada/nuevoAjuste');
+                        const url = this.url + '/ajustesentrada/nuevoAjuste';
+                        sweetMsgDialogConfirm(data.msg, this.verDetalle, data.data, url);
                     } else if (data.status === "warning") {
                         sweet_msg_dialog('warning', data.msg);
                     } else if (data.status === "error") {
-                        sweet_msg_dialog('error', '', '', data.msg);
+                        sweet_msg_dialog('error',data.msg);
                     }
 
                 } catch (e) {
@@ -393,11 +504,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 clearTimeout(searchTimeout);
                 let datos = {
                     dataSerach: dataSerach,
-                    bodegaId: this.formDataAjuste.ajenBodega.id
+                    bodegaId: this.formDataAjuste.ajenBodega.id,
+                    estado: 1
                 };
                 searchTimeout = setTimeout(async () => {
                     try {
-                        let {data} = await axios.post(this.url + '/comun/productos/searchProductosStock', datos);
+                        let {data} = await axios.post(this.url + '/comun/productos/searchProductos', datos);
                         if (data !== false) {
                             this.listaSearchProductos = data;
                         } else {
@@ -410,6 +522,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }, 500);
 
 
+            },
+
+            // Ver detalle del ajuste
+            async verDetalle(ajuste) {
+                this.idAjuste = ajuste.id;
+                this.secuencialAjuste = ajuste.ajen_secuencial;
+                this.cargandoDetalle = true;
+                this.modalInstance.show();
+                try {
+
+                    const {data} = await axios.get(this.url + '/ajustesentrada/getDataDetalle/' + ajuste.id);
+                    this.cargandoDetalle = false;
+                    await Vue.nextTick();
+                    const modal = document.getElementById('detalleAjusteModal');
+                    modal.innerHTML = data;
+
+                } catch (error) {
+                    sweet_msg_dialog('error', '', '', 'Error al cargar el detalle del ajuste, ' + error.message);
+                } finally {
+                    this.cargandoDetalle = false;
+                }
             },
 
             onRemove() {
@@ -586,6 +719,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 
             },
+            // ==========================================
+            // EXPORTAR A EXCEL
+            // ==========================================
+
+            generarExcel() {
+                const contenido = document.getElementById('contentExport');
+                const titulo = `Ajuste_Entrada_${this.zFill(this.secuencialAjuste, 5)}`;
+                return generarExcel(contenido, titulo);
+            },
+            // ==========================================
+            // EXPORTAR A PDF
+            // ==========================================
+            generarPDF() {
+                try {
+                    window.open(`${this.url}/ajustesentrada/generarPDF/${this.idAjuste}?download=1`, '_blank');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', 'Error al generar el documento, ' + e.message);
+                }
+            },
             clear() {
                 this.isEdit = false,
                         this.formDataAjuste = {
@@ -603,8 +755,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
 
-            formatMoney(amount) {
-                return parseFloat(amount).toFixed(2);
+            formatToUSD(amount) {
+                return formatToUSD(amount);
+            },
+
+            zFill(value, size) {
+                return zFill(value, size);
             },
 
             formData(obj) {

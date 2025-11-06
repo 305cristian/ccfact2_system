@@ -36,12 +36,14 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     $subroutes->post('cancelarAjuste', 'IndexController::cancelarAjuste');
     $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
     $subroutes->post('updateAjuste', 'IndexController::updateAjuste');
+    $subroutes->post('anularAjuste', 'IndexController::anularAjuste');
+    $subroutes->post('importarExcel', 'IndexController::importarExcel');
     $subroutes->get('loadAjusteEdit/(:num)', 'IndexController::loadAjusteEdit/$1');
     $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
 
     //GESTION DE AJUSTES
     $subroutes->get('gestionAjustes', 'GestionController::index');
-    $subroutes->post('getAjustes', 'GestionController::getAjustes');
+    $subroutes->post('searchAjustes', 'GestionController::searchAjustes');
     $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
     $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
 
@@ -55,5 +57,6 @@ $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function 
     $subroutes->post('productos/searchProductosStock', 'SearchsController::searchProductosStock');
     $subroutes->get('productos/searchProductoCode/(:segment)', 'SearchsController::searchProductoCode/$1');
     $subroutes->post('exportar/generarExcel', 'IndexController::generarExcel');
+    $subroutes->get('descargar/downloadPlantillaExcel', 'IndexController::downloadPlantillaExcel');
 });
 

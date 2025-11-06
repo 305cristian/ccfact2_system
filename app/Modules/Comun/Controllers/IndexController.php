@@ -13,6 +13,8 @@ namespace Modules\Comun\Controllers;
  * @Date 29 ene. 2023
  * @Time 17:22:52
  */
+use \PhpOffice\PhpSpreadsheet\Spreadsheet;
+
 class IndexController extends \App\Controllers\BaseController {
 
     public function __construct() {
@@ -62,8 +64,8 @@ class IndexController extends \App\Controllers\BaseController {
         }
         return $this->response->setJSON(false);
     }
-    
-     public function generarExcel() {
+
+    public function generarExcel() {
         if ($this->request->getPost('dataHtml')) {
             $title = $this->request->getPost('titleDoc');
             $dataReport = $this->request->getPost('dataHtml');
@@ -86,4 +88,20 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
+    public function downloadPlantillaExcel() {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Plantilla Ajuste Entrada');
+        $sheet->fromArray(['Código', 'Cantidad', 'Lote', 'Fecha Elaboración', 'Fecha Caducidad'], null, 'A1');
+        $sheet->fromArray(['CCF-000011', '10', '566UU', '2025-08-25', '2026-08-25'], null, 'A2');
+        $sheet->getStyle('A1:E1')->getFont()->setBold(true);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Plantilla_Ajuste_Entrada.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
 }

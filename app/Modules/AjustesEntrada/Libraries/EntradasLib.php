@@ -25,6 +25,7 @@ class EntradasLib {
     protected $tipotransaccionCod = '39';
     protected $productLib;
     protected $stockBodLib;
+    protected $db;
 
     public function __construct() {
 
@@ -35,6 +36,9 @@ class EntradasLib {
         //Import Librerias
         $this->productLib = new ProductoLib();
         $this->stockBodLib = new StockBodegaLib();
+
+        //Instancia db
+        $this->db = \Config\Database::connect();
     }
 
     public function saveAjuste($cartData, $dataPostAjuste) {
@@ -300,5 +304,109 @@ class EntradasLib {
         }
 
         return $kardexLoteId;
+    }
+
+    public function anularAjuste($ajusteId, $motivo) {
+
+        // Obtenemos el ajuste
+        $ajuste = $this->ccm->getData('cc_ajuste_entrada', ['id' => $ajusteId], '*', null, 1);
+        if (!$ajuste) {
+            return ['status' => 'error', 'msg' => 'No se encontró el ajuste especificado.'];
+        }
+
+        // Validamos estado
+        if ($ajuste->ajen_estado == -1) {
+            return ['status' => 'warning', 'msg' => 'El ajuste ya se encuentra anulado.'];
+        }
+
+        //Anulamos en pendiente
+        if ($ajuste->ajen_estado == 1) {
+            $dataSet = [
+                'ajen_estado' => '-1',
+                'ajen_motivo_anulacion' => $motivo,
+                'ajen_fecha_anulacion' => date('Y-m-d H:i:s')
+            ];
+            $this->ccm->actualizar('cc_ajuste_entrada', $dataSet, ['id' => $ajusteId]);
+            return ['status' => 'success', 'msg' => 'Ajuste en estado BORRADOR anulado exitosamente'];
+        }
+
+        // Cargamos detalle
+        $detalle = $this->ccm->getData('cc_ajuste_entrada_det', ['fk_ajuste_entrada' => $ajusteId]);
+        if (!$detalle) {
+            return ['status' => 'error', 'msg' => 'No se encontró detalle asociado al ajuste.'];
+        }
+
+        $this->db->transBegin();
+
+        try {
+            $this->tipotransaccionCod = '41'; // Código definido para ANULACIÓN DE AJUSTE DE ENTRADA
+            // Creamos objeto similar a $dataPostAjuste para pasar a updateKardex
+            $dataAjuste = (object) [
+                        'ajenFecha' => date('Y-m-d'),
+                        'ajenBodega' => $ajuste->fk_bodega,
+                        'ajenEstado' => -1
+            ];
+
+            foreach ($detalle as $val) {
+                // Armamos el producto para el movimiento inverso
+                $producto = (object) [
+                            'id' => $val->fk_producto,
+                            'qty' => -abs($val->ajend_itemcantidad), // cantidad negativa
+                            'price' => $val->ajend_itemcosto,
+                            'total' => -abs($val->ajend_itemcostoxcantidad),
+                            'tieneLote' => 0,
+                            'servicio' => 0
+                ];
+
+                // Obtenemos si el producto maneja lote y si es de tipo servicio
+                $prodInfo = $this->ccm->getData('cc_productos', ['id' => $val->fk_producto], 'prod_ctrllote, prod_isservicio', null, 1);
+                if ($prodInfo) {
+                    $producto->tieneLote = $prodInfo->prod_ctrllote;
+                    $producto->servicio = $prodInfo->prod_isservicio;
+                }
+
+                // No recalculamos si es servicio
+                if ($producto->servicio == '0') {
+                    $kardexOk = $this->updateKardex($ajusteId, $producto, $val->fk_lote, $dataAjuste);
+                    if ($kardexOk['status'] !== 'success') {
+                        $this->db->transRollback();
+                        return $kardexOk;
+                    }
+                }
+            }
+            // Marcamos el ajuste como anulado
+            $dataSet = [
+                'ajen_estado' => -1,
+                'ajen_fecha_anulacion' => date('Y-m-d H:i:s'),
+                'fk_user_anulacion' => $this->user->id,
+                'ajen_motivo_anulacion' => $motivo ?? 'Anulación manual',
+            ];
+            $this->ccm->actualizar('cc_ajuste_entrada', $dataSet, ['id' => $ajusteId]);
+
+            // Buscamos asiento contable asociado al ajuste
+            $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_documento_id' => $ajusteId, 'ac_codigo_transaccion' => 39, 'ac_estado' => 1], 'id');
+
+            if ($asientoId) {
+                $dataSet = [
+                    'ac_estado' => -1,
+                    'ac_fecha_anulacion' => date('Y-m-d H:i:s'),
+                    'fk_user_id_anulacion' => $this->user->id,
+                    'ac_motivo_anulacion' => "Asiento anulado automáticamente por anulación del ajuste de entrada #{$ajuste->ajen_secuencial}"
+                ];
+                $this->ccm->actualizar('cc_asiento_contable', $dataSet, ['id' => $asientoId]);
+            }
+
+            $this->db->transCommit();
+
+            return [
+                'status' => 'success',
+                'msg' => "Ajuste #{$ajuste->ajen_secuencial} anulado exitosamente."
+            ];
+        } catch (Exception $exc) {
+            $this->db->transRollback();
+            return ['status' => 'error', 'msg' => 'Error al anular ajuste: ' . $exc->getMessage()];
+        } finally {
+            $this->tipotransaccionCod = '39'; // volvemos al código de AJUSTE ENTRADA
+        }
     }
 }

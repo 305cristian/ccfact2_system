@@ -22,6 +22,7 @@ use Modules\AjustesEntrada\Libraries\EntradasLib;
 use Modules\AjustesEntrada\Libraries\EntradasAsientosLib;
 use Modules\AjustesEntrada\Models\EntradasModel;
 use Modules\Comun\Models\SearchsModel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class IndexController extends \App\Controllers\BaseController {
 
@@ -124,7 +125,7 @@ class IndexController extends \App\Controllers\BaseController {
                 $dataProducto = $this->entradasModel->searchProductoData($valDet->fk_producto);
 
                 $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $valDet->fk_producto, 'fk_bodega' => $dataAjuste->id_bodega], 'stb_stock', null, 1);
-                $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : $dataProducto->prod_stockactual;
+                $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
 
                 $impuestos = $this->prodModel->getImpuestoTarifa($valDet->fk_producto);
                 $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
@@ -179,7 +180,7 @@ class IndexController extends \App\Controllers\BaseController {
         }
 
         $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock', null, 1);
-        $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : $dataProducto->prod_stockactual;
+        $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
 
         $impuestos = $this->prodModel->getImpuestoTarifa($dataProducto->id);
         $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
@@ -223,6 +224,19 @@ class IndexController extends \App\Controllers\BaseController {
             return $this->response->setJSON($msg);
         }
 
+        if ($dataPost->tieneLote === '1') {
+            $existeLote = $this->ccm->getData('cc_lotes', ['lot_lote' => $dataPost->lote, 'fk_producto' => $dataPost->id], '*', null, 1);
+            //Si el lote en el producto especificado existe, obtengo sus respectivas fechas
+            $lote = $existeLote ? $existeLote->lot_lote : $dataPost->lote;
+            $fechaElab = $existeLote ? $existeLote->lot_fecha_elaboracion : $dataPost->fechaElaboracion;
+            $fechaCaduc = $existeLote ? $existeLote->lot_fecha_caducidad : $dataPost->fechaCaducidad;
+        } else {
+            $lote = null;
+            $fechaElab = null;
+            $fechaCaduc = null;
+        }
+
+
         $item = [
             "id" => (int) $idProd,
             "qty" => (float) $cantidad,
@@ -236,9 +250,9 @@ class IndexController extends \App\Controllers\BaseController {
             "icePorcent" => $dataPost->icePorcent,
             "tieneLote" => $dataPost->tieneLote,
             "permitirDuplicados" => $permitirDuplicados,
-            "lote" => $dataPost->lote ?? null,
-            "fechaElaboracion" => $dataPost->fechaElaboracion ?? null,
-            "fechaCaducidad" => $dataPost->fechaCaducidad ?? null,
+            "lote" => $lote,
+            "fechaElaboracion" => $fechaElab,
+            "fechaCaducidad" => $fechaCaduc,
         ];
         $item['servicio'] = $dataPost->servicio;
 
@@ -352,13 +366,27 @@ class IndexController extends \App\Controllers\BaseController {
                 }
             }
 
+            if ($dataPostAjuste->ajenEstado === '2') {
+                $responseAsiento = $this->entradasAsientoLib->generarAsiento($ajusteId);
+                if ($responseAsiento['status'] !== 'success') {
+                    $this->db->transRollback();
+                    return $this->responseSetJSON($responseAsiento['status'], $responseAsiento['msg']);
+                }
+            }
+
             //SI TODO MARCHO BIEN REALIZO EL COMMIT
             $secuencail = $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId], 'ajen_secuencial');
             $this->db->transCommit();
             $this->ajenCart->destroy();
             $this->logs->logSuccess('Ajuste Actualizado exitosamente ID: ' . $ajusteId);
             log_message('info', "[Ajuste Entrada] Ajuste actualizado exitosamente ID: , DocID: {$ajusteId}");
-            return $this->responseSetJSON("success", "Ajuste #" . $secuencail . " actualizado exitosamente");
+
+            $dataResponse = ['id' => $ajusteId, 'ajen_secuencial' => $secuencail];
+            if ($dataPostAjuste->ajenEstado === '2') {
+                return $this->responseSetJSON("success", "<h5>Ajuste #" . $secuencail . " registrado exitosamente</h5>", $dataResponse);
+            } else {
+                return $this->responseSetJSON("success", "<span class='text-warning'>Ajuste #" . $secuencail . " registrado exitosamente<br>REGISTRADO COMO BORRADOR<br></span>", $dataResponse);
+            }
         } catch (Exception $exc) {
 
             $this->db->transRollback();
@@ -377,12 +405,18 @@ class IndexController extends \App\Controllers\BaseController {
 
         $dataPostAjuste = json_decode(json_encode($this->request->getPost()));
 
+        // Obtener índice (periodo contable)
+        $periodoContable = getPeriodoContable($dataPostAjuste->ajenFecha);
+        if (!$periodoContable) {
+            return $this->responseSetJSON("error", '<h5>Revise el periodo de cierre</h5><br> <h6>Al parecer no se ha encontrado un periodo contable habil para la fecha dada</h6>');
+        }
+
+
         // Validamos campos antes de procesar
         $statusValidation = $this->validarCampos($dataPostAjuste);
         if ($statusValidation['status']) {
             return $this->responseSetJSON("warning", $statusValidation['msg']);
         }
-
 
         try {
             $cartData = $this->showDetailCart(1);
@@ -448,7 +482,12 @@ class IndexController extends \App\Controllers\BaseController {
             $this->logs->logSuccess('Ajuste registrado exitosamente ID: ' . $ajusteId);
             log_message('info', "[Ajuste Entrada] Ajuste registrado exitosamente ID: , DocID: {$ajusteId}");
 
-            return $this->responseSetJSON("success", "Ajuste #" . $secuencail . " registrado exitosamente");
+            $dataResponse = ['id' => $ajusteId, 'ajen_secuencial' => $secuencail];
+            if ($dataPostAjuste->ajenEstado === '2') {
+                return $this->responseSetJSON("success", "<h5>Ajuste #" . $secuencail . " registrado exitosamente</h5>", $dataResponse);
+            } else {
+                return $this->responseSetJSON("success", "<span class='text-warning'>Ajuste #" . $secuencail . " registrado exitosamente<br>REGISTRADO COMO BORRADOR<br> </span>", $dataResponse);
+            }
         } catch (\Throwable $exc) {
 
             $this->db->transRollback();
@@ -493,5 +532,176 @@ class IndexController extends \App\Controllers\BaseController {
         ];
         $lote = $this->ccm->guardar($dataLote, 'cc_lotes');
         return $lote;
+    }
+
+    public function anularAjuste() {
+
+        //Validamos que la secion este activa
+        $this->user->validateSession();
+
+        $data = json_decode(file_get_contents('php://input'));
+
+        $ajusteId = $data->ajusteId;
+        $motivoAnulacion = $data->motivoAnulacion;
+
+        try {
+
+            // Validamos que el ID sea válido
+            if (empty($ajusteId)) {
+                return $this->responseSetJSON('warning', 'ID de ajuste inválido');
+            }
+            // Validamos que especifique un motivo de anulación
+            if (empty($motivoAnulacion)) {
+                return $this->responseSetJSON('warning', 'Debe especificar un motivo de anulación');
+            }
+
+            // Ejecutamos la anulación en la librería
+            $response = $this->entradasLib->anularAjuste($ajusteId, $motivoAnulacion);
+
+            if ($response['status'] === 'success') {
+                $this->logs->logSuccess("[Ajuste Entrada] Anulado exitosamente ID: {$ajusteId}");
+                return $this->responseSetJSON('success', $response['msg']);
+            } elseif ($response['status'] === 'warning') {
+                return $this->responseSetJSON('warning', $response['msg']);
+            } else {
+                $this->logs->logError("[Ajuste Entrada] Error al anular ID: {$ajusteId}");
+                return $this->responseSetJSON('error', $response['msg']);
+            }
+        } catch (Exception $exc) {
+            $this->logs->logError('Excepción al anular ajuste: ' . $exc->getMessage());
+            return $this->responseSetJSON('error', 'Error interno: ' . $exc->getMessage());
+        }
+    }
+
+    public function importarExcel() {
+        try {
+            $file = $this->request->getFile('file');
+            $bodegaId = $this->request->getPost('bodegaId');
+            $permitirDuplicados = $this->request->getPost('permitirDuplicados');
+
+            if (!$file || !$file->isValid()) {
+                return $this->responseSetJSON('error', 'Debe seleccionar un archivo Excel válido.');
+            }
+
+            // Leer archivo Excel
+            $spreadsheet = IOFactory::load($file->getTempName());
+            $sheet = $spreadsheet->getActiveSheet();
+            $registros = $sheet->toArray(null, true, true, true);
+
+            $importados = 0;
+            $errores = [];
+            $fila = 1;
+
+            foreach ($registros as $i => $row) {
+                $fila++;
+                if ($i === 1) {
+                    continue; // Saltamos cabecera
+                }
+                $codigo = trim($row['A'] ?? '');
+                $cantidad = (float) ($row['B'] ?? 0);
+                $lote = trim($row['C'] ?? '');
+                $fechaElab = trim($row['D'] ?? '');
+                $fechaCaduc = trim($row['E'] ?? '');
+
+                if (empty($codigo)) {
+                    $errores[] = "Fila {$i}: el código está vacío.";
+                    continue;
+                }
+                if ($cantidad <= 0) {
+                    $errores[] = "Fila {$i}: la cantidad debe ser mayor a cero.";
+                    continue;
+                }
+
+                $idProd = $this->ccm->getValueWhere('cc_productos', ['prod_codigo' => $codigo, 'prod_estado' => 1], 'id');
+                if (!$idProd) {
+                    $errores[] = "Fila {$i}: el producto con código '{$codigo}' no existe o esta desactivado.";
+                    continue;
+                }
+                $producto = $this->entradasModel->searchProductoData($idProd);
+
+                //SI EL PRODUCTO TIENE CONTROL DE LOTES CONTROLAMOS LOS LOTES
+                if ($producto->prod_ctrllote === '1') {
+
+                    if (empty($lote)) {
+                        $errores[] = "Fila {$i}: el producto '{$codigo}' requiere un número de lote.";
+                        continue;
+                    }
+
+                    if (empty($fechaElab) || empty($fechaCaduc)) {
+                        $errores[] = "Fila {$i}: el producto '{$codigo}' requiere fecha de elaboración y caducidad.";
+                        continue;
+                    }
+
+                    // Convertir fechas
+                    try {
+                        $fechaElab = date('Y-m-d', strtotime($fechaElab));
+                        $fechaCaduc = date('Y-m-d', strtotime($fechaCaduc));
+                    } catch (\Throwable $e) {
+                        $errores[] = "Fila {$i}: formato de fecha inválido para '{$codigo}'.";
+                        continue;
+                    }
+                    $existeLote = $this->ccm->getData('cc_lotes', ['lot_lote' => $lote, 'fk_producto' => $producto->id], '*', null, 1);
+                    //Si el lote en el producto especificado existe, obtengo sus respectivas fechas
+                    if ($existeLote) {
+                        $lote = $existeLote->lot_lote;
+                        $fechaElab = $existeLote->lot_fecha_elaboracion;
+                        $fechaCaduc = $existeLote->lot_fecha_caducidad;
+                    }
+                } else {
+                    // Productos que no manejan lotes
+                    $lote = null;
+                    $fechaElab = null;
+                    $fechaCaduc = null;
+                }
+
+                $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $producto->id, 'fk_bodega' => $bodegaId], 'stb_stock', null, 1);
+                $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
+
+                $impuestos = $this->prodModel->getImpuestoTarifa($producto->id);
+                $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
+                $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
+
+                $item = [
+                    "id" => (int) $producto->id,
+                    "qty" => $cantidad,
+                    "codigo" => $producto->prod_codigo,
+                    "name" => $producto->prod_nombre,
+                    "unidadMedida" => $producto->um_nombre_corto,
+                    "price" => (float) $producto->prod_costopromedio,
+                    "stock" => $producto->prod_stockactual,
+                    "stockBodega" => $stockBodega,
+                    "ivaPorcent" => $tarifaIva,
+                    "icePorcent" => $tarifaIce,
+                    "tieneLote" => $producto->prod_ctrllote,
+                    "permitirDuplicados" => $permitirDuplicados,
+                    "lote" => $lote,
+                    "fechaElaboracion" => $fechaElab,
+                    "fechaCaducidad" => $fechaCaduc,
+                    "servicio" => $producto->prod_isservicio,
+                ];
+
+                $this->ajenCart->insert($item);
+                $importados++;
+            }
+
+            if ($importados === 0) {
+                $msg = 'No se importaron productos válidos.';
+                $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>" . implode('<br>', $errores) . '</span>';
+                return $this->responseSetJSON('warning', $msg);
+            }
+
+            $msg = "Importación completada: {$importados} producto(s) agregado(s).";
+            if (!empty($errores)) {
+                $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>" . implode('<br>', $errores) . '</span>';
+            }
+
+            $dataResponse = [
+                'totalImportados' => $importados,
+                'errores' => $errores
+            ];
+            return $this->responseSetJSON('success', $msg, $dataResponse,);
+        } catch (\Throwable $exec) {
+            return $this->responseSetJSON('error', 'Error al procesar el archivo: ' . $exec->getMessage() . $exec->getTraceAsString());
+        }
     }
 }

@@ -458,7 +458,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     priceSinIva = precio / parseFloat(iva);
                 }
 
-                v.tipoPrecioVal[index] = priceSinIva;
+                this.tipoPrecioVal[index] = priceSinIva;
                 document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
             },
             desglosarIva2() {
@@ -481,7 +481,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             clear() {
                 this.newProducto = {
                     prodNombre: '',
-                    prodCodigo: '',
+                    prodCodigo: autocodigo,
                     prodCodigoBarras: '',
                     prodCodigoBarras2: '',
                     prodCodigoBarras3: '',

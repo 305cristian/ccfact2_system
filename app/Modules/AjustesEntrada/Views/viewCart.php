@@ -40,7 +40,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         </div>
 
         <div v-else class="table-container table-responsive">
-            <table class="table table-stripped" style="width: 100%">
+            <table class="table table-stripped w-100">
                 <thead>
                     <tr>
 
@@ -64,18 +64,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span><i class="fas fa-trash"></i></span>
                             </button>    
                         </td>
-                        <td><span class="badge-type">{{ item.id }}</span></td>
+                        <td><span class="badge-type" v-tooltip:top=" item.id ">{{ item.codigo }}</span></td>
                         <td>
                             <span class="text-danger">{{item.ivaPorcent != '0.00'? '*':'' }}</span>
                             <strong>{{ item.name }} <span class="text-info"><i class="fas fa-angles-right"></i> {{item.unidadMedida}}</span></strong>
                         </td>
                         <td>
                             <div v-if="item.tieneLote === '1' " class="input-group">
-                                <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
-                                <input v-model="item.fechaElaboracion" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 100px;">
-                                <input v-model="item.fechaCaducidad" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 100px;">
+                                <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 130px;">
+                                <input v-model="item.fechaElaboracion" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
+                                <input v-model="item.fechaCaducidad" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
                             </div>
-                            <div v-else> <p style="font-size: 0.9rem; color: #d1d5db;">El producto no maneja lotes</p></div>
+                            <div v-else> <p style="font-size: 0.9rem; color: #d1d5db; font-style: italic">El producto no maneja lotes</p></div>
                         </td>
 
                         <td>
@@ -89,11 +89,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                         </td>
                         <td>
-                            <span class="badge bg-info">{{ item.stock }}</span>
+                            <div class="d-flex gap-1">
+                                <span class="badge bg-info" v-tooltip:top=" 'Stock de Bodega' " >{{ item.stockBodega}}</span>
+                                <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" v-tooltip:top=" 'Stock General' " >{{ item.stock }}</span>
+                            </div>
                         </td>
-                        <td class="price-cell">${{ formatMoney(item.total) }}</td>
-                        <td class="price-cell">${{ formatMoney(item.totivaval) }}</td>
-                        <td class="price-cell text-primary"><strong>${{ formatMoney(item.totalpriceiva) }}</strong></td>
+                        <td class="price-cell">{{ formatToUSD(item.total) }}</td>
+                        <td class="price-cell">{{ formatToUSD(item.totivaval) }}</td>
+                        <td class="price-cell text-primary"><strong>{{ formatToUSD(item.totalpriceiva) }}</strong></td>
                     </tr>
                 </tbody>
             </table>
@@ -106,15 +109,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         <div class="summary-card">
             <div class="summary-row">
                 <span class="summary-label">SubTotal:</span>
-                <span class="summary-value">${{ parseFloat(totalCart).toFixed(2) }}</span>
+                <span class="summary-value">{{ formatToUSD(totalCart) }}</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">IVA (0%):</span>
-                <span class="summary-value">${{ parseFloat(totalIva).toFixed(2) }}</span>
+                <span class="summary-value">{{ formatToUSD(totalIva) }}</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">Total:</span>
-                <span class="summary-value">${{ parseFloat(totalCartIva).toFixed(2) }}</span>
+                <span class="summary-value">{{ formatToUSD(totalCartIva) }}</span>
             </div>
         </div>
     </div>

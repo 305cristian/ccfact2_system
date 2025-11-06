@@ -376,4 +376,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
   }
 }
 
+/* SweetAlert2 tiene z-index por defecto de 1060 */
+.swal2-container {
+    z-index: 1050 !important;
+}
+
+/* Modal de Bootstrap debe estar encima */
+.modal {
+    z-index: 1060 !important;
+}
+
+.modal-backdrop {
+    z-index: 1055 !important;
+}
+
 

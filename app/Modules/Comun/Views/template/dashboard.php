@@ -64,6 +64,11 @@
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/vueSelect/vue-select.css">
 
 
+    <!--estilos para Flatpickr (rango de fechas)-->
+    <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/Flatpickr/css/flatpickr.min.css">
+    <!--<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/plugins/Flatpickr/css/material_blue.css">-->
+
+
     <!--estilos genericos-->
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/cclibrary.css">
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModules.css">
@@ -111,7 +116,7 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/jquery-3.5.1.min.js"></script>
 
     <!--VUE 2.7 Y AXIOS-->
-    <!--<script src="<?php // echo base_url();                 ?>/resources/plugins/vue/vue2.7.js"></script>-->
+    <!--<script src="<?php // echo base_url();                  ?>/resources/plugins/vue/vue2.7.js"></script>-->
     <script src="<?php echo base_url(); ?>/resources/plugins/vue/vue.global_3.5.min.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/axios/axios.min.js"></script>
 
@@ -161,6 +166,10 @@
 
     <!-- para exportacion excel-->
     <script src="<?php echo base_url(); ?>/resources/plugins/excel/xlsx.full.min.js"></script>
+
+    <!-- para rango de fechas-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/Flatpickr/js/flatpickr.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/Flatpickr/js/es.js"></script>
 
     <!-- para exportacion pdf-->
 <!--    <script src="<?php echo base_url(); ?>/resources/plugins/html2canva/html2canvas.min.js"></script>

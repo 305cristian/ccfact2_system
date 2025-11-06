@@ -55,15 +55,26 @@ class GestionController extends \App\Controllers\BaseController {
         }
     }
 
-    public function getAjustes() {
+    public function searchAjustes() {
 
-        $response = $this->entadasModel->getAjustes();
+        $dataPost = json_decode(file_get_contents("php://input"));
+
+        $filtros = [
+            'ajenSecuencial' => $dataPost->ajenSecuencial ?? null,
+            'ajenBodega' => $dataPost->ajenBodega ?? null,
+            'ajenMotivo' => $dataPost->ajenMotivo ?? null,
+            'ajenCentrocosto' => $dataPost->ajenCentrocosto ?? null,
+            'ajenEstado' => $dataPost->ajenEstado ?? null,
+            'ajenFechas' => $dataPost->ajenFechas ?? null
+        ];
+
+        $response = $this->entadasModel->searchAjustes($filtros);
 
         if ($response) {
-            return $this->response->setJSON($response);
+            return $this->response->setJSON(['status'=>'success','data'=>$response]);
         }
 
-        return $this->response->setJSON(false);
+        return $this->response->setJSON(['status'=>'warning','data'=>[] ]);
     }
 
     public function getDataDetalle($idAjuste) {
@@ -170,6 +181,4 @@ class GestionController extends \App\Controllers\BaseController {
             ]);
         }
     }
-
-   
 }
