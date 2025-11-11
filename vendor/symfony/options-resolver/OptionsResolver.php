@@ -1198,8 +1198,8 @@ class OptionsResolver implements Options
 
             return $valid;
         }
-
-        if (('null' === $type && null === $value) || (isset(self::VALIDATION_FUNCTIONS[$type]) ? self::VALIDATION_FUNCTIONS[$type]($value) : $value instanceof $type)) {
+        $validator=self::VALIDATION_FUNCTIONS;
+        if (('null' === $type && null === $value) || (isset($validator[$type]) ? $validator[$type]($value) : $value instanceof $type)) {
             return true;
         }
 

@@ -17,8 +17,6 @@ namespace Modules\AjustesEntrada\Controllers;
  */
 use Mpdf\Mpdf;
 use Mpdf\HTMLParserMode;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Modules\AjustesEntrada\Models\EntradasModel;
 
 class GestionController extends \App\Controllers\BaseController {
@@ -55,6 +53,14 @@ class GestionController extends \App\Controllers\BaseController {
         }
     }
 
+    public function responseSetJSON($status, $mensaje, $data = null) {
+        return $this->response->setJSON([
+                    'status' => $status,
+                    'msg' => $mensaje,
+                    'data' => $data,
+        ]);
+    }
+
     public function searchAjustes() {
 
         $dataPost = json_decode(file_get_contents("php://input"));
@@ -71,16 +77,16 @@ class GestionController extends \App\Controllers\BaseController {
         $response = $this->entadasModel->searchAjustes($filtros);
 
         if ($response) {
-            return $this->response->setJSON(['status'=>'success','data'=>$response]);
+            return $this->response->setJSON(['status' => 'success', 'data' => $response]);
         }
 
-        return $this->response->setJSON(['status'=>'warning','data'=>[] ]);
+        return $this->response->setJSON(['status' => 'warning', 'data' => []]);
     }
 
-    public function getDataDetalle($idAjuste) {
+    public function getDataDetalle($ajusteId) {
 
         $empresa = enterprice();
-        $ajusteData = $this->entadasModel->getDataDetalle($idAjuste);
+        $ajusteData = $this->entadasModel->getDataDetalle($ajusteId);
 
         $data = [
             'ajuste' => $ajusteData,
@@ -91,9 +97,9 @@ class GestionController extends \App\Controllers\BaseController {
         return $this->response->setJSON($view);
     }
 
-    public function generarPDF($idAjuste) {
+    public function generarPDF($ajusteId) {
         $empresa = enterprice();
-        $ajusteData = $this->entadasModel->getDataDetalle($idAjuste);
+        $ajusteData = $this->entadasModel->getDataDetalle($ajusteId);
 
         $data = [
             'ajuste' => $ajusteData,
@@ -145,40 +151,65 @@ class GestionController extends \App\Controllers\BaseController {
             }
             file_put_contents($pdfPath, $mpdf->Output($fileName, 'S'));
 
-            return $this->response->setJSON([
-                        'success' => true,
-                        'path' => $pdfPath,
-                        'fileName' => $fileName
-            ]);
+            return [
+                'success' => true,
+                'path' => $pdfPath,
+                'fileName' => $fileName
+            ];
         }
     }
 
-    public function enviarPorEmail($idAjuste) {
-        $empresa = enterprice();
-        // Generar PDF
-        $pdfData = $this->generarPDF($idAjuste);
+    public function sendEmailReport() {
 
-        // Configurar email
+        $dataPost = json_decode(file_get_contents("php://input"));
+
+        $para = $dataPost->para;
+        $cc = $dataPost->cc;
+        $asunto = $dataPost->asunto;
+        $mensaje = $dataPost->mensaje;
+        $ajusteId = $dataPost->idAjuste;
+
+        if (!$para || !$asunto) {
+            return $this->responseSetJSON('warning', '⚠️ Debe completar los campos obligatorios (Para y Asunto)');
+        }
+
+        // Convertir cadenas separadas por coma a arrays + eliminar espacios y vacíos
+        $paraArray = array_filter(array_map('trim', explode(',', $para)));
+        $ccArray = array_filter(array_map('trim', explode(',', $cc)));
+
         $email = \Config\Services::email();
-        $email->setFrom('noreply@ccomputers.com', $empresa->epr_nombre_comercial);
-        $email->setTo('pcris.994@gmail.com');
-        $email->setSubject('Ajuste de Entrada #' . $pdfData['secuencial']);
-        $email->setMessage('Adjunto encontrará el ajuste de entrada.');
-        $email->attach($pdfData['path']);
+        $email->clear(true);
+        $email->setFrom('no-reply@ccomputers.com', 'CCFACT - Sistema ERP');
+        $email->setTo($paraArray);
+        if (!empty($ccArray)) {
+            $email->setCC($ccArray);
+        }
+        $email->setSubject($asunto);
+        
+        // PARA MENSAJES HTML:
+        // $email->setMailType('html');
+        //$mensajeHTML = nl2br(htmlspecialchars($mensaje, ENT_QUOTES, 'UTF-8'));
+        
+        $email->setMailType('text');
+        $email->setMessage($mensaje);
+
+        // Generar PDF
+        $pdfData = $this->generarPDF($ajusteId);
+        log_message('debug', 'PDF Data: ' . print_r($pdfData, true));
+
+        if (isset($pdfData['path']) && file_exists($pdfData['path'])) {
+            $email->attach($pdfData['path']);
+        } else {
+            return $this->responseSetJSON('warning', 'No se pudo generar el PDF del ajuste.');
+        }
 
         if ($email->send()) {
-            // Opcional: eliminar el archivo temporal
-            // unlink($pdfData->path);
-
-            return $this->response->setJSON([
-                        'success' => true,
-                        'message' => 'Email enviado exitosamente'
-            ]);
+            if (file_exists($pdfData['path'])) {
+                unlink($pdfData['path']);
+            }
+            return $this->responseSetJSON('success', 'Correo enviado exitosamente');
         } else {
-            return $this->response->setJSON([
-                        'success' => false,
-                        'message' => 'Error al enviar email: ' . $email->printDebugger()
-            ]);
+            return $this->responseSetJSON('warning', 'Error al enviar el email, Verifique configuración SMTP: ' . $email->printDebugger());
         }
     }
 }

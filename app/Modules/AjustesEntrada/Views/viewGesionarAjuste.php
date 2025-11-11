@@ -132,7 +132,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             <li><button class="dropdown-item" href="#" @click.prevent="verDetalle(laj)"><span><i class="fas fa-clipboard-list"></i> Ver Detalle</span></button> </li>
                                             <li><button :disabled="laj.ajen_estado == 2 ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
                                             <li><button class="dropdown-item" href="#" @click.prevent="anularAjuste(laj.id)"><span><i class="fas fa-stop-circle"></i>  Anular Ajuste</span></button></li>
-                                            <li><button class="dropdown-item" href="#"><span><i class="fas fa-clone"></i>  Clonar Ajuste</span> </button></li>
+                                            <li><button class="dropdown-item" href="#" @click.prevent="openModalEmail(laj)"><span><i class="fas fa-clone"></i>  Enviar por Email</span> </button></li>
+                                            <li><button class="dropdown-item" href="#" @click.prevent="clonarAjuste(laj.id)"><span><i class="fas fa-clone"></i>  Clonar Ajuste</span> </button></li>
                                         </ul>
                                     </div>
                                     <!--<button @click="loadAjuste(laj), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnillos"><i class="fas fa-edit"></i> </button>-->
@@ -162,13 +163,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         <!--MODAL DETALLE-->
         <?php echo view('\Modules\AjustesEntrada\Views\reportes\viewModalReport') ?>
         <!--CLOSE MODAL DETALLE-->
+
+        <!--MODAL EMAIL-->
+        <?php echo view('\Modules\AjustesEntrada\Views\viewModalEmail') ?>
+        <!--CLOSE MODAL EMAIL-->
     </div>
 </div>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
 <script type="text/javascript">
 
- var fechaActual = DateTime.now().toFormat('yyyy-MM-dd');
+var fechaActual = DateTime.now().toFormat('yyyy-MM-dd');
 var listaBodegas = <?= json_encode($listaBodegas); ?>;
 var listaMotivos = <?= json_encode($listaMotivos); ?>;
 var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
@@ -210,7 +215,18 @@ window.appGestionAje = Vue.createApp({
             ajenFechas: fechaActual,
 
             // Variables para Flatpickr
-            flatpickrInstance: null
+            flatpickrInstance: null,
+
+            //PARA ENVIO DE EMAIL
+            emailData: {
+                para: '',
+                cc: '',
+                asunto: '',
+                mensaje: ''
+            },
+            errorSendMail: '',
+            loadingEmail: false,
+            modalInstanceEmail: null
         };
     },
     created() {
@@ -230,18 +246,19 @@ window.appGestionAje = Vue.createApp({
     },
     mounted() {
 
-         // Inicializar Flatpickr
+        // Inicializar Flatpickr
         this.flatpickrInstance = flatpickr(this.$refs.dateRange, {
             mode: 'range',
             dateFormat: 'Y-m-d',
             locale: 'es',
-            allowInput: true, 
+            allowInput: true,
             onChange: (selectedDates, dateStr) => {
                 this.ajenFechas = dateStr;
             }
         });
         // Inicializar modal de Bootstrap
         this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
+        this.modalInstanceEmail = new bootstrap.Modal(this.$refs.modalSendEmail);
     },
     methods: {
 
@@ -259,7 +276,6 @@ window.appGestionAje = Vue.createApp({
             try {
                 swalLoading('Cargando Ajustes');
                 const {data} = await axios.post(this.url + '/ajustesentrada/searchAjustes', datos);
-                console.log(data.status);
                 if (data.status === 'success') {
                     this.panelMain = true;
                     this.listaAjustes = data.data;
@@ -363,19 +379,65 @@ window.appGestionAje = Vue.createApp({
                 sweet_msg_dialog('error', '', '', 'Error al generar el documento, ' + e.message);
             }
         },
-
-        async enviarPorEmail() {
+        async clonarAjuste(idAjuste) {
             try {
-                swalLoading('Enviando email...');
-                const {data} = await axios.post(`${this.url}/ajustesentrada/enviarPorEmail/${this.idAjuste}`);
-                Swal.close();
-                if (data.success) {
-                    sweet_msg_toast('success', 'Email enviado exitosamente');
+                swalLoading('Clonando ajuste...');
+                const {data} = await axios.get(`${this.url}/ajustesentrada/clonarAjuste/${idAjuste}`);
+                if (data.status === 'success') {
+                    window.location.href = data.redirect;
+                    Swal.close();
                 } else {
-                    sweet_msg_toast('error', data.message);
+                    sweet_msg_dialog('error', 'Ha ocurrido un error al tratar de clonar el ajuste');
+                }
+            } catch (e) {
+                sweet_msg_dialog('error', '', '', e.message);
+            }
+
+        },
+
+        openModalEmail(ajuste) {
+            this.idAjuste = ajuste.id;
+            this.secuencialAjuste = ajuste.ajen_secuencial;
+            this.emailData = {
+                para: 'it@cateringclp.com, pcris.994@gmail.com',
+                cc: '',
+                asunto: `Reporte de Ajuste de Entrada #${ajuste.ajen_secuencial}`,
+                mensaje: 'Estimado(a), adjunto el reporte solicitado.'
+            };
+//            Vue.nextTick();
+            this.modalInstanceEmail.show();
+        },
+
+        async sendEmailReport() {
+
+            if (!this.emailData.para || !this.emailData.asunto) {
+                this.errorSendMail = "⚠️ Debe completar los campos obligatorios (Para, Asunto)"
+                return;
+            }
+
+            let datos = this.emailData;
+            datos.idAjuste = this.idAjuste;
+
+            try {
+                this.loadingEmail = true;
+                const {data} = await axios.post(`${this.url}/ajustesentrada/sendEmailReport`, datos);
+                if (data.status === 'success') {
+                    console.log('succes');
+                    sweet_msg_toast('success', data.msg);
+                    this.modalInstanceEmail.hide();
+                    this.emailData = {
+                        para: '',
+                        cc: ''
+                    };
+                    this.loadingEmail = false;
+                    sweet_msg_dialog('success', data.msg);
+                } else {
+                    this.errorSendMail = data.msg;
                 }
             } catch (error) {
-                sweet_msg_toast('error', 'Error al enviar email');
+                this.errorSendMail = 'Error al enviar email: ' + error.message;
+            } finally {
+                this.loadingEmail = false;
             }
         },
 //                exportarExcel() {

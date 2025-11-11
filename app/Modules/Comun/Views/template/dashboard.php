@@ -300,7 +300,7 @@
 
             <a href="<?php echo site_url(); ?>/welcome" class="brand-link" style="text-decoration: none; color: white">
                 <img src="<?php echo base_url() ?>/uploads/img/enterprice/logo.png" alt="Logo" height="50" class="brand-image img-circle elevation-3" style="opacity: .9">
-                <span class="brand-text font-weight-bold">Ccomputers</span>
+                <span class="brand-text font-weight-bold"><?= $enterprice->epr_nombre_comercial?></span>
             </a>
             <div class="sidebar">  
 

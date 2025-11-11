@@ -169,16 +169,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-12">
                     <div class="row">
                         <div class="mb-3 col-md-6">                             
-                            <label for="prodCtaCompras" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Cta. Contable Compras</label>
+                            <label for="prodCtaCompras" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span> Cta. Contable Compras</label>
                             <select v-model="newProducto.prodCtaCompras"  class="form-select border" id="prodCtaCompras">
                                 <option v-for="lcc of listaCtaContable" v-bind:value="lcc.ctad_codigo">{{lcc.cuentadet}}</option>
                             </select>
+                            <div class="text-danger" v-html="formValidacion.prodCtaCompras"></div>
                         </div>
                         <div class="mb-3 col-md-6">                             
-                            <label for="prodCtaVentas" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Cta. contable Ventas</label>
+                            <label for="prodCtaVentas" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span> Cta. contable Ventas</label>
                             <select v-model="newProducto.prodCtaVentas"  class="form-select border" id="prodCtaVentas">
                                 <option v-for="lcc of listaCtaContable" v-bind:value="lcc.ctad_codigo">{{lcc.cuentadet}}</option>
                             </select>
+                            <div class="text-danger" v-html="formValidacion.prodCtaVentas"></div>
                         </div>
                     </div>
                 </div>

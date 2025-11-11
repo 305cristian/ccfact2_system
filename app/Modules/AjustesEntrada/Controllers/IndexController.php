@@ -59,12 +59,12 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-    public function indexEdit($idAjuste) {
-        $view = $this->parametrosIndex($idAjuste);
+    public function indexEdit($justeId) {
+        $view = $this->parametrosIndex($justeId);
         return view($this->dirTemplate . '\dashboard', $view);
     }
 
-    public function parametrosIndex($idAjuste = null) {
+    public function parametrosIndex($justeId = null) {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
@@ -82,8 +82,8 @@ class IndexController extends \App\Controllers\BaseController {
         $data['dataAjuste'] = null;
         $data['dataProveedor'] = null;
 
-        if (!empty($idAjuste)) {
-            $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_entrada', ['id' => $idAjuste], '*', null, 1);
+        if (!empty($justeId)) {
+            $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_entrada', ['id' => $justeId], '*', null, 1);
             $data['dataProveedor'] = $this->searchModel->searchProveedorById($data['dataAjuste']->fk_proveedor);
         }
 
@@ -100,61 +100,60 @@ class IndexController extends \App\Controllers\BaseController {
         ]);
     }
 
-    public function loadAjusteEdit($idAjuste) {
+    public function loadAjusteEdit($justeId) {
 
         //CARGAMOS LOS DATOS AL CART
-        $respuesta = $this->loadDataAjusteCart($idAjuste);
+        $respuesta = $this->loadDataAjusteCart($justeId);
 
         return $this->response->setJSON([
                     'status' => $respuesta['status'] === 'success' ? 'success' : 'error',
                     'msg' => $respuesta['status'] === 'success' ? 'ok' : $respuesta['msg'],
-                    'redirect' => site_url('ajustesentrada/indexEdit/' . $idAjuste)
+                    'redirect' => site_url('ajustesentrada/indexEdit/' . $justeId)
         ]);
     }
 
-    public function loadDataAjusteCart($idAjuste) {
+    public function loadDataAjusteCart($justeId, $isClone = false) {
 
         $this->ajenCart->destroy();
 
-        $dataAjuste = $this->entradasModel->getDataDetalle($idAjuste);
+        $dataAjuste = $this->entradasModel->getDataDetalle($justeId);
 
-        if ($dataAjuste->ajen_estado === '1') {
-
-            foreach ($dataAjuste->detalle as $valDet) {
-
-                $dataProducto = $this->entradasModel->searchProductoData($valDet->fk_producto);
-
-                $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $valDet->fk_producto, 'fk_bodega' => $dataAjuste->id_bodega], 'stb_stock', null, 1);
-                $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
-
-                $impuestos = $this->prodModel->getImpuestoTarifa($valDet->fk_producto);
-                $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
-                $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
-
-                $item = [
-                    "id" => (int) $dataProducto->id,
-                    "qty" => (float) $valDet->ajend_itemcantidad,
-                    "codigo" => $dataProducto->prod_codigo,
-                    "name" => $dataProducto->prod_nombre,
-                    "unidadMedida" => $dataProducto->um_nombre_corto,
-                    "price" => (float) $valDet->ajend_itemcosto,
-                    "stock" => $dataProducto->prod_stockactual,
-                    "stockBodega" => $stockBodega,
-                    "ivaPorcent" => $tarifaIva,
-                    "icePorcent" => $tarifaIce,
-                    "tieneLote" => $dataProducto->prod_ctrllote,
-                    "permitirDuplicados" => $dataAjuste->ajen_items_duplicados,
-                    "lote" => $valDet->lot_lote,
-                    "fechaElaboracion" => $valDet->lot_fecha_elaboracion,
-                    "fechaCaducidad" => $valDet->lot_fecha_caducidad,
-                ];
-                $item['servicio'] = $dataProducto->prod_isservicio;
-                $this->ajenCart->insert($item);
-            }
-            return['status' => 'success', 'msg' => ''];
-        } else {
+        if ($isClone === false && $dataAjuste->ajen_estado !== '1') {
             return['status' => 'error', 'msg' => 'Este ajuste de entrada ya se encuentra archivado o anulado previamente'];
         }
+
+        foreach ($dataAjuste->detalle as $valDet) {
+
+            $dataProducto = $this->entradasModel->searchProductoData($valDet->fk_producto);
+
+            $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $valDet->fk_producto, 'fk_bodega' => $dataAjuste->id_bodega], 'stb_stock', null, 1);
+            $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
+
+            $impuestos = $this->prodModel->getImpuestoTarifa($valDet->fk_producto);
+            $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
+            $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
+
+            $item = [
+                "id" => (int) $dataProducto->id,
+                "qty" => (float) $valDet->ajend_itemcantidad,
+                "codigo" => $dataProducto->prod_codigo,
+                "name" => $dataProducto->prod_nombre,
+                "unidadMedida" => $dataProducto->um_nombre_corto,
+                "price" => (float) $valDet->ajend_itemcosto,
+                "stock" => $dataProducto->prod_stockactual,
+                "stockBodega" => $stockBodega,
+                "ivaPorcent" => $tarifaIva,
+                "icePorcent" => $tarifaIce,
+                "tieneLote" => $dataProducto->prod_ctrllote,
+                "permitirDuplicados" => $dataAjuste->ajen_items_duplicados,
+                "lote" => $valDet->lot_lote,
+                "fechaElaboracion" => $valDet->lot_fecha_elaboracion,
+                "fechaCaducidad" => $valDet->lot_fecha_caducidad,
+            ];
+            $item['servicio'] = $dataProducto->prod_isservicio;
+            $this->ajenCart->insert($item);
+        }
+        return['status' => 'success', 'msg' => ''];
     }
 
     public function insertProduct() {
@@ -571,6 +570,16 @@ class IndexController extends \App\Controllers\BaseController {
             $this->logs->logError('Excepción al anular ajuste: ' . $exc->getMessage());
             return $this->responseSetJSON('error', 'Error interno: ' . $exc->getMessage());
         }
+    }
+
+    public function clonarAjuste($ajusteId) {
+        //CARGAMOS LOS DATOS AL CART
+        $respuesta = $this->loadDataAjusteCart($ajusteId, true);
+
+        return $this->response->setJSON([
+                    'status' => $respuesta['status'] === 'success' ? 'success' : 'error',
+                    'redirect' => site_url('ajustesentrada/nuevoAjuste')
+        ]);
     }
 
     public function importarExcel() {

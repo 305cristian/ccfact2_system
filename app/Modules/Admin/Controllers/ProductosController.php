@@ -136,7 +136,10 @@ class ProductosController extends \App\Controllers\BaseController {
         $prodIvaPorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIvaPorcentajeId, "impt_porcentage", "id");
 
         $prodIcePorcentajeId = $this->request->getPost('prodIcePorcentajeId');
-        $prodIcePorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIcePorcentajeId, "impt_porcentage", "id");
+        $prodIcePorcentaje = null;
+        if ($prodIcePorcentajeId) {
+            $prodIcePorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIcePorcentajeId, "impt_porcentage", "id");
+        }
         $prodTieneICE = $this->request->getPost('prodTieneICE');
 
         $prodIsPromo = $this->request->getPost('prodIsPromo'); //BOOLEAN
@@ -159,6 +162,8 @@ class ProductosController extends \App\Controllers\BaseController {
             'prodSubgrupo' => ['label' => 'Subgrupo  Producto', 'rules' => 'trim|required'],
             'prodTipoProducto' => ['label' => 'Tipo de Producto', 'rules' => 'trim|required'],
             'prodIvaPorcentajeId' => ['label' => 'Tipo de Impuesto de Producto', 'rules' => 'trim|required'],
+            'prodCtaCompras' => ['label' => 'Cuenta contable en compras', 'rules' => 'trim|required'],
+            'prodCtaVentas' => ['label' => 'Cuenta contable en ventas', 'rules' => 'trim|required'],
         ]);
 
         if ($this->validation->withRequest($this->request)->run()) {
@@ -196,7 +201,7 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_valormedida' => $prodValorMedida,
                 'fk_unidadmedida' => $prodUnidadMedida,
                 'fk_subgrupo' => $prodSubgrupo,
-                'fk_marca' => $prodMarca ? $prodMarca : NULL,
+                'fk_marca' => $prodMarca ? $prodMarca : null,
                 'fk_tipoproducto' => $prodTipoProducto,
                 'prod_ivaporcentage' => $prodIvaPorcentaje,
                 'prod_iceporcentage' => $prodIcePorcentaje,
@@ -204,8 +209,8 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_ispromo' => $prodIsPromo == "true" ? 1 : 0,
                 'prod_pvppromo' => $prodPvpPromo,
                 'prod_especificaciones' => $prodEspecificaciones,
-                'fk_cuentacontableventas' => $prodCtaVentas ? $prodCtaVentas : NULL,
-                'fk_cuentacontablecompras' => $prodCtaCompras ? $prodCtaCompras : NULL,
+                'fk_cuentacontableventas' => $prodCtaVentas ? $prodCtaVentas : null,
+                'fk_cuentacontablecompras' => $prodCtaCompras ? $prodCtaCompras : null,
                 'prod_estado' => $prodEstado == "true" ? 1 : 0,
                 'prod_issuperproducto' => $prodIsSuperProducto == "true" ? 1 : 0,
                 'prod_ctrllote' => $prodCtrlLote == "true" ? 1 : 0,
@@ -285,6 +290,8 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prodSubgrupo' => $this->validation->getError('prodSubgrupo'),
                 'prodTipoProducto' => $this->validation->getError('prodTipoProducto'),
                 'prodIvaPorcentaje' => $this->validation->getError('prodIvaPorcentaje'),
+                'prodCtaCompras' => $this->validation->getError('prodCtaCompras'),
+                'prodCtaVentas' => $this->validation->getError('prodCtaVentas'),
             ];
         }
         return $this->response->setJson($response);
@@ -312,7 +319,10 @@ class ProductosController extends \App\Controllers\BaseController {
         $prodIvaPorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIvaPorcentajeId, "impt_porcentage", "id");
 
         $prodIcePorcentajeId = $this->request->getPost('prodIcePorcentajeId');
-        $prodIcePorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIcePorcentajeId, "impt_porcentage", "id");
+        $prodIcePorcentaje = null;
+        if ($prodIcePorcentajeId) {
+            $prodIcePorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIcePorcentajeId, "impt_porcentage", "id");
+        }
         $prodTieneICE = $this->request->getPost('prodTieneICE');
 
         $prodIsPromo = $this->request->getPost('prodIsPromo'); //BOOLEAN
@@ -339,6 +349,8 @@ class ProductosController extends \App\Controllers\BaseController {
             'prodSubgrupo' => ['label' => 'Subgrupo  Producto', 'rules' => 'trim|required'],
             'prodTipoProducto' => ['label' => 'Tipo de Producto', 'rules' => 'trim|required'],
             'prodIvaPorcentajeId' => ['label' => 'Tipo de Impuesto de Producto', 'rules' => 'trim|required'],
+            'prodCtaCompras' => ['label' => 'Cuenta contable en compras', 'rules' => 'trim|required'],
+            'prodCtaVentas' => ['label' => 'Cuenta contable en ventas', 'rules' => 'trim|required'],
         ]);
 
         if ($this->validation->withRequest($this->request)->run()) {
@@ -468,6 +480,8 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prodSubgrupo' => $this->validation->getError('prodSubgrupo'),
                 'prodTipoProducto' => $this->validation->getError('prodTipoProducto'),
                 'prodIvaPorcentaje' => $this->validation->getError('prodIvaPorcentaje'),
+                'prodCtaCompras' => $this->validation->getError('prodCtaCompras'),
+                'prodCtaVentas' => $this->validation->getError('prodCtaVentas'),
             ];
         }
         return $this->response->setJson($response);

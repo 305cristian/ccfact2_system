@@ -37,6 +37,7 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
     $subroutes->post('updateAjuste', 'IndexController::updateAjuste');
     $subroutes->post('anularAjuste', 'IndexController::anularAjuste');
+    $subroutes->get('clonarAjuste/(:num)', 'IndexController::clonarAjuste/$1');
     $subroutes->post('importarExcel', 'IndexController::importarExcel');
     $subroutes->get('loadAjusteEdit/(:num)', 'IndexController::loadAjusteEdit/$1');
     $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
@@ -46,9 +47,11 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
     $subroutes->post('searchAjustes', 'GestionController::searchAjustes');
     $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
     $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
+    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
 
     //AJUSTE INICIAL
     $subroutes->get('ajusteInicial', 'AjusteInicialController::index');
+    $subroutes->get('loadAjusteInicial', 'AjusteInicialController::loadAjusteInicial');
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
@@ -58,5 +61,6 @@ $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function 
     $subroutes->get('productos/searchProductoCode/(:segment)', 'SearchsController::searchProductoCode/$1');
     $subroutes->post('exportar/generarExcel', 'IndexController::generarExcel');
     $subroutes->get('descargar/downloadPlantillaExcel', 'IndexController::downloadPlantillaExcel');
+    $subroutes->get('descargar/downloadPlantillaExcelAjusteInicial', 'IndexController::downloadPlantillaExcelAjusteInicial');
 });
 

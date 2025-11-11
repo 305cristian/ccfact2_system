@@ -22,7 +22,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <div class="row col-md-12">
 
                 <div class="col-md-3 mb-2">
-                    <label for="selectStock" class="col-form-label col-form-label-sm"><i class="fal fa-box-open"></i> Producto</label>
+                    <label for="selectName" class="col-form-label col-form-label-sm"><i class="fal fa-box-open"></i> Producto</label>
                     <vue-multiselect
                         v-model="keyProducto" 
                         tag-placeholder="Producto no Encontrado"
@@ -43,7 +43,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </vue-multiselect>
                 </div>
                 <div class="col-md-3 mb-2">
-                    <label for="selectStock" class="col-form-label col-form-label-sm"><i class="fal fa-barcode-alt"></i> Código</label>
+                    <label for="selectCode" class="col-form-label col-form-label-sm"><i class="fal fa-barcode-alt"></i> Código</label>
                     <vue-multiselect
                         v-model="keyProducto" 
                         tag-placeholder="Producto no Encontrado"

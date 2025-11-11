@@ -121,66 +121,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 </div>
             </fieldset>
-
             <br>
             <fieldset>
-                <legend>Importar plantilla Excel</legend>
+                <legend>Importación, Búsqueda de Productos y Selección de proveedor</legend>
+                <!-- Datos del Producto -->
                 <div class="row">
-                    <div class="col-md-12 text-start">
+
+
+                    <div class="col-md-1 text-start">
                         <button 
                             class="btn btn-sm"
                             :class="mostrarImportacion ? 'btn-outline-danger' : 'btn-outline-success'"
                             @click="mostrarImportacion = !mostrarImportacion">
-                            <i v-if="!mostrarImportacion" class="fas fa-file-excel me-2"></i>
+                            <i v-if="!mostrarImportacion" class="fas fa-file-excel fa-1x me-2"></i>
                             <i v-else class="fas fa-eye-slash me-2"></i>
-                            {{ mostrarImportacion ? 'Ocultar Importación Excel' : 'Importar desde Excel' }}
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row mt-3" v-if="mostrarImportacion">
-                    <div class="col-md-4">
-                        <input 
-                            type="file" 
-                            @change="loadFilePicked($event)" 
-                            accept=".xlsx,.xls" 
-                            class="form-control" 
-                            ref="excelInput" />
-                        <small class="text-muted">
-                            Plantilla: Código, Cantidad, Lote, F. Elaboración, F. Caducidad
-                        </small>
-                        <div v-if="excelFilename" class="mt-2 small">
-                            <i class="fas fa-paperclip me-1"></i> {{ excelFilename }}
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button 
-                            class="btn btn-success w-100"
-                            :disabled="!selectedExcelFile || loadingProcess"
-                            @click="cargarExcel">
-                            <span v-if="loadingProcess">
-                                <i class="loading-spin me-2"></i> Cargando...
-                            </span>
-                            <span v-else>
-                                <i class="fas fa-upload me-2"></i> Cargar datos
-                            </span>
+                            {{ mostrarImportacion ? 'Ocultar' : 'Importar' }}
                         </button>
                     </div>
 
-                    <div class="col-md-3 d-flex align-items-end">
-                        <a :href="url + '/comun/descargar/downloadPlantillaExcel'" class="btn btn-outline-primary w-100">
-                            <i class="fas fa-download me-2"></i> Descargar Plantilla
-                        </a>
-                    </div>
-                </div>
-
-            </fieldset>
-            <br>
-            <fieldset>
-                <legend>Búsqueda de Productos y Selección des proveedor</legend>
-                <!-- Datos del Producto -->
-                <div class="row">
 
                     <div class="col-md-4 form-group-custom">
                         <div class="d-flex justify-content-between align-items-center">
@@ -209,9 +167,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             <div class="col">
                                                 <span class="fw-bold text-dark">{{ option.prod_nombre }}</span>
                                             </div>
-<!--                                            <div class="col-auto">
-                                                <span class="badge bg-info text-dark">{{ option.stb_stock }}</span>
-                                            </div>-->
+                                            <!--                                            <div class="col-auto">
+                                                                                            <span class="badge bg-info text-dark">{{ option.stb_stock }}</span>
+                                                                                        </div>-->
                                         </div>
                                     </div>
                                 </template>
@@ -251,6 +209,51 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
                 </div>        
             </fieldset>
+            <br>
+
+            <div v-if="mostrarImportacion">
+                <fieldset>
+                    <legend>Importar desde excel</legend>
+                    <div class="row mt-1" >
+                        <div class="col-md-4">
+                            <small class="text-muted">
+                                Plantilla: Código, Cantidad, Lote, F. Elaboración, F. Caducidad
+                            </small>
+                            <input 
+                                type="file" 
+                                @change="loadFilePicked($event)" 
+                                accept=".xlsx,.xls" 
+                                class="form-control" 
+                                ref="excelInput" />
+
+                            <div v-if="excelFilename" class="mt-2 small">
+                                <i class="fas fa-paperclip me-1"></i> {{ excelFilename }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button 
+                                class="btn btn-success w-100"
+                                :disabled="!selectedExcelFile || loadingProcess"
+                                @click="cargarExcel">
+                                <span v-if="loadingProcess">
+                                    <i class="loading-spin me-2"></i> Cargando...
+                                </span>
+                                <span v-else>
+                                    <i class="fas fa-upload me-2"></i> Cargar datos
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <a :href="url + '/comun/descargar/downloadPlantillaExcel'" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-download me-2"></i> Descargar Plantilla
+                            </a>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
             <br>
 
             <!--VIEW CART-->
@@ -467,7 +470,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     } else if (data.status === "warning") {
                         sweet_msg_dialog('warning', data.msg);
                     } else if (data.status === "error") {
-                        sweet_msg_dialog('error',data.msg);
+                        sweet_msg_dialog('error', data.msg);
                     }
 
                 } catch (e) {
