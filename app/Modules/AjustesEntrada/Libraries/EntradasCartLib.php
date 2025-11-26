@@ -89,22 +89,6 @@ class EntradasCartLib {
         }
     }
 
-    /**
-     * Guardar solo cuando sea necesario
-     */
-//    private function saveToSession() {
-//        if ($this->isDirty) {
-//            $this->session->set($this->instance, $this->cart);
-//            $this->isDirty = false;
-//        }
-//    }
-
-    /**
-     * Destructor - guardar automáticamente al finalizar
-     */
-//    public function __destruct() {
-//        $this->saveToSession();
-//    }
 
     /**
      * Guardar inmediatamente (fuerza el guardado)
@@ -148,28 +132,6 @@ class EntradasCartLib {
         throw new \Exception("Error saving cart");
     }
 
-//    public function insert2($items = array(), $update = false, $rowid_ = null) {
-//        if (!isset($items["id"]) || !isset($items["qty"]) || !isset($items["price"])) {
-//            throw new \Exception("Id, qty and price are required fields!");
-//        }
-//
-//        if (!is_numeric($items["id"]) || !is_numeric($items["qty"]) || !is_numeric($items["price"])) {
-//            throw new \Exception("Id, qty and price must be numbers.");
-//        }
-//
-//        if (!is_array($items) || empty($items)) {
-//            throw new \Exception("The last row insert method must be an array");
-//        }
-//
-//        $rowid = $this->_insert2($items, $update, $rowid_);
-//
-//        if ($rowid) {
-//            $this->isDirty = true;
-//            return true;
-//        }
-//
-//        throw new \Exception("Error saving cart");
-//    }
 
     /**
      * Insert interno optimizado
@@ -235,65 +197,6 @@ class EntradasCartLib {
 
         return $rowid;
     }
-
-//    private function _insert2($items = array(), $update = false, $rowid_) {
-//        $randNum2 = rand(1, 100000);
-//
-//        if (!empty($rowid_)) {
-//            $rowid = $rowid_;
-//        } else {
-//            if (isset($items['options'])) {
-//                $rowid = md5($items["id"] . $randNum2 . implode('', $items['options']));
-//            } else {
-//                $rowid = md5($items["id"] . $randNum2);
-//            }
-//        }
-//
-//        $items["rowid"] = $rowid;
-//
-//        if (isset($this->cart[$rowid]) && !$update) {
-//            $items["qty"] = $this->cart[$rowid]["qty"] + $items["qty"];
-//        }
-//
-//        $items["qty"] = (float) trim(preg_replace('/([^0-9\.])/i', '', $items["qty"]));
-//        $items["price"] = (float) trim(preg_replace('/([^0-9\.])/i', '', $items["price"]));
-//
-//        // Calcular taxes inline
-//        $price_neto = $items["price"];
-//        $qty = $items["qty"];
-//
-//        $items["priceneto"] = $price_neto;
-//        $items["totalpriceneto"] = $price_neto * $qty;
-//
-//        $iceporcent = isset($items['icePorcent']) ? (float) $items['icePorcent'] : 0;
-//        $iceval = $iceporcent > 0 ? ($price_neto * $iceporcent) / 100 : 0;
-//
-//        $items['iceval'] = $iceval;
-//        $items['toticeval'] = $iceval * $qty;
-//        $items['priceice'] = $price_neto + $iceval;
-//        $items['totalpriceice'] = ($price_neto + $iceval) * $qty;
-//
-//        $base_iva = $price_neto + $iceval;
-//        $items['itembaseiva'] = $base_iva;
-//        $items['totitembaseiva'] = $base_iva * $qty;
-//
-//        $ivaporcent = isset($items['ivaporcent']) ? (float) $items['ivaporcent'] : 0;
-//        $ivaval = ($base_iva * $ivaporcent) / 100;
-//
-//        $items['ivaval'] = $ivaval;
-//        $items['totivaval'] = $ivaval * $qty;
-//
-//        $priceiva = $base_iva + $ivaval;
-//        $items['priceiva'] = $priceiva;
-//        $items['totalpriceiva'] = $priceiva * $qty;
-//        $items["total"] = $items["qty"] * $items["price"];
-//
-//        $this->updateTotalsIncremental($items, isset($this->cart[$rowid]) ? $this->cart[$rowid] : null);
-//
-//        $this->cart[$rowid] = $items;
-//
-//        return $rowid;
-//    }
 
     /**
      * Actualizar totales incrementalmente (sin recalcular todo)

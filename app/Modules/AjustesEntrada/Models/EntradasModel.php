@@ -58,6 +58,31 @@ class EntradasModel extends \CodeIgniter\Model {
         }
     }
 
+    public function searchProductoDataById($idProd) {
+        $builder = $this->db->table('cc_productos tb1');
+        $builder->select("tb1.id,"
+                . " tb1.prod_nombre,"
+                . " tb1.prod_codigo,"
+                . " tb1.prod_costopromedio,"
+                . " tb1.prod_isservicio,"
+                . " tb1.prod_stockactual,"
+                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
+
+        $builder->where('tb1.id', $idProd);
+
+        $builder->where('tb1.prod_estado', 1);
+        $builder->limit(1);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getRow();
+        } else {
+            return false;
+        }
+    }
+
     public function searchAjustes($filtros) {
         $builder = $this->db->table('cc_ajuste_entrada tb1');
         $builder->select('tb1.*,'
@@ -76,7 +101,8 @@ class EntradasModel extends \CodeIgniter\Model {
             'ajenBodega' => 'fk_bodega',
             'ajenMotivo' => 'fk_motivo_ajuste',
             'ajenCentrocosto' => 'fk_centro_costo',
-            'ajenEstado' => 'ajen_estado'
+            'ajenEstado' => 'ajen_estado',
+            'ajenTipo' => 'ajen_tipo'
         ];
 
         // Aplicar filtros dinámicamente
@@ -88,7 +114,7 @@ class EntradasModel extends \CodeIgniter\Model {
 
         // Verificar si viene el filtro de fechas
         if (!empty($filtros['ajenFechas'])) {
-            $rangoFechas = explode(' a ', $filtros['ajenFechas']); 
+            $rangoFechas = explode(' a ', $filtros['ajenFechas']);
             $fDesde = trim($rangoFechas[0]);
             $fHasta = isset($rangoFechas[1]) ? trim($rangoFechas[1]) : trim($rangoFechas[0]);
             $builder->where(['ajen_fecha <=' => $fHasta, 'ajen_fecha >= ' => $fDesde]);

@@ -25,7 +25,6 @@ class EntradasLib {
     protected $tipotransaccionCod = '39';
     protected $productLib;
     protected $stockBodLib;
-    protected $db;
 
     public function __construct() {
 
@@ -36,9 +35,6 @@ class EntradasLib {
         //Import Librerias
         $this->productLib = new ProductoLib();
         $this->stockBodLib = new StockBodegaLib();
-
-        //Instancia db
-        $this->db = \Config\Database::connect();
     }
 
     public function saveAjuste($cartData, $dataPostAjuste) {
@@ -336,7 +332,6 @@ class EntradasLib {
             return ['status' => 'error', 'msg' => 'No se encontró detalle asociado al ajuste.'];
         }
 
-        $this->db->transBegin();
 
         try {
             $this->tipotransaccionCod = '41'; // Código definido para ANULACIÓN DE AJUSTE DE ENTRADA
@@ -369,8 +364,7 @@ class EntradasLib {
                 if ($producto->servicio == '0') {
                     $kardexOk = $this->updateKardex($ajusteId, $producto, $val->fk_lote, $dataAjuste);
                     if ($kardexOk['status'] !== 'success') {
-                        $this->db->transRollback();
-                        return $kardexOk;
+                        return ['status' => 'error', 'msg' => 'Ha ocurrido un error al actualizr el kardex'];
                     }
                 }
             }
@@ -396,14 +390,12 @@ class EntradasLib {
                 $this->ccm->actualizar('cc_asiento_contable', $dataSet, ['id' => $asientoId]);
             }
 
-            $this->db->transCommit();
 
             return [
                 'status' => 'success',
                 'msg' => "Ajuste #{$ajuste->ajen_secuencial} anulado exitosamente."
             ];
         } catch (Exception $exc) {
-            $this->db->transRollback();
             return ['status' => 'error', 'msg' => 'Error al anular ajuste: ' . $exc->getMessage()];
         } finally {
             $this->tipotransaccionCod = '39'; // volvemos al código de AJUSTE ENTRADA

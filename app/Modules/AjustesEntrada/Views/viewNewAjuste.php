@@ -17,6 +17,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         border-radius: 5px 0px 0px 5px
     }
 </style>
+<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
+
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
@@ -112,9 +114,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <!-- Botones de Seleccion -->
                     <div class="col-md-3 form-group-custom">
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                            <input type="radio" class="btn-check" value="AJUSTE_INICIAL" v-model="formDataAjuste.ajenTipo"  autocomplete="off" >
+                            <input type="radio" class="btn-check" id="btnradio1" value="AJUSTE_INICIAL" v-model="formDataAjuste.ajenTipo"  autocomplete="off" >
                             <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Inicial</label>
-                            <input type="radio" class="btn-check" value="COMPRA_SIN_FACTURA" v-model="formDataAjuste.ajenTipo" autocomplete="off" checked>
+                            <input type="radio" class="btn-check" id="btnradio2"  value="COMPRA_SIN_FACTURA" v-model="formDataAjuste.ajenTipo" autocomplete="off" checked>
                             <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-file me-2"></i> Compra sin Factura</label>
                         </div>
                     </div>
@@ -437,6 +439,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     {key: 'ajenMotivo', msg: 'Debe seleccionar un motivo de ajuste'},
                     {key: 'ajenEstado', msg: 'Debe seleccionar un estado'},
                     {key: 'ajenProveedor', msg: 'Debe seleccionar un proveedor'},
+                    {key: 'ajenTipo', msg: 'Debe seleccionar un tipo de ajuste'}
                 ];
 
                 for (const campo of campos) {

@@ -12,7 +12,7 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
-
+<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
@@ -171,6 +171,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             </fieldset>
         </div>
     </div>
+    <!--MODAL DETALLE-->
+    <?php echo view('\Modules\AjustesEntrada\Views\reportes\viewModalReport') ?>
+    <!--CLOSE MODAL DETALLE-->
 </div>
 <script type="text/javascript">
 
@@ -226,10 +229,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //VUE-MULTISELECT PROVEEDOR
                 listaSearchProveedores: [],
 
+                //PARA MODAL REPORTE
+                idAjuste: '',
+                secuencialAjuste: '',
+                cargandoDetalle: false,
+                modalInstance: null
+
             };
         },
         mounted() {
-
+            this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
         },
         methods: {
             onFileAjusteInicialChange(e) {
@@ -253,9 +262,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 try {
                     this.loadingProcess = true;
                     const {data} = await axios.post(this.url + '/ajustesentrada/loadAjusteInicial', datos);
-                    sweet_msg_dialog(data.status, data.msg);
                     if (data.status === 'success') {
-                        // Podrías redirigir a la vista del ajuste o limpiar formulario
+                        const urlRedirect = this.url + '/ajustesentrada/ajusteInicial/';
+                        sweetMsgDialogConfirm(data.msg, this.verDetalle, data.data, urlRedirect);
+                    } else if (data.status === 'warning') {
+                        sweet_msg_dialog('warning', data.msg);
+                    } else {
+                        sweet_msg_dialog('error', data.msg);
                     }
 
                 } catch (e) {
@@ -283,10 +296,32 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }, 500);
 
             },
+            // Ver detalle del ajuste
+            async verDetalle(ajuste) {
+                this.idAjuste = ajuste.id;
+                this.secuencialAjuste = ajuste.ajen_secuencial;
+                this.cargandoDetalle = true;
+                this.modalInstance.show();
+                try {
+
+                    const {data} = await axios.get(this.url + '/ajustesentrada/getDataDetalle/' + ajuste.id);
+                    this.cargandoDetalle = false;
+                    await Vue.nextTick();
+                    const modal = document.getElementById('detalleAjusteModal');
+                    modal.innerHTML = data;
+
+                } catch (error) {
+                    sweet_msg_dialog('error', '', '', 'Error al cargar el detalle del ajuste, ' + error.message);
+                } finally {
+                    this.cargandoDetalle = false;
+                }
+            },
             validarCampos() {
                 const campos = [
                     {key: 'ajenFecha', msg: 'Debe seleccionar una fecha'},
                     {key: 'ajenSustento', msg: 'Debe seleccionar un sustento'},
+                    {key: 'ajenTipoProducto', msg: 'Debe seleccionar un tipo de producto'},
+                    {key: 'ajenImpuestoIva', msg: 'Debe seleccionar un impuesto'},
                     {key: 'ajenBodega', msg: 'Debe seleccionar una bodega'},
                     {key: 'ajenCentrocosto', msg: 'Debe seleccionar un centro de costos'},
                     {key: 'ajenMotivo', msg: 'Debe seleccionar un motivo de ajuste'},
@@ -305,12 +340,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 var formData = new FormData();
                 for (var key in obj) {
                     let value = obj[key];
-
                     // Si es null o undefined, agregar como está
                     if (value === null || value === undefined) {
                         formData.append(key, '');
                         continue;
                     }
+                    if (value instanceof File || value instanceof Blob) {
+                        formData.append(key, value);
+                        continue;
+                    }
+
                     if (typeof value === 'object') {
                         value = value.id || value.sus_codigo || value.codigo || value.value || JSON.stringify(value);
                     }

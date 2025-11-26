@@ -51,7 +51,7 @@ $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Contro
 
     //AJUSTE INICIAL
     $subroutes->get('ajusteInicial', 'AjusteInicialController::index');
-    $subroutes->get('loadAjusteInicial', 'AjusteInicialController::loadAjusteInicial');
+    $subroutes->post('loadAjusteInicial', 'AjusteInicialController::loadAjusteInicial');
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

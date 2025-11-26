@@ -71,7 +71,8 @@ class GestionController extends \App\Controllers\BaseController {
             'ajenMotivo' => $dataPost->ajenMotivo ?? null,
             'ajenCentrocosto' => $dataPost->ajenCentrocosto ?? null,
             'ajenEstado' => $dataPost->ajenEstado ?? null,
-            'ajenFechas' => $dataPost->ajenFechas ?? null
+            'ajenFechas' => $dataPost->ajenFechas ?? null,
+            'ajenTipo' => $dataPost->ajenTipo ?? null
         ];
 
         $response = $this->entadasModel->searchAjustes($filtros);
@@ -146,7 +147,7 @@ class GestionController extends \App\Controllers\BaseController {
         } else {
             $pdfPath = WRITEPATH . 'uploads/pdfs/' . $fileName;
 
-            if (!is_dir(WRITEPATH . 'uploads/pdfs')) {
+            if (!is_dir(WRITEPATH . 'uploads/pdfs/ajustesEntrada')) {
                 mkdir(WRITEPATH . 'uploads/pdfs', 0755, true);
             }
             file_put_contents($pdfPath, $mpdf->Output($fileName, 'S'));

@@ -321,7 +321,7 @@ class IndexController extends \App\Controllers\BaseController {
             $update = $this->entradasLib->updateAjuste($cartData, $dataPostAjuste, $ajusteId);
             if (!$update) {//UPDATE DEVUELVE TRUE SI TODO SE COMPLETO CORRECTAMENTE
                 $this->db->transRollback();
-                $this->responseSetJSON('error', 'Ha ocurrido un error al actualizar el Ajuste');
+                return $this->responseSetJSON('error', 'Ha ocurrido un error al actualizar el Ajuste');
             }
 
             //Eliminamos todo el detalle anterior para registar el detalle actualizado.
@@ -505,6 +505,7 @@ class IndexController extends \App\Controllers\BaseController {
             'ajenMotivo' => 'Debe seleccionar un motivo de ajuste',
             'ajenEstado' => 'Debe seleccionar un estado',
             'ajenProveedor' => 'Debe seleccionar un proveedor',
+            'ajenTipo' => 'Debe seleccionar un tipo de ajuste',
         ];
 
         // Validar campos genéricos
@@ -554,18 +555,23 @@ class IndexController extends \App\Controllers\BaseController {
                 return $this->responseSetJSON('warning', 'Debe especificar un motivo de anulación');
             }
 
+
+            $this->db->transBegin();
+
             // Ejecutamos la anulación en la librería
             $response = $this->entradasLib->anularAjuste($ajusteId, $motivoAnulacion);
 
-            if ($response['status'] === 'success') {
-                $this->logs->logSuccess("[Ajuste Entrada] Anulado exitosamente ID: {$ajusteId}");
-                return $this->responseSetJSON('success', $response['msg']);
-            } elseif ($response['status'] === 'warning') {
-                return $this->responseSetJSON('warning', $response['msg']);
-            } else {
-                $this->logs->logError("[Ajuste Entrada] Error al anular ID: {$ajusteId}");
-                return $this->responseSetJSON('error', $response['msg']);
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
             }
+            if ($response['status'] !== 'success') {
+                $this->db->transRollback();
+                return $this->responseSetJSON($response['status'], $response['msg']);
+            }
+
+            $this->db->transCommit();
+            $this->logs->logSuccess("[Ajuste Entrada] Anulado exitosamente ID: {$ajusteId}");
+            return $this->responseSetJSON('success', $response['msg']);
         } catch (Exception $exc) {
             $this->logs->logError('Excepción al anular ajuste: ' . $exc->getMessage());
             return $this->responseSetJSON('error', 'Error interno: ' . $exc->getMessage());
@@ -708,7 +714,7 @@ class IndexController extends \App\Controllers\BaseController {
                 'totalImportados' => $importados,
                 'errores' => $errores
             ];
-            return $this->responseSetJSON('success', $msg, $dataResponse,);
+            return $this->responseSetJSON('success', $msg, $dataResponse);
         } catch (\Throwable $exec) {
             return $this->responseSetJSON('error', 'Error al procesar el archivo: ' . $exec->getMessage() . $exec->getTraceAsString());
         }

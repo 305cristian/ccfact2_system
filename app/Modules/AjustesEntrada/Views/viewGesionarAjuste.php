@@ -91,11 +91,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <!-- Botones de Seleccion -->
                 <div class="col-md-3 form-group-custom">
                     <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                        <input type="radio" class="btn-check" value="AJUSTE_INICIAL" v-model="ajenTipo"  autocomplete="off" >
+                        <input type="radio" class="btn-check"  id="btnradio1" value="AJUSTE_INICIAL" v-model="ajenTipo"  autocomplete="off" >
                         <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Inicial</label>
-                        <input type="radio" class="btn-check" value="COMPRA_SIN_FACTURA" v-model="ajenTipo" autocomplete="off" checked>
+                        <input type="radio" class="btn-check"  id="btnradio2" value="COMPRA_SIN_FACTURA" v-model="ajenTipo" autocomplete="off" checked>
                         <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-file me-2"></i> Compra sin Factura</label>
-                    </div>
+                    </div>                  
                 </div>
 
                 <div class="col-md-2">
@@ -270,7 +270,8 @@ window.appGestionAje = Vue.createApp({
                 ajenMotivo: this.ajenMotivo,
                 ajenCentrocosto: this.ajenCentrocosto,
                 ajenEstado: this.ajenEstado,
-                ajenFechas: this.ajenFechas
+                ajenFechas: this.ajenFechas,
+                ajenTipo: this.ajenTipo
             };
 
             try {

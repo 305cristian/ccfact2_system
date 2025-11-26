@@ -1,0 +1,23 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 26 nov 2025, 9:52:34 a.m.
+    Author     : CRISTIAN R. PAZ
+*/
+
+/*SweetAlert2 tiene z-index por defecto de 1060*/
+.swal2-container {
+    z-index: 1050 !important;
+}
+
+/*Modal de Bootstrap debe estar encima*/
+.modal {
+    z-index: 1060 !important;
+}
+
+.modal-backdrop {
+    z-index: 1055 !important;
+}
+
