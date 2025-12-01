@@ -124,7 +124,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         foreach ($dataAjuste->detalle as $valDet) {
 
-            $dataProducto = $this->entradasModel->searchProductoData($valDet->fk_producto);
+            $dataProducto = $this->searchModel->searchProductoData($valDet->fk_producto);
 
             $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $valDet->fk_producto, 'fk_bodega' => $dataAjuste->id_bodega], 'stb_stock', null, 1);
             $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
@@ -171,7 +171,7 @@ class IndexController extends \App\Controllers\BaseController {
             return $this->response->setJSON($msg);
         }
 
-        $dataProducto = $this->entradasModel->searchProductoData($idProd);
+        $dataProducto = $this->searchModel->searchProductoData($idProd);
         if (!$dataProducto) {
             $msg['status'] = "warning";
             $msg['msg'] = "No se ha encontrado el producto con el codigo: " . $idProd . '(Posiblemente este desactivado o aun no esta registrado )';
@@ -347,6 +347,14 @@ class IndexController extends \App\Controllers\BaseController {
                         $lote = $this->saveLote($ajusteId, $val);
                     }
                 }
+                
+                 if($val->qty <=0){
+                    return $this->responseSetJSON('warning', "No pueden haber productos con cantidad menor o igual a 0<br> para el producto {$val->name}");
+                }
+                if($val->price <=0){
+                    return $this->responseSetJSON('warning', "No pueden haber productos con precio menor o igual a 0<br> para el producto {$val->name}");
+                }
+                
                 $ajusteIdDet = $this->entradasLib->saveAjusteDetalle($ajusteId, $val, $lote);
 
                 if (!$ajusteIdDet) {
@@ -425,7 +433,7 @@ class IndexController extends \App\Controllers\BaseController {
 
             if (!$ajusteId) {
                 $this->db->transRollback();
-                $this->responseSetJSON('error', 'Ha ocurrido un error al registrar el Ajuste');
+                return $this->responseSetJSON('error', 'Ha ocurrido un error al registrar el Ajuste');
             }
 
             foreach ($cartData->cartContent as $val) {
@@ -448,6 +456,15 @@ class IndexController extends \App\Controllers\BaseController {
                         $lote = $this->saveLote($ajusteId, $val);
                     }
                 }
+                if($val->qty <=0){
+                     $this->db->transRollback();
+                    return $this->responseSetJSON('warning', "No pueden haber productos con cantidad menor o igual a 0<br> para el producto {$val->name}");
+                }
+                if($val->price <=0){
+                     $this->db->transRollback();
+                    return $this->responseSetJSON('warning', "No pueden haber productos con precio menor o igual a 0<br> para el producto {$val->name}");
+                }
+                
                 $ajusteIdDet = $this->entradasLib->saveAjusteDetalle($ajusteId, $val, $lote);
 
                 if (!$ajusteIdDet) {
@@ -632,7 +649,7 @@ class IndexController extends \App\Controllers\BaseController {
                     $errores[] = "Fila {$i}: el producto con código '{$codigo}' no existe o esta desactivado.";
                     continue;
                 }
-                $producto = $this->entradasModel->searchProductoData($idProd);
+                $producto = $this->searchModel->searchProductoData($idProd);
 
                 //SI EL PRODUCTO TIENE CONTROL DE LOTES CONTROLAMOS LOS LOTES
                 if ($producto->prod_ctrllote === '1') {

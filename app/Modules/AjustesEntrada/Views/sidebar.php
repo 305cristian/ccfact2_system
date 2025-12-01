@@ -16,7 +16,7 @@
         <li class="nav-header"></li>
         <li class="nav-item margin  menu-is-opening menu-open">
             <!--AJUSTES DE ENTRADA-->
-            <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fas fa-sign-in-alt me-3 sidebarColorIcon"></i><p>AJUSTES DE ENTRADA<i class="fas fa-angle-left right text-white"></i></p></a>
+            <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fad fa-sort-amount-up me-3 sidebarColorIcon"></i><p>AJUSTES DE ENTRADA<i class="fas fa-angle-left right text-white"></i></p></a>
             <ul class="nav nav-treeview">
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/ajustesentrada/nuevoAjuste' }">
                     <a @click.prevent="navigate('<?= site_url() ?>/ajustesentrada/nuevoAjuste')" class="nav-link" style="cursor: pointer">

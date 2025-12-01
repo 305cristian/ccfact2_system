@@ -16,7 +16,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <div class="cart">
     <div class="cart-header d-flex justify-content-between align-items-center">
-        <h5><i class="fas fa-shopping-cart me-2"></i>Artículos del Ajuste</h5>
+        <h5><i class="fas fa-shopping-cart me-2"></i>Artículos del Ajuste de Entrada</h5>
         <div v-if="loading" class="loading-data">
             <h6 style="font-family: "><i class="loading-spin"></i> Cargando Producto...</h6>
         </div>

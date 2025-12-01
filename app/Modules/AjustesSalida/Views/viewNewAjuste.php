@@ -5,13 +5,14 @@
  *
 /**
  * @author CRISTIAN R. PAZ
- * @date 8 oct 2025
- * @time 4:47:22 p.m.
+ * @date 26 nov 2025
+ * @time 10:36:42 a.m.
  */       
  
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
+
 <style>
     .multiselect__tags {
         border-radius: 5px 0px 0px 5px
@@ -22,9 +23,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 v-if="isEdit" class="card-title text-system"><i class="fas fa-folder-blank"></i> Actualizar Ajuste de Entrada</h5>
-            <h5 v-else class="card-title text-system"><i class="fas fa-folder-blank"></i> Nuevo Ajuste de Entrada</h5>
+            <h5 v-if="isEdit" class="card-title text-system">
+                <i class="fas fa-folder-blank"></i> Actualizar Ajuste de Salida
+            </h5>
+            <h5 v-else class="card-title text-system">
+                <i class="fas fa-folder-blank"></i> Nuevo Ajuste de Salida
+            </h5>
         </div>
+
         <div class="card-body">
 
             <fieldset>
@@ -33,20 +39,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <!-- Fecha -->
                     <div class="col-md-2 form-group-custom">
                         <div class="input-group">
-                            <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i>Fecha</span>
-                            <input v-model="formDataAjuste.ajenFecha" type="date" class="form-control">
-                        </div>
-                    </div>
-                    <!-- Subacuenta -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex justify-content-between align-items-center border">                  
-                            <span class="input-group-text bg-cris-system" id="basic-addon1"><i class="fas fa-receipt me-2"></i> Sustento</span>
-                            <vue-select  
-                                class="flex-grow-1"
-                                :options="listaSustentos"
-                                label="sus_nombre"
-                                v-model="formDataAjuste.ajenSustento"
-                                placeholder="Seleccione un sustento"/>
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-calendar me-2"></i>Fecha
+                            </span>
+                            <input v-model="formDataAjuste.ajesFecha" type="date" class="form-control">
                         </div>
                     </div>
 
@@ -63,73 +59,129 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 @option:selected="changeBodega"
                                 :options="listaBodegas" 
                                 label="bod_nombre" 
-                                v-model="formDataAjuste.ajenBodega" 
+                                v-model="formDataAjuste.ajesBodega" 
                                 placeholder="Seleccione una bodega"/>
                         </div>
                     </div>
+
                     <!-- Motivo de Ajuste -->
-                    <div class="col-md-2 form-group-custom">
+                    <div class="col-md-3 form-group-custom">
                         <div class="d-flex justify-content-between align-items-center border">
-                            <span class="input-group-text bg-cris-system"><i class="fas fa-tag me-2"></i>Motivo</span>
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-tag me-2"></i>Motivo
+                            </span>
                             <vue-select 
                                 class="flex-grow-1"
                                 :options="listaMotivos"
-                                label="mot_nombre"
-                                v-model="formDataAjuste.ajenMotivo"
+                                label="motivo"
+                                v-model="formDataAjuste.ajesMotivo"
                                 placeholder="Seleccione un motivo"/>
                         </div>
                     </div>
+
                     <!-- Centro de Costo -->
                     <div class="col-md-3 form-group-custom">
                         <div class="d-flex justify-content-between align-items-center border">
-                            <span class="input-group-text bg-cris-system"><i class="fas fa-project-diagram me-2"></i>Centro de Costo</span>
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-project-diagram me-2"></i>Centro de Costo
+                            </span>
                             <vue-select 
                                 class="flex-grow-1"
                                 :options="listaCentroCostos"
                                 label="cc_nombre"
-                                v-model="formDataAjuste.ajenCentrocosto"
+                                v-model="formDataAjuste.ajesCentrocosto"
                                 placeholder="Seleccione un centro de costos"/>
+                        </div>
+                    </div>
+
+                    <!-- Servicio -->
+                    <div class="col-md-2 form-group-custom">
+                        <div class="d-flex justify-content-between align-items-center border">
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-receipt me-2"></i>Servicio
+                            </span>
+                            <vue-select 
+                                class="flex-grow-1"
+                                :options="listaServicios"
+                                label="serv_nombre"
+                                v-model="formDataAjuste.ajesServicio"
+                                placeholder="Seleccione un servicio"/>
                         </div>
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row mt-2">
                     <!-- Observaciones -->
                     <div class="col-md-6 form-group-custom">
                         <div class="input-group">
-                            <span class="input-group-text bg-cris-system"><i class="fas fa-comments me-2"></i>Observaciones</span>
-                            <input v-model="formDataAjuste.ajenObservaciones" type="text" class="form-control" placeholder="Observaciones...">
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-comments me-2"></i>Observaciones
+                            </span>
+                            <input v-model="formDataAjuste.ajesObservaciones"
+                                   type="text"
+                                   class="form-control"
+                                   placeholder="Observaciones...">
                         </div>
                     </div>
+
                     <!-- Estado -->
-                    <div class="col-md-3 form-group-custom">
+                    <div class="col-md-2 form-group-custom">
                         <div class="input-group">
-                            <span class="input-group-text bg-cris-system"><i class="fas fa-toggle-on me-2"></i>Estado</span>
-                            <select title="Seleccione un estado" v-model="formDataAjuste.ajenEstado" class="form-select show-tick borderspk" data-style="btn-white">               
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-toggle-on me-2"></i>Estado
+                            </span>
+                            <select title="Seleccione un estado"
+                                    v-model="formDataAjuste.ajesEstado"
+                                    class="form-select show-tick borderspk"
+                                    data-style="btn-white">
                                 <option disabled value="">Seleccione un estado</option>
                                 <option value="2">ARCHIVAR</option>
                                 <option value="1">BORRADOR</option>
                             </select>
                         </div>
                     </div>
-                    <!-- Botones de Seleccion -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                            <input type="radio" class="btn-check" id="btnradio1" value="AJUSTE_INICIAL" v-model="formDataAjuste.ajenTipo"  autocomplete="off" >
-                            <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Inicial</label>
-                            <input type="radio" class="btn-check" id="btnradio2"  value="COMPRA_SIN_FACTURA" v-model="formDataAjuste.ajenTipo" autocomplete="off" checked>
-                            <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-file me-2"></i> Compra sin Factura</label>
+
+                    <!-- Tipo de ajuste salida -->
+                    <div class="col-md-4 form-group-custom">
+                        <div class="btn-group" role="group" aria-label="Tipo de ajuste">
+                            <input type="radio"
+                                   class="btn-check"
+                                   id="btnradio_s1"
+                                   value="AJUSTE_MERMA"
+                                   v-model="formDataAjuste.ajesTipo"
+                                   autocomplete="off">
+                            <label class="btn btn-outline-danger" for="btnradio_s1">
+                                <i class="fas fa-skull-crossbones me-2"></i> Merma / Daño
+                            </label>
+
+                            <input type="radio"
+                                   class="btn-check"
+                                   id="btnradio_s2"
+                                   value="CONSUMO_INTERNO"
+                                   v-model="formDataAjuste.ajesTipo"
+                                   autocomplete="off">
+                            <label class="btn btn-outline-primary" for="btnradio_s2">
+                                <i class="fas fa-utensils me-2"></i> Consumo Interno
+                            </label>
+                            <input type="radio"
+                                   class="btn-check"
+                                   id="btnradio_s3"
+                                   value="DESPACHO"
+                                   v-model="formDataAjuste.ajesTipo"
+                                   autocomplete="off">
+                            <label class="btn btn-outline-success" for="btnradio_s3">
+                                <i class="fas fa-clipboard-check me-2"></i> Despacho
+                            </label>
                         </div>
                     </div>
-
                 </div>
             </fieldset>
-            <br>
-            <fieldset>
-                <legend>Importación, Búsqueda de Productos y Selección de proveedor</legend>
-                <!-- Datos del Producto -->
-                <div class="row">
 
+            <br>
+
+            <fieldset>
+                <legend>Importación y Búsqueda de Productos</legend>
+                <div class="row">
 
                     <div class="col-md-1 text-start">
                         <button 
@@ -142,7 +194,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </button>
                     </div>
 
-
+                    <!-- Buscador productos multiselect -->
                     <div class="col-md-4 form-group-custom">
                         <div class="d-flex justify-content-between align-items-center">
                             <vue-multiselect
@@ -170,54 +222,69 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             <div class="col">
                                                 <span class="fw-bold text-dark">{{ option.prod_nombre }}</span>
                                             </div>
-                                            <!--                                            <div class="col-auto">
-                                                                                            <span class="badge bg-info text-dark">{{ option.stb_stock }}</span>
-                                                                                        </div>-->
+                                            <div class="col">
+                                                <span class="fw-bold text-dark"> <i class="fas fa-box-archive"></i> {{ option.stb_stock }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </template>
                             </vue-multiselect>
-                            <span class="input-group-text" style="border-radius: 0px 5px 5px 0px"><i class="fas fa-search"></i></span>
+                            <span class="input-group-text" style="border-radius: 0px 5px 5px 0px">
+                                <i class="fas fa-search"></i>
+                            </span>
                         </div>
                     </div>
 
+                    <!-- Búsqueda por código / barras -->
                     <div class="col-md-3 form-group-custom">
                         <div class="input-group">
-                            <input type="text" class="form-control" v-model="codeSearch" :disabled='loading' placeholder="Cod. Producto / Cod. Común / Código de Barras" @keyup.enter="insertProductCode($event)">
-                            <span class="input-group-text"><i class="fas fa-qrcode"></i></span>
+                            <input type="text"
+                                   class="form-control"
+                                   v-model="codeSearch"
+                                   :disabled='loading'
+                                   placeholder="Cod. Producto / Cod. Común / Código de Barras"
+                                   @keyup.enter="insertProductCode($event)">
+                            <span class="input-group-text">
+                                <i class="fas fa-qrcode"></i>
+                            </span>
                         </div>
                     </div>
+
+                    <!-- Búsqueda de clientes -->
                     <div class="col-md-4 form-group-custom ">
                         <div class="d-flex justify-content-between align-items-center ">  
                             <vue-multiselect
-                                v-model="formDataAjuste.ajenProveedor" 
-                                tag-placeholder="Proveedor no Encontrado"
-                                placeholder="Buscar Proveedores"
-                                label="proveedor"
-                                track-by="prov_ruc"
+                                v-model="formDataAjuste.ajesCliente" 
+                                tag-placeholder="Cliente no Encontrado"
+                                placeholder="Buscar Clientes"
+                                label="cliente"
+                                track-by="clie_dni"
                                 :multiple="false"
                                 :searchable="true"
                                 :options-limit="10"
                                 :show-no-results="true"
-                                :options="listaSearchProveedores"
+                                :options="listaSearchClientes"
                                 @remove="onRemove($event)"
-                                @search-change="searchProveedor($event)">
+                                @search-change="searchClientes($event)">
 
                                 <template #option="{ option }">
-                                    <span style="font-size: 12px"><strong>{{ option.prov_ruc+': '}} </strong> {{  option.prov_razon_social}}</span>
+                                    <span style="font-size: 12px"><strong>{{ option.clie_dni+': '}} </strong> {{  option.clie_razon_social}}</span>
                                 </template>
-                            </vue-multiselect>
+                            </vue-multiselect> 
                             <span class="input-group-text" style="border-radius: 0px 5px 5px 0px"><i class="fas fa-user-tie"></i></span>
                         </div>
                     </div>
+
                 </div>        
             </fieldset>
+
             <br>
 
+            <!-- Importar desde excel -->
             <div v-if="mostrarImportacion">
                 <fieldset>
                     <legend>Importar desde excel</legend>
-                    <div class="row mt-1" >
+                    <div class="row mt-1">
                         <div class="col-md-4">
                             <small class="text-muted">
                                 Plantilla: Código, Cantidad, Lote, F. Elaboración, F. Caducidad
@@ -249,7 +316,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </div>
 
                         <div class="col-md-2 d-flex align-items-end">
-                            <a :href="url + '/comun/descargar/downloadPlantillaExcel'" class="btn btn-outline-primary w-100">
+                            <a :href="url + '/comun/descargar/downloadPlantillaExcelSalida'" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-download me-2"></i> Descargar Plantilla
                             </a>
                         </div>
@@ -259,83 +326,92 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             <br>
 
-            <!--VIEW CART-->
-            <?php echo view('\Modules\AjustesEntrada\Views\viewCart') ?>
-            <!--VIEW CART-->
+            <!-- VIEW CART SALIDA -->
+            <?php echo view('\Modules\AjustesSalida\Views\viewCart') ?>
+            <!-- FIN VIEW CART -->
 
             <!-- Botones de Control -->
             <div v-if="!emptyCar" class="row mt-4 mb-5">
                 <div class="col-12 d-flex gap-3 justify-content-end">
-                    <button @click="cancelarAjuste()" class="btngr btn-danger-gradiant" style="min-width: 150px;" :disabled="loadingProcess">
+                    <button @click="cancelarAjuste()"
+                             class="btngr btn-danger-gradiant"
+                             style="min-width: 150px;"
+                             :disabled="loadingProcess">
                         <i class="fas fa-times-circle me-2"></i>Cancelar
                     </button>
-                    <button class="btngr btn-primary-gradiant" style="min-width: 150px;" @click="saveAjuste()" :disabled="loadingProcess">
-                        <span v-if="loadingProcess"><i class="loading-spin"></i>{{isEdit?'Actualizando...':'Grabando...'}}</span>
-                        <span v-else><i class="fas fa-save me-2"></i>{{isEdit?'Actualizar Ajuste':'Grabar Ajuste'}}</span>
+                    <button class="btngr btn-primary-gradiant"
+                            style="min-width: 150px;"
+                            @click="saveAjuste()"
+                            :disabled="loadingProcess">
+                        <span v-if="loadingProcess">
+                            <i class="loading-spin"></i>{{isEdit?'Actualizando...':'Grabando...'}}
+                        </span>
+                        <span v-else>
+                            <i class="fas fa-save me-2"></i>{{isEdit?'Actualizar Ajuste':'Grabar Ajuste'}}
+                        </span>
                     </button>
                 </div>
             </div>
 
         </div>
     </div>
-    <!--MODAL DETALLE-->
-    <?php echo view('\Modules\AjustesEntrada\Views\reportes\viewModalReport') ?>
-    <!--CLOSE MODAL DETALLE-->
+
+    <!-- MODAL DETALLE -->
+    <?php echo view('\Modules\AjustesSalida\Views\reportes\viewModalReport') ?>
+    <!-- FIN MODAL DETALLE -->
 </div>
 
 <script type="text/javascript">
-
     var fechaActual = DateTime.now().toFormat('yyyy-MM-dd');
-    var listaSustentos = <?= json_encode($listaSustentos); ?>;
     var listaBodegas = <?= json_encode($listaBodegas); ?>;
     var listaMotivos = <?= json_encode($listaMotivos); ?>;
     var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
+    var listaServicios = <?= json_encode($listaServicios); ?>;
     var permitirDuplicados = <?= $permitirDuplicados ?>;
-    var bodegaIdAje = '<?= $bodegaId; ?>';
-    var dataAjuste =<?= json_encode($dataAjuste); ?>;
-    var dataProveedor =<?= json_encode($dataProveedor); ?>;
-
-
+    var bodegaIdAjs = '<?= $bodegaId; ?>';
+    var dataCliente =<?= json_encode($dataCliente); ?>;
+    var dataAjuste = <?= json_encode($dataAjuste); ?>;
     var searchTimeout = null;
 
-    if (window.appAje) {
-        window.appAje.unmount();
+    if (window.appAjs) {
+        window.appAjs.unmount();
     }
 
-    window.appAje = Vue.createApp({
-
+    window.appAjs = Vue.createApp({
         components: {
             "vue-multiselect": window['vue-multiselect'].Multiselect,
             "vue-select": window['vue-select']
         },
         data() {
-            return{
+            return {
                 url: siteUrl,
+
+                //VARIABLES
                 isEdit: false,
                 mostrarImportacion: false,
                 selectedExcelFile: null,
                 excelFilename: '',
 
                 //LISTAS PARA EL PROCESO
-                listaSustentos: listaSustentos,
                 listaBodegas: listaBodegas,
                 listaMotivos: listaMotivos,
                 listaCentroCostos: listaCentroCostos,
+                listaServicios: listaServicios,
 
                 formDataAjuste: {
-                    ajenSustento: '',
-                    ajenBodega: '',
-                    ajenCentrocosto: '',
-                    ajenFecha: fechaActual,
-                    ajenMotivo: '',
-                    ajenEstado: '',
-                    ajenObservaciones: '',
-                    ajenProveedor: '',
-                    ajenTipo: 'COMPRA_SIN_FACTURA',
-                    ajenPermitirDuplicados: permitirDuplicados
+                    ajesBodega: '',
+                    ajesCentrocosto: '',
+                    ajesFecha: fechaActual,
+                    ajesMotivo: '',
+                    ajesServicio: '',
+                    ajesEstado: '',
+                    ajesObservaciones: '',
+                    ajesTipo: 'DESPACHO',
+                    ajesCliente: '',
+                    ajesPermitirDuplicados: permitirDuplicados
                 },
 
-                //DATOS DEL CART
+                // CART
                 listaCartData: [],
                 totalCart: '',
                 totalIva: '',
@@ -347,14 +423,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 emptyCar: true,
 
                 //VUE-MULTISELECT PROVEEDOR
-                listaSearchProveedores: [],
+                listaSearchClientes: [],
 
-                //VUE-MULTISELECT PRODUCTOS
+                // VUE-MULTISELECT PRODUCTOS
                 listaSearchProductos: [],
                 productoVmodel: null,
                 codeSearch: "",
 
-                //PARA MODAL REPORTE
+                // MODAL REPORTE
                 idAjuste: '',
                 secuencialAjuste: '',
                 cargandoDetalle: false,
@@ -369,24 +445,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             this.showDetailCart();
         },
         mounted() {
-            this.formDataAjuste.ajenBodega = this.listaBodegas.find(val => val.id === bodegaIdAje);
+            this.formDataAjuste.ajesBodega = this.listaBodegas.find(val => val.id === bodegaIdAjs);
 
-            if (dataAjuste) {//LOAD DATA, AL ACTUALIZAR EL DOCUMENTO
+            if (dataAjuste) {
                 this.isEdit = true;
-                this.formDataAjuste.ajenSustento = this.listaSustentos.find(val => val.sus_codigo === dataAjuste.codigo_sustento);
-                this.formDataAjuste.ajenBodega = this.listaBodegas.find(val => val.id === dataAjuste.fk_bodega);
-                this.formDataAjuste.ajenMotivo = this.listaMotivos.find(val => val.id === dataAjuste.fk_motivo_ajuste);
-                this.formDataAjuste.ajenCentrocosto = this.listaCentroCostos.find(val => val.id === dataAjuste.fk_centro_costo);
-                this.formDataAjuste.ajenObservaciones = dataAjuste.ajen_observaciones;
-                this.formDataAjuste.ajenEstado = dataAjuste.ajen_estado;
-                this.formDataAjuste.ajenProveedor = dataProveedor;
-                this.formDataAjuste.ajenTipo = dataAjuste.ajen_tipo;
-                this.formDataAjuste.ajenPermitirDuplicados = dataAjuste.ajen_items_duplicados;
+                this.formDataAjuste.ajesBodega = this.listaBodegas.find(val => val.id === dataAjuste.fk_bodega);
+                this.formDataAjuste.ajesMotivo = this.listaMotivos.find(val => val.id === dataAjuste.fk_motivo_ajuste);
+                this.formDataAjuste.ajesCentrocosto = this.listaCentroCostos.find(val => val.id === dataAjuste.fk_centro_costo);
+                this.formDataAjuste.ajesServicio = this.listaServicios.find(val => val.id === dataAjuste.fk_servicio);
+                this.formDataAjuste.ajesObservaciones = dataAjuste.ajes_observaciones;
+//                this.formDataAjuste.ajesEstado = dataAjuste.ajes_estado;
+                this.formDataAjuste.ajesTipo = dataAjuste.ajes_tipo;
+                this.formDataAjuste.ajesCliente = dataCliente;
+                this.formDataAjuste.ajesPermitirDuplicados = dataAjuste.ajes_items_duplicados;
             }
-            ;
+
             this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
         },
         methods: {
+
             loadFilePicked(event) {
                 const file = event.target.files?.[0] || null;
                 this.selectedExcelFile = file;
@@ -398,19 +475,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_toast('warning', 'Seleccione un archivo Excel primero');
                     return;
                 }
-                if (!this.formDataAjuste.ajenBodega.id) {
+                if (!this.formDataAjuste.ajesBodega.id) {
                     sweet_msg_toast('warning', 'Debe seleccionar una bodega antes de importar');
                     return;
                 }
 
                 const datos = new FormData();
                 datos.append('file', this.selectedExcelFile);
-                datos.append('bodegaId', this.formDataAjuste.ajenBodega.id);
-                datos.append('permitirDuplicados', this.formDataAjuste.ajenPermitirDuplicados);
+                datos.append('bodegaId', this.formDataAjuste.ajesBodega.id);
+                datos.append('permitirDuplicados', this.formDataAjuste.ajesPermitirDuplicados);
 
                 try {
                     this.loadingProcess = true;
-                    const {data} = await axios.post(this.url + '/ajustesentrada/importarExcel', datos);
+                    const {data} = await axios.post(this.url + '/ajustessalida/importarExcel', datos);
 
                     if (data.status === 'success') {
                         sweet_msg_dialog('success', (data.msg || 'Importación completada'));
@@ -433,14 +510,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             validarCampos() {
                 const campos = [
-                    {key: 'ajenFecha', msg: 'Debe seleccionar una fecha'},
-                    {key: 'ajenSustento', msg: 'Debe seleccionar un sustento'},
-                    {key: 'ajenBodega', msg: 'Debe seleccionar una bodega'},
-                    {key: 'ajenCentrocosto', msg: 'Debe seleccionar un centro de costos'},
-                    {key: 'ajenMotivo', msg: 'Debe seleccionar un motivo de ajuste'},
-                    {key: 'ajenEstado', msg: 'Debe seleccionar un estado'},
-                    {key: 'ajenProveedor', msg: 'Debe seleccionar un proveedor'},
-                    {key: 'ajenTipo', msg: 'Debe seleccionar un tipo de ajuste'}
+                    {key: 'ajesFecha', msg: 'Debe seleccionar una fecha'},
+                    {key: 'ajesBodega', msg: 'Debe seleccionar una bodega'},
+                    {key: 'ajesCentrocosto', msg: 'Debe seleccionar un centro de costos'},
+                    {key: 'ajesMotivo', msg: 'Debe seleccionar un motivo de ajuste'},
+                    {key: 'ajesServicio', msg: 'Debe seleccionar un servicio'},
+                    {key: 'ajesEstado', msg: 'Debe seleccionar un estado'},
+                    {key: 'ajesTipo', msg: 'Debe seleccionar un tipo de ajuste'},
                 ];
 
                 for (const campo of campos) {
@@ -448,18 +524,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         return {status: true, msg: campo.msg};
                     }
                 }
-
                 return {status: false};
             },
 
             async saveAjuste() {
-
                 let statusValidation = this.validarCampos();
                 if (statusValidation.status) {
                     sweet_msg_toast('warning', statusValidation.msg);
-                    return false;
+                    return;
                 }
-                let ruta = this.isEdit ? '/ajustesentrada/updateAjuste' : '/ajustesentrada/saveAjuste';
+
+                let ruta = this.isEdit ? '/ajustessalida/updateAjuste' : '/ajustessalida/saveAjuste';
 
                 try {
                     this.loadingProcess = true;
@@ -469,7 +544,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     let {data} = await axios.post(this.url + ruta, datos);
 
                     if (data.status === "success") {
-                        const url = this.url + '/ajustesentrada/nuevoAjuste';
+                        const url = this.url + '/ajustessalida/nuevoAjuste';
                         sweetMsgDialogConfirm(data.msg, this.verDetalle, data.data, url);
                     } else if (data.status === "warning") {
                         sweet_msg_dialog('warning', data.msg);
@@ -478,73 +553,66 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
 
                 } catch (e) {
-                    sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
                 } finally {
                     this.loadingProcess = false;
                 }
-
-
             },
 
             //SEARCH PROVEEDORES
-            searchProveedor(dataSerach) {
+            searchClientes(dataSerach) {
                 clearTimeout(searchTimeout);
                 const datos = {dataSerach};
                 searchTimeout = setTimeout(async () => {
                     try {
-                        const {data} = await axios.post(this.url + '/comun/proveedores/searchProveedor', datos);
+                        const {data} = await axios.post(this.url + '/comun/clientes/searchClientes', datos);
                         if (data !== false) {
-                            this.listaSearchProveedores = data;
+                            this.listaSearchClientes = data;
                         } else {
-                            this.listaSearchProveedores = [];
+                            this.listaSearchClientes = [];
                         }
                     } catch (e) {
                         sweet_msg_dialog('error', '', '', e.data?.message || e.message);
-                        this.listaSearchProveedores = [];
+                        this.listaSearchClientes = [];
                     }
                 }, 500);
 
             },
 
-            //SEARCH PRODUCTOS
+            // SEARCH PRODUCTOS
             searchProductos(dataSerach) {
                 clearTimeout(searchTimeout);
                 let datos = {
                     dataSerach: dataSerach,
-                    bodegaId: this.formDataAjuste.ajenBodega.id,
+                    bodegaId: this.formDataAjuste.ajesBodega.id,
                     estado: 1
                 };
                 searchTimeout = setTimeout(async () => {
                     try {
-                        let {data} = await axios.post(this.url + '/comun/productos/searchProductos', datos);
+                        let {data} = await axios.post(this.url + '/comun/productos/searchProductosStock', datos);
                         if (data !== false) {
                             this.listaSearchProductos = data;
                         } else {
                             this.listaSearchProductos = [];
                         }
                     } catch (e) {
-                        sweet_msg_dialog('error', '', '', e.data.message);
+                        sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                         this.listaSearchProductos = [];
                     }
                 }, 500);
-
-
             },
 
-            // Ver detalle del ajuste
             async verDetalle(ajuste) {
                 this.idAjuste = ajuste.id;
-                this.secuencialAjuste = ajuste.ajen_secuencial;
+                this.secuencialAjuste = ajuste.ajes_secuencial;
                 this.cargandoDetalle = true;
                 this.modalInstance.show();
                 try {
-
-                    const {data} = await axios.get(this.url + '/ajustesentrada/getDataDetalle/' + ajuste.id);
+                    const {data} = await axios.get(this.url + '/ajustessalida/getDataDetalle/' + ajuste.id);
                     this.cargandoDetalle = false;
                     await Vue.nextTick();
                     const modal = document.getElementById('detalleAjusteModal');
                     modal.innerHTML = data;
-
                 } catch (error) {
                     sweet_msg_dialog('error', '', '', 'Error al cargar el detalle del ajuste, ' + error.message);
                 } finally {
@@ -561,38 +629,35 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async insertProductCode(evt) {
                 if (evt.target.value === "") {
                     sweet_msg_toast('warning', 'Por favor digite un código');
-                    return false;
+                    return;
                 }
                 let datos = {id: evt.target.value};
                 await this.insertProductCart(datos);
-
             },
-            async insertProductCart(item) {
-                this.onRemove();//Removemos datos del anterior producto insertado
 
-                if (this.formDataAjuste.ajenBodega === "") {
-                    sweet_msg_toast('warning', 'Debe selecionar una bodega');
-                    return false;
+            async insertProductCart(item) {
+                this.onRemove();
+
+                if (this.formDataAjuste.ajesBodega === "") {
+                    sweet_msg_toast('warning', 'Debe seleccionar una bodega');
+                    return;
                 }
 
                 let datos = {
                     id: item.id,
                     qty: 1,
-                    bodega: this.formDataAjuste.ajenBodega.id,
-                    permitirDuplicados: this.formDataAjuste.ajenPermitirDuplicados
-
+                    bodega: this.formDataAjuste.ajesBodega.id,
+                    permitirDuplicados: this.formDataAjuste.ajesPermitirDuplicados
                 };
 
                 try {
                     this.loading = true;
-
-                    let {data} = await axios.post(this.url + '/ajustesentrada/insertProduct', datos);
+                    let {data} = await axios.post(this.url + '/ajustessalida/insertProduct', datos);
                     if (data.status === "success") {
                         sweet_msg_toast('success', data.msg);
                     } else if (data.status === "warning") {
                         sweet_msg_toast('warning', data.msg);
                     }
-
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                 } finally {
@@ -603,26 +668,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             async updateProductCart(item) {
-                this.onRemove();//Removemos datos del anterior producto insertado
+                this.onRemove();
 
                 if (item.qty <= 0) {
                     item.qty = 1;
                     sweet_msg_toast('warning', 'La cantidad debe ser mayor a cero');
-                    return false;
+                    return;
                 }
 
                 let datos = item;
+                datos.ajusteId = this.isEdit ? dataAjuste.id : '';
 
                 try {
                     this.loading = true;
-
-                    let {data} = await axios.post(this.url + '/ajustesentrada/updateProduct', datos);
+                    let {data} = await axios.post(this.url + '/ajustessalida/updateProduct', datos);
                     if (data.status === "success") {
                         sweet_msg_toast('success', data.msg);
                     } else if (data.status === "warning") {
                         sweet_msg_toast('warning', data.msg);
                     }
-
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                 } finally {
@@ -633,13 +697,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             async showDetailCart() {
-
                 try {
-                    let {data} = await axios.post(this.url + '/ajustesentrada/showDetailCart');
+                    let {data} = await axios.post(this.url + '/ajustessalida/showDetailCart');
 
                     if (data.totalArticles > 0) {
-
-                        //TODO DATOS LISTAS
                         this.listaCartData = data.cartContent;
                         this.totalArticles = data.totalArticles;
                         this.totalItems = data.totalItems;
@@ -649,7 +710,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         this.totalBienes = data.totalBienes;
                         this.totalServicios = data.totalServicios;
                         this.emptyCar = false;
-
                     } else {
                         this.emptyCar = true;
                         this.listaCartData = [];
@@ -657,17 +717,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                 }
-
-
             },
 
             async changeBodega() {
                 if (this.emptyCar !== false) {
-                    let bodegaId = this.formDataAjuste.ajenBodega.id;
+                    let bodegaId = this.formDataAjuste.ajesBodega.id;
                     if (bodegaId) {
                         try {
                             this.loadingBodega = true;
-                            let {data} = await axios.get(this.url + '/ajustesentrada/changeBodega/' + bodegaId);
+                            let {data} = await axios.get(this.url + '/ajustessalida/changeBodega/' + bodegaId);
                             if (data.status === 'success') {
                                 sweet_msg_toast('success', data.msg);
                             }
@@ -677,19 +735,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             this.loadingBodega = false;
                         }
                     }
-
                 } else {
-                    this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
-
+                    this.formDataAjuste.ajesBodega = this.listaBodegas.find(b => b.id === bodegaIdAjs);
                     sweet_msg_dialog('warning', 'Existen productos cargados al carrito<br> No se puede cambiar de bodega');
                 }
-
             },
 
             async deleteProduct(rowId) {
                 try {
                     this.loading = true;
-                    await axios.get(this.url + '/ajustesentrada/deleteProduct/' + rowId);
+                    await axios.get(this.url + '/ajustessalida/deleteProduct/' + rowId);
                     this.showDetailCart();
                     sweet_msg_toast('info', 'Producto eliminado exitosamente');
                 } catch (e) {
@@ -698,10 +753,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.loading = false;
                 }
             },
+
             async cancelarAjuste() {
                 Swal.fire({
-                    title: "Esta seguro que desea cancelar el Ajuste?",
-                    html: "<h6>Esta acción borrara toda las lista cargada.</h6>",
+                    title: "¿Esta seguro que desea cancelar el Ajuste?",
+                    html: "<h6>Esta acción borrará toda la lista cargada.</h6>",
                     icon: 'warning',
                     width: "30%",
                     showCancelButton: true,
@@ -711,11 +767,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (result.isConfirmed) {
                         try {
                             this.loading = true;
-                            await axios.post(this.url + '/ajustesentrada/cancelarAjuste');
+                            await axios.post(this.url + '/ajustessalida/cancelarAjuste');
                             this.showDetailCart();
                             this.clear();
-                            window.history.pushState({}, '', this.url + '/ajustesentrada/nuevoAjuste');
-//                            window.location.href = this.url + '/ajustesentrada/nuevoAjuste';
+                            window.history.pushState({}, '', this.url + '/ajustessalida/nuevoAjuste');
                         } catch (e) {
                             sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                         } finally {
@@ -723,43 +778,34 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         }
                     }
                 });
-
-
             },
-            // ==========================================
-            // EXPORTAR A EXCEL
-            // ==========================================
 
             generarExcel() {
                 const contenido = document.getElementById('contentExport');
-                const titulo = `Ajuste_Entrada_${this.zFill(this.secuencialAjuste, 5)}`;
+                const titulo = `Ajuste_Salida_${this.zFill(this.secuencialAjuste, 5)}`;
                 return generarExcel(contenido, titulo);
             },
-            // ==========================================
-            // EXPORTAR A PDF
-            // ==========================================
+
             generarPDF() {
                 try {
-                    window.open(`${this.url}/ajustesentrada/generarPDF/${this.idAjuste}?download=1`, '_blank');
+                    window.open(`${this.url}/ajustessalida/generarPDF/${this.idAjuste}?download=1`, '_blank');
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', 'Error al generar el documento, ' + e.message);
                 }
             },
-            clear() {
-                this.isEdit = false,
-                        this.formDataAjuste = {
-                            ajenSustento: '',
-                            ajenBodega: this.listaBodegas.find(val => val.id === bodegaIdAje),
-                            ajenCentrocosto: '',
-                            ajenFecha: fechaActual,
-                            ajenMotivo: '',
-                            ajenEstado: '',
-                            ajenObservaciones: '',
-                            ajenProveedor: '',
-                            ajenTipo: 'COMPRA_SIN_FACTURA',
-                            ajenPermitirDuplicados: permitirDuplicados
-                        };
 
+            clear() {
+                this.isEdit = false;
+                this.formDataAjuste = {
+                    ajesBodega: this.listaBodegas.find(val => val.id === bodegaIdAjs),
+                    ajesCentrocosto: '',
+                    ajesFecha: fechaActual,
+                    ajesMotivo: '',
+                    ajesEstado: '',
+                    ajesObservaciones: '',
+                    ajesTipo: 'AJUSTE_MERMA',
+                    ajesPermitirDuplicados: permitirDuplicados
+                };
             },
 
             formatToUSD(amount) {
@@ -775,7 +821,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 for (var key in obj) {
                     let value = obj[key];
 
-                    // Si es null o undefined, agregar como está
                     if (value === null || value === undefined) {
                         formData.append(key, '');
                         continue;
@@ -786,12 +831,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     formData.append(key, value);
                 }
                 return formData;
-            },
-
-        },
-
+            }
+        }
     });
-    window.appAje.use(AllDirectives);
-    window.appAje.mount('#app');
 
+    window.appAjs.use(AllDirectives);
+    window.appAjs.mount('#app');
 </script>

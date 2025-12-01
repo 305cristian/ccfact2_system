@@ -38,11 +38,45 @@ class SearchsModel extends \CodeIgniter\Model {
         }
     }
 
+    public function searchClientes($dataSearch) {
+        $builder = $this->db->table('cc_clientes tb1');
+        $builder->select('tb1.id, tb1.clie_nombres, tb1.clie_apellidos, tb1.clie_razon_social, tb1.clie_dni, CONCAT(tb1.clie_dni," : ",tb1.clie_razon_social)cliente ');
+        $builder->where('tb1.clie_estado', 1);
+        $builder->like('tb1.clie_razon_social', $dataSearch);
+        $builder->orLike('tb1.clie_dni', $dataSearch);
+
+        $builder->limit(10);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return false;
+        }
+    }
+
     public function searchProveedorById($idProveedor) {
         $builder = $this->db->table('cc_proveedores tb1');
         $builder->select('tb1.id, tb1.prov_nombres, tb1.prov_apellidos, tb1.prov_razon_social, tb1.prov_ruc, CONCAT(tb1.prov_ruc," : ",tb1.prov_razon_social)proveedor ');
         $builder->where('tb1.id', $idProveedor);
         $builder->where('tb1.prov_estado', 1);
+
+        $builder->limit(1);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getRow();
+        } else {
+            return false;
+        }
+    }
+    public function searchClientesById($idCliente) {
+        $builder = $this->db->table('cc_clientes tb1');
+        $builder->select('tb1.id, tb1.clie_nombres, tb1.clie_apellidos, tb1.clie_razon_social, tb1.clie_dni, CONCAT(tb1.clie_dni," : ",tb1.clie_razon_social)cliente ');
+        $builder->where('tb1.id', $idCliente);
+        $builder->where('tb1.clie_estado', 1);
 
         $builder->limit(1);
 
@@ -136,6 +170,71 @@ class SearchsModel extends \CodeIgniter\Model {
             $builder->orWhere('tb1.prod_codigobarras3', $codProd);
             $builder->groupEnd();
         }
+        $builder->where('tb1.prod_estado', 1);
+        $builder->limit(1);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getRow();
+        } else {
+            return false;
+        }
+    }
+
+    public function searchProductoData($codProd) {
+        $builder = $this->db->table('cc_productos tb1');
+        $builder->select("tb1.id,"
+                . " tb1.prod_nombre,"
+                . " tb1.prod_codigo,"
+                . " tb1.prod_costopromedio,"
+                . " tb1.prod_isservicio,"
+                . " tb1.prod_stockactual,"
+                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
+        if (ctype_digit($codProd)) {
+            // Busca por ID O por cualquier código de barras
+            $builder->groupStart();
+            $builder->where('tb1.id', $codProd);
+            $builder->orWhere('tb1.prod_codigo', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
+            $builder->groupEnd();
+        } else {
+            // Busca solo por códigos (no puede ser ID porque tiene letras)
+            $builder->groupStart();
+            $builder->where('tb1.prod_codigo', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
+            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
+            $builder->groupEnd();
+        }
+        $builder->where('tb1.prod_estado', 1);
+        $builder->limit(1);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getRow();
+        } else {
+            return false;
+        }
+    }
+
+    public function searchProductoDataById($idProd) {
+        $builder = $this->db->table('cc_productos tb1');
+        $builder->select("tb1.id,"
+                . " tb1.prod_nombre,"
+                . " tb1.prod_codigo,"
+                . " tb1.prod_costopromedio,"
+                . " tb1.prod_isservicio,"
+                . " tb1.prod_stockactual,"
+                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
+
+        $builder->where('tb1.id', $idProd);
+
         $builder->where('tb1.prod_estado', 1);
         $builder->limit(1);
 

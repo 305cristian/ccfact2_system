@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <!--
 /**
- * Description of viewGesionarAjuste
+ * Description of viewGestionAjuste
  *
 /**
  * @author CRISTIAN R. PAZ
- * @date 22 oct 2025
- * @time 2:49:18 p.m.
+ * @date 29 nov 2025
+ * @time 3:19:05 p.m.
  */       
  
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -16,7 +16,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 class="card-title text-system"><i class="fad fa-sort-amount-up"></i> Gestion de Ajustes de Entrada</h5>
+            <h5 class="card-title text-system"><i class="fad fa-sort-amount-down-alt"></i> Gestion de Ajustes de Salida</h5>
         </div>
         <div class="card-body">
             <div class="row col-md-12">
@@ -24,7 +24,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-3 form-group-custom">
                     <div class="input-group">
                         <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i> Rango de Fechas</span>
-                        <input type="text"  ref="dateRange" v-model='ajenFechas'  placeholder="Seleccione rango de fechas" class="form-control" data-style="btn-white">  
+                        <input type="text"  ref="dateRange" v-model='ajesFechas'  placeholder="Seleccione rango de fechas" class="form-control" data-style="btn-white">  
                     </div>
                 </div>
 
@@ -32,7 +32,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-2 form-group-custom">
                     <div class="input-group">
                         <span class="input-group-text bg-cris-system"><i class="fas fa-input-numeric me-2"></i>#AJUSTE</span>
-                        <input type="number" class="form-control" v-model='ajenSecuencial' placeholder="Ejm. 25">
+                        <input type="number" class="form-control" v-model='ajesSecuencial' placeholder="Ejm. 25">
                     </div>
                 </div>
 
@@ -44,7 +44,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             class="flex-grow-1" 
                             :options="listaBodegas" 
                             label="bod_nombre" 
-                            v-model="ajenBodega" 
+                            v-model="ajesBodega" 
                             :reduce="bodega =>bodega.id"
                             placeholder="Seleccione una bodega"/>
                     </div>
@@ -56,8 +56,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <vue-select 
                             class="flex-grow-1"
                             :options="listaMotivos"
-                            label="mot_nombre"
-                            v-model="ajenMotivo"
+                            label="motivo"
+                            v-model="ajesMotivo"
                             :reduce ="motivo =>motivo.id"
                             placeholder="Seleccione un motivo"/>
                     </div>
@@ -71,7 +71,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             class="flex-grow-1"
                             :options="listaCentroCostos"
                             label="cc_nombre"
-                            v-model="ajenCentrocosto"
+                            v-model="ajesCentrocosto"
                             :reduce ="cc =>cc.id"
                             placeholder="Seleccione un centro de costos"/>
                     </div>
@@ -80,7 +80,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-2 form-group-custom">
                     <div class="input-group">
                         <span class="input-group-text bg-cris-system"><i class="fas fa-toggle-on me-2"></i>Estado</span>
-                        <select title="Seleccione un estado" v-model="ajenEstado" class="form-select show-tick borderspk" data-style="btn-white">               
+                        <select title="Seleccione un estado" v-model="ajesEstado" class="form-select show-tick borderspk" data-style="btn-white">               
                             <option value="2">ARCHIVADAS</option>
                             <option value="1">EN BORRADOR</option>
                             <option value="-1">ANULADAS</option>
@@ -89,12 +89,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <!-- Botones de Seleccion -->
-                <div class="col-md-3 form-group-custom">
+                <div class="col-md-4 form-group-custom">
                     <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                        <input type="radio" class="btn-check"  id="btnradio1" value="AJUSTE_INICIAL" v-model="ajenTipo"  autocomplete="off" >
-                        <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Inicial</label>
-                        <input type="radio" class="btn-check"  id="btnradio2" value="COMPRA_SIN_FACTURA" v-model="ajenTipo" autocomplete="off" checked>
-                        <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-file me-2"></i> Compra sin Factura</label>
+                        <input type="radio" class="btn-check"  id="btnradio1" value="AJUSTE_MERMA" v-model="ajesTipo"  autocomplete="off" >
+                        <label class="btn btn-outline-danger" for="btnradio1"> <i class="fas fa-skull-crossbones me-2"></i> Merma / Daño</label>
+                        <input type="radio" class="btn-check"  id="btnradio2" value="CONSUMO_INTERNO" v-model="ajesTipo" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-utensils me-2"></i> Consumo Interno</label>
+                        <input type="radio" class="btn-check"  id="btnradio3" value="DESPACHO" v-model="ajesTipo" autocomplete="off" checked>
+                        <label class="btn btn-outline-success" for="btnradio2"> <i class="fas fa-clipboard-check me-3"></i> Despacho</label>
                     </div>                  
                 </div>
 
@@ -117,7 +119,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <th>OBSERVACIONES</th>
                                 <th>BODEGA</th>
                                 <th>C. COSTO</th>
-                                <th>PROVEEDOR</th>
+                                <th>SERVICIO</th>
                                 <th>ESTADO</th>
                             </tr>
                         </thead>
@@ -130,7 +132,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                                             <li><button class="dropdown-item" href="#" @click.prevent="verDetalle(laj)"><span><i class="fas fa-clipboard-list"></i> Ver Detalle</span></button> </li>
-                                            <li><button :disabled="laj.ajen_estado == 2 ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
+                                            <li><button :disabled="laj.ajes_estado == 2 ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
                                             <li><button class="dropdown-item" href="#" @click.prevent="anularAjuste(laj.id)"><span><i class="fas fa-stop-circle"></i>  Anular Ajuste</span></button></li>
                                             <li><button class="dropdown-item" href="#" @click.prevent="openModalEmail(laj)"><span><i class="fas fa-clone"></i>  Enviar por Email</span> </button></li>
                                             <li><button class="dropdown-item" href="#" @click.prevent="clonarAjuste(laj.id)"><span><i class="fas fa-clone"></i>  Clonar Ajuste</span> </button></li>
@@ -138,18 +140,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     </div>
                                     <!--<button @click="loadAjuste(laj), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnillos"><i class="fas fa-edit"></i> </button>-->
                                 </td>
-                                <td>{{zFill(laj.ajen_secuencial,4)}}</td>
-                                <td>{{laj.ajen_fecha}}</td>
-                                <td>{{laj.ajen_total}}</td>
-                                <td>{{laj.ajen_observaciones}}</td>
+                                <td>{{zFill(laj.ajes_secuencial,4)}}</td>
+                                <td>{{laj.ajes_fecha}}</td>
+                                <td>{{laj.ajes_total}}</td>
+                                <td>{{laj.ajes_observaciones?laj.ajes_observaciones:'-'}}</td>
                                 <td>{{laj.bod_nombre}}</td>
                                 <td>{{laj.cc_nombre}}</td>
-                                <td>{{laj.prov_razon_social}}</td>
+                                <td>{{laj.serv_nombre}}</td>
 
                                 <td>
-                                    <span v-if="laj.ajen_estado == 2" class="badge bg-success"><i class="fas fa-check-double"></i>  ARCHIVADO</span>
-                                    <span v-else-if="laj.ajen_estado == 1" class="badge bg-warning"><i class="fas fa-warning"></i>  BORRADOR</span>
-                                    <span v-else-if="laj.ajen_estado == -1" class="badge bg-danger"><i class="fas fa-stop-circle"></i>  ANULADO</span>
+                                    <span v-if="laj.ajes_estado == 2" class="badge bg-success"><i class="fas fa-check-double"></i>  ARCHIVADO</span>
+                                    <span v-else-if="laj.ajes_estado == 1" class="badge bg-warning"><i class="fas fa-warning"></i>  BORRADOR</span>
+                                    <span v-else-if="laj.ajes_estado == -1" class="badge bg-danger"><i class="fas fa-stop-circle"></i>  ANULADO</span>
                                 </td>
 
                             </tr>
@@ -161,11 +163,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         </div>
 
         <!--MODAL DETALLE-->
-        <?php echo view('\Modules\AjustesEntrada\Views\reportes\viewModalReport') ?>
+        <?php echo view('\Modules\AjustesSalida\Views\reportes\viewModalReport') ?>
         <!--CLOSE MODAL DETALLE-->
 
         <!--MODAL EMAIL-->
-        <?php echo view('\Modules\AjustesEntrada\Views\viewModalEmail') ?>
+        <?php echo view('\Modules\AjustesSalida\Views\viewModalEmail') ?>
         <!--CLOSE MODAL EMAIL-->
     </div>
 </div>
@@ -178,11 +180,11 @@ var listaBodegas = <?= json_encode($listaBodegas); ?>;
 var listaMotivos = <?= json_encode($listaMotivos); ?>;
 var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
 
-if (window.appGestionAje) {
-    window.appGestionAje.unmount();
+if (window.appGestionAjs) {
+    window.appGestionAjs.unmount();
 }
 
-window.appGestionAje = Vue.createApp({
+window.appGestionAjs = Vue.createApp({
     components: {
         "vue-select": window['vue-select']
     },
@@ -193,7 +195,6 @@ window.appGestionAje = Vue.createApp({
             pathUrl: baseUrl,
             panelMain: false,
 
-            empresa: window.empresa,
             idAjuste: '',
             secuencialAjuste: '',
             listaAjustes: [],
@@ -206,13 +207,13 @@ window.appGestionAje = Vue.createApp({
             listaCentroCostos: listaCentroCostos,
 
             //FILTROS DE BUSQUEDA
-            ajenSecuencial: '',
-            ajenBodega: '',
-            ajenMotivo: '',
-            ajenCentrocosto: '',
-            ajenEstado: '2',
-            ajenTipo: 'COMPRA_SIN_FACTURA',
-            ajenFechas: fechaActual,
+            ajesSecuencial: '',
+            ajesBodega: '',
+            ajesMotivo: '',
+            ajesCentrocosto: '',
+            ajesEstado: '2',
+            ajesTipo: 'DESPACHO',
+            ajesFechas: fechaActual,
 
             // Variables para Flatpickr
             flatpickrInstance: null,
@@ -221,7 +222,7 @@ window.appGestionAje = Vue.createApp({
             emailData: {
                 para: '',
                 cc: '',
-                asunto: '',
+                asunto: 'xxx',
                 mensaje: ''
             },
             errorSendMail: '',
@@ -232,18 +233,7 @@ window.appGestionAje = Vue.createApp({
     created() {
 
     },
-    computed: {
-        estadoDocumento() {
-            if (this.ajusteActual.ajen_estado === '1')
-                return '<span class="badge bg-warning"><i class="fas fa-edit"></i> BORRADOR </span>';
-            if (this.ajusteActual.ajen_estado === '2')
-                return '<span class="badge bg-success"><i class="fas fa-check-double "></i> ARCHIVADO </span>';
-            if (this.ajusteActual.ajen_estado === '-1')
-                return '<span class="badge bg-danger"><i class="fas fa-stop-circle "></i> ANULADO </span>';
-            return 'Desconocido';
-        }
 
-    },
     mounted() {
 
         // Inicializar Flatpickr
@@ -253,7 +243,7 @@ window.appGestionAje = Vue.createApp({
             locale: 'es',
             allowInput: true,
             onChange: (selectedDates, dateStr) => {
-                this.ajenFechas = dateStr;
+                this.ajesFechas = dateStr;
             }
         });
         // Inicializar modal de Bootstrap
@@ -265,18 +255,18 @@ window.appGestionAje = Vue.createApp({
         async searchAjustes() {
 
             const datos = {
-                ajenSecuencial: this.ajenSecuencial,
-                ajenBodega: this.ajenBodega,
-                ajenMotivo: this.ajenMotivo,
-                ajenCentrocosto: this.ajenCentrocosto,
-                ajenEstado: this.ajenEstado,
-                ajenFechas: this.ajenFechas,
-                ajenTipo: this.ajenTipo
+                ajesSecuencial: this.ajesSecuencial,
+                ajesBodega: this.ajesBodega,
+                ajesMotivo: this.ajesMotivo,
+                ajesCentrocosto: this.ajesCentrocosto,
+                ajesEstado: this.ajesEstado,
+                ajesFechas: this.ajesFechas,
+                ajesTipo: this.ajesTipo
             };
 
             try {
                 swalLoading('Cargando Ajustes');
-                const {data} = await axios.post(this.url + '/ajustesentrada/searchAjustes', datos);
+                const {data} = await axios.post(this.url + '/ajustessalida/searchAjustes', datos);
                 if (data.status === 'success') {
                     this.panelMain = true;
                     this.listaAjustes = data.data;
@@ -285,7 +275,7 @@ window.appGestionAje = Vue.createApp({
                     sweet_msg_dialog('warning', 'No se han encontrado ajustes registrados en los parametros especificados');
                     this.panelMain = false;
                 }
-                dataTable('#tblAjustes', 'Listado de ajustes de entrada');
+                dataTable('#tblAjustes', 'Listado de ajustes de salida');
             } catch (e) {
                 sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
             }
@@ -296,7 +286,7 @@ window.appGestionAje = Vue.createApp({
 
             try {
                 swalLoading('Cargando documento');
-                const {data} = await axios.get(this.url + '/ajustesentrada/loadAjusteEdit/' + idAjuste);
+                const {data} = await axios.get(this.url + '/ajustessalida/loadAjusteEdit/' + idAjuste);
                 if (data.status === 'success') {
                     window.location.href = data.redirect;
                 } else {
@@ -312,12 +302,12 @@ window.appGestionAje = Vue.createApp({
         // Ver detalle del ajuste
         async verDetalle(ajuste) {
             this.idAjuste = ajuste.id;
-            this.secuencialAjuste = ajuste.ajen_secuencial;
+            this.secuencialAjuste = ajuste.ajes_secuencial;
             this.cargandoDetalle = true;
             this.modalInstance.show();
             try {
 
-                const {data} = await axios.get(this.url + '/ajustesentrada/getDataDetalle/' + ajuste.id);
+                const {data} = await axios.get(this.url + '/ajustessalida/getDataDetalle/' + ajuste.id);
                 this.cargandoDetalle = false;
                 await Vue.nextTick();
                 const modal = document.getElementById('detalleAjusteModal');
@@ -352,7 +342,7 @@ window.appGestionAje = Vue.createApp({
                         motivoAnulacion: result.value
                     };
                     try {
-                        let {data} = await axios.post(this.url + '/ajustesentrada/anularAjuste', datos);
+                        let {data} = await axios.post(this.url + '/ajustessalida/anularAjuste', datos);
                         sweet_msg_dialog(data.status, data.msg);
                     } catch (e) {
                         sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
@@ -367,7 +357,7 @@ window.appGestionAje = Vue.createApp({
 
         generarExcel() {
             const contenido = document.getElementById('contentExport');
-            const titulo = `Ajuste_Entrada_${this.zFill(this.secuencialAjuste, 5)}`;
+            const titulo = `Ajuste_Salida_${this.zFill(this.secuencialAjuste, 5)}`;
             return generarExcel(contenido, titulo);
         },
         // ==========================================
@@ -375,7 +365,7 @@ window.appGestionAje = Vue.createApp({
         // ==========================================
         generarPDF() {
             try {
-                window.open(`${this.url}/ajustesentrada/generarPDF/${this.idAjuste}?download=1`, '_blank');
+                window.open(`${this.url}/ajustessalida/generarPDF/${this.idAjuste}?download=1`, '_blank');
             } catch (e) {
                 sweet_msg_dialog('error', '', '', 'Error al generar el documento, ' + e.message);
             }
@@ -383,7 +373,7 @@ window.appGestionAje = Vue.createApp({
         async clonarAjuste(idAjuste) {
             try {
                 swalLoading('Clonando ajuste...');
-                const {data} = await axios.get(`${this.url}/ajustesentrada/clonarAjuste/${idAjuste}`);
+                const {data} = await axios.get(`${this.url}/ajustessalida/clonarAjuste/${idAjuste}`);
                 if (data.status === 'success') {
                     window.location.href = data.redirect;
                     Swal.close();
@@ -398,11 +388,11 @@ window.appGestionAje = Vue.createApp({
 
         openModalEmail(ajuste) {
             this.idAjuste = ajuste.id;
-            this.secuencialAjuste = ajuste.ajen_secuencial;
+            this.secuencialAjuste = ajuste.ajes_secuencial;
             this.emailData = {
                 para: 'it@cateringclp.com, pcris.994@gmail.com',
                 cc: '',
-                asunto: `Reporte de Ajuste de Entrada #${ajuste.ajen_secuencial}`,
+                asunto: `Reporte de Ajuste de Salida #${ajuste.ajes_secuencial}`,
                 mensaje: 'Estimado(a), adjunto el reporte solicitado.'
             };
 //            Vue.nextTick();
@@ -421,7 +411,7 @@ window.appGestionAje = Vue.createApp({
 
             try {
                 this.loadingEmail = true;
-                const {data} = await axios.post(`${this.url}/ajustesentrada/sendEmailReport`, datos);
+                const {data} = await axios.post(`${this.url}/ajustessalida/sendEmailReport`, datos);
                 if (data.status === 'success') {
                     console.log('succes');
                     sweet_msg_toast('success', data.msg);
@@ -441,92 +431,6 @@ window.appGestionAje = Vue.createApp({
                 this.loadingEmail = false;
             }
         },
-//                exportarExcel() {
-//            const exporter = new ExcelExport();
-//
-//            const config = {
-//                nombreArchivo: `Ajuste_${this.ajusteActual.ajen_secuencial}_${Date.now()}`,
-//                titulo: 'AJUSTE DE ENTRADA',
-//
-//                // Información del encabezado
-//                encabezado: {
-//                    'Secuencial:': this.ajusteActual.ajen_secuencial,
-//                    'Fecha Emisión:': this.formatearFecha(this.ajusteActual.ajen_fecha),
-//                    'Estado:': this.ajusteActual.ajen_estado,
-//                    'Bodega:': this.ajusteActual.bod_nombre,
-//                    'Centro de Costo:': this.ajusteActual.cc_nombre,
-//                    'Proveedor:': this.ajusteActual.prov_razon_social,
-//                    'Usuario:': this.ajusteActual.user_create,
-//                    'Observaciones:': this.ajusteActual.ajen_observacion || 'Sin observaciones'
-//                },
-//
-//                // Definición de columnas
-//                columnas: [
-//                    {campo: 'index', titulo: '#', ancho: 5},
-//                    {campo: 'prod_codigo', titulo: 'Código', ancho: 12},
-//                    {campo: 'prod_nombre', titulo: 'Producto', ancho: 35},
-//                    {campo: 'lot_lote', titulo: 'Lote', ancho: 15},
-//                    {campo: 'lot_fecha_elaboracion', titulo: 'F. Elaboración', ancho: 15, formato: 'fecha'},
-//                    {campo: 'ajend_itemcantidad', titulo: 'Cantidad', ancho: 10, formato: 'numero'},
-//                    {campo: 'ajend_itemcosto', titulo: 'Costo Unitario', ancho: 15, formato: 'moneda', formatoConfig: {decimales: 2}},
-//                    {campo: 'ajend_itemcostoxcantidad', titulo: 'Subtotal', ancho: 15, formato: 'moneda', formatoConfig: {decimales: 2}},
-//                ],
-//
-//                // Datos (agregar índice)
-//                datos: this.ajusteActual.detalle.map((item, index) => ({
-//                        index: index + 1,
-//                        ...item
-//                    })),
-//
-//                // Totales
-//                totales: {
-//                    prod_nombre: 'TOTAL GENERAL:',
-//                    ajend_itemcantidad: this.calcularTotalUnidades(),
-//                    ajend_itemcostoxcantidad: this.calcularTotal()
-//                },
-//
-//                // Pie de página
-//                piePagina: `Generado el ${this.formatearFechaHoraActual()}`
-//            };
-//
-//            const resultado = exporter.exportar(config);
-//
-//            if (resultado.success) {
-//                sweet_msg_toast('success', resultado.message);
-//            } else {
-//                sweet_msg_toast('error', resultado.message);
-//            }
-//        },
-
-        //            // Formateo de fecha
-//            formatearFecha(fecha) {
-//                return formatearFecha(fecha);
-//            },
-//
-//            // Formateo de fecha y hora actual
-//            formatearFechaHoraActual() {
-//                return formatearFechaHoraActual();
-//            },
-//
-//            // Formateo de moneda
-//            formatToUSD(valor) {
-//                return formatToUSD(valor);
-//            },
-//
-//            // Calcular total
-//            calcularTotal() {
-//                if (!this.ajusteActual.detalle)
-//                    return 0;
-//                return this.ajusteActual.detalle.reduce((sum, item) =>
-//                    sum + parseFloat(item.ajend_itemcostoxcantidad || 0), 0
-//                        );
-//            },
-//
-//            // Calcular unidades
-//            calcularTotalUnidades() {
-//                return  calcularTotalUnidades(this.ajusteActual.detalle);
-//            },
-
 
         zFill(value, size) {
             return zFill(value, size);
@@ -534,6 +438,5 @@ window.appGestionAje = Vue.createApp({
 
     }
 });
-window.appGestionAje.mount('#app');
+window.appGestionAjs.mount('#app');
 </script>
-

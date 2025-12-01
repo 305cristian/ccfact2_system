@@ -109,4 +109,47 @@ class StockBodegaLib {
             return $this->ccm->guardar($datos, 'cc_stock_bodega_lote');
         }
     }
+
+    public function validarStockDisponible(int $productoId, int $bodegaId, float $cantidadSolicitada, ?string $codTransaccion=null, ?int $documentoId = null, ?int $idLoteProducto = null): array {
+
+        // 1) STOCK EN BODEGA
+        $tabla = $idLoteProducto ? 'cc_stock_bodega_lote' : 'cc_stock_bodega';
+        $whereDataStock = ['fk_producto' => $productoId, 'fk_bodega' => $bodegaId];
+        if ($idLoteProducto) {
+            $whereDataStock['fk_lote'] = $idLoteProducto;
+        }
+        $campoStock = $idLoteProducto ? 'stbl_stock' : 'stb_stock';
+
+        $rowStock = $this->ccm->getData($tabla, $whereDataStock, $campoStock, null, 1);
+        $stockBodega = $rowStock ? (float) $rowStock->$campoStock : 0;
+
+        // 2) STOCK RESERVADO
+        $whereDataReserva = ['tb1.fk_producto' => $productoId, 'tb1.fk_bodega' => $bodegaId, 'tb1.res_estado' => 'ACTIVA'];
+        if ($documentoId) {
+            $whereDataReserva['tb1.res_documento_id !='] = $documentoId;
+            $whereDataReserva['tb1.res_codigo_transaccion !='] = $codTransaccion;
+        }
+        if ($idLoteProducto) {
+            $whereDataReserva['tb1.fk_lote'] = $idLoteProducto;
+        }
+        $rowReserva = $this->ccm->getData("cc_reserva_inventario tb1", $whereDataReserva, "COALESCE(SUM(tb1.res_cantidad),0) AS reservado", null, 1);
+        $reservado = $rowReserva ? (float) $rowReserva->reservado : 0;
+
+        // 3) DISPONIBLE REAL
+        $disponible = $stockBodega - $reservado;
+
+        if ($cantidadSolicitada > $disponible) {
+            return [
+                'status' => 'warning',
+                'msg' =>
+                "Stock insuficiente para realizar la salida.<br>" .
+                "Stock bodega: <b>{$stockBodega}</b><br>" .
+                "Reservado: <b>{$reservado}</b><br>" .
+                "Disponible: <b>{$disponible}</b><br>" .
+                "Solicitado: <b>{$cantidadSolicitada}</b>"
+            ];
+        }
+
+        return ['status' => 'success', 'dataStockDisponible' => $disponible, 'dataReservado' => $reservado];
+    }
 }

@@ -5,109 +5,93 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/PHPClass.php to edit this template
  */
 
-namespace Modules\AjustesEntrada\Controllers;
+namespace Modules\AjustesSalida\Controllers;
 
 /**
  * Description of GestionController
  *
   /**
  * @author CRISTIAN R. PAZ
- * @date 22 oct 2025
- * @time 2:57:09 p.m.
+ * @date 29 nov 2025
+ * @time 3:20:29 p.m.
  */
 use Mpdf\Mpdf;
 use Mpdf\HTMLParserMode;
-use Modules\AjustesEntrada\Models\EntradasModel;
+use Modules\AjustesSalida\Models\SalidasModel;
 
 class GestionController extends \App\Controllers\BaseController {
 
+    //put your code here
+
     protected $dirViewModule;
-    protected $entadasModel;
+    protected $salidasModel;
 
     public function __construct() {
 
-        $this->dirViewModule = 'Modules\AjustesEntrada\Views';
-
-        //IMPORT MODELS
-        $this->entadasModel = new EntradasModel();
+        $this->dirViewModule = 'Modules\AjustesSalida\Views';
+        $this->salidasModel = new SalidasModel();
     }
 
     public function index() {
         $this->user->validateSession();
+
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
-        $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo' => "AJUSTES"], 'id, mot_nombre');
+        $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo !=' => 'AJUSTES'], 'id, mot_nombre, CONCAT(mot_nombre, " ( ", mot_tipo," )") motivo');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
+        $data['listaServicios'] = $this->ccm->getData('cc_servicios', ['serv_estado' => 1], 'id, serv_nombre');
 
         $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+        $data['bodegaId'] = $this->session->get('bodegaIdAjs') ?? $bodegaMainUsuario;
 
-        $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;
-        $send['view'] = view($this->dirViewModule . '\viewGesionarAjuste', $data);
+        $send['view'] = view($this->dirViewModule . '\viewGestionAjuste', $data);
 
-        if ($this->request->isAJAX()) {
-            return $this->response->setJSON($send);
-        } else {
-            return view($this->dirTemplate . '\dashboard', $send);
-        }
-    }
-
-    public function responseSetJSON($status, $mensaje, $data = null) {
-        return $this->response->setJSON([
-                    'status' => $status,
-                    'msg' => $mensaje,
-                    'data' => $data,
-        ]);
+        return $this->request->isAJAX() ? $this->response->setJSON($send) : view($this->dirTemplate . '\dashboard', $send);
     }
 
     public function searchAjustes() {
-
-        $dataPost = json_decode(file_get_contents("php://input"));
+        $dataPost = json_decode(file_get_contents('php://input'));
 
         $filtros = [
-            'ajenSecuencial' => $dataPost->ajenSecuencial ?? null,
-            'ajenBodega' => $dataPost->ajenBodega ?? null,
-            'ajenMotivo' => $dataPost->ajenMotivo ?? null,
-            'ajenCentrocosto' => $dataPost->ajenCentrocosto ?? null,
-            'ajenEstado' => $dataPost->ajenEstado ?? null,
-            'ajenFechas' => $dataPost->ajenFechas ?? null,
-            'ajenTipo' => $dataPost->ajenTipo ?? null
+            'ajesSecuencial' => $dataPost->ajssSecuencial ?? null,
+            'ajesBodega' => $dataPost->ajesBodega ?? null,
+            'ajesMotivo' => $dataPost->ajesMotivo ?? null,
+            'ajesCentrocosto' => $dataPost->ajesCentrocosto ?? null,
+            'ajesEstado' => $dataPost->ajesEstado ?? null,
+            'ajesFechas' => $dataPost->ajesFechas ?? null
         ];
 
-        $response = $this->entadasModel->searchAjustes($filtros);
+        $data = $this->salidasModel->searchAjustes($filtros);
 
-        if ($response) {
-            return $this->response->setJSON(['status' => 'success', 'data' => $response]);
-        }
-
-        return $this->response->setJSON(['status' => 'warning', 'data' => []]);
+        return $data ? $this->response->setJSON(['status' => 'success', 'data' => $data]) : $this->response->setJSON(['status' => 'warning', 'data' => []]);
     }
 
     public function getDataDetalle($ajusteId) {
 
         $empresa = enterprice();
-        $ajusteData = $this->entadasModel->getDataDetalle($ajusteId);
+        $ajusteData = $this->salidasModel->getDataDetalle($ajusteId);
 
         $data = [
             'ajuste' => $ajusteData,
             'empresa' => $empresa,
         ];
 
-        $view = view('\Modules\AjustesEntrada\Views\reportes\viewDetalleReport', $data);
+        $view = view('\Modules\AjustesSalida\Views\reportes\viewDetalleReport', $data);
         return $this->response->setJSON($view);
     }
 
     public function generarPDF($ajusteId) {
         $empresa = enterprice();
-        $ajusteData = $this->entadasModel->getDataDetalle($ajusteId);
+        $ajusteData = $this->salidasModel->getDataDetalle($ajusteId);
 
         $data = [
             'ajuste' => $ajusteData,
             'empresa' => $empresa,
         ];
 
-        $view = view('\Modules\AjustesEntrada\Views\reportes\viewDetalleReport', $data);
+        $view = view('\Modules\AjustesSalida\Views\reportes\viewDetalleReport', $data);
 
         // Cargar CSS de Bootstrap (desde tu carpeta local)
         $bootstrapPath = FCPATH . 'resources/css/stylesMpdf.css';
@@ -136,7 +120,7 @@ class GestionController extends \App\Controllers\BaseController {
         $mpdf->SetHTMLFooter('<div class="text-center small">Página {PAGENO} de {nbpg}</div>');
 
         // Nombre del archivo
-        $fileName = "Ajuste_Entrada_{$ajusteData->ajen_secuencial}.pdf";
+        $fileName = "Ajuste_Salida_{$ajusteData->ajes_secuencial}.pdf";
 
         if ($this->request->getGet('download')) {
 //          return $mpdf->Output($fileName, 'D'); PARA DESCARGA DIRECTA
@@ -145,7 +129,7 @@ class GestionController extends \App\Controllers\BaseController {
                             ->setHeader('Content-Disposition', 'inline; filename="' . $fileName . '"')
                             ->setBody($mpdf->Output($fileName, 'D')); // (D,I,S) (Download,Inline, devuelve contenido binario)
         } else {
-            $directory = WRITEPATH . 'uploads/pdfs/ajustesEntrada/';
+            $directory = WRITEPATH . 'uploads/pdfs/ajustesSalida/';
             $pdfPath = $directory . $fileName;
 
             if (!is_dir($directory)) {

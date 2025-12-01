@@ -31,8 +31,8 @@ class IndexController extends \App\Controllers\BaseController {
         $data['listaSubModulos'] = $this->modMod->getSubModulosUser($idMod,$this->user);
         $send['sidebar'] = view($this->dirViewModule.'\sidebar', $data);
         $send['view'] = view($this->dirViewModule.'\viewIndex', $data);
-        $send['user'] = $this->user;
-        $send['ccm'] = $this->ccm;
+//        $send['user'] = $this->user;
+//        $send['ccm'] = $this->ccm;
         return view($this->dirTemplate . '\dashboard', $send);
     }
 

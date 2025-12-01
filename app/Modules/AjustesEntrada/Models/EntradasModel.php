@@ -18,70 +18,70 @@ namespace Modules\AjustesEntrada\Models;
 
 class EntradasModel extends \CodeIgniter\Model {
 
-    public function searchProductoData($codProd) {
-        $builder = $this->db->table('cc_productos tb1');
-        $builder->select("tb1.id,"
-                . " tb1.prod_nombre,"
-                . " tb1.prod_codigo,"
-                . " tb1.prod_costopromedio,"
-                . " tb1.prod_isservicio,"
-                . " tb1.prod_stockactual,"
-                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
-        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
-        if (ctype_digit($codProd)) {
-            // Busca por ID O por cualquier código de barras
-            $builder->groupStart();
-            $builder->where('tb1.id', $codProd);
-            $builder->orWhere('tb1.prod_codigo', $codProd);
-            $builder->orWhere('tb1.prod_codigobarras', $codProd);
-            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
-            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
-            $builder->groupEnd();
-        } else {
-            // Busca solo por códigos (no puede ser ID porque tiene letras)
-            $builder->groupStart();
-            $builder->where('tb1.prod_codigo', $codProd);
-            $builder->orWhere('tb1.prod_codigobarras', $codProd);
-            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
-            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
-            $builder->groupEnd();
-        }
-        $builder->where('tb1.prod_estado', 1);
-        $builder->limit(1);
+//    public function searchProductoData($codProd) {
+//        $builder = $this->db->table('cc_productos tb1');
+//        $builder->select("tb1.id,"
+//                . " tb1.prod_nombre,"
+//                . " tb1.prod_codigo,"
+//                . " tb1.prod_costopromedio,"
+//                . " tb1.prod_isservicio,"
+//                . " tb1.prod_stockactual,"
+//                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+//        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
+//        if (ctype_digit($codProd)) {
+//            // Busca por ID O por cualquier código de barras
+//            $builder->groupStart();
+//            $builder->where('tb1.id', $codProd);
+//            $builder->orWhere('tb1.prod_codigo', $codProd);
+//            $builder->orWhere('tb1.prod_codigobarras', $codProd);
+//            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
+//            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
+//            $builder->groupEnd();
+//        } else {
+//            // Busca solo por códigos (no puede ser ID porque tiene letras)
+//            $builder->groupStart();
+//            $builder->where('tb1.prod_codigo', $codProd);
+//            $builder->orWhere('tb1.prod_codigobarras', $codProd);
+//            $builder->orWhere('tb1.prod_codigobarras2', $codProd);
+//            $builder->orWhere('tb1.prod_codigobarras3', $codProd);
+//            $builder->groupEnd();
+//        }
+//        $builder->where('tb1.prod_estado', 1);
+//        $builder->limit(1);
+//
+//        $response = $builder->get();
+//
+//        if ($response->getNumRows() > 0) {
+//            return $response->getRow();
+//        } else {
+//            return false;
+//        }
+//    }
 
-        $response = $builder->get();
-
-        if ($response->getNumRows() > 0) {
-            return $response->getRow();
-        } else {
-            return false;
-        }
-    }
-
-    public function searchProductoDataById($idProd) {
-        $builder = $this->db->table('cc_productos tb1');
-        $builder->select("tb1.id,"
-                . " tb1.prod_nombre,"
-                . " tb1.prod_codigo,"
-                . " tb1.prod_costopromedio,"
-                . " tb1.prod_isservicio,"
-                . " tb1.prod_stockactual,"
-                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
-        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
-
-        $builder->where('tb1.id', $idProd);
-
-        $builder->where('tb1.prod_estado', 1);
-        $builder->limit(1);
-
-        $response = $builder->get();
-
-        if ($response->getNumRows() > 0) {
-            return $response->getRow();
-        } else {
-            return false;
-        }
-    }
+//    public function searchProductoDataById($idProd) {
+//        $builder = $this->db->table('cc_productos tb1');
+//        $builder->select("tb1.id,"
+//                . " tb1.prod_nombre,"
+//                . " tb1.prod_codigo,"
+//                . " tb1.prod_costopromedio,"
+//                . " tb1.prod_isservicio,"
+//                . " tb1.prod_stockactual,"
+//                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+//        $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
+//
+//        $builder->where('tb1.id', $idProd);
+//
+//        $builder->where('tb1.prod_estado', 1);
+//        $builder->limit(1);
+//
+//        $response = $builder->get();
+//
+//        if ($response->getNumRows() > 0) {
+//            return $response->getRow();
+//        } else {
+//            return false;
+//        }
+//    }
 
     public function searchAjustes($filtros) {
         $builder = $this->db->table('cc_ajuste_entrada tb1');

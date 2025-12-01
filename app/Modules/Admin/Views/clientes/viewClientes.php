@@ -227,8 +227,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             setRazonSocial() {
-                let nombres = v.newCliente.clieNombres;
-                let apellidos = v.newCliente.clieApellidos;
+                let nombres = this.newCliente.clieNombres;
+                let apellidos = this.newCliente.clieApellidos;
                 this.newCliente.clieRazonSocial = `${nombres.toUpperCase()} ${apellidos.toUpperCase()}`;
             },
 

@@ -19,6 +19,7 @@ use Modules\AjustesEntrada\Models\EntradasModel;
 use Modules\AjustesEntrada\Libraries\EntradasCartLib;
 use Modules\AjustesEntrada\Libraries\EntradasLib;
 use Modules\AjustesEntrada\Libraries\EntradasAsientosLib;
+use Modules\Comun\Models\SearchsModel;
 use Modules\Comun\Models\ProductoModel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -31,6 +32,7 @@ class AjusteInicialController extends \App\Controllers\BaseController {
     protected $entradasLib;
     protected $prodModel;
     protected $entradasAsientoLib;
+    protected $searchModel;
 
     public function __construct() {
 
@@ -39,6 +41,7 @@ class AjusteInicialController extends \App\Controllers\BaseController {
         //IMPORT MODELS
         $this->entradasModel = new EntradasModel();
         $this->prodModel = new ProductoModel();
+        $this->searchModel = new SearchsModel();
 
         //IMPORT LIBRERIAS
         $this->ajenCart = new EntradasCartLib();
@@ -307,7 +310,7 @@ class AjusteInicialController extends \App\Controllers\BaseController {
                 //=====================
                 $this->createImpuestoIvaProducto($productoId, $prodIvaPorcentajeId);
 
-                $producto = $this->entradasModel->searchProductoDataById($productoId);
+                $producto = $this->searchModel->searchProductoDataById($productoId);
 
                 if (empty($producto)) {
                     $errores[] = "Fila {$i}: No se encontró el producto recien creado {$prodCodigo}.";

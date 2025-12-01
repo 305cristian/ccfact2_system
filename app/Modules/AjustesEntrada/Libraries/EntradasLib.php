@@ -198,6 +198,10 @@ class EntradasLib {
         // Obtengo costo de inventario total (empresa)
         $costoInvTotal = $this->productLib->getCostoInventarioTotal();
         $nuevoCostoInvTotal = $costoInvTotal + $producto->total;
+        
+//        if ($nuevoStock < 0) {
+//            throw new \Exception("El producto {$producto->name} quedaría con stock negativo.");
+//        }
 
         // Calcular costo promedio
         $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
