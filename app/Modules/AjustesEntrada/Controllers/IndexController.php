@@ -71,7 +71,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
-        $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo' => "AJUSTES"], 'id, mot_nombre');
+        $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo !=' => "DESPACHOS"], 'id, mot_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
 
         $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
@@ -192,8 +192,8 @@ class IndexController extends \App\Controllers\BaseController {
             "name" => $dataProducto->prod_nombre,
             "unidadMedida" => $dataProducto->um_nombre_corto,
             "price" => (float) $dataProducto->prod_costopromedio,
-            "stock" => $dataProducto->prod_stockactual,
-            "stockBodega" => $stockBodega,
+            "stock" => number_format($dataProducto->prod_stockactual, 2),
+            "stockBodega" => number_format($stockBodega, 2),
             "ivaPorcent" => $tarifaIva,
             "icePorcent" => $tarifaIce,
             "tieneLote" => $dataProducto->prod_ctrllote,
@@ -235,6 +235,8 @@ class IndexController extends \App\Controllers\BaseController {
             $fechaCaduc = null;
         }
 
+        $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $dataPost->idBodega], 'stb_stock', null, 1);
+        $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
 
         $item = [
             "id" => (int) $idProd,
@@ -243,8 +245,8 @@ class IndexController extends \App\Controllers\BaseController {
             "name" => $dataPost->name,
             "unidadMedida" => $dataPost->unidadMedida,
             "price" => (float) $dataPost->price,
-            "stock" => $dataPost->stock,
-            "stockBodega" => 0,
+            "stock" => number_format($dataPost->stock, 2),
+            "stockBodega" => number_format($stockBodega, 2),
             "ivaPorcent" => $dataPost->ivaPorcent,
             "icePorcent" => $dataPost->icePorcent,
             "tieneLote" => $dataPost->tieneLote,
@@ -347,14 +349,14 @@ class IndexController extends \App\Controllers\BaseController {
                         $lote = $this->saveLote($ajusteId, $val);
                     }
                 }
-                
-                 if($val->qty <=0){
+
+                if ($val->qty <= 0) {
                     return $this->responseSetJSON('warning', "No pueden haber productos con cantidad menor o igual a 0<br> para el producto {$val->name}");
                 }
-                if($val->price <=0){
+                if ($val->price <= 0) {
                     return $this->responseSetJSON('warning', "No pueden haber productos con precio menor o igual a 0<br> para el producto {$val->name}");
                 }
-                
+
                 $ajusteIdDet = $this->entradasLib->saveAjusteDetalle($ajusteId, $val, $lote);
 
                 if (!$ajusteIdDet) {
@@ -456,15 +458,15 @@ class IndexController extends \App\Controllers\BaseController {
                         $lote = $this->saveLote($ajusteId, $val);
                     }
                 }
-                if($val->qty <=0){
-                     $this->db->transRollback();
+                if ($val->qty <= 0) {
+                    $this->db->transRollback();
                     return $this->responseSetJSON('warning', "No pueden haber productos con cantidad menor o igual a 0<br> para el producto {$val->name}");
                 }
-                if($val->price <=0){
-                     $this->db->transRollback();
+                if ($val->price <= 0) {
+                    $this->db->transRollback();
                     return $this->responseSetJSON('warning', "No pueden haber productos con precio menor o igual a 0<br> para el producto {$val->name}");
                 }
-                
+
                 $ajusteIdDet = $this->entradasLib->saveAjusteDetalle($ajusteId, $val, $lote);
 
                 if (!$ajusteIdDet) {
@@ -618,7 +620,7 @@ class IndexController extends \App\Controllers\BaseController {
             // Leer archivo Excel
             $spreadsheet = IOFactory::load($file->getTempName());
             $sheet = $spreadsheet->getActiveSheet();
-            $registros = $sheet->toArray(null, true, true, true);
+            $registros = $sheet->toArray(null, true, true, true); //(valor de celdas vacias, calcular formulas, formato date, returnCellRef), el cuarto parametro es true para que las columas sean manejadas mediante su letra, si fuera false serian manejadas mediante sus indices 0,1,2,etc
 
             $importados = 0;
             $errores = [];

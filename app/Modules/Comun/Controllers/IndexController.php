@@ -14,6 +14,7 @@ namespace Modules\Comun\Controllers;
  * @Time 17:22:52
  */
 use \PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class IndexController extends \App\Controllers\BaseController {
 
@@ -88,7 +89,7 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-    public function downloadPlantillaExcel() {
+    public function downloadPlantillaExcelEntrada() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Plantilla Ajuste Entrada');
@@ -100,7 +101,24 @@ class IndexController extends \App\Controllers\BaseController {
         header('Content-Disposition: attachment;filename="Plantilla_Ajuste_Entrada.xlsx"');
         header('Cache-Control: max-age=0');
 
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+    
+    public function downloadPlantillaExcelSalida() {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Plantilla Ajuste Entrada');
+        $sheet->fromArray(['Código', 'Cantidad', 'Lote'], null, 'A1');
+        $sheet->fromArray(['CCF-000011', '10', '566UU'], null, 'A2');
+        $sheet->getStyle('A1:C1')->getFont()->setBold(true);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Plantilla_Ajuste_Salida.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save('php://output');
         exit;
     }

@@ -232,18 +232,18 @@ window.appGestionAje = Vue.createApp({
     created() {
 
     },
-    computed: {
-        estadoDocumento() {
-            if (this.ajusteActual.ajen_estado === '1')
-                return '<span class="badge bg-warning"><i class="fas fa-edit"></i> BORRADOR </span>';
-            if (this.ajusteActual.ajen_estado === '2')
-                return '<span class="badge bg-success"><i class="fas fa-check-double "></i> ARCHIVADO </span>';
-            if (this.ajusteActual.ajen_estado === '-1')
-                return '<span class="badge bg-danger"><i class="fas fa-stop-circle "></i> ANULADO </span>';
-            return 'Desconocido';
-        }
-
-    },
+//    computed: {
+//        estadoDocumento() {
+//            if (this.ajusteActual.ajen_estado === '1')
+//                return '<span class="badge bg-warning"><i class="fas fa-edit"></i> BORRADOR </span>';
+//            if (this.ajusteActual.ajen_estado === '2')
+//                return '<span class="badge bg-success"><i class="fas fa-check-double "></i> ARCHIVADO </span>';
+//            if (this.ajusteActual.ajen_estado === '-1')
+//                return '<span class="badge bg-danger"><i class="fas fa-stop-circle "></i> ANULADO </span>';
+//            return 'Desconocido';
+//        }
+//
+//    },
     mounted() {
 
         // Inicializar Flatpickr

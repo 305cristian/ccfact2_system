@@ -60,7 +60,7 @@ $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function 
     $subroutes->post('productos/searchProductosStock', 'SearchsController::searchProductosStock');
     $subroutes->get('productos/searchProductoCode/(:segment)', 'SearchsController::searchProductoCode/$1');
     $subroutes->post('exportar/generarExcel', 'IndexController::generarExcel');
-    $subroutes->get('descargar/downloadPlantillaExcel', 'IndexController::downloadPlantillaExcel');
+    $subroutes->get('descargar/downloadPlantillaExcelEntrada', 'IndexController::downloadPlantillaExcelEntrada');
     $subroutes->get('descargar/downloadPlantillaExcelAjusteInicial', 'IndexController::downloadPlantillaExcelAjusteInicial');
 });
 

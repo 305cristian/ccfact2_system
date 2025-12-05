@@ -36,9 +36,9 @@ $routes->group('ajustessalida', ['namespace' => '\Modules\AjustesSalida\Controll
     $subroutes->post('cancelarAjuste', 'IndexController::cancelarAjuste');
     $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
     $subroutes->post('updateAjuste', 'IndexController::updateAjuste');
-//    $subroutes->post('anularAjuste', 'IndexController::anularAjuste');
+    $subroutes->post('anularAjuste', 'IndexController::anularAjuste');
     $subroutes->get('clonarAjuste/(:num)', 'IndexController::clonarAjuste/$1');
-//    $subroutes->post('importarExcel', 'IndexController::importarExcel');
+    $subroutes->post('importarExcel', 'IndexController::importarExcel');
     $subroutes->get('loadAjusteEdit/(:num)', 'IndexController::loadAjusteEdit/$1');
     $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
 
@@ -57,7 +57,6 @@ $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function 
     $subroutes->post('productos/searchProductosStock', 'SearchsController::searchProductosStock');
 //    $subroutes->get('productos/searchProductoCode/(:segment)', 'SearchsController::searchProductoCode/$1');
 //    $subroutes->post('exportar/generarExcel', 'IndexController::generarExcel');
-//    $subroutes->get('descargar/downloadPlantillaExcel', 'IndexController::downloadPlantillaExcel');
-//    $subroutes->get('descargar/downloadPlantillaExcelAjusteInicial', 'IndexController::downloadPlantillaExcelAjusteInicial');
+    $subroutes->get('descargar/downloadPlantillaExcelSalida', 'IndexController::downloadPlantillaExcelSalida');
 });
 

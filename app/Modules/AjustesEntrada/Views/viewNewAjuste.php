@@ -249,7 +249,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </div>
 
                         <div class="col-md-2 d-flex align-items-end">
-                            <a :href="url + '/comun/descargar/downloadPlantillaExcel'" class="btn btn-outline-primary w-100">
+                            <a :href="url + '/comun/descargar/downloadPlantillaExcelEntrada'" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-download me-2"></i> Descargar Plantilla
                             </a>
                         </div>
@@ -612,6 +612,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 let datos = item;
+                datos.idBodega = this.formDataAjuste.ajenBodega.id;
 
                 try {
                     this.loading = true;

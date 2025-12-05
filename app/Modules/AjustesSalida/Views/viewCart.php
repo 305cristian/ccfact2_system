@@ -134,6 +134,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <i class="fas fa-plus"></i>
                                 </button>
                                 <input type="text"
+                                       readonly
                                        class="form-control form-control-sm"
                                        style="max-width: 80px;"
                                        v-model.number="item.price"

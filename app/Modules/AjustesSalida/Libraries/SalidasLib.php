@@ -193,7 +193,7 @@ class SalidasLib {
             'kar_kardex_total' => $nuevoStock,
             'kar_costo_promedio' => $costoPromedio,
             'kar_costo_ultimo' => $producto->price,
-            'kar_total_costo' => $producto->total,
+            'kar_total_costo' => abs($producto->total), //SIEMPRE POSITIVO LOS COSTOS
             'kar_documento_id' => $ajusteId,
             'kar_codigo_transaccion' => $this->tipotransaccionCod,
             'kar_fecha' => $fecha,
@@ -336,13 +336,135 @@ class SalidasLib {
             }
 
             return ['status' => 'success'];
-            
         } catch (Exception $exc) {
             log_message('error', '[AJUSTE SALIDA][RESERVAS] ' . $exc->getMessage());
             return [
                 'status' => 'error',
                 'msg' => 'Error interno al registrar reservas'
             ];
+        }
+    }
+
+    public function anularAjuste(int $ajusteId, string $motivo): array {
+        // ️Obtener el ajuste
+        $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
+
+        if (!$ajuste) {
+            return ['status' => 'error', 'msg' => 'No se encontró el ajuste especificado'];
+        }
+
+        if ($ajuste->ajes_estado == -1) {
+            return ['status' => 'warning', 'msg' => 'El ajuste ya se encuentra anulado'];
+        }
+
+        //BORRADOR: solo liberar reservas y marcar anulado
+        if ($ajuste->ajes_estado == 1) {
+
+            // Liberar reservas
+            $this->reservasLib->liberarReservasDocumento($this->tipotransaccionCod, $ajusteId);
+
+            // Marcar ajuste como anulado
+            $datos = [
+                'ajes_estado' => -1,
+                'ajes_motivo_anulacion' => $motivo,
+                'ajes_fecha_anulacion' => date('Y-m-d H:i:s'),
+                'fk_user_anulacion' => $this->user->id
+            ];
+
+            $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
+
+            return [
+                'status' => 'success',
+                'msg' => 'Ajuste de salida en BORRADOR anulado exitosamente'
+            ];
+        }
+
+        $detalle = $this->ccm->getData('cc_ajuste_salida_det', ['fk_ajuste_salida' => $ajusteId]);
+
+        if (!$detalle) {
+            return ['status' => 'error', 'msg' => 'No se encontró detalle asociado al ajuste'];
+        }
+
+        try {
+
+            // Código de transacción para ANULACIÓN DE AJUSTE DE SALIDA
+            $this->tipotransaccionCod = '40';
+
+            $dataAjuste = (object) [
+                        'ajesFecha' => date('Y-m-d'),
+                        'ajesBodega' => $ajuste->fk_bodega,
+                        'ajesEstado' => -1
+            ];
+
+            foreach ($detalle as $val) {
+                // Producto inverso
+                $producto = (object) [
+                            'id' => $val->fk_producto,
+                            'qty' => - abs($val->ajsd_itemcantidad), // ENTRADA compensatoria
+                            'price' => $val->ajsd_itemcosto,
+                            'total' => - abs($val->ajsd_itemcostoxcantidad),
+                            'tieneLote' => 0,
+                            'servicio' => 0
+                ];
+
+                // Info producto
+                $prodInfo = $this->ccm->getData('cc_productos', ['id' => $val->fk_producto], 'prod_ctrllote, prod_isservicio', null, 1);
+
+                if ($prodInfo) {
+                    $producto->tieneLote = $prodInfo->prod_ctrllote;
+                    $producto->servicio = $prodInfo->prod_isservicio;
+                }
+
+                // No tocar kardex si es servicio
+                if ($producto->servicio == '0') {
+                    $kardexOk = $this->updateKardex($ajusteId, $producto, $val->fk_lote, $dataAjuste);
+                    if ($kardexOk['status'] !== 'success') {
+                        return [
+                            'status' => 'error',
+                            'msg' => 'Error al revertir kardex del ajuste de salida'
+                        ];
+                    }
+                }
+                //Liberar reservas (si quedaron por ahi colgadas)
+                $this->reservasLib->liberarReservasDocumento($this->tipotransaccionCod, $ajusteId);
+
+                //Marcar ajuste como ANULADO
+                $datos = [
+                    'ajes_estado' => -1,
+                    'ajes_fecha_anulacion' => date('Y-m-d H:i:s'),
+                    'fk_user_anulacion' => $this->user->id,
+                    'ajes_motivo_anulacion' => $motivo ?? 'Anulación manual'
+                ];
+
+                $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
+
+                //Anular asiento contable
+                $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_documento_id' => $ajusteId, 'ac_codigo_transaccion' => '38', 'ac_estado' => 1], 'id');
+
+                if ($asientoId) {
+                    $datos = [
+                        'ac_estado' => -1,
+                        'ac_fecha_anulacion' => date('Y-m-d H:i:s'),
+                        'fk_user_id_anulacion' => $this->user->id,
+                        'ac_motivo_anulacion' =>
+                        "Asiento anulado automáticamente por anulación del ajuste de salida #{$ajuste->ajes_secuencial}"
+                    ];
+                    $this->ccm->actualizar('cc_asiento_contable', $datos, ['id' => $asientoId]);
+                }
+            }
+            return [
+                'status' => 'success',
+                'msg' => "Ajuste de salida #{$ajuste->ajes_secuencial} anulado exitosamente."
+            ];
+        } catch (Exception $exc) {
+//            echo $exc->getTraceAsString();
+            return [
+                'status' => 'error',
+                'msg' => 'Error al anular ajuste de salida: ' . $exc->getMessage()
+            ];
+        } finally {
+            // Volvemos al código normal de AJUSTE SALIDA
+            $this->tipotransaccionCod = '38';
         }
     }
 }

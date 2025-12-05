@@ -287,7 +287,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="row mt-1">
                         <div class="col-md-4">
                             <small class="text-muted">
-                                Plantilla: Código, Cantidad, Lote, F. Elaboración, F. Caducidad
+                                Plantilla: Código, Cantidad, Lote
                             </small>
                             <input 
                                 type="file" 

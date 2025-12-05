@@ -198,7 +198,7 @@ class EntradasLib {
         // Obtengo costo de inventario total (empresa)
         $costoInvTotal = $this->productLib->getCostoInventarioTotal();
         $nuevoCostoInvTotal = $costoInvTotal + $producto->total;
-        
+
 //        if ($nuevoStock < 0) {
 //            throw new \Exception("El producto {$producto->name} quedaría con stock negativo.");
 //        }
@@ -213,7 +213,7 @@ class EntradasLib {
             'kar_kardex_total' => $nuevoStock,
             'kar_costo_promedio' => $costoPromedio,
             'kar_costo_ultimo' => $producto->price,
-            'kar_total_costo' => $producto->total,
+            'kar_total_costo' => abs($producto->total), //SIEMPRE POSITIVO
             'kar_documento_id' => $ajusteId,
             'kar_codigo_transaccion' => $this->tipotransaccionCod,
             'kar_fecha' => $fecha,

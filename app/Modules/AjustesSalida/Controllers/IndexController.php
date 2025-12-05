@@ -25,6 +25,7 @@ use Modules\AjustesSalida\Libraries\SalidasCartLib;
 use Modules\AjustesSalida\Libraries\SalidasLib;
 use Modules\AjustesSalida\Libraries\SalidasAsientosLib;
 use Modules\AjustesSalida\Models\SalidasModel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class IndexController extends \App\Controllers\BaseController {
 
@@ -92,7 +93,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['permitirDuplicados'] = getSettings('PERMITIR_ITEMS_DUPLICADOS');
         $data['dataAjuste'] = null;
         $data['dataCliente'] = null;
-        
+
         if (!empty($ajusteId)) {
             $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
             $data['dataCliente'] = $this->searchModel->searchClientesById($data['dataAjuste']->fk_cliente);
@@ -267,7 +268,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         // Validar stock disponible considerando reservas, para la nueva cantidad
         // Validar stock disponible (stock real - reservas)
-        $idAjuste = empty($dataPost->ajusteId) ? null : $dataPost->ajusteId;
+        $idAjuste = empty($dataPost->ajusteId) ? null : $dataPost->ajusteId; //Cuando el updateProduct se ejecutado desde una actualización de una salida en borrrador hacemos uso del ID del ajuste
         $idLote = ($dataPost->tieneLote === '1') ? $dataPost->idLote : null;
         $validarStock = $this->stockBodLib->validarStockDisponible($idProd, $idBodega, $cantidad, '38', $idAjuste, $idLote);
 
@@ -613,199 +614,171 @@ class IndexController extends \App\Controllers\BaseController {
         return ['status' => false];
     }
 
-//    public function anularAjuste()
-//    {
-//        $this->user->validateSession();
-//
-//        $data          = json_decode(file_get_contents('php://input'));
-//        $ajusteId      = $data->ajusteId;
-//        $motivoAnulacion = $data->motivoAnulacion;
-//
-//        try {
-//            if (empty($ajusteId)) {
-//                return $this->responseSetJSON('warning', 'ID de ajuste inválido');
-//            }
-//            if (empty($motivoAnulacion)) {
-//                return $this->responseSetJSON('warning', 'Debe especificar un motivo de anulación');
-//            }
-//
-//            $this->db->transBegin();
-//
-//            $response = $this->salidasLib->anularAjuste($ajusteId, $motivoAnulacion);
-//
-//            if ($this->db->transStatus() === false) {
-//                $this->db->transRollback();
-//            }
-//            if ($response['status'] !== 'success') {
-//                $this->db->transRollback();
-//                return $this->responseSetJSON($response['status'], $response['msg']);
-//            }
-//
-//            $this->db->transCommit();
-//            $this->logs->logSuccess("[Ajuste Salida] Anulado exitosamente ID: {$ajusteId}");
-//            return $this->responseSetJSON('success', $response['msg']);
-//        } catch (\Throwable $exc) {
-//            $this->logs->logError('Excepción al anular ajuste de salida: ' . $exc->getMessage());
-//            return $this->responseSetJSON('error', 'Error interno: ' . $exc->getMessage());
-//        }
-//    }
-    public function clonarAjuste($ajusteId)
-    {
+    public function anularAjuste() {
+        $this->user->validateSession();
+
+        $data = json_decode(file_get_contents('php://input'));
+        $ajusteId = $data->ajusteId;
+        $motivoAnulacion = $data->motivoAnulacion;
+
+        try {
+            if (empty($ajusteId)) {
+                return $this->responseSetJSON('warning', 'ID de ajuste inválido');
+            }
+            if (empty($motivoAnulacion)) {
+                return $this->responseSetJSON('warning', 'Debe especificar un motivo de anulación');
+            }
+
+            $this->db->transBegin();
+
+            $response = $this->salidasLib->anularAjuste($ajusteId, $motivoAnulacion);
+
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+            }
+            if ($response['status'] !== 'success') {
+                $this->db->transRollback();
+                return $this->responseSetJSON($response['status'], $response['msg']);
+            }
+
+            $this->db->transCommit();
+            $this->logs->logSuccess("[Ajuste Salida] Anulado exitosamente ID: {$ajusteId}");
+            log_message('info', "[Ajuste Salida] Anulado exitosamente ID:{$ajusteId}");
+            return $this->responseSetJSON('success', $response['msg']);
+        } catch (\Throwable $exc) {
+            $this->logs->logError('Excepción al anular ajuste de salida: ' . $exc->getMessage());
+            return $this->responseSetJSON('error', 'Error interno: ' . $exc->getMessage() . $exc->getTraceAsString());
+        }
+    }
+
+    public function clonarAjuste($ajusteId) {
         $respuesta = $this->loadDataAjusteCart($ajusteId, true);
 
         return $this->response->setJSON([
-            'status'   => $respuesta['status'] === 'success' ? 'success' : 'error',
-            'redirect' => site_url('ajustessalida/nuevoAjuste')
+                    'status' => $respuesta['status'] === 'success' ? 'success' : 'error',
+                    'redirect' => site_url('ajustessalida/nuevoAjuste')
         ]);
     }
-//    public function importarExcel()
-//    {
-//        try {
-//            $file              = $this->request->getFile('file');
-//            $bodegaId          = $this->request->getPost('bodegaId');
-//            $permitirDuplicados = $this->request->getPost('permitirDuplicados');
-//
-//            if (!$file || !$file->isValid()) {
-//                return $this->responseSetJSON('error', 'Debe seleccionar un archivo Excel válido.');
-//            }
-//
-//            $spreadsheet = IOFactory::load($file->getTempName());
-//            $sheet       = $spreadsheet->getActiveSheet();
-//            $registros   = $sheet->toArray(null, true, true, true);
-//
-//            $importados = 0;
-//            $errores    = [];
-//            $fila       = 1;
-//
-//            foreach ($registros as $i => $row) {
-//                $fila++;
-//                if ($i === 1) {
-//                    continue; // cabecera
-//                }
-//
-//                $codigo     = trim($row['A'] ?? '');
-//                $cantidad   = (float) ($row['B'] ?? 0);
-//                $lote       = trim($row['C'] ?? '');
-//                $fechaElab  = trim($row['D'] ?? '');
-//                $fechaCaduc = trim($row['E'] ?? '');
-//
-//                if (empty($codigo)) {
-//                    $errores[] = "Fila {$i}: el código está vacío.";
-//                    continue;
-//                }
-//                if ($cantidad <= 0) {
-//                    $errores[] = "Fila {$i}: la cantidad debe ser mayor a cero.";
-//                    continue;
-//                }
-//
-//                $idProd = $this->ccm->getValueWhere(
-//                    'cc_productos',
-//                    ['prod_codigo' => $codigo, 'prod_estado' => 1],
-//                    'id'
-//                );
-//                if (!$idProd) {
-//                    $errores[] = "Fila {$i}: el producto con código '{$codigo}' no existe o está desactivado.";
-//                    continue;
-//                }
-//
-//                $producto = $this->searchModel->searchProductoData($idProd);
-//
-//                // Validar stock disponible (stock - reservas)
-//                $validStock = $this->salidasLib->validarStockDisponible($producto->id, $bodegaId, $cantidad);
-//                if ($validStock['status'] !== 'success') {
-//                    $errores[] = "Fila {$i}: " . strip_tags($validStock['msg']);
-//                    continue;
-//                }
-//
-//                if ($producto->prod_ctrllote === '1') {
-//                    if (empty($lote)) {
-//                        $errores[] = "Fila {$i}: el producto '{$codigo}' requiere un número de lote.";
-//                        continue;
-//                    }
-//
-//                    // Para salidas: el lote DEBE existir, no se crea
-//                    $existeLote = $this->ccm->getData(
-//                        'cc_lotes',
-//                        ['lot_lote' => $lote, 'fk_producto' => $producto->id],
-//                        '*',
-//                        null,
-//                        1
-//                    );
-//                    if (!$existeLote) {
-//                        $errores[] = "Fila {$i}: el lote '{$lote}' no existe para el producto '{$codigo}'.";
-//                        continue;
-//                    }
-//
-//                    $lote       = $existeLote->lot_lote;
-//                    $fechaElab  = $existeLote->lot_fecha_elaboracion;
-//                    $fechaCaduc = $existeLote->lot_fecha_caducidad;
-//                } else {
-//                    $lote       = null;
-//                    $fechaElab  = null;
-//                    $fechaCaduc = null;
-//                }
-//
-//                $dataStockBodega = $this->ccm->getData(
-//                    'cc_stock_bodega',
-//                    ['fk_producto' => $producto->id, 'fk_bodega' => $bodegaId],
-//                    'stb_stock',
-//                    null,
-//                    1
-//                );
-//                $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
-//
-//                $impuestos = $this->prodModel->getImpuestoTarifa($producto->id);
-//                $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
-//                $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
-//
-//                $item = [
-//                    "id"             => (int) $producto->id,
-//                    "qty"            => $cantidad,
-//                    "codigo"         => $producto->prod_codigo,
-//                    "name"           => $producto->prod_nombre,
-//                    "unidadMedida"   => $producto->um_nombre_corto,
-//                    "price"          => (float) $producto->prod_costopromedio,
-//                    "stock"          => $producto->prod_stockactual,
-//                    "stockBodega"    => $stockBodega,
-//                    "ivaPorcent"     => $tarifaIva,
-//                    "icePorcent"     => $tarifaIce,
-//                    "tieneLote"      => $producto->prod_ctrllote,
-//                    "permitirDuplicados" => $permitirDuplicados,
-//                    "lote"           => $lote,
-//                    "fechaElaboracion" => $fechaElab,
-//                    "fechaCaducidad"   => $fechaCaduc,
-//                    "servicio"      => $producto->prod_isservicio,
-//                ];
-//
-//                $this->ajesCart->insert($item);
-//                $importados++;
-//            }
-//
-//            if ($importados === 0) {
-//                $msg = 'No se importaron productos válidos.';
-//                if (!empty($errores)) {
-//                    $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>"
-//                        . implode('<br>', $errores) . '</span>';
-//                }
-//                return $this->responseSetJSON('warning', $msg);
-//            }
-//
-//            $msg = "Importación completada: {$importados} producto(s) agregado(s).";
-//            if (!empty($errores)) {
-//                $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>"
-//                    . implode('<br>', $errores) . '</span>';
-//            }
-//
-//            $dataResponse = [
-//                'totalImportados' => $importados,
-//                'errores'         => $errores
-//            ];
-//            return $this->responseSetJSON('success', $msg, $dataResponse);
-//        } catch (\Throwable $exec) {
-//            return $this->responseSetJSON(
-//                'error',
-//                'Error al procesar el archivo: ' . $exec->getMessage() . $exec->getTraceAsString()
-//            );
-//        }
-//    }
+
+    public function importarExcel() {
+        try {
+            $file = $this->request->getFile('file');
+            $bodegaId = $this->request->getPost('bodegaId');
+            $permitirDuplicados = $this->request->getPost('permitirDuplicados');
+
+            if (!$file || !$file->isValid()) {
+                return $this->responseSetJSON('error', 'Debe seleccionar un archivo Excel válido.');
+            }
+
+            $spreadsheet = IOFactory::load($file->getTempName());
+            $sheet = $spreadsheet->getActiveSheet();
+            $registros = $sheet->toArray(null, true, true, true); //(valor de celdas vacias, calcular formulas, formato date, returnCellRef), el cuarto parametro es true para que las columas sean manejadas mediante su letra, si fuera false serian manejadas mediante sus indices 0,1,2,etc
+
+            $importados = 0;
+            $errores = [];
+            $fila = 1;
+
+            foreach ($registros as $i => $row) {
+                $fila++;
+                if ($i === 1) {
+                    continue; // cabecera
+                }
+
+                $codigo = trim($row['A'] ?? '');
+                $cantidad = (float) ($row['B'] ?? 0);
+                $lote = trim($row['C'] ?? '');
+
+                if (empty($codigo)) {
+                    $errores[] = "Fila {$i}: el código está vacío.";
+                    continue;
+                }
+                if ($cantidad <= 0) {
+                    $errores[] = "Fila {$i}: la cantidad debe ser mayor a cero.";
+                    continue;
+                }
+
+                $idProd = $this->ccm->getValueWhere('cc_productos', ['prod_codigo' => $codigo, 'prod_estado' => 1], 'id');
+                if (!$idProd) {
+                    $errores[] = "Fila {$i}: el producto con código '{$codigo}' no existe o está desactivado.";
+                    continue;
+                }
+
+                $producto = $this->searchModel->searchProductoData($idProd);
+
+                // Validar stock disponible (stock - reservas)
+                $validarStock = $this->stockBodLib->validarStockDisponible($producto->id, $bodegaId, $cantidad);
+                if ($validarStock['status'] !== 'success') {
+                    $errores[] = "Fila {$i}: {$validarStock['msg']}";
+                    continue;
+                }
+
+
+//                VALIDAR LOTE DE PRODUCTO QUE VIENE EN EXCL ... continuara...
+//                //Obtenemos los lotes con su stock en caso de que el producto maneje lotes 
+                $lotesStock = [];
+                if ($producto->prod_ctrllote === '1') {
+
+                    $existeLote = $this->ccm->getValueWhere('cc_lotes', ['lot_lote' => $lote, 'fk_producto' => $idProd], 'id');
+                    if (!$existeLote) {
+                        $errores[] = "Fila {$i}: No existe el lote {$lote} para el productod código {$codigo}";
+                        continue;
+                    }
+
+                    $lotesStock = $this->lotesStkModel->getLotesStock($idProd, $bodegaId);
+                    foreach ($lotesStock as $val) {
+                        $reservas = $this->reservasLib->getReservasProductoLote($idProd, $bodegaId, $val->fk_lote);
+                        $val->stockLote = $val->stbl_stock - $reservas['reserva'];
+                    }
+                }
+
+                $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $producto->id, 'fk_bodega' => $bodegaId], 'stb_stock', null, 1);
+                $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
+
+                $impuestos = $this->prodModel->getImpuestoTarifa($producto->id);
+                $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
+                $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
+
+                $item = [
+                    "id" => (int) $producto->id,
+                    "qty" => $cantidad,
+                    "codigo" => $producto->prod_codigo,
+                    "name" => $producto->prod_nombre,
+                    "unidadMedida" => $producto->um_nombre_corto,
+                    "price" => (float) $producto->prod_costopromedio,
+                    "stock" => number_format($producto->prod_stockactual, 2),
+                    "stockBodega" => number_format($stockBodega, 2),
+                    "ivaPorcent" => $tarifaIva,
+                    "icePorcent" => $tarifaIce,
+                    "permitirDuplicados" => $permitirDuplicados,
+                    "tieneLote" => $producto->prod_ctrllote,
+                    "lotes" => $lotesStock,
+                    "idLote" => isset($existeLote) ? $existeLote : null,
+                    "servicio" => $producto->prod_isservicio,
+                    "idBodega" => $bodegaId
+                ];
+
+                $this->ajesCart->insert($item);
+                $importados++;
+            }
+
+            if ($importados === 0) {
+                $msg = 'No se importaron productos válidos.';
+                $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>" . implode('<br>', $errores) . '</span>';
+                return $this->responseSetJSON('warning', $msg);
+            }
+
+            $msg = "Importación completada: {$importados} producto(s) agregado(s).";
+            if (!empty($errores)) {
+                $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>" . implode('<br>', $errores) . '</span>';
+            }
+
+            $dataResponse = [
+                'totalImportados' => $importados,
+                'errores' => $errores
+            ];
+            return $this->responseSetJSON('success', $msg, $dataResponse);
+        } catch (\Throwable $exec) {
+            return $this->responseSetJSON('error', 'Error al procesar el archivo: ' . $exec->getMessage() . $exec->getTraceAsString());
+        }
+    }
 }
