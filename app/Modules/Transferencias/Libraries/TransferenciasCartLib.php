@@ -6,7 +6,7 @@
  */
 
 /**
- * Description of SalidasCartLib
+ * Description of TransferenciasCartLib
  *
   /**
  * @author CRISTIAN R. PAZ
@@ -14,11 +14,11 @@
  * @time 10:38:36 a.m.
  */
 
-namespace Modules\AjustesSalida\Libraries;
+namespace Modules\Transferencias\Libraries;
 
 use CodeIgniter\Session\Session;
 
-class SalidasCartLib {
+class TransferenciasCartLib {
     //put your code here
 
     /**
@@ -54,8 +54,8 @@ class SalidasCartLib {
     /**
      * Constructor
      */
-    public function __construct($instance = "ajstSalida") {
-        $this->instance = "salidasCart" . $instance;
+    public function __construct($instance = "transferencias") {
+        $this->instance = "transferenciasCart" . $instance;
         $this->session = \Config\Services::session();
 
         // Cargar cart en memoria solo una vez

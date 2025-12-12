@@ -234,7 +234,7 @@ function calcularTotalUnidades(dataDetalle) {
             );
 }
 
-function generarExcel(contentExport, title) {
+function generarExcelContent(contentExport, title) {
     try {
 
         if (!contentExport) {

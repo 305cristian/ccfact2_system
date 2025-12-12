@@ -21,6 +21,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         <div class="card-body">
             <div class="row col-md-12">
 
+                <!--Rango de fechas-->
                 <div class="col-md-3 form-group-custom">
                     <div class="input-group">
                         <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i> Rango de Fechas</span>
@@ -106,7 +107,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
             </div>
 
-
+            <hr>
             <div v-show='panelMain' >
                 <div class="table-responsive" >
                     <table id="tblAjustes" class="table table-striped nowrap w-100" >
@@ -142,7 +143,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 </td>
                                 <td>{{zFill(laj.ajes_secuencial,4)}}</td>
                                 <td>{{laj.ajes_fecha}}</td>
-                                <td>{{laj.ajes_total}}</td>
+                                <td>{{formatToUSD(laj.ajes_total)}}</td>
                                 <td>{{laj.ajes_observaciones?laj.ajes_observaciones:'-'}}</td>
                                 <td>{{laj.bod_nombre}}</td>
                                 <td>{{laj.cc_nombre}}</td>
@@ -222,7 +223,7 @@ window.appGestionAjs = Vue.createApp({
             emailData: {
                 para: '',
                 cc: '',
-                asunto: 'xxx',
+                asunto: '',
                 mensaje: ''
             },
             errorSendMail: '',
@@ -358,7 +359,7 @@ window.appGestionAjs = Vue.createApp({
         generarExcel() {
             const contenido = document.getElementById('contentExport');
             const titulo = `Ajuste_Salida_${this.zFill(this.secuencialAjuste, 5)}`;
-            return generarExcel(contenido, titulo);
+            return generarExcelContent(contenido, titulo);
         },
         // ==========================================
         // EXPORTAR A PDF
@@ -395,7 +396,6 @@ window.appGestionAjs = Vue.createApp({
                 asunto: `Reporte de Ajuste de Salida #${ajuste.ajes_secuencial}`,
                 mensaje: 'Estimado(a), adjunto el reporte solicitado.'
             };
-//            Vue.nextTick();
             this.modalInstanceEmail.show();
         },
 
@@ -413,7 +413,6 @@ window.appGestionAjs = Vue.createApp({
                 this.loadingEmail = true;
                 const {data} = await axios.post(`${this.url}/ajustessalida/sendEmailReport`, datos);
                 if (data.status === 'success') {
-                    console.log('succes');
                     sweet_msg_toast('success', data.msg);
                     this.modalInstanceEmail.hide();
                     this.emailData = {
@@ -431,7 +430,9 @@ window.appGestionAjs = Vue.createApp({
                 this.loadingEmail = false;
             }
         },
-
+        formatToUSD(amount) {
+            return formatToUSD(amount);
+        },
         zFill(value, size) {
             return zFill(value, size);
         }

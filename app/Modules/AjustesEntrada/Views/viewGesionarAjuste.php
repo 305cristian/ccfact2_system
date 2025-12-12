@@ -104,7 +104,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
             </div>
 
-
+            <hr>
             <div v-show='panelMain' >
                 <div class="table-responsive" >
                     <table id="tblAjustes" class="table table-striped nowrap w-100" >
@@ -140,7 +140,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 </td>
                                 <td>{{zFill(laj.ajen_secuencial,4)}}</td>
                                 <td>{{laj.ajen_fecha}}</td>
-                                <td>{{laj.ajen_total}}</td>
+                                <td>{{formatToUSD(laj.ajen_total)}}</td>
                                 <td>{{laj.ajen_observaciones}}</td>
                                 <td>{{laj.bod_nombre}}</td>
                                 <td>{{laj.cc_nombre}}</td>
@@ -368,7 +368,7 @@ window.appGestionAje = Vue.createApp({
         generarExcel() {
             const contenido = document.getElementById('contentExport');
             const titulo = `Ajuste_Entrada_${this.zFill(this.secuencialAjuste, 5)}`;
-            return generarExcel(contenido, titulo);
+            return generarExcelContent(contenido, titulo);
         },
         // ==========================================
         // EXPORTAR A PDF
@@ -526,7 +526,9 @@ window.appGestionAje = Vue.createApp({
 //            calcularTotalUnidades() {
 //                return  calcularTotalUnidades(this.ajusteActual.detalle);
 //            },
-
+        formatToUSD(amount) {
+            return formatToUSD(amount);
+        },
 
         zFill(value, size) {
             return zFill(value, size);

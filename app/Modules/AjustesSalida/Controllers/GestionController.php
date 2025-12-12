@@ -52,6 +52,7 @@ class GestionController extends \App\Controllers\BaseController {
     }
 
     public function searchAjustes() {
+        $this->user->validateSession();
         $dataPost = json_decode(file_get_contents('php://input'));
 
         $filtros = [

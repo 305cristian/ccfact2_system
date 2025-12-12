@@ -108,7 +108,10 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-primary" @click="restablecerContraseña()"><i class="fas fa-lock-open"></i> Restablecer</button>
+                        <button class="btn btn-primary" @click="restablecerContraseña()" :disabled="loading">
+                            <span v-if="loading" class="loading-spin"><i class="fas fa-spin"></i></span>
+                            <span v-else><i class="fas fa-lock-open"></i> Restablecer</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -303,6 +306,7 @@
                 url: siteUrl,
                 estadoSave: true,
                 dniAux: '',
+                loading: false,
 
                 //TODO: V-MODELS
                 bodegas: '',
@@ -362,7 +366,7 @@
                     sweet_msg_toast('warning', 'El campo confirmar contraseña no puede estar vacío');
                     return false;
                 }
-                if (this.newPassword != v.confirmPassword) {
+                if (this.newPassword != this.confirmPassword) {
                     sweet_msg_toast('warning', 'Las contraseñas no coinciden');
                     return false;
                 }
@@ -372,6 +376,7 @@
                     confirmPassword: this.confirmPassword,
                 }
                 try {
+                    this.loading=true;
                     let response = await axios.post(this.url + '/admin/employee/resetPassword', datos);
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
@@ -380,6 +385,8 @@
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                }finally {
+                    this.loading=false;
                 }
 
             },

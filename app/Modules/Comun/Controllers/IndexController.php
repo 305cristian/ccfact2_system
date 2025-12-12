@@ -122,6 +122,22 @@ class IndexController extends \App\Controllers\BaseController {
         $writer->save('php://output');
         exit;
     }
+    public function downloadPlantillaExcelTransferencias() {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Plantilla Ajuste Entrada');
+        $sheet->fromArray(['Código', 'Cantidad', 'Lote'], null, 'A1');
+        $sheet->fromArray(['CCF-000011', '10', '566UU'], null, 'A2');
+        $sheet->getStyle('A1:C1')->getFont()->setBold(true);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Plantilla_Ajuste_Salida.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
     public function downloadPlantillaExcelAjusteInicial() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();

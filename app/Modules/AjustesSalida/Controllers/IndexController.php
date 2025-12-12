@@ -209,7 +209,7 @@ class IndexController extends \App\Controllers\BaseController {
         }
 
         // Validar stock disponible (stock real - reservas)
-        $validarStock = $this->stockBodLib->validarStockDisponible($idProd, $idBodega, $cantidad);
+        $validarStock = $this->stockBodLib->validarStockDisponible($dataProducto->id, $idBodega, $cantidad);
         if ($validarStock['status'] !== 'success') {
             return $this->responseSetJSON($validarStock['status'], $validarStock['msg']);
         }
@@ -218,9 +218,9 @@ class IndexController extends \App\Controllers\BaseController {
         //Obtenemos los lotes con su stock en caso de que el producto maneje lotes 
         $lotesStock = [];
         if ($dataProducto->prod_ctrllote === '1') {
-            $lotesStock = $this->lotesStkModel->getLotesStock($idProd, $idBodega);
+            $lotesStock = $this->lotesStkModel->getLotesStock($dataProducto->id, $idBodega);
             foreach ($lotesStock as $val) {
-                $reservas = $this->reservasLib->getReservasProductoLote($idProd, $idBodega, $val->fk_lote);
+                $reservas = $this->reservasLib->getReservasProductoLote($dataProducto->id, $idBodega, $val->fk_lote);
                 $val->stockLote = $val->stbl_stock - $reservas['reserva'];
             }
         }
