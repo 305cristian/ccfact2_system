@@ -425,32 +425,32 @@ class SalidasLib {
                         ];
                     }
                 }
-                //Liberar reservas (si quedaron por ahi colgadas)
-                $this->reservasLib->liberarReservasDocumento($this->tipotransaccionCod, $ajusteId);
+            }
+            //Liberar reservas (si quedaron por ahi colgadas)
+            $this->reservasLib->liberarReservasDocumento($this->tipotransaccionCod, $ajusteId);
 
-                //Marcar ajuste como ANULADO
+            //Marcar ajuste como ANULADO
+            $datos = [
+                'ajes_estado' => -1,
+                'ajes_fecha_anulacion' => date('Y-m-d H:i:s'),
+                'fk_user_anulacion' => $this->user->id,
+                'ajes_motivo_anulacion' => $motivo ?? 'Anulación manual'
+            ];
+
+            $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
+
+            //Anular asiento contable
+            $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_documento_id' => $ajusteId, 'ac_codigo_transaccion' => '38', 'ac_estado' => 1], 'id');
+
+            if ($asientoId) {
                 $datos = [
-                    'ajes_estado' => -1,
-                    'ajes_fecha_anulacion' => date('Y-m-d H:i:s'),
-                    'fk_user_anulacion' => $this->user->id,
-                    'ajes_motivo_anulacion' => $motivo ?? 'Anulación manual'
+                    'ac_estado' => -1,
+                    'ac_fecha_anulacion' => date('Y-m-d H:i:s'),
+                    'fk_user_id_anulacion' => $this->user->id,
+                    'ac_motivo_anulacion' =>
+                    "Asiento anulado automáticamente por anulación del ajuste de salida #{$ajuste->ajes_secuencial}"
                 ];
-
-                $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
-
-                //Anular asiento contable
-                $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_documento_id' => $ajusteId, 'ac_codigo_transaccion' => '38', 'ac_estado' => 1], 'id');
-
-                if ($asientoId) {
-                    $datos = [
-                        'ac_estado' => -1,
-                        'ac_fecha_anulacion' => date('Y-m-d H:i:s'),
-                        'fk_user_id_anulacion' => $this->user->id,
-                        'ac_motivo_anulacion' =>
-                        "Asiento anulado automáticamente por anulación del ajuste de salida #{$ajuste->ajes_secuencial}"
-                    ];
-                    $this->ccm->actualizar('cc_asiento_contable', $datos, ['id' => $asientoId]);
-                }
+                $this->ccm->actualizar('cc_asiento_contable', $datos, ['id' => $asientoId]);
             }
             return [
                 'status' => 'success',

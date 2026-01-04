@@ -133,9 +133,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                                             <li><button class="dropdown-item" href="#" @click.prevent="verDetalle(laj)"><span><i class="fas fa-clipboard-list"></i> Ver Detalle</span></button> </li>
-                                            <li><button :disabled="laj.ajes_estado == 2 ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
-                                            <li><button class="dropdown-item" href="#" @click.prevent="anularAjuste(laj.id)"><span><i class="fas fa-stop-circle"></i>  Anular Ajuste</span></button></li>
-                                            <li><button class="dropdown-item" href="#" @click.prevent="openModalEmail(laj)"><span><i class="fas fa-clone"></i>  Enviar por Email</span> </button></li>
+                                            <li><button :disabled="(laj.ajes_estado == 2 || laj.ajes_estado == -1) ? true : false " class="dropdown-item" href="#"  @click.prevent="loadAjusteEdit(laj.id)"> <span><i class="fas fa-edit"></i> Modificar Ajuste</span></button></li>
+                                            <li v-if="laj.ajes_estado != -1"><button class="dropdown-item text-danger" href="#" @click.prevent="anularAjuste(laj.id)"><span><i class="fas fa-stop-circle"></i>  Anular Ajuste</span></button></li>
+                                            <li><button class="dropdown-item" href="#" @click.prevent="openModalEmail(laj)"><span><i class="fas fa-mail-bulk"></i>  Enviar por Email</span> </button></li>
                                             <li><button class="dropdown-item" href="#" @click.prevent="clonarAjuste(laj.id)"><span><i class="fas fa-clone"></i>  Clonar Ajuste</span> </button></li>
                                         </ul>
                                     </div>
@@ -290,10 +290,11 @@ window.appGestionAjs = Vue.createApp({
                 const {data} = await axios.get(this.url + '/ajustessalida/loadAjusteEdit/' + idAjuste);
                 if (data.status === 'success') {
                     window.location.href = data.redirect;
+                    Swal.close();
                 } else {
                     sweet_msg_dialog('error', data.msg);
                 }
-                Swal.close();
+
             } catch (e) {
                 sweet_msg_dialog('error', '', '', 'Error al cargar el detalle del ajuste, ' + e.message);
             }

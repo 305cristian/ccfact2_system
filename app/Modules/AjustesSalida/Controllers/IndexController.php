@@ -140,8 +140,16 @@ class IndexController extends \App\Controllers\BaseController {
             $dataProducto = $this->searchModel->searchProductoData($valDet->fk_producto);
             $idProd = $valDet->fk_producto;
 
+            //Obtenemos el stock del producto
             $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock', null, 1);
             $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
+            $whereReserva = ['tb1.fk_producto' => $idProd, 'tb1.fk_bodega' => $idBodega, 'tb1.res_estado' => 'ACTIVA'];
+            $whereNotReserva = "NOT (tb1.res_codigo_transaccion = 38 AND tb1.res_documento_id = {$ajusteId})";
+            $rowReserva = $this->ccm->getData("cc_reserva_inventario tb1", $whereReserva, "COALESCE(SUM(tb1.res_cantidad),0) AS reservado", null, 1, null, $whereNotReserva);
+            $stockBodegaDisponible = $stockBodega - $rowReserva->reservado;
+            if ($stockBodegaDisponible <= 0) {
+                return ['status' => 'error', 'msg' => "No se ha encontrado stock para el producto de código {$valDet->fk_producto}"];
+            }
 
             //Obtenemos los lotes con su stock en caso de que el producto maneje lotes 
             $lotesStock = [];
@@ -170,7 +178,7 @@ class IndexController extends \App\Controllers\BaseController {
                 "unidadMedida" => $dataProducto->um_nombre_corto,
                 "price" => (float) $valDet->ajsd_itemcosto,
                 "stock" => number_format($dataProducto->prod_stockactual, 2),
-                "stockBodega" => number_format($stockBodega, 2),
+                "stockBodega" => number_format($stockBodegaDisponible, 2),
                 "ivaPorcent" => $tarifaIva,
                 "icePorcent" => $tarifaIce,
                 "permitirDuplicados" => $dataAjuste->ajes_items_duplicados,
@@ -278,7 +286,15 @@ class IndexController extends \App\Controllers\BaseController {
 
         //Obtenemos el stock por bodega
         $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock', null, 1);
-        $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock - $validarStock['dataReservado'] : 0;
+        $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
+
+        $whereReserva = ['tb1.fk_producto' => $idProd, 'tb1.fk_bodega' => $idBodega, 'tb1.res_estado' => 'ACTIVA'];
+        $whereNotReserva = null;
+        if ($idAjuste) {
+            $whereNotReserva = "NOT (tb1.res_codigo_transaccion = {$this->transaccionCod} AND tb1.res_documento_id = {$idAjuste})";
+        }
+        $rowReserva = $this->ccm->getData("cc_reserva_inventario tb1", $whereReserva, "COALESCE(SUM(tb1.res_cantidad),0) AS reservado", null, 1, null, $whereNotReserva);
+        $stockBodegaDisponible = $stockBodega - $rowReserva->reservado;
 
         $item = [
             "id" => (int) $idProd,
@@ -288,7 +304,7 @@ class IndexController extends \App\Controllers\BaseController {
             "unidadMedida" => $dataPost->unidadMedida,
             "price" => (float) $dataPost->price,
             "stock" => number_format($dataPost->stock, 2),
-            "stockBodega" => number_format($stockBodega, 2),
+            "stockBodega" => number_format($stockBodegaDisponible, 2),
             "ivaPorcent" => $dataPost->ivaPorcent,
             "icePorcent" => $dataPost->icePorcent,
             "permitirDuplicados" => $permitirDuplicados,
@@ -635,6 +651,7 @@ class IndexController extends \App\Controllers\BaseController {
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
+                return $this->responseSetJSON('error', "Error inesperado al anular el ajuste de salida");
             }
             if ($response['status'] !== 'success') {
                 $this->db->transRollback();
@@ -713,7 +730,7 @@ class IndexController extends \App\Controllers\BaseController {
                 }
 
 
-//                VALIDAR LOTE DE PRODUCTO QUE VIENE EN EXCL ... continuara...
+//                VALIDAR LOTE DE PRODUCTO QUE VIENE EN EXCL 
 //                //Obtenemos los lotes con su stock en caso de que el producto maneje lotes 
                 $lotesStock = [];
                 if ($producto->prod_ctrllote === '1') {

@@ -109,7 +109,7 @@ class IndexController extends \App\Controllers\BaseController {
     public function downloadPlantillaExcelSalida() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Plantilla Ajuste Entrada');
+        $sheet->setTitle('Plantilla Ajuste Salida');
         $sheet->fromArray(['Código', 'Cantidad', 'Lote'], null, 'A1');
         $sheet->fromArray(['CCF-000011', '10', '566UU'], null, 'A2');
         $sheet->getStyle('A1:C1')->getFont()->setBold(true);
@@ -125,13 +125,13 @@ class IndexController extends \App\Controllers\BaseController {
     public function downloadPlantillaExcelTransferencias() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Plantilla Ajuste Entrada');
+        $sheet->setTitle('Plantilla Transferencia');
         $sheet->fromArray(['Código', 'Cantidad', 'Lote'], null, 'A1');
         $sheet->fromArray(['CCF-000011', '10', '566UU'], null, 'A2');
         $sheet->getStyle('A1:C1')->getFont()->setBold(true);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="Plantilla_Ajuste_Salida.xlsx"');
+        header('Content-Disposition: attachment;filename="Plantilla_Transferencia.xlsx"');
         header('Cache-Control: max-age=0');
 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');

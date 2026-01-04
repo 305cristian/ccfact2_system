@@ -67,7 +67,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         '1' => ['bg-warning', '📄 BORRADOR'],
                         '2' => ['bg-primary', '📝️ POR CONFIRMAR'],
                         '3' => ['bg-success', '✅ CONFIRMADA'],
-                        '0' => ['bg-success', '🛑 RECHAZADA'],
+                        '0' => ['bg-danger', '🛑 RECHAZADA'],
                         '-1' => ['bg-danger', '❌ ANULADO']
                     ];
                     [$estadoClass, $estadoTexto] = $estado[$transferencia->trb_estado] ?? ['bg-secondary', 'DESCONOCIDO'];

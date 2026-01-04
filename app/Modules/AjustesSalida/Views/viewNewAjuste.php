@@ -310,7 +310,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <i class="loading-spin me-2"></i> Cargando...
                                 </span>
                                 <span v-else>
-                                    <i class="fas fa-upload me-2"></i> Cargar datos
+                                    <i class="fas fa-upload me-2"></i> Cargar Plantilla
                                 </span>
                             </button>
                         </div>

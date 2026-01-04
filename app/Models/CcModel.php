@@ -65,7 +65,7 @@ class CcModel extends \CodeIgniter\Model {
         return true;
     }
 
-    public function getData($table_name, $where_data = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null) {
+    public function getData($table_name, $where_data = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null, $whereNot = null) {
 
         $builder = $this->db->table($table_name);
 
@@ -89,6 +89,10 @@ class CcModel extends \CodeIgniter\Model {
             foreach ($order_by as $order => $tipo) {
                 $builder->orderBy($order, $tipo);
             }
+        }
+
+        if (!empty($whereNot)) {
+            $builder->where($whereNot, null, false);
         }
 
         if ($rows_num > 0) {

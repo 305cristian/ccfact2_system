@@ -250,7 +250,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <i class="loading-spin me-2"></i> Cargando...
                                 </span>
                                 <span v-else>
-                                    <i class="fas fa-upload me-2"></i> Cargar datos
+                                    <i class="fas fa-upload me-2"></i> Cargar Plantilla
                                 </span>
                             </button>
                         </div>
@@ -411,6 +411,43 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.selectedExcelFile = file;
                 this.excelFilename = file ? file.name : '';
             },
+            async cargarExcel() {
+                if (!this.selectedExcelFile) {
+                    sweet_msg_toast('warning', 'Seleccione un archivo Excel primero');
+                    return;
+                }
+                if (!this.formDataTransfer.trbBodegaOrigen.id) {
+                    sweet_msg_toast('warning', 'Debe seleccionar una bodega de origen antes de importar');
+                    return;
+                }
+
+                const datos = new FormData();
+                datos.append('file', this.selectedExcelFile);
+                datos.append('bodegaId', this.formDataTransfer.trbBodegaOrigen.id);
+                datos.append('permitirDuplicados', this.formDataTransfer.trbPermitirDuplicados);
+
+                try {
+                    this.loadingProcess = true;
+                    const {data} = await axios.post(this.url + '/transferencias/importarExcel', datos);
+
+                    if (data.status === 'success') {
+                        sweet_msg_dialog('success', (data.msg || 'Importación completada'));
+                        await this.showDetailCart();
+                        this.selectedExcelFile = null;
+                        this.excelFilename = '';
+                        this.$refs.excelInput.value = '';
+                        this.mostrarImportacion = false;
+                    } else if (data.status === 'warning') {
+                        sweet_msg_dialog('warning', data.msg);
+                    } else {
+                        sweet_msg_dialog('error', '', '', data.msg || 'Error al importar');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingProcess = false;
+                }
+            },
 
             // ==========================
             // VALIDACIÓN CAMPOS
@@ -517,7 +554,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             async loadUsersConfirm() {
-                this.formDataTransfer.trbUsuarioDestino = [];
+                this.formDataTransfer.trbUsuarioDestino = "";
                 let bodegaId = this.formDataTransfer.trbBodegaDestino.id;
                 if (bodegaId) {
                     try {
@@ -525,8 +562,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         let {data} = await axios.get(this.url + '/transferencias/loadUsersConfirm/' + bodegaId);
                         if (data.status === 'success') {
                             this.listaUsuariosDestino = data.data;
-                        }else{
-                            this.listaUsuariosDestino =[];
+                        } else {
+                            this.listaUsuariosDestino = [];
                         }
                     } catch (e) {
                         sweet_msg_dialog('error', '', '', e.data?.message || e.message);

@@ -141,20 +141,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                                 </button>
                                             </li>
 
-                                            <li>
-                                                <button class="dropdown-item"
-                                                        :disabled="trb.trb_estado != 1"
+                                            <li  v-if="trb.trb_estado == 1">
+                                                <button class="dropdown-item text-warning"
                                                         @click="loadTransferenciaEdit(trb.id)">
-                                                    <i class="fas fa-edit me-2"></i> Editar
+                                                    <i class="fas fa-edit me-2"></i> Modificar Transferencia
                                                 </button>
                                             </li>
                                             <li v-if="trb.trb_estado == 0">
-                                                <button class="dropdown-item"
-                                                        :disabled="trb.trb_estado != 1"
-                                                        @click="editarTransferencia(trb.id)">
+                                                <button class="dropdown-item text-info"
+                                                        @click="corregirTransferencia(trb.id, trb.trb_motivo_anulacion, trb.user_confirma)">
                                                     <i class="fas fa-file-edit me-2"></i> Corregir Transferencia
                                                 </button>
                                             </li>
+
+                                            <li>
+                                                <button class="dropdown-item text-primary"
+                                                        @click.prevent="openModalEmail(trb)">
+                                                    <i class="fas fa-mail-bulk me-2"></i> Enviar por Email
+                                                </button>
+                                            </li>
+
 
                                             <li>
                                                 <button class="dropdown-item text-primary"
@@ -211,7 +217,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <script type="text/javascript">
 
-    var fechaActual = DateTime.now().toFormat('yyyy-MM-dd');
+    var fechaDesde = DateTime.now().toFormat('yyyy-MM-01');
+    var fechaHasta = DateTime.now().toFormat('yyyy-MM-dd');
     var listaBodegas = <?= json_encode($listaBodegas); ?>;
     var listaUsuarios = <?= json_encode($listaUsuarios); ?>;
     var userSession = <?= json_encode($userSession); ?>;
@@ -250,7 +257,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 modalInstance: null,
 
                 //FILTROS
-                trbFechas: fechaActual,
+                trbFechas: `${fechaDesde} a ${fechaHasta}`,
                 trbSecuencial: '',
                 trbBodegaOrigen: '',
                 trbBodegaDestino: '',
@@ -301,10 +308,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             cambiarEstado(estado) {
                 this.estadoActivo = estado;
                 this.trbEstado = estado;
-                this.searchTransferencias();
+                this.searchTransferencias(0);
             },
 
-            async searchTransferencias() {
+            async searchTransferencias(aux = 0) {
                 const datos = {
                     trbSecuencial: this.trbSecuencial,
                     trbBodegaOrigen: this.trbBodegaOrigen,
@@ -314,21 +321,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     trbUsuarioConfirmar: this.trbUsuarioConfirmar,
                 };
                 try {
-                    swalLoading('Cargando Transferencias');
+                    aux === 0 ? swalLoading('Cargando Transferencias') : '';
                     const {data} = await axios.post(this.url + '/transferencias/searchTransferencias', datos);
                     if (data.status === 'success') {
                         this.panelMain = true;
                         this.listaTransferencias = data.data;
-                        this.cargarContadores();
-                        Swal.close();
+                        aux === 0 ? Swal.close() : '';
                     } else {
-                        sweet_msg_dialog('warning', 'No se han encontrado ajustes registrados en los parametros especificados');
+                        aux === 0 ? sweet_msg_dialog('warning', 'No se han encontrado transferencias registrados en los parametros especificados') : '';
                         this.panelMain = false;
                     }
-                    dataTable('#tblTransferencias', 'Listado de transferencias de salida');
+                    this.cargarContadores();
+                    dataTable('#tblTransferencias', 'Listado de transferencias');
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
-                }
+            }
             },
 
             async cargarContadores() {
@@ -377,53 +384,53 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             // EXPORTAR A PDF
             // ==========================================
             generarPDF() {
-//                try {
-//                    window.open(`${this.url}/transferencias/generarPDF/${this.idAjuste}?download=1`, '_blank');
-//                } catch (e) {
-//                    sweet_msg_dialog('error', '', '', 'Error al generar el documento, ' + e.message);
-//                }
+                try {
+                    window.open(`${this.url}/transferencias/generarPDF/${this.dataTransf.id}?download=1`, '_blank');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', 'Error al generar el documento, ' + e.message);
+                }
             },
             openModalEmail(transferencia) {
-//               this.dataTransf = transferencia;
-//                this.emailData = {
-//                    para: 'it@cateringclp.com, pcris.994@gmail.com',
-//                    cc: '',
-//                    asunto: `Reporte de Transferencia #${transferencia.trb_secuencial}`,
-//                    mensaje: 'Estimado(a), adjunto el reporte solicitado.'
-//                };
-//                this.modalInstanceEmail.show();
+                this.dataTransf = transferencia;
+                this.emailData = {
+                    para: 'it@cateringclp.com, pcris.994@gmail.com',
+                    cc: '',
+                    asunto: `Reporte de Transferencia #${transferencia.trb_secuencial}`,
+                    mensaje: 'Estimado(a), adjunto el reporte solicitado.'
+                };
+                this.modalInstanceEmail.show();
             },
 
             async sendEmailReport() {
 //
-//                if (!this.emailData.para || !this.emailData.asunto) {
-//                    this.errorSendMail = "⚠️ Debe completar los campos obligatorios (Para, Asunto)"
-//                    return;
-//                }
-//
-//                let datos = this.emailData;
-//                datos.idTransferencia = this.dataTransf.id;
-//
-//                try {
-//                    this.loadingEmail = true;
-//                    const {data} = await axios.post(`${this.url}/transferencias/sendEmailReport`, datos);
-//                    if (data.status === 'success') {
-//                        sweet_msg_toast('success', data.msg);
-//                        this.modalInstanceEmail.hide();
-//                        this.emailData = {
-//                            para: '',
-//                            cc: ''
-//                        };
-//                        this.loadingEmail = false;
-//                        sweet_msg_dialog('success', data.msg);
-//                    } else {
-//                        this.errorSendMail = data.msg;
-//                    }
-//                } catch (error) {
-//                    this.errorSendMail = 'Error al enviar email: ' + error.message;
-//                } finally {
-//                    this.loadingEmail = false;
-//                }
+                if (!this.emailData.para || !this.emailData.asunto) {
+                    this.errorSendMail = "⚠️ Debe completar los campos obligatorios (Para, Asunto)";
+                    return;
+                }
+
+                let datos = this.emailData;
+                datos.idTransferencia = this.dataTransf.id;
+
+                try {
+                    this.loadingEmail = true;
+                    const {data} = await axios.post(`${this.url}/transferencias/sendEmailReport`, datos);
+                    if (data.status === 'success') {
+                        sweet_msg_toast('success', data.msg);
+                        this.modalInstanceEmail.hide();
+                        this.emailData = {
+                            para: '',
+                            cc: ''
+                        };
+                        this.loadingEmail = false;
+                        sweet_msg_dialog('success', data.msg);
+                    } else {
+                        this.errorSendMail = data.msg;
+                    }
+                } catch (error) {
+                    this.errorSendMail = 'Error al enviar email: ' + error.message;
+                } finally {
+                    this.loadingEmail = false;
+                }
             },
 
             async loadTransferenciaEdit(id) {
@@ -433,68 +440,170 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     const {data} = await axios.get(this.url + '/transferencias/loadTransferenciaEdit/' + id);
                     if (data.status === 'success') {
                         window.location.href = data.redirect;
+                        Swal.close();
                     } else {
                         sweet_msg_dialog('error', data.msg);
                     }
-                    Swal.close();
+
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', 'Error al cargar el detalle de la transferencia, ' + e.message);
                 }
 
             },
+            async corregirTransferencia(id, motivo, userConfirma) {
+                const mensajeRechazo = `Transferencia rechazada por ${userConfirma} dsea corregirla?`;
+                const msgMotivo = `MOTIVO DE RCHAZO: ${motivo}`;
+                Swal.fire({
+                    title: mensajeRechazo,
+                    text: msgMotivo,
+                    icon: 'info',
+                    width: '50%',
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, Corregir",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#6c757d"
+                }).then(async r => {
+                    if (r.isConfirmed) {
+                        this.loadTransferenciaEdit(id);
+                    }
+                });
 
+
+            },
             confirmarTransferencia(id) {
                 Swal.fire({
                     title: 'Confirmar Transferencia?',
                     icon: 'question',
-                    showCancelButton: true
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, Confirmar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#6c757d",
                 }).then(async r => {
                     if (r.isConfirmed) {
-                        await axios.post(this.url + '/transferencias/confirmar', {id});
-                        this.searchTransferencias();
+                        try {
+                            swalLoading('Confirmando ransferencia...');
+                            const {data} = await axios.get(`${this.url}/transferencias/confirmarTransferencia/${id}`);
+
+                            if (data.status === 'success') {
+                                this.searchTransferencias(1);
+                                this.modalInstance.hide();
+                                sweet_msg_dialog(data.status, data.msg);
+                            }
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', `Ha ocurrido un error al tratar de aprobar la transferencia ${e.message}`);
+                        }
+
                     }
                 });
             },
             rechazarTransferencia(id) {
+
+                this.modalInstance.hide();
+
                 Swal.fire({
                     title: 'Recharzar Transferencia?',
                     icon: 'question',
-                    showCancelButton: true
+                    input: "textarea",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, Rechazar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#6c757d",
+                    inputValidator: value => {
+                        if (!value) {
+                            return 'Debe ingresar un motivo de rechazo';
+                        }
+                    }
                 }).then(async r => {
+
+                    let datos = {
+                        transferenciaId: id,
+                        motivo: r.value
+                    };
                     if (r.isConfirmed) {
-                        await axios.post(this.url + '/transferencias/rechazar', {id});
-                        this.searchTransferencias();
+
+                        try {
+                            swalLoading('Rechazando ransferencia...');
+                            const {data} = await axios.post(this.url + '/transferencias/rechazarTransferencia', datos);
+                            if (data.status === 'success') {
+                                this.searchTransferencias(1);
+                                sweet_msg_dialog(data.status, data.msg);
+                            } else {
+                                sweet_msg_dialog(data.status, data.msg);
+                            }
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', `Ha ocurrido un error al tratar de rechazar la transferencia ${e.message}`);
+                        }
+
+
+                    } else {
+                        this.modalInstance.show();
+                        return;
                     }
                 });
             },
-
-            clonarTrasferencia(id) {
+            clonarTrasferencia(transferenciaId) {
                 Swal.fire({
-                    title: "Anular transferencia",
-                    input: "textarea",
-                    showCancelButton: true
+                    title: "Clonar transferencia",
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, Clonar",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#6c757d"
                 }).then(async r => {
                     if (r.isConfirmed) {
-                        await axios.post(this.url + '/transferencias/anular', {
-                            transferenciaId: id,
-                            motivo: r.value
-                        });
+                        try {
+                            swalLoading('Clonando transferencia...');
+                            const {data} = await axios.get(`${this.url}/transferencias/clonarTransferencia/${transferenciaId}`);
+                            if (data.status === 'success') {
+                                window.location.href = data.redirect;
+                                Swal.close();
+                            } else {
+                                sweet_msg_dialog('error', 'Ha ocurrido un error al tratar de clonar la transferencia');
+                            }
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', e.message);
+                        }
                         this.searchTransferencias();
                     }
                 });
+
             },
             anularTransferencia(id) {
                 Swal.fire({
                     title: "Anular transferencia",
                     input: "textarea",
-                    showCancelButton: true
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, Anular",
+                    cancelButtonText: "Cancelar",
+                    confirmButtonColor: "#d33",
+                    cancelButtonColor: "#6c757d",
+                    inputValidator: value => {
+                        if (!value) {
+                            return 'Debe ingresar un motivo de anulación';
+                        }
+                    }
                 }).then(async r => {
                     if (r.isConfirmed) {
-                        await axios.post(this.url + '/transferencias/anular', {
+                        let datos = {
                             transferenciaId: id,
                             motivo: r.value
-                        });
-                        this.searchTransferencias();
+                        };
+                        try {
+                            swalLoading('Anulando ransferencia...');
+                            const {data} = await axios.post(this.url + '/transferencias/anularTransferencia', datos);
+                            if (data.status === 'success') {
+                                this.searchTransferencias(1);
+                                sweet_msg_dialog(data.status, data.msg);
+                            } else {
+                                sweet_msg_dialog(data.status, data.msg);
+                            }
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', `Ha ocurrido un error al tratar de anular la transferencia ${e.message}`);
+                        }
                     }
                 });
             },

@@ -28,7 +28,7 @@ class TransferenciasModel extends \CodeIgniter\Model {
         $builder->join('cc_bodegas tb2', 'tb2.id =tb1.fk_bodega_origen');
         $builder->join('cc_bodegas tb3', 'tb3.id =tb1.fk_bodega_destino');
         $builder->join('cc_empleados tb4', 'tb4.id =tb1.fk_user_crea');
-        $builder->join('cc_empleados tb5', 'tb5.id =tb1.fk_user_confirma');
+        $builder->join('cc_empleados tb5', 'tb5.id =tb1.fk_user_confirma','left');
         $builder->join('cc_centroscosto tb6', 'tb6.id =tb1.fk_centro_costo');
 
         // Mapeo de filtros a columnas de BD
@@ -42,7 +42,7 @@ class TransferenciasModel extends \CodeIgniter\Model {
 
         // Aplicar filtros dinámicamente
         foreach ($camposBD as $filtro => $columnaBD) {
-            if (!empty($filtros[$filtro])) {
+            if (isset($filtros[$filtro]) && $filtros[$filtro] !== '') {
                 $builder->where($columnaBD, $filtros[$filtro]);
             }
         }
@@ -82,7 +82,7 @@ class TransferenciasModel extends \CodeIgniter\Model {
         $builder->join('cc_bodegas tb2', 'tb2.id = tb1.fk_bodega_origen');
         $builder->join('cc_bodegas tb3', 'tb3.id = tb1.fk_bodega_destino');
         $builder->join('cc_empleados tb4', 'tb4.id = tb1.fk_user_crea');
-        $builder->join('cc_empleados tb5', 'tb5.id = tb1.fk_user_confirma');
+        $builder->join('cc_empleados tb5', 'tb5.id = tb1.fk_user_confirma','left');
         $builder->join('cc_centroscosto tb6', 'tb6.id = tb1.fk_centro_costo');
         $builder->where('tb1.id', $transferenciaId);
 

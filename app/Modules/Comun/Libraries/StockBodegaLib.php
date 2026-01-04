@@ -125,19 +125,19 @@ class StockBodegaLib {
 
         // 2) STOCK RESERVADO
         $whereDataReserva = ['tb1.fk_producto' => $productoId, 'tb1.fk_bodega' => $bodegaId, 'tb1.res_estado' => 'ACTIVA'];
+        $whereNotReserva=null;
         if ($documentoId) {
-            $whereDataReserva['tb1.res_documento_id !='] = $documentoId;
-            $whereDataReserva['tb1.res_codigo_transaccion !='] = $codTransaccion;
+            $whereNotReserva = "NOT (tb1.res_codigo_transaccion = {$codTransaccion} AND tb1.res_documento_id = {$documentoId})";
         }
         if ($idLoteProducto) {
             $whereDataReserva['tb1.fk_lote'] = $idLoteProducto;
         }
-        $rowReserva = $this->ccm->getData("cc_reserva_inventario0 tb1", $whereDataReserva, "COALESCE(SUM(tb1.res_cantidad),0) AS reservado", null, 1);
+        $rowReserva = $this->ccm->getData("cc_reserva_inventario tb1", $whereDataReserva, "COALESCE(SUM(tb1.res_cantidad),0) AS reservado", null, 1,null, $whereNotReserva);
         $reservado = $rowReserva ? (float) $rowReserva->reservado : 0;
 
         // 3) DISPONIBLE REAL
         $disponible = $stockBodega - $reservado;
-
+        
         if ($cantidadSolicitada > $disponible) {
             return [
                 'status' => 'warning',

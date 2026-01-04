@@ -38,9 +38,11 @@ $routes->group('transferencias', ['namespace' => '\Modules\Transferencias\Contro
     $subroutes->post('cancelarTransferencia', 'IndexController::cancelarTransferencia');
     $subroutes->post('saveTransferencia', 'IndexController::saveTransferencia');
     $subroutes->post('updateTransferencia', 'IndexController::updateTransferencia');
-//    $subroutes->post('anularAjuste', 'IndexController::anularAjuste');
-//    $subroutes->get('clonarAjuste/(:num)', 'IndexController::clonarAjuste/$1');
-//    $subroutes->post('importarExcel', 'IndexController::importarExcel');
+    $subroutes->post('anularTransferencia', 'IndexController::anularTransferencia');
+    $subroutes->get('clonarTransferencia/(:num)', 'IndexController::clonarTransferencia/$1');
+    $subroutes->get('confirmarTransferencia/(:num)', 'IndexController::confirmarTransferencia/$1');
+    $subroutes->post('rechazarTransferencia', 'IndexController::rechazarTransferencia');
+    $subroutes->post('importarExcel', 'IndexController::importarExcel');
     $subroutes->get('loadTransferenciaEdit/(:num)', 'IndexController::loadTransferenciaEdit/$1');
     $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
 //
@@ -49,8 +51,8 @@ $routes->group('transferencias', ['namespace' => '\Modules\Transferencias\Contro
     $subroutes->post('searchTransferencias', 'GestionController::searchTransferencias');
     $subroutes->post('contadoresTransferencias', 'GestionController::contadoresTransferencias');
     $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
-//    $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
-//    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
+    $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
+    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
 
    
 });

@@ -147,7 +147,7 @@ function sweet_msg_dialog(status, msg, ruta = '', e = '') {
 function swalLoading(title, text) {
 
     var titulo = "Procesando...";
-    var texto = "<h5>Procesando su solicitado, espere por favor...</h5>";
+    var texto = "<h5>Procesando su solicitud, espere por favor...</h5>";
 
     if (title) {
         titulo = title;
@@ -206,6 +206,13 @@ function formatearFechaHoraActual() {
 }
 
 function formatearFecha(fecha) {
+    
+//      if (!fecha)
+//                return '-';
+//            const [year, month, day] = fecha.split('-');
+//            const date = new Date(year, month - 1, day);
+//            return date.toLocaleDateString('es-EC');
+    
     if (!fecha)
         return '-';
     const date = new Date(fecha);
