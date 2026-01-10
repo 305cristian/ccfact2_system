@@ -11,7 +11,6 @@
  * @Date 27 sep. 2023
  * @Time 17:30:13
  */
-
 //TODO:TODA LA CONFIGURACION INICIAL PÁRA QUE ARRANQUE EL SISTEMA ESTA EN EL ARCHIVO Routes.php en la carpeta Config del sistema
 //$routes->setDefaultNamespace('\Modules\Login\Controllers'); ruta inicial
 //$routes->setDefaultController('IndexController'); metodo inicial
@@ -26,10 +25,24 @@ if (!isset($routes)) {
 
 $routes->get('inventarios/(:num)', '\Modules\Inventarios\Controllers\indexController::index/$1');
 
+$routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'], function ($subroutes) {
 
+    $subroutes->get('existencias', 'IndexController::viewExistencias');
 
-//$routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'], function ($subroutes) {
-//
-//    $subroutes->post('xx', 'IndexController::getDx');
-//   
-//});
+    $subroutes->get('viewInventarioGeneral', 'IndexController::viewInventarioGeneral');
+    $subroutes->get('viewInventarioLotes', 'IndexController::viewInventarioLotes');
+    $subroutes->get('viewInventarioConsolidado', 'IndexController::viewInventarioConsolidado');
+});
+
+$routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'], function ($subroutes) {
+
+    $subroutes->post('general', 'ExistenciasController::getInventarioGeneral');
+    $subroutes->get('viewStockBodega/(:num)', 'ExistenciasController::viewStockBodega/$1');
+
+});
+
+$routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
+    $subroutes->post('productos/searchProductosFull', 'SearchsController::searchProductosFull');
+    $subroutes->get('subgrupos/getSubgrupoByGrupo/(:num)', 'IndexController::getSubgrupoByGrupo/$1');
+});
+

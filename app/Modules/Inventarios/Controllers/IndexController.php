@@ -14,26 +14,80 @@
 
 namespace Modules\Inventarios\Controllers;
 
-
 class IndexController extends \App\Controllers\BaseController {
 
     protected $dirViewModule;
 
-
     public function __construct() {
-        
+
         $this->dirViewModule = 'Modules\Inventarios\Views';
     }
 
     public function index($idMod) {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
-        $data['listaSubModulos'] = $this->modMod->getSubModulosUser($idMod,$this->user);
-        $send['sidebar'] = view($this->dirViewModule.'\sidebar', $data);
-        $send['view'] = view($this->dirViewModule.'\viewIndex', $data);
-//        $send['user'] = $this->user;
-//        $send['ccm'] = $this->ccm;
-        return view($this->dirTemplate . '\dashboard', $send);
+        $data['listaSubModulos'] = $this->modMod->getSubModulosUser($idMod, $this->user);
+        $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\viewIndex', $data);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
     }
 
+    public function viewExistencias() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\viewDashboard', $data);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+
+    public function viewInventarioGeneral() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
+
+        $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\viewGeneral', $data2);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+
+    public function viewInventarioLotes() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\viewLotes', $data);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+
+    public function viewInventarioConsolidado() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\viewConsolidado', $data);
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+    
+    
 }

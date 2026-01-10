@@ -37,6 +37,7 @@ class SearchsController extends \App\Controllers\BaseController {
         }
         return $this->response->setJSON(false);
     }
+
     public function searchClientes() {
 
         $data = json_decode(file_get_contents("php://input"));
@@ -61,6 +62,7 @@ class SearchsController extends \App\Controllers\BaseController {
         }
         return $this->response->setJSON(false);
     }
+
     public function searchProductosStock() {
 
         $data = json_decode(file_get_contents("php://input"));
@@ -79,6 +81,19 @@ class SearchsController extends \App\Controllers\BaseController {
             $response = $this->searchModel->searchProductoCode($codProd);
             if ($response) {
                 return $this->response->setJSON(['status' => 'success']);
+            }
+        }
+        return $this->response->setJSON(false);
+    }
+
+    public function searchProductosFull() {
+
+        $data = json_decode(file_get_contents("php://input"));
+
+        if ($data->dataSerach) {
+            $response = $this->searchModel->searchProductosFull($data);
+            if ($response) {
+                return $this->response->setJSON($response);
             }
         }
         return $this->response->setJSON(false);

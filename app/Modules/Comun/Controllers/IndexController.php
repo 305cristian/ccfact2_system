@@ -105,7 +105,7 @@ class IndexController extends \App\Controllers\BaseController {
         $writer->save('php://output');
         exit;
     }
-    
+
     public function downloadPlantillaExcelSalida() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -122,6 +122,7 @@ class IndexController extends \App\Controllers\BaseController {
         $writer->save('php://output');
         exit;
     }
+
     public function downloadPlantillaExcelTransferencias() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
@@ -138,12 +139,13 @@ class IndexController extends \App\Controllers\BaseController {
         $writer->save('php://output');
         exit;
     }
+
     public function downloadPlantillaExcelAjusteInicial() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Plantilla Ajuste Inicial');
-        $sheet->fromArray(['Código','Nombre','Precio Sin IVA', 'Cantidad','Grupo','Subgrupo','Marca','Unidad Medida','Código Barras 1','Código Barras 2','Código Barras 3', 'Lote', 'Fecha Elaboración (Y-m-d)', 'Fecha Caducidad (Y-m-d)','Precio A','Cuenta contable compras','Cuenta contable ventas'], null, 'A1');
-        $sheet->fromArray(['CCF-000011','LECHE ENTERA','1.50', '10','ABARROTES','LACTEOS','NUTRI','UNIDAD','5FDS6F5SD6','FDS75F7DF','5D45D45DS4F5', '566UU', '2025-08-25', '2026-08-25','1.40','1.01.04.01.02','1.01.04.01.02'], null, 'A2');
+        $sheet->fromArray(['Código', 'Nombre', 'Precio Sin IVA', 'Cantidad', 'Grupo', 'Subgrupo', 'Marca', 'Unidad Medida', 'Código Barras 1', 'Código Barras 2', 'Código Barras 3', 'Lote', 'Fecha Elaboración (Y-m-d)', 'Fecha Caducidad (Y-m-d)', 'Precio A', 'Cuenta contable compras', 'Cuenta contable ventas'], null, 'A1');
+        $sheet->fromArray(['CCF-000011', 'LECHE ENTERA', '1.50', '10', 'ABARROTES', 'LACTEOS', 'NUTRI', 'UNIDAD', '5FDS6F5SD6', 'FDS75F7DF', '5D45D45DS4F5', '566UU', '2025-08-25', '2026-08-25', '1.40', '1.01.04.01.02', '1.01.04.01.02'], null, 'A2');
         $sheet->getStyle('A1:Q1')->getFont()->setBold(true);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -153,5 +155,15 @@ class IndexController extends \App\Controllers\BaseController {
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save('php://output');
         exit;
+    }
+
+    public function getSubgrupoByGrupo($grupoId) {
+
+        $response = $this->ccm->getData('cc_subgrupos', ['fk_grupo' => $grupoId], '*');
+        if ($response) {
+            return $this->response->setJSON($response);
+        } else {
+            return $this->response->setJSON(false);
+        }
     }
 }

@@ -33,11 +33,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <p>Listar Ajustes</p>
                     </a>
                 </li>
-
-
-
-
-
             </ul>
         </li>
 

@@ -72,6 +72,7 @@ class SearchsModel extends \CodeIgniter\Model {
             return false;
         }
     }
+
     public function searchClientesById($idCliente) {
         $builder = $this->db->table('cc_clientes tb1');
         $builder->select('tb1.id, tb1.clie_nombres, tb1.clie_apellidos, tb1.clie_razon_social, tb1.clie_dni, CONCAT(tb1.clie_dni," : ",tb1.clie_razon_social)cliente ');
@@ -177,6 +178,50 @@ class SearchsModel extends \CodeIgniter\Model {
 
         if ($response->getNumRows() > 0) {
             return $response->getRow();
+        } else {
+            return false;
+        }
+    }
+
+    public function searchProductosFull($params) {
+
+        $unwantedArray = [
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+            'ñ' => 'n', 'Ñ' => 'N',
+        ];
+
+        $dataSerach = $params->dataSerach;
+        $newStringData = strtr($dataSerach, $unwantedArray);
+
+        $builder = $this->db->table('cc_productos tb1');
+
+        $builder->select("CONCAT( tb1.id, ' / ', tb1.prod_codigo,' / ',prod_nombre ) producto, tb1.prod_nombre, tb1.id, CONCAT(tb1.id,' / ',tb1.prod_codigo)codigos");
+
+        if (ctype_digit($dataSerach)) {
+            $builder->groupStart();
+            $builder->where('tb1.id', $dataSerach);
+            $builder->orWhere('tb1.prod_codigo', $dataSerach);
+            $builder->orWhere('tb1.prod_codigobarras', $dataSerach);
+            $builder->orWhere('tb1.prod_codigobarras2', $dataSerach);
+            $builder->orWhere('tb1.prod_codigobarras3', $dataSerach);
+            $builder->groupEnd();
+        } else {
+            $builder->like('LOWER(tb1.prod_nombre)', strtolower($newStringData));
+            $builder->orLike('tb1.prod_codigo', $newStringData);
+            $builder->orLike('tb1.prod_codigobarras', $newStringData);
+            $builder->orLike('tb1.prod_codigobarras2', $newStringData);
+            $builder->orLike('tb1.prod_codigobarras3', $newStringData);
+        }
+
+        $builder->where('tb1.prod_estado', $params->estado);
+
+        $builder->limit(15);
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
         } else {
             return false;
         }
