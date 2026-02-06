@@ -180,7 +180,7 @@
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>
     <script src="<?php echo base_url(); ?>/resources/js/directivasVue3.js"></script>
-<!--    <script src="<?php echo base_url(); ?>/resources/js/ExcelExport.js"></script>-->
+    <script src="<?php echo base_url(); ?>/resources/js/paginationMixin.js"></script>
 
 
 

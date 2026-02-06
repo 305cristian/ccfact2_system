@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <!--
 /**
- * Description of viewGeneral
+ * Description of viewLotes
  *
 /**
  * @author CRISTIAN R. PAZ
  * @date 4 ene 2026
- * @time 12:25:04 a.m.
+ * @time 12:25:13 a.m.
  */       
  
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
+
+
 <style>
     .multiselect__tags {
         border-radius: 0px 5px 5px 0px
@@ -21,14 +23,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     <div class="card card-system card-outline">
         <div class="card-header">
             <h5 class="card-title text-system">
-                <i class="fas fa-box"></i> Inventario General
+                <i class="fas fa-box"></i> Inventario Por Lotes
             </h5>           
         </div>
 
         <div class="card-body">
             <fieldset>
                 <legend>
-                    <i class="fas fa-box me-2"></i> Filtros de Inventario General
+                    <i class="fas fa-box me-2"></i> Filtros de Inventario por lotes
                 </legend>
 
                 <div class="row col-md-12">
@@ -86,7 +88,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 v-model="filtros.invBodega"
                                 :reduce="b => b.id"
                                 placeholder="Seleccione una bodega"
-                                @option:selected="onChange"/>
+                                @option:selected="showContent = false"/>
                         </div>
                     </div>
 
@@ -121,7 +123,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 :reduce="s => s.id"
                                 :disabled="!filtros.invGrupo"
                                 placeholder="Seleccione un Subgrupo"
-                                @option:selected="onChange"/>
+                                @option:selected="showContent = false"/>
                         </div>
                     </div>
 
@@ -132,7 +134,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-percent me-2"></i>IVA
                             </span>
-                            <select class="form-select" v-model="filtros.invIva"  @change="onChange">
+                            <select class="form-select" v-model="filtros.invIva"  @change="showContent = false">
                                 <option value="-1">Todos</option>
                                 <option value="2">Con IVA</option>
                                 <option value="1">Sin IVA</option>
@@ -146,7 +148,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-filter me-2"></i>Stock
                             </span>
-                            <select class="form-select" v-model="filtros.invStock" @change="onChange">
+                            <select class="form-select" v-model="filtros.invStock" @change="showContent = false">
                                 <option value="-1">Todos</option>
                                 <option value="1">Con stock</option>
                                 <option value="0">Sin stock</option>
@@ -156,7 +158,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     <!-- Buscar -->
                     <div class="col-md-2 col-sm-6 ">
-                        <button class="btn btn-system" @click="buscarInventario()" :disabled="loading">
+                        <button class="btn btn-system" @click="searchDataReport()" :disabled="loading">
                             <span v-if="loading"><i class="loading-spin"></i> Generando...</span>
                             <span v-else><i class="fas fa-search"></i> Generar Reporte</span>
                         </button>
@@ -177,13 +179,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </p>
             </div>
             <div v-else>
+                <!-- VIEW PAGINATION HEAD-->
+                <?php echo view('\Modules\Inventarios\Views\Existencias\viewPaginationHead') ?>
+                <!-- FIN VIEW PAGINATION HEAD-->      
+
                 <div class="table-responsive mt-3">
-                    <table class="table table-hover table-bordered align-middle">
+                    <table class="table table-hover table-striped align-middle">
                         <thead class="bg-system text-white">
                             <tr>
                                 <th>CÓDIGO</th>
                                 <th>BARCODE</th>
-                                <th>PRODUCTO</th>
+                                <th class="sortable" @click="sort('prod_nombre')" >PRODUCTO <i :class="getSortClass('prod_nombre')"></i></th>
+                                <th class="text-center">LOTE</th>
+                                <th class="text-center">F. CADUCIDAD</th>
                                 <th class="text-center">STOCK</th>
                                 <th class="text-center">RESERVA</th>
                                 <th class="text-center">STOCK DISPONIBLE</th>
@@ -198,33 +206,42 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </thead>
 
                         <tbody>
-                            <tr v-for="item in listaInventario" :key="item.id">
+                            <tr v-for="item in listaInventarioLotes" :key="item.id+'_'+item.fk_lote">
 
-                                <!-- CODIGO -->
+                                <!--CODIGO--> 
                                 <td v-tooltip:top="item.id"><span class="badge-type">{{ item.prod_codigo }}</span></td>
 
-                                <!-- BARCODE -->
+                                <!--BARCODE--> 
                                 <td><span class="text-muted">{{ item.prod_codigobarras || '-' }}</span></td>
 
-                                <!-- PRODUCTO -->
+                                <!--PRODUCTO--> 
                                 <td><strong>{{ item.prod_nombre }}</strong></td>
+                                
+                                  <!--LOTE--> 
+                                <td>{{ item.lot_lote }}</td>
+                                
+                                <!--FECHA CADUCIDAD-->
+                                <td>{{ item.lot_fecha_caducidad }}</td>
 
-                                <!-- STOCK -->
+
+                                <!--STOCK--> 
                                 <td class="text-center">
                                     <span class="text-muted" >
-                                        {{ item.stb_stock }}
+                                        {{ item.stbl_stock }}
                                     </span>
                                 </td>
-                                <!-- RESERVA -->
+
+                              
+                                <!--RESERVA--> 
                                 <td class="text-center" >
-                                        <span :class="parseFloat(item.reservaProducto) > 0
+                                    <span :class="parseFloat(item.reservaProducto) > 0
                                           ? 'text-muted badge bg-warning' 
                                           : ''">
                                         {{ parseFloat(item.reservaProducto).toFixed(2) }}
                                     </span>
                                 </td>
 
-                                <!-- STOCK DISPONIBLE -->
+                                <!--STOCK DISPONIBLE--> 
                                 <td class="text-center">
                                     <span
                                         class="badge"
@@ -232,43 +249,46 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         ? 'bg-danger' 
                                         : 'bg-success'"
                                         >
-                                        {{ parseFloat(item.stb_stock) -  parseFloat(item.reservaProducto) }}
+                                        {{ parseFloat(item.stbl_stock) -  parseFloat(item.reservaProducto) }}
                                     </span>
                                 </td>
 
 
 
-                                <!-- IVA -->
+                                <!--IVA--> 
                                 <td class="text-center">
                                     <span class="badge" :class="item.prod_ivaporcentage == 0 ? 'bg-secondary' : 'bg-info'" >
                                         {{ item.prod_ivaporcentage == 0 ? 'SIN IVA' : 'IVA' }}
                                     </span>
                                 </td>
 
-                                <!-- BODEGA -->
+                                <!--BODEGA--> 
                                 <td>
                                     <span v-if="filtros.invBodega">{{nombreBodega(item.bod_nombre)}}</span>
                                     <span v-else><a href="#" @click="viewStockBodega(item.id)">{{nombreBodega(item.bod_nombre)}}</a></span>
                                 </td>
 
-                                <!-- COSTO PROMEDIO -->
+                                <!--COSTO PROMEDIO--> 
                                 <td  class="text-end"> 
                                     <small class="text-muted">  {{ formatToUSD(item.prod_costopromedio)}} </small>
                                 </td>
-                                <!-- COSTO +ULTIMO -->
+
+                                <!--COSTO ULTIMO--> 
                                 <td  class="text-end"> 
                                     <small class="text-muted">  {{ formatToUSD(item.prod_costoultimo)}} </small>
                                 </td>
-                                <!-- GRUPO -->
+
+                                <!--GRUPO--> 
                                 <td> 
                                     <small class="text-muted">  {{ item.gr_nombre || '-' }} </small>
                                 </td>
-                                <!-- SUBGRUPO -->
+
+                                <!--SUBGRUPO--> 
                                 <td> 
                                     <small class="text-muted">  {{ item.sgr_nombre || '-' }} </small>
                                 </td>
 
-                                <!-- ACCIONES -->
+                                <!--ACCIONES--> 
                                 <td class="text-center">
                                     <button
                                         class="btn btn-outline-primary btn-sm"
@@ -281,8 +301,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                             </tr>
 
-                            <tr v-if="listaInventario.length === 0">
-                                <td colspan="11" class="text-center text-muted py-4">
+                            <tr v-if="listaInventarioLotes.length === 0">
+                                <td colspan="15" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open fa-2x mb-2"></i>
                                     <br>
                                     No se encontraron productos
@@ -290,6 +310,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </tr>
                         </tbody>
                     </table>
+                    <!-- VIEW PAGINATION FOOT-->
+                    <?php echo view('\Modules\Inventarios\Views\Existencias\viewPaginationFoot') ?>
+                    <!-- FIN VIEW PAGINATION FOOT-->      
                 </div>
 
             </div>
@@ -303,14 +326,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
     var listaBodegas = <?php echo json_encode($listaBodegas); ?>;
 
-    if (window.appInvG) {
-        window.appInvG.unmount();
+    if (window.appInvL) {
+        window.appInvL.unmount();
     }
-    window.appInvG = Vue.createApp({
+    window.appInvL = Vue.createApp({
         components: {
             "vue-multiselect": window['vue-multiselect'].Multiselect,
             "vue-select": window['vue-select']
         },
+        mixins: [window.paginationMixin], // Traigo codigo VUE de paginacion desde un archivo del resources/js/paginationMixin.js
         data() {
             return {
                 url: siteUrl,
@@ -318,6 +342,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //BOOLEANOS
                 showContent: false,
                 loading: false,
+                downloadingexcel: false,
+                downloadingpdf: false,
 
                 //V-MODELS
                 filtros: {
@@ -334,37 +360,59 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaGrupos: listaGrupos,
                 listaSubgrupos: [],
                 listaSearchProductos: [],
-                listaInventario: [],
+                listaInventarioLotes: [],
 
+                //PAGINACION
+                pagination: {
+                    currentPage: 1,
+                    pageSize: 10,
+                    totalRecords: 0,
+                    filteredRecords: 0,
+                    searchTerm: '',
+                    sortColumn: '',
+                    sortDirection: ''
+                },
                 searchTimeout: null
 
             };
         },
         computed: {
             nombreBodega() {
-                return (bodega, id) => {
+                return (bodega) => {
                     if (this.filtros.invBodega) {
                         return bodega;
                     } else {
                         return "ALL SELECT";
                     }
-                }
-
-
+                };
             }
         },
         methods: {
 
-            async buscarInventario() {
+            //DATA GENERAL
+            async searchDataReport() {
 
-                const datos = this.filtros;
+                const datos = {
+                    ...this.filtros,
+                    draw: 1,
+                    start: (this.pagination.currentPage - 1) * this.pagination.pageSize,
+                    length: this.pagination.pageSize,
+                    search: this.pagination.searchTerm,
+                    order: [{
+                            column: this.pagination.sortColumn,
+                            dir: this.pagination.sortDirection
+                        }]
+                };
+
                 try {
                     this.loading = true;
-                    const {data} = await axios.post(this.url + "/inventarios/general", datos);
+                    const {data} = await axios.post(this.url + "/inventarios/lotes", datos);
 
                     if (data.status === 'success') {
                         this.showContent = true;
-                        this.listaInventario = data.data;
+                        this.listaInventarioLotes = data.data;
+                        this.pagination.totalRecords = data.recordsTotal;
+                        this.pagination.filteredRecords = data.recordsFiltered;
                     } else {
                         sweet_msg_dialog('warning', 'No se han encontrado reistros para mostrar');
                     }
@@ -376,37 +424,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
             },
-            async viewStockBodega(id) {
-                const {data} = await axios.get(this.url + "/inventarios/viewStockBodega/"+id);
-                Swal.fire({
-                    width:'30%',
-                    html: data
-                });
-            },
-            verKardex(row) {
-                window.location.href = `${this.url}/kardex/producto/${row.fk_producto}?bodega=${row.fk_bodega}`;
-            },
-            onSelectProducto(option) {
-                this.filtros.invProductoId = option ? option.id : null;
-            },
-            onChange() {
-                this.showContent = false;
-            },
 
-            async onChangeGrupo(grupo) {
-                this.filtros.subgrupo = '';
-                if (!grupo.id) {
-                    this.listaSubgrupos = [];
-                    return;
-                }
-                const {data} = await axios.get(this.url + '/comun/subgrupos/getSubgrupoByGrupo/' + grupo.id);
-                this.listaSubgrupos = data || [];
-            },
-
-            onRemove() {
-                this.listaSearchProductos = [];
-                this.filtros.productoSearch = null;
-            },
             // SEARCH PRODUCTOS
             searchProductos(dataSerach) {
                 clearTimeout(this.searchTimeout);
@@ -428,14 +446,88 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 }, 400);
             },
+
+            async viewStockBodega(id) {
+                const {data} = await axios.get(this.url + "/inventarios/viewStockBodegaLote/" + id);
+                Swal.fire({
+                    width: '30%',
+                    html: data
+                });
+            },
+            verKardex(row) {
+                window.location.href = `${this.url}/kardex/producto/${row.fk_producto}?bodega=${row.fk_bodega}`;
+            },
+            onSelectProducto(option) {
+                this.filtros.invProductoId = option ? option.id : null;
+            },
+
+            async onChangeGrupo(grupo) {
+                this.filtros.subgrupo = '';
+                if (!grupo.id) {
+                    this.listaSubgrupos = [];
+                    return;
+                }
+                const {data} = await axios.get(this.url + '/comun/subgrupos/getSubgrupoByGrupo/' + grupo.id);
+                this.listaSubgrupos = data || [];
+            },
+
+            onRemove() {
+                this.listaSearchProductos = [];
+                this.filtros.productoSearch = null;
+            },
+            async exportExcel() {
+                const datos = {
+                    ...this.filtros,
+                    search: this.pagination.searchTerm,
+                };
+                try {
+                    this.downloadingexcel = true;
+                    const {data} = await axios.post(this.url + '/inventarios/exportExcelLotes', datos, {responseType: 'blob'});
+                    const url = window.URL.createObjectURL(new Blob([data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', 'Inventario_General.xlsx');
+                    document.body.appendChild(link);
+                    link.click();
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.message);
+                } finally {
+                    this.downloadingexcel = false;
+                }
+
+            },
+            async exportPdf() {
+                const datos = {
+                    ...this.filtros,
+                    search: this.searchTerm
+                };
+                try {
+                    this.downloadingpdf = true;
+                    const {data} = await axios.post(this.url + '/inventarios/exportPdfLotes', datos, {responseType: 'blob'});
+                    const blob = new Blob([data], {type: 'application/pdf'});
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'Inventario_General.pdf';
+                    link.click();
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
+                } finally {
+                    this.downloadingpdf = false;
+                }
+
+
+            },
+
             formatToUSD(amount) {
                 return formatToUSD(amount);
-            },
+            }
+
         }
 
 
     });
-    window.appInvG.use(AllDirectives);
-    window.appInvG.mount('#app');
+    window.appInvL.use(AllDirectives);
+    window.appInvL.mount('#app');
 
 </script>

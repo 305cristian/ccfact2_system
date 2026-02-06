@@ -30,6 +30,15 @@ class ExistenciasController extends \App\Controllers\BaseController {
 
         $dataPost = json_decode(file_get_contents('php://input'));
 
+        $draw = $dataPost->draw;
+        $start = (int) $dataPost->start;
+        $length = (int) $dataPost->length;
+        $searchValue = (string) $dataPost->search ?? '';
+
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+
         $filtros = [
             'invBodega' => $dataPost->invBodega ?? null,
             'invStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
@@ -38,17 +47,20 @@ class ExistenciasController extends \App\Controllers\BaseController {
             'invProductoId' => $dataPost->invProductoId ?? null,
             'invSubgrupo' => $dataPost->invSubgrupo ?? null
         ];
+
         $reservas = $this->invModel->getReservaProductos((int) $dataPost->invBodega);
 
         //Indexamos reservas
         $reservasProducto = [];
-        if ($reservas) {
-            foreach ($reservas as $val) {
-                $reservasProducto[$val->fk_producto] = $val->res_cantidad;
-            }
+
+        foreach ($reservas ?? [] as $val) {
+            $reservasProducto[$val->fk_producto] = $val->res_cantidad;
         }
 
-        $data = $this->invModel->getInventarioGeneral($filtros);
+
+        $data = $this->invModel->getInventarioGeneral($filtros, $start, $length, $searchValue, $orderBy, $orderDir);
+        $countProductosAll = $this->invModel->countProductosAll($filtros);
+        $countFilteredProducts = $this->invModel->countFilteredProducts($filtros, $searchValue);
 
         foreach ($data as $val) {
             $val->reservaProducto = $reservasProducto[$val->id] ?? 0;
@@ -56,7 +68,10 @@ class ExistenciasController extends \App\Controllers\BaseController {
 
         return $this->response->setJSON([
                     'status' => 'success',
-                    'data' => $data ? $data : []
+                    'data' => $data,
+                    'draw' => intval($draw),
+                    'recordsTotal' => $countProductosAll,
+                    'recordsFiltered' => $countFilteredProducts,
         ]);
     }
 
@@ -87,5 +102,57 @@ class ExistenciasController extends \App\Controllers\BaseController {
         }
         $output .= '</tbody></table></div>';
         echo $output;
+    }
+
+    public function getInventarioLotes() {
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $draw = $dataPost->draw;
+        $start = (int) $dataPost->start;
+        $length = (int) $dataPost->length;
+        $searchValue = (string) $dataPost->search ?? '';
+
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+
+        $filtros = [
+            'invBodega' => $dataPost->invBodega ?? null,
+            'invStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
+            'invGrupo' => $dataPost->invGrupo ?? null,
+            'invIva' => $dataPost->invIva !== '-1' ? $dataPost->invIva : null,
+            'invProductoId' => $dataPost->invProductoId ?? null,
+            'invSubgrupo' => $dataPost->invSubgrupo ?? null
+        ];
+
+        $reservas = $this->invModel->getReservaLotesProductos((int) $dataPost->invBodega);
+
+        //Indexamos reservas
+        $reservasProducto = [];
+
+        foreach ($reservas ?? [] as $val) {
+            $reservasProducto[$val->fk_producto . '|' . $val->fk_lote] = $val->res_cantidad;
+        }
+
+
+        $data = $this->invModel->getInventarioLotes($filtros, $start, $length, $searchValue, $orderBy, $orderDir);
+        $countProductosAllLotes = $this->invModel->countProductosAllLotes($filtros);
+        $countFilteredProductsLotes = $this->invModel->countFilteredProductsLotes($filtros, $searchValue);
+//
+        foreach ($data as $val) {
+            $val->reservaProducto = $reservasProducto[$val->id . '|' . $val->fk_lote] ?? 0;
+        }
+
+        return $this->response->setJSON([
+                    'status' => 'success',
+                    'data' => $data,
+                    'draw' => intval($draw),
+                    'recordsTotal' => $countProductosAllLotes,
+                    'recordsFiltered' => $countFilteredProductsLotes,
+        ]);
+    }
+
+    public function viewStockBodegaLote() {
+        
     }
 }

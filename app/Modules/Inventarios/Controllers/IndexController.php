@@ -57,7 +57,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
 
         $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
-        $send['view'] = view($this->dirViewModule . '\Existencias\viewGeneral', $data2);
+        $send['view'] = view($this->dirViewModule . '\Existencias\general\viewGeneral', $data2);
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($send);
         } else {
@@ -68,8 +68,10 @@ class IndexController extends \App\Controllers\BaseController {
     public function viewInventarioLotes() {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
-        $send['view'] = view($this->dirViewModule . '\Existencias\viewLotes', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\lotes\viewLotes', $data2);
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($send);
         } else {
@@ -81,13 +83,11 @@ class IndexController extends \App\Controllers\BaseController {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
-        $send['view'] = view($this->dirViewModule . '\Existencias\viewConsolidado', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\consolidado\viewConsolidado', $data);
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($send);
         } else {
             return view($this->dirTemplate . '\dashboard', $send);
         }
     }
-    
-    
 }
