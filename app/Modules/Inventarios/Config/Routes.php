@@ -41,12 +41,14 @@ $routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'
     $subroutes->post('exportExcelGeneral', 'ExcelExportController::exportInventarioGeneralExcel');
     $subroutes->post('exportPdfGeneral', 'PdfExportController::exportInventarioGeneralPdf');
     $subroutes->get('viewStockBodega/(:num)', 'ExistenciasController::viewStockBodega/$1');
+     $subroutes->post('viewReserva', 'ExistenciasController::viewReserva');
     
     //INVENTARIO POR LOTES
     $subroutes->post('lotes', 'ExistenciasController::getInventarioLotes');
     $subroutes->post('exportExcelLotes', 'ExcelExportController::exportInventarioLotesExcel');
     $subroutes->post('exportPdfLotes', 'PdfExportController::exportInventarioLotesPdf');
-    $subroutes->get('viewStockBodegaLote/(:num)', 'ExistenciasController::viewStockBodegaLote/$1');
+    $subroutes->get('viewStockBodegaLote/(:num)/(:num)', 'ExistenciasController::viewStockBodegaLote/$1/$2');
+    $subroutes->post('viewReservaLote', 'ExistenciasController::viewReservaLote');
 
 });
 

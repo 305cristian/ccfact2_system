@@ -212,7 +212,7 @@ class InventarioModel extends \CodeIgniter\Model {
         return $builder->countAllResults();
     }
 
-    public function viewStockBodega($productoId) {
+    public function getStockBodega($productoId) {
 
         $builder = $this->db->table('cc_stock_bodega tb1');
         $builder->select('MAX(tb1.stb_stock)stb_stock,
@@ -222,6 +222,29 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join('cc_reserva_inventario tb3', 'tb3.fk_producto = tb1.fk_producto AND tb3.res_estado = "ACTIVA" and tb3.fk_bodega = tb1.fk_bodega', 'left');
         $builder->where('tb1.fk_producto ', $productoId);
         $builder->groupBy('tb1.fk_bodega');
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return false;
+        }
+    }
+
+    public function getStockBodegaLote($productoId, $fkLote) {
+
+        $builder = $this->db->table('cc_stock_bodega_lote tb1');
+        $builder->select('MAX(tb1.stbl_stock)stbl_stock,
+                            tb1.fk_lote,
+                            tb4.lot_lote,
+                            tb2.bod_nombre,
+                            COALESCE(ROUND(SUM( tb3.res_cantidad ),2),0) res_cantidad');
+        $builder->join('cc_bodegas tb2', 'tb2.id = tb1.fk_bodega');
+        $builder->join('cc_reserva_inventario tb3', 'tb3.fk_producto = tb1.fk_producto AND tb3.fk_lote =tb1.fk_lote AND tb3.res_estado = "ACTIVA" and tb3.fk_bodega = tb1.fk_bodega', 'left');
+        $builder->join("cc_lotes tb4", "tb4.id = tb1.fk_lote");
+        $builder->where(['tb1.fk_producto ' => $productoId, 'tb1.fk_lote' => $fkLote]);
+        $builder->groupBy('tb1.fk_bodega');
+        $builder->groupBy('tb1.fk_lote');
         $response = $builder->get();
 
         if ($response->getNumRows() > 0) {
@@ -323,7 +346,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->groupBy("tb1.id");
         $builder->groupBy("tb2.fk_lote");
 
-         if (isset($start) && $start !== null) {
+        if (isset($start) && $start !== null) {
             $builder->limit($length, $start);
         }
 
@@ -431,5 +454,59 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->groupBy('tb2.fk_lote');
 
         return $builder->countAllResults();
+    }
+
+    public function getReservaLote($productoId, $fkLote, $fkBodega) {
+
+        $builder = $this->db->table("cc_reserva_inventario tb1");
+
+        $builder->select("tb3.bod_nombre,
+                            tb2.tr_nombre,
+                            tb1.res_documento_id,
+                            tb1.res_codigo_transaccion,
+                            ROUND(tb1.res_cantidad,2)res_cantidad ");
+        $builder->join("cc_transacciones tb2", "tb2.tr_codigo = tb1.res_codigo_transaccion");
+        $builder->join("cc_bodegas tb3", "tb3.id = tb1.fk_bodega");
+
+        $builder->where(["tb1.fk_producto" => $productoId, "tb1.fk_lote" => $fkLote, "tb1.res_estado" => "ACTIVA"]);
+
+        if ($fkBodega) {
+            $builder->where("tb1.fk_bodega", $fkBodega);
+        }
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return [];
+        }
+    }
+
+    public function getReserva($productoId, $fkBodega) {
+
+        $builder = $this->db->table("cc_reserva_inventario tb1");
+
+        $builder->select("tb3.bod_nombre,
+                            tb2.tr_nombre,
+                            tb1.res_documento_id,
+                            tb1.res_codigo_transaccion,
+                            ROUND(tb1.res_cantidad,2)res_cantidad ");
+        $builder->join("cc_transacciones tb2", "tb2.tr_codigo = tb1.res_codigo_transaccion");
+        $builder->join("cc_bodegas tb3", "tb3.id = tb1.fk_bodega");
+
+        $builder->where(["tb1.fk_producto" => $productoId, "tb1.res_estado" => "ACTIVA"]);
+
+        if ($fkBodega) {
+            $builder->where("tb1.fk_bodega", $fkBodega);
+        }
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return [];
+        }
     }
 }

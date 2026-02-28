@@ -91,7 +91,7 @@ class ExistenciasController extends \App\Controllers\BaseController {
             </tr>
         </thead>
         <tbody>';
-        $stockBodega = $this->invModel->viewStockBodega($productoId);
+        $stockBodega = $this->invModel->getStockBodega($productoId);
         foreach ($stockBodega as $val) {
             $output .= '<tr  class="text-left">';
             $output .= '<td>' . $val->bod_nombre . '</td>';
@@ -103,6 +103,43 @@ class ExistenciasController extends \App\Controllers\BaseController {
         $output .= '</tbody></table></div>';
         echo $output;
     }
+    
+        public function viewReserva() {
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $productoId = $dataPost->id ?? null;
+        $fkBodega = $dataPost->bodega ?? null;
+
+        $producto = $this->ccm->getData('cc_productos', ['id' => $productoId], 'prod_nombre, prod_codigo', null, 1);
+
+        $output = '<div class="container-fluid"><table class="table table-fixed table-condensed">';
+        $output .= '<thead class="bg-warning">
+            <tr>
+                <th colspan="5" ><font color="white">' . $producto->prod_codigo . ' | ' . $producto->prod_nombre . '</th>
+            </tr>
+            <tr class="text-left">
+                <th ><font color="white">Bodega</th>
+                <th ><font color="white">Documento</th>
+                <th ><font color="white"># Doc.</th>
+                <th ><font color="white">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>';
+        $reservaLote = $this->invModel->getReserva($productoId, $fkBodega);
+        foreach ($reservaLote as $val) {
+            $output .= '<tr  class="text-left">';
+            $output .= '<td>' . $val->bod_nombre . '</td>';
+            $output .= '<td>' . $val->tr_nombre . '</td>';
+            $output .= '<td>' . $this->getNumDocumento($val->res_documento_id, $val->res_codigo_transaccion) . '</td>';
+            $output .= '<td>' . $val->res_cantidad . '</td>';
+            $output .= '</tr>';
+        }
+        $output .= '</tbody></table></div>';
+        echo $output;
+    }
+    
+    
 
     public function getInventarioLotes() {
         $dataPost = json_decode(file_get_contents('php://input'));
@@ -152,7 +189,90 @@ class ExistenciasController extends \App\Controllers\BaseController {
         ]);
     }
 
-    public function viewStockBodegaLote() {
-        
+    public function viewStockBodegaLote($productoId, $fkLote) {
+
+        $producto = $this->ccm->getData('cc_productos', ['id' => $productoId], 'prod_nombre, prod_codigo', null, 1);
+
+        $output = '<div class="container-fluid"><table class="table table-fixed table-condensed">';
+        $output .= '<thead class="bg-system">
+            <tr>
+                <th colspan="5" ><font color="white">' . $producto->prod_codigo . ' | ' . $producto->prod_nombre . '</th>
+            </tr>
+            <tr class="text-left">
+                <th ><font color="white">Bodega</th>
+                <th ><font color="white">Stock</th>
+                <th ><font color="white">Lote</th>
+                <th ><font color="white">Reserva</th>
+                <th ><font color="white">Disponible</th>
+            </tr>
+        </thead>
+        <tbody>';
+        $stockBodegaLote = $this->invModel->getStockBodegaLote($productoId, $fkLote);
+        foreach ($stockBodegaLote as $val) {
+            $output .= '<tr  class="text-left">';
+            $output .= '<td>' . $val->bod_nombre . '</td>';
+            $output .= '<td>' . $val->stbl_stock . '</td>';
+            $output .= '<td>' . $val->lot_lote . '</td>';
+            $output .= '<td>' . $val->res_cantidad . '</td>';
+            $output .= '<td>' . $val->stbl_stock - $val->res_cantidad . '</td>';
+            $output .= '</tr>';
+        }
+        $output .= '</tbody></table></div>';
+        echo $output;
+    }
+
+    public function viewReservaLote() {
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $productoId = $dataPost->id ?? null;
+        $fkLote = $dataPost->lote ?? null;
+        $fkBodega = $dataPost->bodega ?? null;
+
+        $producto = $this->ccm->getData('cc_productos', ['id' => $productoId], 'prod_nombre, prod_codigo', null, 1);
+
+        $output = '<div class="container-fluid"><table class="table table-fixed table-condensed">';
+        $output .= '<thead class="bg-warning">
+            <tr>
+                <th colspan="5" ><font color="white">' . $producto->prod_codigo . ' | ' . $producto->prod_nombre . '</th>
+            </tr>
+            <tr class="text-left">
+                <th ><font color="white">Bodega</th>
+                <th ><font color="white">Documento</th>
+                <th ><font color="white"># Doc.</th>
+                <th ><font color="white">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>';
+        $reservaLote = $this->invModel->getReservaLote($productoId, $fkLote, $fkBodega);
+        foreach ($reservaLote as $val) {
+            $output .= '<tr  class="text-left">';
+            $output .= '<td>' . $val->bod_nombre . '</td>';
+            $output .= '<td>' . $val->tr_nombre . '</td>';
+            $output .= '<td>' . $this->getNumDocumento($val->res_documento_id, $val->res_codigo_transaccion) . '</td>';
+            $output .= '<td>' . $val->res_cantidad . '</td>';
+            $output .= '</tr>';
+        }
+        $output .= '</tbody></table></div>';
+        echo $output;
+    }
+
+    public function getNumDocumento($documentoId, $codigoTransaccion) {
+
+        switch ($codigoTransaccion) {
+            case "01": // VENTAS
+                $sec = $this->ccm->getValueWhere("cc_ventas", ["id" => $documentoId], "ven_secuencial");
+                break;
+            case "38": // AJUSTES DE SALIDA
+                $sec = $this->ccm->getValueWhere("cc_ajuste_salida", ["id" => $documentoId], "ajes_secuencial");
+                break;
+            case "17": // TRANSFERENCIAS
+                $sec = $this->ccm->getValueWhere("cc_transferencia_bodega", ["id" => $documentoId], "trb_secuencial");
+                break;
+            default:
+                $sec = $documentoId;
+        }
+
+        return str_pad($sec, 5, "0", STR_PAD_LEFT);
     }
 }

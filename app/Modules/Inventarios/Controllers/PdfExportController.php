@@ -52,11 +52,12 @@ class PdfExportController extends \App\Controllers\BaseController {
             $reservasProducto[$val->fk_producto] = $val->res_cantidad;
         }
 
-        $dataInv = $this->invModel->getInventarioGeneral($filtros, null, null, $searchValue,$orderBy,$orderDir);
+        $dataInv = $this->invModel->getInventarioGeneral($filtros, null, null, $searchValue, $orderBy, $orderDir);
         foreach ($dataInv as $val) {
             $val->reservaProducto = $reservasProducto[$val->id] ?? 0;
         }
         $data['data'] = $dataInv;
+        $data['bodgaSelect'] = $dataPost->invBodega;
 
         $html = view($this->dirViewModule . '\Existencias\general\viewPdfReport', $data);
 
@@ -69,6 +70,41 @@ class PdfExportController extends \App\Controllers\BaseController {
     }
 
     public function exportInventarioLotesPdf() {
-        
+        $dataPost = json_decode(file_get_contents('php://input'));
+        $searchValue = (string) ($dataPost->search ?? '');
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+        $filtros = [
+            'invBodega' => $dataPost->invBodega ?? null,
+            'invStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
+            'invGrupo' => $dataPost->invGrupo ?? null,
+            'invIva' => $dataPost->invIva !== '-1' ? $dataPost->invIva : null,
+            'invProductoId' => $dataPost->invProductoId ?? null,
+            'invSubgrupo' => $dataPost->invSubgrupo ?? null
+        ];
+
+        $reservas = $this->invModel->getReservaLotesProductos((int) $dataPost->invBodega);
+        $reservasProducto = [];
+
+        foreach ($reservas ?? [] as $val) {
+            $reservasProducto[$val->fk_producto . '|' . $val->fk_lote] = $val->res_cantidad;
+        }
+
+        $dataInv = $this->invModel->getInventarioLotes($filtros, null, null, $searchValue, $orderBy, $orderDir);
+        foreach ($dataInv as $val) {
+            $val->reservaProducto = $reservasProducto[$val->id . '|' . $val->fk_lote] ?? 0;
+        }
+        $data['data'] = $dataInv;
+        $data['bodgaSelect'] = $dataPost->invBodega;
+
+        $html = view($this->dirViewModule . '\Existencias\lotes\viewPdfReport', $data);
+
+        $this->pdfExport->export([
+            'title' => 'REPORTE DE INVENTARIO POR LOTES',
+            'html' => $html,
+            'filename' => 'Inventario_General_' . date('Ymd_His') . '.pdf',
+            'orientation' => 'L' // Landscape (opcional)
+        ]);
     }
 }

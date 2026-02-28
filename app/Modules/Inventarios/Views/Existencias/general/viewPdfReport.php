@@ -63,7 +63,7 @@ $totalCostoTotal = 0;
                 <td class="text-right"><?= '$' . esc($item->prod_costoultimo * $disponible) ?></td>
                 <td class="text-center"><?= $item->prod_ivaporcentage === '0.00' ? 'SIN IVA' : 'IVA' ?></td>
                 <td class="text-center"><?= $item->prod_ctrllote === '1' ? 'SI' : 'NO' ?></td>
-                <td><?= esc($item->bod_nombre) ?></td>
+                <td><?= $bodgaSelect?esc($item->bod_nombre):"ALL SELECT" ?></td>
                 <td><?= esc($item->gr_nombre) ?></td>
                 <td><?= esc($item->sgr_nombre) ?></td>
             </tr>

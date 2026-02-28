@@ -216,10 +216,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                 <!--PRODUCTO--> 
                                 <td><strong>{{ item.prod_nombre }}</strong></td>
-                                
-                                  <!--LOTE--> 
+
+                                <!--LOTE--> 
                                 <td>{{ item.lot_lote }}</td>
-                                
+
                                 <!--FECHA CADUCIDAD-->
                                 <td>{{ item.lot_fecha_caducidad }}</td>
 
@@ -231,12 +231,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     </span>
                                 </td>
 
-                              
+
                                 <!--RESERVA--> 
-                                <td class="text-center" >
-                                    <span :class="parseFloat(item.reservaProducto) > 0
-                                          ? 'text-muted badge bg-warning' 
-                                          : ''">
+                                <td class="text-center">
+                                    <span 
+                                        v-if="parseFloat(item.reservaProducto) > 0"
+                                        @click="verReserva(item.id, item.fk_lote)"
+                                        class="text-muted badge bg-warning"
+                                        style="cursor:pointer"
+                                        >
+                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
+                                    </span>
+
+                                    <span v-else>
                                         {{ parseFloat(item.reservaProducto).toFixed(2) }}
                                     </span>
                                 </td>
@@ -265,7 +272,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <!--BODEGA--> 
                                 <td>
                                     <span v-if="filtros.invBodega">{{nombreBodega(item.bod_nombre)}}</span>
-                                    <span v-else><a href="#" @click="viewStockBodega(item.id)">{{nombreBodega(item.bod_nombre)}}</a></span>
+                                    <span v-else><a href="#" @click="viewStockBodegaLote(item.id, item.fk_lote)">{{nombreBodega(item.bod_nombre)}}</a></span>
                                 </td>
 
                                 <!--COSTO PROMEDIO--> 
@@ -389,6 +396,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
         methods: {
 
+            //VER RESERVA
+            async verReserva(id, lote) {
+                const datos = {
+                    id: id,
+                    lote: lote,
+                    bodega: this.filtros.invBodega
+                };
+                const {data} = await axios.post(this.url + "/inventarios/viewReservaLote", datos);
+                Swal.fire({
+                    width: '40%',
+                    html: data
+                });
+            },
+
             //DATA GENERAL
             async searchDataReport() {
 
@@ -447,10 +468,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }, 400);
             },
 
-            async viewStockBodega(id) {
-                const {data} = await axios.get(this.url + "/inventarios/viewStockBodegaLote/" + id);
+            async viewStockBodegaLote(id, lote) {
+                const {data} = await axios.get(this.url + "/inventarios/viewStockBodegaLote/" + id + "/" + lote);
                 Swal.fire({
-                    width: '30%',
+                    width: '40%',
                     html: data
                 });
             },
@@ -486,7 +507,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     const url = window.URL.createObjectURL(new Blob([data]));
                     const link = document.createElement('a');
                     link.href = url;
-                    link.setAttribute('download', 'Inventario_General.xlsx');
+                    link.setAttribute('download', 'Inventario_Por_Lotes.xlsx');
                     document.body.appendChild(link);
                     link.click();
                 } catch (e) {
@@ -508,7 +529,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = 'Inventario_General.pdf';
+                    link.download = 'Inventario_Por_Lotes.pdf';
                     link.click();
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);

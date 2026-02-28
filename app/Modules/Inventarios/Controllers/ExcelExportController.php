@@ -70,7 +70,7 @@ class ExcelExportController extends \App\Controllers\BaseController {
                 $item->stb_stock - $reserva,
                 $item->prod_ivaporcentage === '0.00' ? 'SIN IVA' : 'IVA',
                 $item->prod_ctrllote === '1' ? 'SI' : 'NO',
-                $item->bod_nombre,
+                $dataPost->invBodega?$item->bod_nombre:"ALL SELECT",
                 $item->prod_costopromedio,
                 $item->prod_costoultimo,
                 $item->gr_nombre,
@@ -94,6 +94,66 @@ class ExcelExportController extends \App\Controllers\BaseController {
     }
 
     public function exportInventarioLotesExcel() {
-        
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $searchValue = (string) ($dataPost->search ?? '');
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+
+        $filtros = [
+            'invBodega' => $dataPost->invBodega ?? null,
+            'invStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
+            'invGrupo' => $dataPost->invGrupo ?? null,
+            'invIva' => $dataPost->invIva !== '-1' ? $dataPost->invIva : null,
+            'invProductoId' => $dataPost->invProductoId ?? null,
+            'invSubgrupo' => $dataPost->invSubgrupo ?? null
+        ];
+
+        $reservas = $this->invModel->getReservaLotesProductos((int) $dataPost->invBodega);
+        //Indexamos reservas
+        $reservasProducto = [];
+
+        foreach ($reservas ?? [] as $val) {
+            $reservasProducto[$val->fk_producto . '|' . $val->fk_lote] = $val->res_cantidad;
+        }
+
+        $data = $this->invModel->getInventarioLotes($filtros, null, null, $searchValue, $orderBy, $orderDir);
+        $rows = [];
+        foreach ($data as $item) {
+            $reserva = $reservasProducto[$item->id . '|' . $item->fk_lote] ?? 0;
+
+            $rows[] = [
+                $item->prod_codigo,
+                $item->prod_codigobarras,
+                $item->prod_nombre,
+                $item->lot_lote,
+                $item->lot_fecha_caducidad,
+                $item->stbl_stock,
+                $reserva,
+                $item->stbl_stock - $reserva,
+                $item->prod_ivaporcentage === '0.00' ? 'SIN IVA' : 'IVA',
+                $dataPost->invBodega?$item->bod_nombre:"ALL SELECT",
+                $item->prod_costopromedio,
+                $item->prod_costoultimo,
+                $item->gr_nombre,
+                $item->sgr_nombre
+            ];
+        }
+
+
+        $this->xlsxExport->export([
+            'title' => 'REPORTE DE INVENTARIO GENERAL',
+            'headers' => [
+                'CÓDIGO', 'BARCODE', 'PRODUCTO','LOTE','F. CADUCIDAD', 'STOCK',
+                'RESERVA', 'STOCK DISPONIBLE', 'IVA',
+                'BODEGA', 'COSTO PROMEDIO', 'COSTO ÚLTIMO',
+                'GRUPO', 'SUBGRUPO'
+            ],
+            'data' => $rows,
+            'filename' => 'Inventario_Por_Lotes_' . date('Ymd_His') . '.xlsx',
+            'lastColumn' => 'M'
+        ]);
     }
 }

@@ -221,13 +221,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     </span>
                                 </td>
                                 <!-- RESERVA -->
-                                <td class="text-center" >
+<!--                                <td class="text-center" >
                                     <span :class="parseFloat(item.reservaProducto) > 0
                                           ? 'text-muted badge bg-warning' 
                                           : ''">
                                         {{ parseFloat(item.reservaProducto).toFixed(2) }}
                                     </span>
+                                </td>-->
+                                
+                                
+                                  <td class="text-center">
+                                    <span 
+                                        v-if="parseFloat(item.reservaProducto) > 0"
+                                        @click="verReserva(item.id)"
+                                        class="text-muted badge bg-warning"
+                                        style="cursor:pointer"
+                                        >
+                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
+                                    </span>
+
+                                    <span v-else>
+                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
+                                    </span>
                                 </td>
+                                
 
                                 <!-- STOCK DISPONIBLE -->
                                 <td class="text-center">
@@ -249,7 +266,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         {{ item.prod_ivaporcentage === '0.00' ? 'SIN IVA' : 'IVA' }}
                                     </span>
                                 </td>
-                                
+
                                 <!-- LOTE -->
                                 <td class="text-center">
                                     <span class="badge" :class="item.prod_ctrllote === '1' ? 'bg-info' : 'bg-secondary'" >
@@ -294,7 +311,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </tr>
 
                             <tr v-if="listaInventario.length === 0">
-                                <td colspan="13" class="text-center text-muted py-4">
+                                <td colspan="14" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open fa-2x mb-2"></i>
                                     <br>
                                     No se encontraron productos
@@ -326,7 +343,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             "vue-multiselect": window['vue-multiselect'].Multiselect,
             "vue-select": window['vue-select']
         },
-        mixins: [window.paginationMixin],// Traigo codigo VUE de paginacion desde un archivo del resources/js/paginationMixin.js
+        mixins: [window.paginationMixin], // Traigo codigo VUE de paginacion desde un archivo del resources/js/paginationMixin.js
         data() {
             return {
                 url: siteUrl,
@@ -380,6 +397,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         },
         methods: {
+            //VER RESERVA
+            async verReserva(id) {
+                const datos = {
+                    id: id,
+                    bodega: this.filtros.invBodega
+                };
+                const {data} = await axios.post(this.url + "/inventarios/viewReserva", datos);
+                Swal.fire({
+                    width: '40%',
+                    html: data
+                });
+            },
 
             //DATA GENERAL
             async searchDataReport() {
