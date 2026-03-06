@@ -7,36 +7,41 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     Author     : Cristian R. Paz
 */
 
-   .sidebarMenuColor:hover {
-        font-weight: bold;
-        box-shadow: 0px 0px 5px #FFFAFA;
+.sidebarMenuColor:hover {
+    font-weight: bold;
+    box-shadow: 0px 0px 5px #FFFAFA;
 
-    }
-    .sidebarMenuColor p{
-         color: #f0f0f0;
-    }
-    .sidebarMenuColor:hover p{
-        color: white;
-    }
+}
+.sidebarMenuColor p{
+    color: #f0f0f0;
+}
+.sidebarMenuColor:hover p{
+    color: white;
+}
 
-    .sidebarSubMenuColor:hover {
-        font-weight: bold;
-        box-shadow: 0px 0px 2px #FFFAFA;
-    }
+.sidebarSubMenuColor:hover {
+    font-weight: bold;
+    box-shadow: 0px 0px 2px #FFFAFA;
+}
 
-    .sidebarSubMenuColor:hover p{
-        color: white;
-    }
-    .sidebarSubMenuColor p{
-        color: #f0f0f0;
-    }
-    .sidebarColorIcon{
-        color: #f0f0f0;
+.sidebarSubMenuColor:hover p{
+    color: white;
+}
+.sidebarSubMenuColor p{
+    color: #f0f0f0;
+}
+.sidebarColorIcon{
+    color: #f0f0f0;
 
-    }
-    .nav.nav-treeview{
-        padding: 10px
-    }
-    .margin{
-        margin-top: 10px;
-    }
+}
+.nav.nav-treeview{
+    padding: 10px
+}
+.margin{
+    margin-top: 10px;
+}
+
+.sidebarSubMenuColor .nav-link p{
+    display: inline-block;
+    margin: 5px;
+}

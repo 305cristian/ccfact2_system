@@ -59,7 +59,7 @@ class ExistenciasController extends \App\Controllers\BaseController {
 
 
         $data = $this->invModel->getInventarioGeneral($filtros, $start, $length, $searchValue, $orderBy, $orderDir);
-        $countProductosAll = $this->invModel->countProductosAll($filtros);
+        $countProductosAll = $this->invModel->countFilteredProducts($filtros);
         $countFilteredProducts = $this->invModel->countFilteredProducts($filtros, $searchValue);
 
         foreach ($data as $val) {
@@ -103,8 +103,8 @@ class ExistenciasController extends \App\Controllers\BaseController {
         $output .= '</tbody></table></div>';
         echo $output;
     }
-    
-        public function viewReserva() {
+
+    public function viewReserva() {
 
         $dataPost = json_decode(file_get_contents('php://input'));
 
@@ -138,8 +138,6 @@ class ExistenciasController extends \App\Controllers\BaseController {
         $output .= '</tbody></table></div>';
         echo $output;
     }
-    
-    
 
     public function getInventarioLotes() {
         $dataPost = json_decode(file_get_contents('php://input'));
@@ -173,7 +171,7 @@ class ExistenciasController extends \App\Controllers\BaseController {
 
 
         $data = $this->invModel->getInventarioLotes($filtros, $start, $length, $searchValue, $orderBy, $orderDir);
-        $countProductosAllLotes = $this->invModel->countProductosAllLotes($filtros);
+        $countProductosAllLotes = $this->invModel->countFilteredProductsLotes($filtros);
         $countFilteredProductsLotes = $this->invModel->countFilteredProductsLotes($filtros, $searchValue);
 //
         foreach ($data as $val) {
@@ -274,5 +272,54 @@ class ExistenciasController extends \App\Controllers\BaseController {
         }
 
         return str_pad($sec, 5, "0", STR_PAD_LEFT);
+    }
+
+    public function getInventarioConsolidado() {
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $draw = $dataPost->draw;
+        $start = (int) $dataPost->start;
+        $length = (int) $dataPost->length;
+        $searchValue = (string) $dataPost->search ?? '';
+
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+
+        $filtros = [
+            'invBodega' => $dataPost->invBodega ?? null,
+            'invStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
+            'invGrupo' => $dataPost->invGrupo ?? null,
+            'invIva' => $dataPost->invIva !== '-1' ? $dataPost->invIva : null,
+            'invSubgrupo' => $dataPost->invSubgrupo ?? null
+        ];
+
+        $reservas = $this->invModel->getReservasConsolidado((int) $dataPost->invBodega);
+
+        //Indexamos reservas
+        $reservasProducto = [];
+
+        foreach ($reservas ?? [] as $val) {
+            $lote = ($val->fk_lote !== null) ? $val->fk_lote : "";
+            $reservasProducto[$val->fk_producto . '|' . $lote] = (float)$val->res_cantidad;
+        }
+
+
+        $data = $this->invModel->getInventarioConsolidado($filtros, $start, $length, $searchValue, $orderBy, $orderDir);
+        $countProductosAllLotes = $this->invModel->countProductosAllConsolidado($filtros);
+        $countFilteredProductsLotes = $this->invModel->countFilteredProductsConsolidado($filtros, $searchValue);
+//
+        foreach ($data as $val) {
+            $lote = ($val->fk_lote !== null) ? $val->fk_lote : "";
+            $val->reservaProducto = $reservasProducto[$val->id . '|' . $lote] ?? 0;
+        }
+
+        return $this->response->setJSON([
+                    'status' => 'success',
+                    'data' => $data,
+                    'draw' => intval($draw),
+                    'recordsTotal' => $countProductosAllLotes,
+                    'recordsFiltered' => $countFilteredProductsLotes,
+        ]);
     }
 }

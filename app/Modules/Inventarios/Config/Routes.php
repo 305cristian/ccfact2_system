@@ -41,8 +41,8 @@ $routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'
     $subroutes->post('exportExcelGeneral', 'ExcelExportController::exportInventarioGeneralExcel');
     $subroutes->post('exportPdfGeneral', 'PdfExportController::exportInventarioGeneralPdf');
     $subroutes->get('viewStockBodega/(:num)', 'ExistenciasController::viewStockBodega/$1');
-     $subroutes->post('viewReserva', 'ExistenciasController::viewReserva');
-    
+    $subroutes->post('viewReserva', 'ExistenciasController::viewReserva');
+
     //INVENTARIO POR LOTES
     $subroutes->post('lotes', 'ExistenciasController::getInventarioLotes');
     $subroutes->post('exportExcelLotes', 'ExcelExportController::exportInventarioLotesExcel');
@@ -50,7 +50,26 @@ $routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'
     $subroutes->get('viewStockBodegaLote/(:num)/(:num)', 'ExistenciasController::viewStockBodegaLote/$1/$2');
     $subroutes->post('viewReservaLote', 'ExistenciasController::viewReservaLote');
 
+    //INVENTARIO CONSOLIDADO
+    $subroutes->post('consolidado', 'ExistenciasController::getInventarioConsolidado');
+    $subroutes->post('exportExcelConsolidado', 'ExcelExportController::exportInventarioConsolidadoExcel');
+    $subroutes->post('exportPdfConsolidado', 'PdfExportController::exportInventarioConsolidadoPdf');
+    $subroutes->get('viewStockBodegaLote/(:num)/(:num)', 'ExistenciasController::viewStockBodegaLote/$1/$2');
+    $subroutes->post('viewReservaLote', 'ExistenciasController::viewReservaLote');
+
+
 });
+
+//INVENTARIO HISTORICO
+$routes->get('inv/historico', '\Modules\Inventarios\Controllers\HistoricoController::index');
+$routes->post('inv/historico', '\Modules\Inventarios\Controllers\HistoricoController::index');
+
+//CONTROL DE CADUCIDAD
+$routes->get('control/caducidad', '\Modules\Inventarios\Controllers\CaducidadController::index');
+$routes->post('control/consultarProductos', '\Modules\Inventarios\Controllers\CaducidadController::consultarProductos');
+$routes->post('control/exportPdfCaducidad', '\Modules\Inventarios\Controllers\PdfExportController::exportPdfCaducidad');
+$routes->post('control/exportExcelCaducidad', '\Modules\Inventarios\Controllers\ExcelExportController::exportExcelCaducidad');
+
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
     $subroutes->post('productos/searchProductosFull', 'SearchsController::searchProductosFull');

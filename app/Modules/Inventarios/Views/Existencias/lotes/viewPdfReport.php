@@ -25,6 +25,7 @@ $totalCostoTotal = 0;
         <tr>
             <th>CÓDIGO</th>
             <th>PRODUCTO</th>
+            <th>PRES.</th>
             <th>LOTE</th>
             <th>F. CADUCIDAD</th>
             <th>STOCK</th>
@@ -56,6 +57,7 @@ $totalCostoTotal = 0;
             <tr>
                 <td><?= esc($item->prod_codigo) ?></td>
                 <td><?= esc($item->prod_nombre) ?></td>
+                <td><?= esc($item->um_nombre_corto) ?></td>
                 <td><?= esc($item->lot_lote) ?></td>
                 <td><?= esc($item->lot_fecha_caducidad) ?></td>
                 <td class="text-right"><?= esc($item->stbl_stock) ?></td>
@@ -75,7 +77,7 @@ $totalCostoTotal = 0;
 
     <tfoot>
         <tr style="font-weight:bold; background:#f2f2f2;">
-            <td colspan="4" class="text-right"><strong>TOTALES</strong></td>
+            <td colspan="5" class="text-right"><strong>TOTALES</strong></td>
 
             <td class="text-right"><strong><?= number_format($totalStock, 2) ?></strong></td>
             <td class="text-right"><strong><?= number_format($totalReserva, 2) ?></strong></td>

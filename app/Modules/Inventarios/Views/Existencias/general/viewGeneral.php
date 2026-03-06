@@ -188,6 +188,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <th>CÓDIGO</th>
                                 <th>BARCODE</th>
                                 <th class="sortable" @click="sort('prod_nombre')" >PRODUCTO <i :class="getSortClass('prod_nombre')"></i></th>
+                                <th class="text-left">PRES.</th>
                                 <th class="text-center">STOCK</th>
                                 <th class="text-center">RESERVA</th>
                                 <th class="text-center">STOCK DISPONIBLE</th>
@@ -213,6 +214,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                 <!-- PRODUCTO -->
                                 <td><strong>{{ item.prod_nombre }}</strong></td>
+                                
+                                <!--PRESENTACION-->
+                                <td><span class="text-muted">{{ item.um_nombre_corto || '-' }}</span></td>
 
                                 <!-- STOCK -->
                                 <td class="text-center">
@@ -221,14 +225,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     </span>
                                 </td>
                                 <!-- RESERVA -->
-<!--                                <td class="text-center" >
-                                    <span :class="parseFloat(item.reservaProducto) > 0
-                                          ? 'text-muted badge bg-warning' 
-                                          : ''">
-                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
-                                    </span>
-                                </td>-->
-                                
                                 
                                   <td class="text-center">
                                     <span 
@@ -311,7 +307,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </tr>
 
                             <tr v-if="listaInventario.length === 0">
-                                <td colspan="14" class="text-center text-muted py-4">
+                                <td colspan="15" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open fa-2x mb-2"></i>
                                     <br>
                                     No se encontraron productos

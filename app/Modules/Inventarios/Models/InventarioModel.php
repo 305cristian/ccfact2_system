@@ -53,6 +53,8 @@ class InventarioModel extends \CodeIgniter\Model {
                             tb1.prod_existenciamaxima,
                             tb1.prod_ivaporcentage,
                             tb1.prod_ctrllote,
+                            tb8.um_nombre,
+                            tb8.um_nombre_corto,
                             tb4.sgr_nombre,
                             tb5.gr_nombre,
                             tb6.mrc_nombre,
@@ -66,6 +68,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join("cc_grupos tb5 ", "tb5.id = tb4.fk_grupo", "left");
         $builder->join("cc_marcas tb6 ", "tb6.id = tb1.fk_marca", "left");
         $builder->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id ");
+        $builder->join("cc_unidades_medida tb8", "tb8.id = tb1.fk_unidadmedida", "left");
 
         // Mapeo de filtros a columnas de BD
         if (!empty($filtros['invBodega'])) {
@@ -118,47 +121,7 @@ class InventarioModel extends \CodeIgniter\Model {
         }
     }
 
-    public function countProductosAll(array $filtros): int {
-
-        $builder = $this->db->table('cc_productos tb1');
-        $builder->select('tb1.id');
-        $builder->join('cc_stock_bodega tb2', 'tb2.fk_producto = tb1.id');
-        $builder->groupBy('tb1.id');
-
-        // Filtros
-        if (!empty($filtros['invBodega'])) {
-            $builder->where('tb2.fk_bodega', $filtros['invBodega']);
-        }
-
-        if (isset($filtros['invStock'])) {
-            if ($filtros['invStock'] === '1') {
-                $builder->where('tb2.stb_stock >', 0);
-            } else {
-                $builder->where('tb2.stb_stock <=', 0);
-            }
-        }
-
-        if (!empty($filtros['invGrupo'])) {
-            $builder->where('tb5.id', $filtros['invGrupo']);
-        }
-
-        if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
-        }
-
-        if (!empty($filtros['invProductoId'])) {
-            $builder->where('tb1.id', $filtros['invProductoId']);
-        }
-
-        if (!empty($filtros['invSubgrupo'])) {
-            $builder->where('tb4.id', $filtros['invSubgrupo']);
-        }
-
-
-        return $builder->countAllResults();
-    }
-
-    public function countFilteredProducts(array $filtros, string $search): int {
+    public function countFilteredProducts(array $filtros, ?string $search=null): int {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select('tb1.id');
 
@@ -258,6 +221,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder = $this->db->table("cc_reserva_inventario");
         $builder->select("fk_producto, fk_lote, SUM(res_cantidad)res_cantidad ");
         $builder->where('res_estado', "ACTIVA");
+        $builder->where('fk_lote IS NOT NULL');
 
         if (!empty($bodegaId)) {
             $builder->where('fk_bodega', $bodegaId);
@@ -288,6 +252,8 @@ class InventarioModel extends \CodeIgniter\Model {
                             tb1.prod_existenciaminima,
                             tb1.prod_existenciamaxima,
                             tb1.prod_ivaporcentage,
+                            tb9.um_nombre,
+                            tb9.um_nombre_corto,
                             tb2.fk_lote,
                             tb8.lot_lote,
                             tb8.lot_fecha_elaboracion,
@@ -306,6 +272,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join("cc_marcas tb6 ", "tb6.id = tb1.fk_marca", "left");
         $builder->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id ");
         $builder->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
+        $builder->join("cc_unidades_medida tb9", "tb9.id = tb1.fk_unidadmedida", "left");
 
         // Mapeo de filtros a columnas de BD
         if (!empty($filtros['invBodega'])) {
@@ -343,8 +310,7 @@ class InventarioModel extends \CodeIgniter\Model {
             $builder->orderBy($orderBy, $orderDir);
         }
 
-        $builder->groupBy("tb1.id");
-        $builder->groupBy("tb2.fk_lote");
+        $builder->groupBy("tb1.id, tb2.fk_lote");
 
         if (isset($start) && $start !== null) {
             $builder->limit($length, $start);
@@ -359,48 +325,7 @@ class InventarioModel extends \CodeIgniter\Model {
         }
     }
 
-    public function countProductosAllLotes(array $filtros): int {
-
-        $builder = $this->db->table('cc_productos tb1');
-        $builder->select('tb1.id');
-        $builder->join('cc_stock_bodega_lote tb2', 'tb2.fk_producto = tb1.id');
-        $builder->groupBy('tb1.id');
-        $builder->groupBy('tb2.fk_lote');
-
-        // Filtros
-        if (!empty($filtros['invBodega'])) {
-            $builder->where('tb2.fk_bodega', $filtros['invBodega']);
-        }
-
-        if (isset($filtros['invStock'])) {
-            if ($filtros['invStock'] === '1') {
-                $builder->where('tb2.stbl_stock >', 0);
-            } else {
-                $builder->where('tb2.stbl_stock <=', 0);
-            }
-        }
-
-        if (!empty($filtros['invGrupo'])) {
-            $builder->where('tb5.id', $filtros['invGrupo']);
-        }
-
-        if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
-        }
-
-        if (!empty($filtros['invProductoId'])) {
-            $builder->where('tb1.id', $filtros['invProductoId']);
-        }
-
-        if (!empty($filtros['invSubgrupo'])) {
-            $builder->where('tb4.id', $filtros['invSubgrupo']);
-        }
-
-
-        return $builder->countAllResults();
-    }
-
-    public function countFilteredProductsLotes(array $filtros, string $search): int {
+    public function countFilteredProductsLotes(array $filtros, ?string $search=null): int {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select('tb1.id');
 
@@ -508,5 +433,336 @@ class InventarioModel extends \CodeIgniter\Model {
         } else {
             return [];
         }
+    }
+
+    public function getInventarioConsolidado(array $filtros, ?int $start = null, ?int $length = null, ?string $search = null, ?string $orderBy = null, ?string $orderDir = null): array {
+        /*
+          ==========================================================
+          PRODUCTOS SIN LOTE
+          ==========================================================
+         */
+
+        $builder1 = $this->db->table('cc_productos tb1');
+        $builder1->select("
+                            tb1.id,
+                            tb1.prod_codigo,
+                            tb1.prod_codigobarras,
+                            tb1.prod_nombre,
+                            tb1.prod_costopromedio,
+                            tb1.prod_costoultimo,
+                            tb1.prod_existenciaminima,
+                            tb1.prod_existenciamaxima,
+                            tb1.prod_ivaporcentage,
+                            tb1.prod_ctrllote,
+                            tb8.um_nombre,
+                            tb8.um_nombre_corto,
+                            NULL AS fk_lote,
+                            NULL AS lot_lote,
+                            NULL AS lot_fecha_elaboracion,
+                            NULL AS lot_fecha_caducidad,
+                            tb4.sgr_nombre,
+                            tb5.gr_nombre,
+                            tb6.mrc_nombre,
+                            MAX(tb3.bod_nombre) AS bod_nombre,
+                            MAX(tb3.id) AS bodegaId,
+                            SUM(tb2.stb_stock) AS stock
+                        ");
+        $builder1->join("cc_stock_bodega tb2", "tb2.fk_producto = tb1.id");
+        $builder1->join("cc_bodegas tb3", "tb3.id = tb2.fk_bodega");
+        $builder1->join("cc_subgrupos tb4", "tb4.id = tb1.fk_subgrupo", "left");
+        $builder1->join("cc_grupos tb5", "tb5.id = tb4.fk_grupo", "left");
+        $builder1->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
+        $builder1->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
+        $builder1->join("cc_unidades_medida tb8", "tb8.id = tb1.fk_unidadmedida", "left");
+
+        $builder1->where("tb1.prod_ctrllote", 0);
+
+        // Mapeo de filtros a columnas de BD
+        if (!empty($filtros['invBodega'])) {
+            $builder1->where('tb2.fk_bodega', $filtros['invBodega']);
+        }
+        if (isset($filtros['invStock'])) {
+            if ($filtros['invStock'] === '1') {
+                $builder1->where('tb2.stb_stock >', 0);
+            } else {
+                $builder1->where('tb2.stb_stock <=', 0);
+            }
+        }
+        if (!empty($filtros['invGrupo'])) {
+            $builder1->where('tb5.id', $filtros['invGrupo']);
+        }
+        if (!empty($filtros['invIva'])) {
+            $builder1->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+        }
+        if (!empty($filtros['invProductoId'])) {
+            $builder1->where('tb1.id', $filtros['invProductoId']);
+        }
+        if (!empty($filtros['invSubgrupo'])) {
+            $builder1->where('tb4.id', $filtros['invSubgrupo']);
+        }
+
+        if (!empty($search)) {//Esto funciona cuando usas la opcion de searh en la tabla (solo especifico 3 campos)
+            $builder1->groupStart();
+            $builder1->like('tb1.prod_nombre', $search);
+            $builder1->orLike('tb1.prod_codigo', $search);
+            $builder1->orLike('tb1.prod_codigobarras', $search);
+            $builder1->groupEnd();
+        }
+
+        $builder1->groupBy("tb1.id");
+
+        /*
+          ==========================================================
+          PRODUCTOS CON LOTE
+          ==========================================================
+         */
+
+        $builder2 = $this->db->table('cc_productos tb1');
+        $builder2->select("
+                    tb1.id,
+                    tb1.prod_codigo,
+                    tb1.prod_codigobarras,
+                    tb1.prod_nombre,
+                    tb1.prod_costopromedio,
+                    tb1.prod_costoultimo,
+                    tb1.prod_existenciaminima,
+                    tb1.prod_existenciamaxima,
+                    tb1.prod_ivaporcentage,
+                    tb1.prod_ctrllote,
+                    tb9.um_nombre,
+                    tb9.um_nombre_corto,
+                    tb2.fk_lote,
+                    tb8.lot_lote,
+                    tb8.lot_fecha_elaboracion,
+                    tb8.lot_fecha_caducidad,
+                    tb4.sgr_nombre,
+                    tb5.gr_nombre,
+                    tb6.mrc_nombre,
+                    MAX(tb3.bod_nombre) AS bod_nombre,
+                    MAX(tb3.id) AS bodegaId,
+                    SUM(tb2.stbl_stock) AS stock
+                ");
+        $builder2->join("cc_stock_bodega_lote tb2", "tb2.fk_producto = tb1.id");
+        $builder2->join("cc_bodegas tb3", "tb3.id = tb2.fk_bodega");
+        $builder2->join("cc_subgrupos tb4", "tb4.id = tb1.fk_subgrupo", "left");
+        $builder2->join("cc_grupos tb5", "tb5.id = tb4.fk_grupo", "left");
+        $builder2->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
+        $builder2->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
+        $builder2->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
+        $builder2->join("cc_unidades_medida tb9", "tb9.id = tb1.fk_unidadmedida", "left");
+
+        $builder2->where("tb1.prod_ctrllote", 1);
+
+        if (!empty($filtros['invBodega'])) {
+            $builder2->where('tb2.fk_bodega', $filtros['invBodega']);
+        }
+        if (isset($filtros['invStock'])) {
+            if ($filtros['invStock'] === '1') {
+                $builder2->where('tb2.stbl_stock >', 0);
+            } else {
+                $builder2->where('tb2.stbl_stock <=', 0);
+            }
+        }
+        if (!empty($filtros['invGrupo'])) {
+            $builder2->where('tb5.id', $filtros['invGrupo']);
+        }
+        if (!empty($filtros['invIva'])) {
+            $builder2->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+        }
+        if (!empty($filtros['invProductoId'])) {
+            $builder2->where('tb1.id', $filtros['invProductoId']);
+        }
+        if (!empty($filtros['invSubgrupo'])) {
+            $builder2->where('tb4.id', $filtros['invSubgrupo']);
+        }
+
+        if (!empty($search)) {//Esto funciona cuando usas la opcion de searh en la tabla (solo especifico 3 campos)
+            $builder2->groupStart();
+            $builder2->like('tb1.prod_nombre', $search);
+            $builder2->orLike('tb1.prod_codigo', $search);
+            $builder2->orLike('tb1.prod_codigobarras', $search);
+            $builder2->groupEnd();
+        }
+        $builder2->groupBy("tb1.id, tb2.fk_lote");
+
+        /*
+          UNION SE LAS 2 CONSULTAS
+         */
+        $sql1 = $builder1->getCompiledSelect();
+        $sql2 = $builder2->getCompiledSelect();
+
+        $unionSql = "($sql1) UNION ALL ($sql2)";
+
+        $orderByq = $orderBy ?: 'prod_nombre';
+        $orderDirq = strtolower($orderDir) === 'desc' ? 'DESC' : 'ASC';
+
+        $unionSql .= " ORDER BY {$orderByq} {$orderDirq}";
+
+        if ($start !== null) {
+            $unionSql .= " LIMIT " . (int) $length . " OFFSET " . (int) $start;
+        }
+
+        $query = $this->db->query($unionSql);
+
+        return $query->getResult();
+    }
+
+    public function countProductosAllConsolidado(array $filtros): int {
+        $sql = $this->buildCountInventarioConsolidadoSQL($filtros);
+
+        $row = $this->db->query($sql)->getRow();
+
+        return (int) ($row->total ?? 0);
+    }
+
+    public function countFilteredProductsConsolidado(array $filtros, ?string $search): int {
+
+        $sql = $this->buildCountInventarioConsolidadoSQL($filtros, $search !== '' ? $search : null);
+
+        $row = $this->db->query($sql)->getRow();
+
+        return (int) ($row->total ?? 0);
+    }
+
+    public function getReservasConsolidado(int $bodegaId): array {
+        $builder = $this->db->table("cc_reserva_inventario");
+        $builder->select("fk_producto, fk_lote, SUM(res_cantidad)res_cantidad ");
+        $builder->where('res_estado', "ACTIVA");
+
+        if (!empty($bodegaId)) {
+            $builder->where('fk_bodega', $bodegaId);
+        }
+
+        $builder->groupBy('fk_producto');
+        $builder->groupBy('fk_lote');
+
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return [];
+        }
+    }
+
+    private function buildCountInventarioConsolidadoSQL(array $filtros, ?string $search = null): string {
+        /*
+          ==========================================================
+          SIN LOTE (1 fila por producto)
+          ==========================================================
+         */
+        $b1 = $this->db->table('cc_productos tb1');
+        $b1->select("tb1.id AS row_id");
+
+        $b1->join("cc_stock_bodega tb2", "tb2.fk_producto = tb1.id");
+        $b1->join("cc_bodegas tb3", "tb3.id = tb2.fk_bodega");
+        $b1->join("cc_subgrupos tb4", "tb4.id = tb1.fk_subgrupo", "left");
+        $b1->join("cc_grupos tb5", "tb5.id = tb4.fk_grupo", "left");
+        $b1->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
+        $b1->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
+
+        $b1->where("tb1.prod_ctrllote", 0);
+
+        // Filtros
+        if (!empty($filtros['invBodega'])) {
+            $b1->where('tb2.fk_bodega', $filtros['invBodega']);
+        }
+
+        if (isset($filtros['invStock'])) {
+            $filtros['invStock'] === '1' ? $b1->where('tb2.stb_stock >', 0) : $b1->where('tb2.stb_stock <=', 0);
+        }
+
+        if (!empty($filtros['invGrupo'])) {
+            $b1->where('tb5.id', $filtros['invGrupo']);
+        }
+
+        if (!empty($filtros['invIva'])) {
+            $b1->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+        }
+
+        if (!empty($filtros['invProductoId'])) {
+            $b1->where('tb1.id', $filtros['invProductoId']);
+        }
+
+        if (!empty($filtros['invSubgrupo'])) {
+            $b1->where('tb4.id', $filtros['invSubgrupo']);
+        }
+
+        // Búsqueda
+        if (!empty($search)) {
+            $b1->groupStart()
+                    ->like('tb1.prod_nombre', $search)
+                    ->orLike('tb1.prod_codigo', $search)
+                    ->orLike('tb1.prod_codigobarras', $search)
+                    ->groupEnd();
+        }
+
+        $b1->groupBy("tb1.id");
+
+        /*
+          ==========================================================
+          CON LOTE (1 fila por producto+lote)
+          ==========================================================
+         */
+        $b2 = $this->db->table('cc_productos tb1');
+
+        // row_id único por producto+lote para que cuente filas reales
+        $b2->select("CONCAT(tb1.id,'|',tb2.fk_lote) AS row_id");
+
+        $b2->join("cc_stock_bodega_lote tb2", "tb2.fk_producto = tb1.id");
+        $b2->join("cc_bodegas tb3", "tb3.id = tb2.fk_bodega");
+        $b2->join("cc_subgrupos tb4", "tb4.id = tb1.fk_subgrupo", "left");
+        $b2->join("cc_grupos tb5", "tb5.id = tb4.fk_grupo", "left");
+        $b2->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
+        $b2->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
+        $b2->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
+
+        $b2->where("tb1.prod_ctrllote", 1);
+
+        // Filtros
+        if (!empty($filtros['invBodega'])) {
+            $b2->where('tb2.fk_bodega', $filtros['invBodega']);
+        }
+
+        if (isset($filtros['invStock'])) {
+            $filtros['invStock'] === '1' ? $b2->where('tb2.stbl_stock >', 0) : $b2->where('tb2.stbl_stock <=', 0);
+        }
+
+        if (!empty($filtros['invGrupo'])) {
+            $b2->where('tb5.id', $filtros['invGrupo']);
+        }
+
+        if (!empty($filtros['invIva'])) {
+            $b2->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+        }
+
+        if (!empty($filtros['invProductoId'])) {
+            $b2->where('tb1.id', $filtros['invProductoId']);
+        }
+
+        if (!empty($filtros['invSubgrupo'])) {
+            $b2->where('tb4.id', $filtros['invSubgrupo']);
+        }
+
+        // Búsqueda
+        if (!empty($search)) {
+            $b2->groupStart()
+                    ->like('tb1.prod_nombre', $search)
+                    ->orLike('tb1.prod_codigo', $search)
+                    ->orLike('tb1.prod_codigobarras', $search)
+                    ->groupEnd();
+        }
+
+        $b2->groupBy("tb1.id, tb2.fk_lote");
+
+        /*
+          ==========================================================
+          UNION + COUNT
+          ==========================================================
+         */
+        $sql1 = $b1->getCompiledSelect();
+        $sql2 = $b2->getCompiledSelect();
+
+        return "SELECT COUNT(*) AS total FROM ( ($sql1) UNION ALL ($sql2) ) X";
     }
 }

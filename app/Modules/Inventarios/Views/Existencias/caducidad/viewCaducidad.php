@@ -1,82 +1,52 @@
 <!DOCTYPE html>
 <!--
 /**
- * Description of viewLotes
+ * Description of viewCaducidad
  *
 /**
  * @author CRISTIAN R. PAZ
- * @date 4 ene 2026
- * @time 12:25:13 a.m.
+ * @date 3 mar 2026
+ * @time 9:38:29 p.m.
  */       
  
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
 
-
-<style>
-    .multiselect__tags {
-        border-radius: 0px 5px 5px 0px
-    }
-</style>
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
             <h5 class="card-title text-system">
-                <i class="fas fa-box"></i> Inventario Por Lotes
+                <i class="fas fa-box"></i> Control de Caducidad
             </h5>           
         </div>
 
         <div class="card-body">
             <fieldset>
                 <legend>
-                    <i class="fas fa-box me-2"></i> Filtros de Inventario por lotes
+                    <i class="fas fa-box me-2"></i> Filtros de Control de Caducidad
                 </legend>
 
                 <div class="row col-md-12">
 
-                    <!-- Buscador productos multiselect -->
-                    <div class="col-md-4 col-sm-12 form-group-custom">
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="input-group-text bg-cris-system" style="border-radius: 5px 0px 0px 5px">
-                                <i class="fas fa-box-open"></i>
-                            </span>
-
-                            <vue-multiselect
-                                tag-placeholder="Producto no Encontrado"
-                                placeholder="Buscar Productos (CODIGO, NOMBRE)"
-                                label="producto"
-                                track-by="id"
-                                :multiple="false"
-                                :searchable="true"
-                                :options-limit="10"
-                                :show-no-results="true"
-                                :options="listaSearchProductos"
-                                @select="onSelectProducto($event)"
-                                @remove="onRemove($event)"                              
-                                @search-change="searchProductos($event)">
-
-                                <template #option="{ option }">
-                                    <div class="producto-option-row">
-                                        <div class="row g-2 align-items-center w-100">
-                                            <div class="col-auto">
-                                                <span class="badge bg-primary">{{ option.codigos }}</span>
-                                            </div>
-                                            <div class="col">
-                                                <span class="fw-bold text-dark">{{ option.prod_nombre }}</span>
-                                            </div>                                          
-                                        </div>
-                                    </div>
-                                </template>
-                            </vue-multiselect>
-
+                    <!--Fechas DE CONTROL-->
+                    <div class="col-12 col-md-3 form-group-custom">
+                        <div class="input-group">
+                            <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i> Fechas de Control</span>
+                            <input type="text"  ref="dateRange" v-model='filtros.caducFechas'  placeholder="Seleccione rango de fechas" class="form-control" data-style="btn-white">  
                         </div>
                     </div>
 
+                    <!--Limite de control-->
+                    <div class="col-12 col-md-3 form-group">
+                        <div class="input-group">
+                            <span class="input-group-text bg-cris-system"><i class="fas fa-calendar-alt me-2"></i> Fechas Límite de control</span>
+                            <input type="date"  v-model='fechaLimiteCaducidad'  placeholder="Seleccione rango de fechas" class="form-control" data-style="btn-white">  
+                        </div>
+                    </div>
 
                     <!-- Bodega -->
-                    <div class="col-md-2 col-sm-6  form-group-custom">
+                    <div class="col-12 col-md-2 col-sm-6  form-group-custom">
                         <div class="d-flex justify-content-between align-items-center border">
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-warehouse me-2"></i>Bodega
@@ -93,7 +63,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
 
                     <!-- Grupo -->
-                    <div class="col-md-2 col-sm-6 form-group-custom">
+                    <div class="col-12 col-md-2 col-sm-6 form-group-custom">
                         <div class="d-flex justify-content-between align-items-center border">
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-tags me-2"></i>Grupo
@@ -110,7 +80,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
 
                     <!-- Subgrupo -->
-                    <div class="col-md-2 col-sm-6  form-group-custom">
+                    <div class="col-12 col-md-2 col-sm-6  form-group-custom">
                         <div class="d-flex justify-content-between align-items-center border">
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-sitemap me-2"></i>Subgrupo
@@ -129,7 +99,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 
                     <!-- Impuesto -->
-                    <div class="col-md-2 col-sm-6  form-group-custom">
+                    <div class="col-12 col-md-2 col-sm-6  form-group-custom">
                         <div class="input-group">
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-percent me-2"></i>IVA
@@ -143,7 +113,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
 
                     <!-- Estado de Stock -->
-                    <div class="col-md-2 col-sm-6  form-group-custom">
+                    <div class="col-12 col-md-2 col-sm-6  form-group-custom">
                         <div class="input-group">
                             <span class="input-group-text bg-cris-system">
                                 <i class="fas fa-filter me-2"></i>Stock
@@ -157,10 +127,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
 
                     <!-- Buscar -->
-                    <div class="col-md-2 col-sm-6 ">
+                    <div class="col-12 col-md-2 col-sm-6 ">
                         <button class="btn btn-system" @click="searchDataReport()" :disabled="loading">
-                            <span v-if="loading"><i class="loading-spin"></i> Generando...</span>
-                            <span v-else><i class="fas fa-search"></i> Generar Reporte</span>
+                            <span v-if="loading"><i class="loading-spin"></i> Consultando...</span>
+                            <span v-else><i class="fas fa-search"></i> Consultar Productos</span>
                         </button>
                     </div>
 
@@ -188,13 +158,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <thead class="bg-system text-white">
                             <tr>
                                 <th>CÓDIGO</th>
-                                <th>BARCODE</th>
+                                <!--<th>BARCODE</th>-->
                                 <th class="sortable" @click="sort('prod_nombre')" >PRODUCTO <i :class="getSortClass('prod_nombre')"></i></th>
                                 <th class="text-left">PRES.</th>
                                 <th class="text-left">LOTE</th>
+                                <th class="text-left">F. ELABORACIÓN</th>
                                 <th class="text-left">F. CADUCIDAD</th>
-                                <th class="text-center">STOCK</th>
-                                <th class="text-center">RESERVA</th>
                                 <th class="text-center">STOCK DISPONIBLE</th>
                                 <th class="text-center">IVA</th>
                                 <th>BODEGA</th>
@@ -213,54 +182,36 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <td v-tooltip:top="item.id"><span class="badge-type">{{ item.prod_codigo }}</span></td>
 
                                 <!--BARCODE--> 
-                                <td><span class="text-muted">{{ item.prod_codigobarras || '-' }}</span></td>
+                                <!--<td><span class="text-muted">{{ item.prod_codigobarras || '-' }}</span></td>-->
 
                                 <!--PRODUCTO--> 
                                 <td><strong>{{ item.prod_nombre }}</strong></td>
-                                
-                                 <!--PRESENTACION-->
+
+                                <!--PRESENTACION-->
                                 <td><span class="text-muted">{{ item.um_nombre_corto || '-' }}</span></td>
 
                                 <!--LOTE--> 
                                 <td>{{ item.lot_lote }}</td>
 
+                                <!--FECHA ELABORACIÓN-->
+                                <td>{{ item.lot_fecha_elaboracion }}</td>
+
                                 <!--FECHA CADUCIDAD-->
-                                <td>{{ item.lot_fecha_caducidad }}</td>
-
-
-                                <!--STOCK--> 
-                                <td class="text-center">
-                                    <span class="text-muted" >
-                                        {{ item.stbl_stock }}
-                                    </span>
+                                
+                                <td>
+                                   
+                                    <span v-if="item.lot_fecha_caducidad <=  fechaLimiteCaducidad" class="badge bg-danger">{{ item.lot_fecha_caducidad }}</span>
+                                    <span v-else>{{ item.lot_fecha_caducidad }}</span>
                                 </td>
 
-
-                                <!--RESERVA--> 
-                                <td class="text-center">
-                                    <span 
-                                        v-if="parseFloat(item.reservaProducto) > 0"
-                                        @click="verReserva(item.id, item.fk_lote)"
-                                        class="text-muted badge bg-warning"
-                                        style="cursor:pointer"
-                                        >
-                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
-                                    </span>
-
-                                    <span v-else>
-                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
-                                    </span>
-                                </td>
-
-                                <!--STOCK DISPONIBLE--> 
-                                <td class="text-center">
+                                 <td class="text-center">
                                     <span
                                         class="badge"
                                         :class="(parseFloat(item.stbl_stock) - parseFloat(item.reservaProducto)) < parseFloat(item.prod_existenciaminima)
                                         ? 'bg-danger' 
                                         : 'bg-success'"
                                         >
-                                        {{ parseFloat(item.stbl_stock) -  parseFloat(item.reservaProducto) }}
+                                        {{ parseFloat(item.stockDisponible) }}
                                     </span>
                                 </td>
 
@@ -274,9 +225,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 </td>
 
                                 <!--BODEGA--> 
-                                <td>
+                                <td>                                 
                                     <span v-if="filtros.invBodega">{{nombreBodega(item.bod_nombre)}}</span>
                                     <span v-else><a href="#" @click="viewStockBodegaLote(item.id, item.fk_lote)">{{nombreBodega(item.bod_nombre)}}</a></span>
+
                                 </td>
 
                                 <!--COSTO PROMEDIO--> 
@@ -313,7 +265,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </tr>
 
                             <tr v-if="listaInventarioLotes.length === 0">
-                                <td colspan="16" class="text-center text-muted py-4">
+                                <td colspan="17" class="text-center text-muted py-4">
                                     <i class="fas fa-box-open fa-2x mb-2"></i>
                                     <br>
                                     No se encontraron productos
@@ -334,13 +286,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <script type="text/javascript">
 
+    var fechaDesde = DateTime.now().toFormat('yyyy-MM-01');
+    var fechaHasta = DateTime.now().toFormat('yyyy-MM-30');
+    var fechaLimite = DateTime.now().plus({days: 30}).toFormat('yyyy-MM-dd');
+
     var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
     var listaBodegas = <?php echo json_encode($listaBodegas); ?>;
 
-    if (window.appInvL) {
-        window.appInvL.unmount();
+    if (window.appInvC) {
+        window.appInvC.unmount();
     }
-    window.appInvL = Vue.createApp({
+    window.appInvC = Vue.createApp({
         components: {
             "vue-multiselect": window['vue-multiselect'].Multiselect,
             "vue-select": window['vue-select']
@@ -361,10 +317,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     invBodega: '',
                     invGrupo: '',
                     invSubgrupo: '',
-                    invProductoId: null,
+                    caducFechas: `${fechaDesde} a ${fechaHasta} `,
                     invIva: '-1',
                     invStock: '1'
                 },
+                fechaLimiteCaducidad:fechaLimite,
 
                 //LISTAS
                 listaBodegas: listaBodegas,
@@ -387,6 +344,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             };
         },
+        mounted() {
+            // Inicializar Flatpickr
+            this.flatpickrInstance = flatpickr(this.$refs.dateRange, {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                locale: 'es',
+                allowInput: true,
+                onChange: (selectedDates, dateStr) => {
+                    this.filtros.fechas = dateStr;
+                }
+            });
+        },
         computed: {
             nombreBodega() {
                 return (bodega) => {
@@ -399,20 +368,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         },
         methods: {
-
-            //VER RESERVA
-            async verReserva(id, lote) {
-                const datos = {
-                    id: id,
-                    lote: lote,
-                    bodega: this.filtros.invBodega
-                };
-                const {data} = await axios.post(this.url + "/inventarios/viewReservaLote", datos);
-                Swal.fire({
-                    width: '40%',
-                    html: data
-                });
-            },
 
             //DATA GENERAL
             async searchDataReport() {
@@ -431,7 +386,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 try {
                     this.loading = true;
-                    const {data} = await axios.post(this.url + "/inventarios/lotes", datos);
+                    const {data} = await axios.post(this.url + "/control/consultarProductos", datos);
 
                     if (data.status === 'success') {
                         this.showContent = true;
@@ -450,28 +405,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
 
-            // SEARCH PRODUCTOS
-            searchProductos(dataSerach) {
-                clearTimeout(this.searchTimeout);
-                let datos = {
-                    dataSerach: dataSerach,
-                    estado: 1
-                };
-                this.searchTimeout = setTimeout(async () => {
-                    try {
-                        let {data} = await axios.post(this.url + '/comun/productos/searchProductosFull', datos);
-                        if (data !== false) {
-                            this.listaSearchProductos = data;
-                        } else {
-                            this.listaSearchProductos = [];
-                        }
-                    } catch (e) {
-                        sweet_msg_dialog('error', '', '', e.data?.message || e.message);
-                        this.listaSearchProductos = [];
-                    }
-                }, 400);
-            },
-
             async viewStockBodegaLote(id, lote) {
                 const {data} = await axios.get(this.url + "/inventarios/viewStockBodegaLote/" + id + "/" + lote);
                 Swal.fire({
@@ -479,11 +412,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     html: data
                 });
             },
+
             verKardex(row) {
                 window.location.href = `${this.url}/kardex/producto/${row.fk_producto}?bodega=${row.fk_bodega}`;
-            },
-            onSelectProducto(option) {
-                this.filtros.invProductoId = option ? option.id : null;
             },
 
             async onChangeGrupo(grupo) {
@@ -496,10 +427,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.listaSubgrupos = data || [];
             },
 
-            onRemove() {
-                this.listaSearchProductos = [];
-                this.filtros.productoSearch = null;
-            },
             async exportExcel() {
                 const datos = {
                     ...this.filtros,
@@ -507,11 +434,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
                 try {
                     this.downloadingexcel = true;
-                    const {data} = await axios.post(this.url + '/inventarios/exportExcelLotes', datos, {responseType: 'blob'});
+                    const {data} = await axios.post(this.url + '/control/exportExcelCaducidad', datos, {responseType: 'blob'});
                     const url = window.URL.createObjectURL(new Blob([data]));
                     const link = document.createElement('a');
                     link.href = url;
-                    link.setAttribute('download', 'Inventario_Por_Lotes.xlsx');
+                    link.setAttribute('download', 'Inventario_Caducidad.xlsx');
                     document.body.appendChild(link);
                     link.click();
                 } catch (e) {
@@ -528,12 +455,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
                 try {
                     this.downloadingpdf = true;
-                    const {data} = await axios.post(this.url + '/inventarios/exportPdfLotes', datos, {responseType: 'blob'});
+                    const {data} = await axios.post(this.url + '/control/exportPdfCaducidad', datos, {responseType: 'blob'});
                     const blob = new Blob([data], {type: 'application/pdf'});
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = 'Inventario_Por_Lotes.pdf';
+                    link.download = 'Inventario_Caducidad.pdf';
                     link.click();
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
@@ -552,7 +479,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 
     });
-    window.appInvL.use(AllDirectives);
-    window.appInvL.mount('#app');
+    window.appInvC.use(AllDirectives);
+    window.appInvC.mount('#app');
 
 </script>

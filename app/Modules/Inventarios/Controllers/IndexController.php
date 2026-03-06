@@ -82,8 +82,10 @@ class IndexController extends \App\Controllers\BaseController {
     public function viewInventarioConsolidado() {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
-        $send['view'] = view($this->dirViewModule . '\Existencias\consolidado\viewConsolidado', $data);
+        $send['view'] = view($this->dirViewModule . '\Existencias\consolidado\viewConsolidado', $data2);
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($send);
         } else {

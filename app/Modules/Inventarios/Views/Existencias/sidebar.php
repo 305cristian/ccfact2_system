@@ -44,6 +44,18 @@
                         <p>Inventario Consolidado</p>
                     </a>
                 </li>
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inv/historico' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/inv/historico')" class="nav-link" style="cursor: pointer">
+                        <i class="far fa-history nav-icon sidebarColorIcon"></i>
+                        <p>Inventario Historico</p>
+                    </a>
+                </li>
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/control/caducidad' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/control/caducidad')" class="nav-link" style="cursor: pointer">
+                        <i class="far fa-clipboard-list nav-icon sidebarColorIcon"></i>
+                        <p>Control de Caducidad</p>
+                    </a>
+                </li>
             </ul>
         </li>
 
