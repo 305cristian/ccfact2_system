@@ -19,6 +19,7 @@ namespace Modules\Inventarios\Controllers;
 use App\Controllers\BaseController;
 use Modules\Comun\Libraries\PdfExportLib;
 use Modules\Inventarios\Models\CaducidadModel;
+use Modules\Inventarios\Models\HistoricoModel;
 use Modules\Inventarios\Models\InventarioModel;
 use function view;
 
@@ -27,6 +28,7 @@ class PdfExportController extends BaseController {
     protected $invModel;
     protected $caducModel;
     protected $pdfExport;
+    protected $hisModel;
     protected $dirViewModule;
 
     public function __construct() {
@@ -34,6 +36,7 @@ class PdfExportController extends BaseController {
         //MODELOS
         $this->invModel = new InventarioModel();
         $this->caducModel = new CaducidadModel();
+        $this->hisModel = new HistoricoModel();
 
         //LIBRERIAS
         $this->pdfExport = new PdfExportLib();
@@ -195,6 +198,39 @@ class PdfExportController extends BaseController {
             'title' => 'REPORTE DE CONTROL DE CADUCIDAD',
             'html' => $html,
             'filename' => 'Inventario_Control_Caducidad_' . date('Ymd_His') . '.pdf',
+            'orientation' => 'L' // Landscape (opcional)
+        ]);
+    }
+
+    public function exportPdfHistorico() {
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $searchValue = (string) $dataPost->search ?? '';
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+
+        $filtros = [
+            'invBodega' => $dataPost->invBodega ?? null,
+            'kardStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
+            'invGrupo' => $dataPost->invGrupo ?? null,
+            'invIva' => $dataPost->invIva !== '-1' ? $dataPost->invIva : null,
+            'fechaCorte' => $dataPost->fechaCorte ?? date('Y-m-d'),
+            'invSubgrupo' => $dataPost->invSubgrupo ?? null
+        ];
+
+        $dataInv = $this->hisModel->getInventarioHistorico($filtros, null, null, $searchValue, $orderBy, $orderDir);
+
+        $data['data'] = $dataInv;
+        $data['bodgaSelect'] = $dataPost->invBodega;
+
+        $html = view($this->dirViewModule . '\Existencias\historico\viewPdfReport', $data);
+
+        $this->pdfExport->export([
+            'title' => 'REPORTE DE INVENTARIO HISTORICO',
+            'html' => $html,
+            'filename' => 'Inventario_Historico_' . date('Ymd_His') . '.pdf',
             'orientation' => 'L' // Landscape (opcional)
         ]);
     }

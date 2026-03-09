@@ -15,7 +15,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
 <div class="jd-flex justify-content-between align-items-center mt-2">
     <div class="pagination-info">
-        Mostrando registros del {{ (pagination.currentPage - 1) * pagination.pageSize + 1 }} al {{ Math.min(pagination.currentPage * pagination.pageSize, pagination.totalRecords) }} 
+        Mostrando registros del {{ (pagination.currentPage - 1) * pagination.pageSize + 1 }} al {{ Math.min(pagination.currentPage * pagination.pageSize, pagination.filteredRecords) }} 
         de un total de {{ pagination.totalRecords }} registros 
         <span v-if="pagination.filteredRecords !== pagination.totalRecords">
             (filtrados de {{ pagination.totalRecords }} total)

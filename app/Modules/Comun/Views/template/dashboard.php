@@ -363,7 +363,7 @@
                 async navigate(uri) {
                     this.pathname = uri;
                     try {
-                        swalLoading('Cargando vista...');
+//                        swalLoading('Cargando vista...');
                         let response = await axios.get(uri, {
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest'
@@ -371,7 +371,7 @@
                         });
                         if (response) {
                             $('#content-main-vue').html(response.data.view);
-                            Swal.close();
+//                            Swal.close();
                             window.history.pushState({}, '', uri);
                         }
                     } catch (e) {

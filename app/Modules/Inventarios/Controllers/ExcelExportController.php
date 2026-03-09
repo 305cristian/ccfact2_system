@@ -18,19 +18,22 @@ namespace Modules\Inventarios\Controllers;
 use App\Controllers\BaseController;
 use Modules\Comun\Libraries\ExcelExportLib;
 use Modules\Inventarios\Models\CaducidadModel;
+use Modules\Inventarios\Models\HistoricoModel;
 use Modules\Inventarios\Models\InventarioModel;
 
 class ExcelExportController extends BaseController {
 
     protected $invModel;
     protected $caducModel;
+    protected $hisModel;
     protected $xlsxExport;
 
     public function __construct() {
         //MODELOS
         $this->invModel = new InventarioModel();
         $this->caducModel = new CaducidadModel();
-        
+        $this->hisModel = new HistoricoModel();
+
         //LIBRERIAS
         $this->xlsxExport = new ExcelExportLib();
     }
@@ -288,6 +291,59 @@ class ExcelExportController extends BaseController {
             'data' => $rows,
             'filename' => 'Inventario_Control_Caducidad_' . date('Ymd_His') . '.xlsx',
             'lastColumn' => 'L'
+        ]);
+    }
+
+    public function exportExcelHistorico() {
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $searchValue = (string) $dataPost->search ?? '';
+        $orderData = $dataPost->order ?? [];
+        $orderBy = ($orderData[0]->column ?? '') ?: 'prod_nombre';
+        $orderDir = ($orderData[0]->dir ?? '') ?: 'asc';
+
+        $filtros = [
+            'invBodega' => $dataPost->invBodega ?? null,
+            'kardStock' => $dataPost->invStock !== '-1' ? $dataPost->invStock : null,
+            'invGrupo' => $dataPost->invGrupo ?? null,
+            'invIva' => $dataPost->invIva !== '-1' ? $dataPost->invIva : null,
+            'fechaCorte' => $dataPost->fechaCorte ?? date('Y-m-d'),
+            'invSubgrupo' => $dataPost->invSubgrupo ?? null
+        ];
+
+        $data = $this->hisModel->getInventarioHistorico($filtros, null, null, $searchValue, $orderBy, $orderDir);
+
+        $rows = [];
+        foreach ($data as $item) {
+
+            $rows[] = [
+                $item->prod_codigo,
+                $item->prod_nombre,
+                $item->um_nombre_corto,
+                $item->kardexStock,
+                $item->prod_ivaporcentage === '0.00' ? 'SIN IVA' : 'IVA',
+                $dataPost->invBodega ? $item->bod_nombre : "ALL SELECT",
+                $item->costoPromedio,
+                $item->total_cst_promedio,
+                $item->costoUltimo,
+                $item->total_cst_ultimo,
+                $item->gr_nombre,
+                $item->sgr_nombre,
+                $item->tr_nombre
+            ];
+        }
+
+
+        $this->xlsxExport->export([
+            'title' => 'REPORTE DE INVENTARIO HISTÓRICO',
+            'headers' => [
+                'CÓDIGO', 'PRODUCTO', 'PRES.', 'STOCK', 'IVA', 'BODEGA',
+                'COSTO PROMEDIO', 'TOT. COSTO PROM.', 'COSTO ÚLTIMO', 'TOT. COSTO ULT.',
+                'GRUPO', 'SUBGRUPO', 'MOVIMIENTO'
+            ],
+            'data' => $rows,
+            'filename' => 'Inventario_Histórico_' . date('Ymd_His') . '.xlsx',
+            'lastColumn' => 'M'
         ]);
     }
 }

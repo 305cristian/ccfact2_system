@@ -56,13 +56,13 @@ $routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'
     $subroutes->post('exportPdfConsolidado', 'PdfExportController::exportInventarioConsolidadoPdf');
     $subroutes->get('viewStockBodegaLote/(:num)/(:num)', 'ExistenciasController::viewStockBodegaLote/$1/$2');
     $subroutes->post('viewReservaLote', 'ExistenciasController::viewReservaLote');
-
-
 });
 
 //INVENTARIO HISTORICO
 $routes->get('inv/historico', '\Modules\Inventarios\Controllers\HistoricoController::index');
-$routes->post('inv/historico', '\Modules\Inventarios\Controllers\HistoricoController::index');
+$routes->post('inv/getInventarioHistorico', '\Modules\Inventarios\Controllers\HistoricoController::getInventarioHistorico');
+$routes->post('inv/exportPdfHistorico', '\Modules\Inventarios\Controllers\PdfExportController::exportPdfHistorico');
+$routes->post('inv/exportExcelHistorico', '\Modules\Inventarios\Controllers\ExcelExportController::exportExcelHistorico');
 
 //CONTROL DE CADUCIDAD
 $routes->get('control/caducidad', '\Modules\Inventarios\Controllers\CaducidadController::index');
@@ -70,6 +70,16 @@ $routes->post('control/consultarProductos', '\Modules\Inventarios\Controllers\Ca
 $routes->post('control/exportPdfCaducidad', '\Modules\Inventarios\Controllers\PdfExportController::exportPdfCaducidad');
 $routes->post('control/exportExcelCaducidad', '\Modules\Inventarios\Controllers\ExcelExportController::exportExcelCaducidad');
 
+
+//CONTROL KARDEX
+$routes->group('kardex', ['namespace' => '\Modules\Inventarios\Controllers'], function ($subroutes) {
+
+    $subroutes->get('kardex', 'KardexController::viewKardex');
+
+    $subroutes->get('producto', 'KardexController::viewKardexProducto');
+    $subroutes->get('general', 'KardexController::viewKardexGeneral');
+    $subroutes->get('lotes', 'KardexController::viewKardexlotes');
+});
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
     $subroutes->post('productos/searchProductosFull', 'SearchsController::searchProductosFull');

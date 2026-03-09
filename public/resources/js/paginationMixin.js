@@ -58,7 +58,7 @@ window.paginationMixin = {
                     page !== this.pagination.currentPage
                     ) {
                 this.pagination.currentPage = page;
-                this.searchDataReport();
+                this.searchDataReport(true);
             }
         },
 
@@ -66,13 +66,13 @@ window.paginationMixin = {
             clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(() => {
                 this.pagination.currentPage = 1;
-                this.searchDataReport();
+                this.searchDataReport(true);
             }, 500);
         },
 
         onPageSizeChange() {
             this.pagination.currentPage = 1;
-            this.searchDataReport();
+            this.searchDataReport(true);
         },
 
         sort(column) {
@@ -84,7 +84,7 @@ window.paginationMixin = {
             }
 
             this.pagination.currentPage = 1;
-            this.searchDataReport();
+            this.searchDataReport(true);
         },
 
         getSortClass(column) {

@@ -182,150 +182,156 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <!-- VIEW PAGINATION HEAD-->
                 <?php echo view('\Modules\Inventarios\Views\Existencias\viewPaginationHead') ?>
                 <!-- FIN VIEW PAGINATION HEAD-->      
+                <div class="table-wrapper-loading">
+                    <div class="table-responsive mt-3">
+                        <div v-if="loading" class="table-loading">
+                            <div class="loader-box"> 
+                                <span><i class="fas fa-spinner fa-spin"></i> Cargando...</span>
+                            </div>
+                        </div>
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="bg-system text-white">
+                                <tr>
+                                    <th>CÓDIGO</th>
+                                    <th>BARCODE</th>
+                                    <th class="sortable" @click="sort('prod_nombre')" >PRODUCTO <i :class="getSortClass('prod_nombre')"></i></th>
+                                    <th class="text-left">PRES.</th>
+                                    <th class="text-left">LOTE</th>
+                                    <th class="text-left">F. CADUCIDAD</th>
+                                    <th class="text-center">STOCK</th>
+                                    <th class="text-center">RESERVA</th>
+                                    <th class="text-center">STOCK DISPONIBLE</th>
+                                    <th class="text-center">IVA</th>
+                                    <th>BODEGA</th>
+                                    <th>C. PROMEDIO</th>
+                                    <th>C. ULTIMO</th>
+                                    <th>GRUPO</th>
+                                    <th>SUBGRUPO</th>
+                                    <th class="text-center">ACCIONES</th>
+                                </tr>
+                            </thead>
 
-                <div class="table-responsive mt-3">
-                    <table class="table table-hover table-striped align-middle">
-                        <thead class="bg-system text-white">
-                            <tr>
-                                <th>CÓDIGO</th>
-                                <th>BARCODE</th>
-                                <th class="sortable" @click="sort('prod_nombre')" >PRODUCTO <i :class="getSortClass('prod_nombre')"></i></th>
-                                <th class="text-left">PRES.</th>
-                                <th class="text-left">LOTE</th>
-                                <th class="text-left">F. CADUCIDAD</th>
-                                <th class="text-center">STOCK</th>
-                                <th class="text-center">RESERVA</th>
-                                <th class="text-center">STOCK DISPONIBLE</th>
-                                <th class="text-center">IVA</th>
-                                <th>BODEGA</th>
-                                <th>C. PROMEDIO</th>
-                                <th>C. ULTIMO</th>
-                                <th>GRUPO</th>
-                                <th>SUBGRUPO</th>
-                                <th class="text-center">ACCIONES</th>
-                            </tr>
-                        </thead>
+                            <tbody>
+                                <tr v-for="item in listaInventarioLotes" :key="item.id+'_'+item.fk_lote">
 
-                        <tbody>
-                            <tr v-for="item in listaInventarioLotes" :key="item.id+'_'+item.fk_lote">
+                                    <!--CODIGO--> 
+                                    <td v-tooltip:top="item.id"><span class="badge-type">{{ item.prod_codigo }}</span></td>
 
-                                <!--CODIGO--> 
-                                <td v-tooltip:top="item.id"><span class="badge-type">{{ item.prod_codigo }}</span></td>
+                                    <!--BARCODE--> 
+                                    <td><span class="text-muted">{{ item.prod_codigobarras || '-' }}</span></td>
 
-                                <!--BARCODE--> 
-                                <td><span class="text-muted">{{ item.prod_codigobarras || '-' }}</span></td>
+                                    <!--PRODUCTO--> 
+                                    <td><strong>{{ item.prod_nombre }}</strong></td>
 
-                                <!--PRODUCTO--> 
-                                <td><strong>{{ item.prod_nombre }}</strong></td>
-                                
-                                 <!--PRESENTACION-->
-                                <td><span class="text-muted">{{ item.um_nombre_corto || '-' }}</span></td>
+                                    <!--PRESENTACION-->
+                                    <td><span class="text-muted">{{ item.um_nombre_corto || '-' }}</span></td>
 
-                                <!--LOTE--> 
-                                <td>{{ item.lot_lote }}</td>
+                                    <!--LOTE--> 
+                                    <td>{{ item.lot_lote }}</td>
 
-                                <!--FECHA CADUCIDAD-->
-                                <td>{{ item.lot_fecha_caducidad }}</td>
-
-
-                                <!--STOCK--> 
-                                <td class="text-center">
-                                    <span class="text-muted" >
-                                        {{ item.stbl_stock }}
-                                    </span>
-                                </td>
+                                    <!--FECHA CADUCIDAD-->
+                                    <td>{{ item.lot_fecha_caducidad }}</td>
 
 
-                                <!--RESERVA--> 
-                                <td class="text-center">
-                                    <span 
-                                        v-if="parseFloat(item.reservaProducto) > 0"
-                                        @click="verReserva(item.id, item.fk_lote)"
-                                        class="text-muted badge bg-warning"
-                                        style="cursor:pointer"
-                                        >
-                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
-                                    </span>
-
-                                    <span v-else>
-                                        {{ parseFloat(item.reservaProducto).toFixed(2) }}
-                                    </span>
-                                </td>
-
-                                <!--STOCK DISPONIBLE--> 
-                                <td class="text-center">
-                                    <span
-                                        class="badge"
-                                        :class="(parseFloat(item.stbl_stock) - parseFloat(item.reservaProducto)) < parseFloat(item.prod_existenciaminima)
-                                        ? 'bg-danger' 
-                                        : 'bg-success'"
-                                        >
-                                        {{ parseFloat(item.stbl_stock) -  parseFloat(item.reservaProducto) }}
-                                    </span>
-                                </td>
+                                    <!--STOCK--> 
+                                    <td class="text-center">
+                                        <span class="text-muted" >
+                                            {{ item.stbl_stock }}
+                                        </span>
+                                    </td>
 
 
+                                    <!--RESERVA--> 
+                                    <td class="text-center">
+                                        <span 
+                                            v-if="parseFloat(item.reservaProducto) > 0"
+                                            @click="verReserva(item.id, item.fk_lote)"
+                                            class="text-muted badge bg-warning"
+                                            style="cursor:pointer"
+                                            >
+                                            {{ parseFloat(item.reservaProducto).toFixed(2) }}
+                                        </span>
 
-                                <!--IVA--> 
-                                <td class="text-center">
-                                    <span class="badge" :class="item.prod_ivaporcentage == 0 ? 'bg-secondary' : 'bg-info'" >
-                                        {{ item.prod_ivaporcentage == 0 ? 'SIN IVA' : 'IVA' }}
-                                    </span>
-                                </td>
+                                        <span v-else>
+                                            {{ parseFloat(item.reservaProducto).toFixed(2) }}
+                                        </span>
+                                    </td>
 
-                                <!--BODEGA--> 
-                                <td>
-                                    <span v-if="filtros.invBodega">{{nombreBodega(item.bod_nombre)}}</span>
-                                    <span v-else><a href="#" @click="viewStockBodegaLote(item.id, item.fk_lote)">{{nombreBodega(item.bod_nombre)}}</a></span>
-                                </td>
+                                    <!--STOCK DISPONIBLE--> 
+                                    <td class="text-center">
+                                        <span
+                                            class="badge"
+                                            :class="(parseFloat(item.stbl_stock) - parseFloat(item.reservaProducto)) < parseFloat(item.prod_existenciaminima)
+                                            ? 'bg-danger' 
+                                            : 'bg-success'"
+                                            >
+                                            {{ parseFloat(item.stbl_stock) -  parseFloat(item.reservaProducto) }}
+                                        </span>
+                                    </td>
 
-                                <!--COSTO PROMEDIO--> 
-                                <td  class="text-end"> 
-                                    <small class="text-muted">  {{ formatToUSD(item.prod_costopromedio)}} </small>
-                                </td>
 
-                                <!--COSTO ULTIMO--> 
-                                <td  class="text-end"> 
-                                    <small class="text-muted">  {{ formatToUSD(item.prod_costoultimo)}} </small>
-                                </td>
 
-                                <!--GRUPO--> 
-                                <td> 
-                                    <small class="text-muted">  {{ item.gr_nombre || '-' }} </small>
-                                </td>
+                                    <!--IVA--> 
+                                    <td class="text-center">
+                                        <span class="badge" :class="item.prod_ivaporcentage == 0 ? 'bg-secondary' : 'bg-info'" >
+                                            {{ item.prod_ivaporcentage == 0 ? 'SIN IVA' : 'IVA' }}
+                                        </span>
+                                    </td>
 
-                                <!--SUBGRUPO--> 
-                                <td> 
-                                    <small class="text-muted">  {{ item.sgr_nombre || '-' }} </small>
-                                </td>
+                                    <!--BODEGA--> 
+                                    <td>
+                                        <span v-if="filtros.invBodega">{{nombreBodega(item.bod_nombre)}}</span>
+                                        <span v-else><a href="#" @click="viewStockBodegaLote(item.id, item.fk_lote)">{{nombreBodega(item.bod_nombre)}}</a></span>
+                                    </td>
 
-                                <!--ACCIONES--> 
-                                <td class="text-center">
-                                    <button
-                                        class="btn btn-outline-primary btn-sm"
-                                        title="Ver Kardex"
-                                        @click="verKardex(item)"
-                                        >
-                                        <i class="fas fa-list"></i>
-                                    </button>
-                                </td>
+                                    <!--COSTO PROMEDIO--> 
+                                    <td  class="text-end"> 
+                                        <small class="text-muted">  {{ formatToUSD(item.prod_costopromedio)}} </small>
+                                    </td>
 
-                            </tr>
+                                    <!--COSTO ULTIMO--> 
+                                    <td  class="text-end"> 
+                                        <small class="text-muted">  {{ formatToUSD(item.prod_costoultimo)}} </small>
+                                    </td>
 
-                            <tr v-if="listaInventarioLotes.length === 0">
-                                <td colspan="16" class="text-center text-muted py-4">
-                                    <i class="fas fa-box-open fa-2x mb-2"></i>
-                                    <br>
-                                    No se encontraron productos
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <!-- VIEW PAGINATION FOOT-->
-                    <?php echo view('\Modules\Inventarios\Views\Existencias\viewPaginationFoot') ?>
-                    <!-- FIN VIEW PAGINATION FOOT-->      
+                                    <!--GRUPO--> 
+                                    <td> 
+                                        <small class="text-muted">  {{ item.gr_nombre || '-' }} </small>
+                                    </td>
+
+                                    <!--SUBGRUPO--> 
+                                    <td> 
+                                        <small class="text-muted">  {{ item.sgr_nombre || '-' }} </small>
+                                    </td>
+
+                                    <!--ACCIONES--> 
+                                    <td class="text-center">
+                                        <button
+                                            class="btn btn-outline-primary btn-sm"
+                                            title="Ver Kardex"
+                                            @click="verKardex(item)"
+                                            >
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                    </td>
+
+                                </tr>
+
+                                <tr v-if="listaInventarioLotes.length === 0">
+                                    <td colspan="16" class="text-center text-muted py-4">
+                                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                                        <br>
+                                        No se encontraron productos
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- VIEW PAGINATION FOOT-->
+                        <?php echo view('\Modules\Inventarios\Views\Existencias\viewPaginationFoot') ?>
+                        <!-- FIN VIEW PAGINATION FOOT-->      
+                    </div>
+
                 </div>
-
             </div>
 
         </div>
@@ -415,8 +421,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             //DATA GENERAL
-            async searchDataReport() {
-
+            async searchDataReport(paginate = false) {
                 const datos = {
                     ...this.filtros,
                     draw: 1,
@@ -430,6 +435,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
 
                 try {
+                    if (!paginate) {
+                        this.showContent = false;
+                    }
                     this.loading = true;
                     const {data} = await axios.post(this.url + "/inventarios/lotes", datos);
 
@@ -446,7 +454,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                 } finally {
                     this.loading = false;
-                }
+            }
 
             },
 
@@ -524,7 +532,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async exportPdf() {
                 const datos = {
                     ...this.filtros,
-                    search: this.searchTerm
+                    search: this.pagination.searchTerm
                 };
                 try {
                     this.downloadingpdf = true;

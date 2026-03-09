@@ -71,9 +71,7 @@ class CaducidadModel extends \CodeIgniter\Model {
         if (!empty($filtros['invIva'])) {
             $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
         }
-        if (!empty($filtros['invProductoId'])) {
-            $builder->where('tb1.id', $filtros['invProductoId']);
-        }
+
         if (!empty($filtros['invSubgrupo'])) {
             $builder->where('tb4.id', $filtros['invSubgrupo']);
         }
