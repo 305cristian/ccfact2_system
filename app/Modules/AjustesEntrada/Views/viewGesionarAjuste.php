@@ -199,6 +199,7 @@ window.appGestionAje = Vue.createApp({
             listaAjustes: [],
             cargandoDetalle: false,
             modalInstance: null,
+            detalleHtml:'',
 
             //LISTAS FILTROS
             listaBodegas: listaBodegas,
@@ -232,18 +233,7 @@ window.appGestionAje = Vue.createApp({
     created() {
 
     },
-//    computed: {
-//        estadoDocumento() {
-//            if (this.ajusteActual.ajen_estado === '1')
-//                return '<span class="badge bg-warning"><i class="fas fa-edit"></i> BORRADOR </span>';
-//            if (this.ajusteActual.ajen_estado === '2')
-//                return '<span class="badge bg-success"><i class="fas fa-check-double "></i> ARCHIVADO </span>';
-//            if (this.ajusteActual.ajen_estado === '-1')
-//                return '<span class="badge bg-danger"><i class="fas fa-stop-circle "></i> ANULADO </span>';
-//            return 'Desconocido';
-//        }
-//
-//    },
+
     mounted() {
 
         // Inicializar Flatpickr
@@ -318,10 +308,8 @@ window.appGestionAje = Vue.createApp({
             try {
 
                 const {data} = await axios.get(this.url + '/ajustesentrada/getDataDetalle/' + ajuste.id);
+                this.detalleHtml = data;
                 this.cargandoDetalle = false;
-                await Vue.nextTick();
-                const modal = document.getElementById('detalleAjusteModal');
-                modal.innerHTML = data;
 
             } catch (error) {
                 sweet_msg_dialog('error', '', '', 'Error al cargar el detalle del ajuste, ' + error.message);

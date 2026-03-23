@@ -12,7 +12,14 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
-
+<style>
+     .table-responsive {
+        max-height: 500px;
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+</style>
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
@@ -161,7 +168,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <th>C. ULTIMO</th>
                                     <th>GRUPO</th>
                                     <th>SUBGRUPO</th>
-                                    <th class="text-center">ACCIONES</th>
+                                    <!--<th class="text-center">ACCIONES</th>-->
                                 </tr>
                             </thead>
 
@@ -267,16 +274,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <small class="text-muted">  {{ item.sgr_nombre || '-' }} </small>
                                     </td>
 
-                                    <!--ACCIONES--> 
+<!--                                     ACCIONES  
                                     <td class="text-center">
-                                        <button
-                                            class="btn btn-outline-primary btn-sm"
-                                            title="Ver Kardex"
-                                            @click="verKardex(item)"
-                                            >
-                                            <i class="fas fa-list"></i>
-                                        </button>
-                                    </td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item"><i class="fas fa-eye"></i> Ver detalle</a></li>
+                                                <li><a class="dropdown-item" @click="verKardex(item)"><i class="fas fa-file-alt"></i> Ver Kardex</a></li>
+                                            </ul>
+                                        </div>
+                                    </td>-->
 
                                 </tr>
 

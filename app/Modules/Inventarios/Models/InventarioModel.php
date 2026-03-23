@@ -53,6 +53,7 @@ class InventarioModel extends \CodeIgniter\Model {
                             tb1.prod_existenciamaxima,
                             tb1.prod_ivaporcentage,
                             tb1.prod_ctrllote,
+                            tb1.prod_imagen,
                             tb8.um_nombre,
                             tb8.um_nombre_corto,
                             tb4.sgr_nombre,
@@ -121,7 +122,7 @@ class InventarioModel extends \CodeIgniter\Model {
         }
     }
 
-    public function countFilteredProducts(array $filtros, ?string $search=null): int {
+    public function countFilteredProducts(array $filtros, ?string $search = null): int {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select('tb1.id');
 
@@ -325,7 +326,7 @@ class InventarioModel extends \CodeIgniter\Model {
         }
     }
 
-    public function countFilteredProductsLotes(array $filtros, ?string $search=null): int {
+    public function countFilteredProductsLotes(array $filtros, ?string $search = null): int {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select('tb1.id');
 
@@ -764,5 +765,34 @@ class InventarioModel extends \CodeIgniter\Model {
         $sql2 = $b2->getCompiledSelect();
 
         return "SELECT COUNT(*) AS total FROM ( ($sql1) UNION ALL ($sql2) ) X";
+    }
+
+    public function getDataProducto($productoId): array {
+        $builder = $this->db->table('cc_productos tb1');
+        $builder->select('tb1.*,'
+                . ' tb2.mrc_nombre,'
+                . ' tb3.um_nombre,'
+                . ' tb3.um_nombre_corto,'
+                . ' tb4.sgr_nombre,'
+                . ' tb5.id id_grupo,'
+                . ' tb5.gr_nombre,'
+                . ' tb6.tp_nombre,'
+                . ' tb7.fk_impuestotarifa idImpuesto,'
+                . ' tb8.fk_impuestotarifa idImpuestoIce,'
+                . ' tb9.pp_valor');
+        $builder->join("cc_marcas tb2", "tb2.id = tb1.fk_marca", "left");
+        $builder->join("cc_unidades_medida tb3", "tb3.id = tb1.fk_unidadmedida");
+        $builder->join("cc_subgrupos tb4", "tb4.id = tb1.fk_subgrupo");
+        $builder->join("cc_grupos tb5", "tb5.id = tb4.fk_grupo");
+        $builder->join("cc_tipo_producto tb6", "tb6.id = tb1.fk_tipoproducto");
+        $builder->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id AND tb7.fk_impuesto = 1");
+        $builder->join("cc_producto_impuestotarifa tb8", "tb8.fk_producto = tb1.id AND tb8.fk_impuesto = 2", "left");
+        $builder->join("cc_producto_precios tb9", "tb9.fk_producto = tb1.id AND tb9.fk_tipo_precio = 1");
+
+        $builder->where("tb1.id", $productoId);
+
+        $response = $builder->get();
+
+        return $response->getNumRows() > 0 ? $response->getRowArray() : [];
     }
 }

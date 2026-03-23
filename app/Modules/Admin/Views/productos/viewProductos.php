@@ -230,7 +230,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaSearchProductos: [],
 
                 listaSubGrupos: [],
-                formValidacion: []
+                formValidacion: [],
+
+                modalInstance: null
 
             };
         },
@@ -246,6 +248,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             $(".selectpicker").selectpicker();
             this.aplicaIce();
             panelMain.style.display = "none";
+
+            this.modalInstance = new bootstrap.Modal(this.$refs.modalProductos);
         },
         methods: {
             async searchProductos(dataSerach, val) {
@@ -281,7 +285,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     grupo: this.selectGrupo
 
                 };
-                //let datos = Object.fromEntries(Object.entries(dataFilter).filter(([_, value]) => value !== undefined && value !== ""));
 
                 try {
                     this.loading = true;
@@ -396,7 +399,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let datos = this.formData(this.newProducto);
                 let url = this.url + '/admin/productos/saveProducto';
 
-                if (this.idEdit != '') {
+                if (this.idEdit !== '') {
                     datos.append('idProd', this.idEdit);
                     datos.append('codeAux', this.codeAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO CODIGO
                     datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
@@ -414,8 +417,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         this.clear();
                         this.getProductos();
                         this.consultarAutoCodigo();//Este invoca al autocodigo para cun nuevo producto
-                        $('#modalProductos').modal('hide');
-                        $('.modal-backdrop').remove();
+                        this.modalInstance.hide();
                         this.tipoPrecioId = this.listaTiposPvp.map(ltpc => ltpc.id);//Esta linea vuelve a  cargar los ID de los N tipos de precio
                     } else if (response.data.status === 'existe') {
 

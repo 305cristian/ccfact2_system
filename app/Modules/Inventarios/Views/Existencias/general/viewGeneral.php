@@ -16,6 +16,23 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     .multiselect__tags {
         border-radius: 0px 5px 5px 0px
     }
+    .table-responsive {
+        max-height: 500px;
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+     .table-scroll {
+        max-height: 600px;  
+        overflow-y: auto;
+    }
+
+    .table-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #f8f9fa;
+    }
 </style>
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
@@ -300,15 +317,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <small class="text-muted">  {{ item.sgr_nombre || '-' }} </small>
                                     </td>
 
-                                    <!-- ACCIONES -->
+                                    <!-- ACCIONES  -->
                                     <td class="text-center">
-                                        <button
-                                            class="btn btn-outline-primary btn-sm"
-                                            title="Ver Kardex"
-                                            @click="verKardex(item)"
-                                            >
-                                            <i class="fas fa-list"></i>
-                                        </button>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li v-if="updateDataProducto"><a class="dropdown-item" href="#" @click="loadDataProducto(item.id)"><i class="fas fa-eye text-warning"></i> Ver detalle</a></li>
+                                                <li><a class="dropdown-item" href="#" @click="openMiniKardex(item)"><i class="fas fa-chart-line me-2 text-primary""></i> Ver Kardex</a></li>
+                                            </ul>
+                                        </div>
                                     </td>
 
                                 </tr>
@@ -333,12 +352,35 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         </div>
     </div>
+    <!-- VIEW MODAL EDIT PRODUCTO-->
+    <?php echo view('\Modules\Inventarios\Views\Existencias\general\viewModalProducto') ?>
+    <!-- FIN MODAL EDIT PRODUCTO-->     
+
+    <!-- VIEW MODAL MINI KARDEX-->
+    <?php echo view('\Modules\Inventarios\Views\Existencias\general\viewModalMiniKardex') ?>
+    <!-- FIN MODAL  MINI KARDEX-->      
 </div>
 
 <script type="text/javascript">
 
     var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
     var listaBodegas = <?php echo json_encode($listaBodegas); ?>;
+
+    //VARIABLES GLOBALES PARA UPDATE PODUCTO
+    var listaUnidadesMedida = <?php echo json_encode($listaUnidadesMedida) ?>;
+    var listaMarcas =<?php echo json_encode($listaMarcas); ?>;
+    var listaTipoProducto = <?php echo json_encode($listaTipoProducto); ?>;
+    var listaImpuestosTarifa = <?php echo json_encode($listaImpuestosTarifa); ?>;
+    var listaImpuestosICE = <?php echo json_encode($listaImpuestosICE); ?>;
+    var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
+    var listaSubGruposModal = <?php echo json_encode($listaSubgrupos); ?>;
+    var listaCtaContable = <?php echo json_encode($listaCtaContable); ?>;
+    var listaTiposPvp = <?php echo json_encode($listaTiposPvp); ?>;
+    var ivaActual =<?php echo getSettings("IVA"); ?>;
+
+    //PERMISOS
+
+    var updateDataProducto = <?php echo!empty($updateDataProducto) ? 'true' : 'false'; ?>;
 
     if (window.appInvG) {
         window.appInvG.unmount();
@@ -376,6 +418,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaSearchProductos: [],
                 listaInventario: [],
 
+                //EDIT PRODUCTO
+                modalProdInstance: false,
+                listaUnidadesMedida: listaUnidadesMedida,
+                listaMarcas: listaMarcas,
+                listaTipoProducto: listaTipoProducto,
+                listaImpuestosTarifa: listaImpuestosTarifa,
+                listaImpuestosICE: listaImpuestosICE,
+                listaCtaContable: listaCtaContable,
+                listaTiposPvp: listaTiposPvp,
+                editProducto: {},
+                formValidacion: [],
+                listaSubGruposModal: listaSubGruposModal,
+                listaSubGruposModalFilter: [],
+                ivaActual: ivaActual,
+                price: [],
+                tipoPrecioVal: [],
+                tipoPrecioId: [],
+                updating: false,
+
+                //MINI KARDEX
+                listaMiniKardex: [],
+                productoSeleccionado: '',
+                modalMiniKardex: null,
+                loadingMiniKardex: false,
+
                 //PAGINACION
                 pagination: {
                     currentPage: 1,
@@ -386,18 +453,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sortColumn: '',
                     sortDirection: ''
                 },
-                searchTimeout: null
+                searchTimeout: null,
+
+                //PERMISOS
+                updateDataProducto: updateDataProducto
 
             };
         },
+        mounted() {
+            this.modalProdInstance = new bootstrap.Modal(this.$refs.modalProductos);
+            this.modalMiniKardex = new bootstrap.Modal(this.$refs.modalMiniKardex);
+        },
+
         computed: {
             nombreBodega() {
                 return (bodega) => {
-                    if (this.filtros.invBodega) {
-                        return bodega;
-                    } else {
-                        return "ALL SELECT";
-                    }
+                    return this.filtros.invBodega ? bodega : 'TODAS';
                 };
             }
         },
@@ -435,7 +506,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (!paginate) {
                         this.showContent = false;
                     }
-                    
+
                     this.loading = true;
 
                     const {data} = await axios.post(this.url + "/inventarios/general", datos);
@@ -488,7 +559,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 });
             },
             verKardex(row) {
-                window.location.href = `${this.url}/kardex/producto/${row.fk_producto}?bodega=${row.fk_bodega}`;
+                window.location.href = `${this.url}/kardex/producto`;
             },
             onSelectProducto(option) {
                 this.filtros.invProductoId = option ? option.id : null;
@@ -508,6 +579,194 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.listaSearchProductos = [];
                 this.filtros.productoSearch = null;
             },
+
+            async loadDataProducto(productoId) {
+                swalLoading('Cargando...', 'Cargando detalle del producto');
+
+                const {data} = await axios.get(`${this.url}/inventarios/getDataProducto/${productoId}`);
+
+                if (data.data) {
+
+                    let prod = data.data;
+
+                    this.modalProdInstance.show();
+                    this.editProducto = {
+                        prodNombre: prod.prod_nombre,
+                        prodCodigo: prod.prod_codigo,
+                        prodCodigoBarras: prod.prod_codigobarras,
+                        prodCodigoBarras2: prod.prod_codigobarras2,
+                        prodCodigoBarras3: prod.prod_codigobarra3,
+                        prodExistenciaMinima: prod.prod_existenciaminima,
+                        prodExistenciaMaxima: prod.prod_existenciamaxima,
+                        prodVenta: prod.prod_venta === '1' ? true : false,
+                        prodCompra: prod.prod_compra === '1' ? true : false,
+                        prodIsServicio: prod.isservicio === '1' ? true : false,
+                        prodIsGasto: prod.prod_isgasto === '1' ? true : false,
+                        prodValorMedida: prod.prod_valormedida,
+                        prodUnidadMedida: prod.fk_unidadmedida,
+                        grupo: prod.id_grupo,
+                        prodSubgrupo: prod.fk_subgrupo,
+                        prodMarca: prod.fk_marca,
+                        prodTipoProducto: prod.fk_tipoproducto,
+                        prodIvaPorcentajeId: prod.idImpuesto,
+                        prodIvaPorcentaje: prod.prod_ivaporcentage,
+                        prodIcePorcentaje: prod.prod_iceporcentage,
+                        prodIcePorcentajeId: prod.idImpuestoIce,
+                        prodTieneICE: prod.prod_tiene_ice,
+                        prodIsPromo: prod.prod_ispromo === '12' ? true : false,
+                        prodPvpPromo: prod.prod_pvppromo,
+                        prodEspecificaciones: prod.prod_especificaciones === '1' ? true : false,
+                        prodCtaCompras: prod.fk_cuentacontablecompras,
+                        prodCtaVentas: prod.fk_cuentacontableventas,
+                        prodIsSuperProducto: prod.prod_issuperproducto === '1' ? true : false,
+                        prodCtrlLote: prod.prod_ctrllote === '1' ? true : false,
+                        prodFacturarEnNegativo: prod.prod_facturar_ennegativo === '1' ? true : false,
+                        prodFacturarPrecioInferiorCosto: prod.prod_facturar_precio_inferiorcosto === '1' ? true : false,
+                        prodImagen: prod.prod_imagen,
+                        prodEstado: prod.prod_estado === '1' ? true : false
+
+                    };
+                    this.getSubgrupo();
+                    await this.getPreciosProducto(prod.id);
+
+                    this.idEdit = prod.id;
+                    this.nameAux = prod.prod_nombre;
+                    this.codeAux = prod.prod_codigo;
+
+                    this.aplicaIce();
+
+                    Swal.close();
+                } else {
+                    sweet_msg_dialog('warning', 'No se encontro detalle del producto');
+                }
+
+
+            },
+            async updateProducto() {
+
+                let datos = this.formData(this.editProducto);
+                datos.append('idProd', this.idEdit);
+                datos.append('codeAux', this.codeAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO CODIGO
+                datos.append('nameAux', this.nameAux);//TODO: ESTA VARIABLE SE LA USA PARA VALIDAR QUE NO EXISTA OTRA REGISTRO CON EL MISMO NOMBRE
+                datos.append('tipoPrecioVal', this.tipoPrecioVal);
+                datos.append('tipoPrecioId', this.tipoPrecioId);
+
+                try {
+                    this.updating = true;
+                    const {data} = await axios.post(`${this.url}/admin/productos/updateProducto`, datos);
+                    if (data.status === 'success') {
+                        sweet_msg_dialog('success', data.msg);
+                        this.modalProdInstance.hide();
+                    } else if (data.status === 'existe') {
+                        sweet_msg_dialog('warning', data.msg);
+                    } else if (data.status === 'vacio') {
+                        this.formValidacion = data.msg;
+                    } else if (data.status === 'error') {
+                        sweet_msg_dialog('error', data.msg);
+                    } else if (data.status === 'warning') {
+                        sweet_msg_dialog('warning', data.msg);
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.message);
+                } finally {
+                    this.updating = false;
+                }
+
+
+
+
+            },
+            async getSubgrupo() {
+                this.listaSubGruposModalFilter = this.listaSubGruposModal.filter(val => val.fk_grupo === this.editProducto.grupo);
+            },
+            async getPreciosProducto(idProducto) {
+                try {
+                    let {data} = await axios.get(`${this.url}/admin/productos/getPreciosProducto/${idProducto}`);
+                    if (data) {
+
+                        data.map((val, index) => {
+                            let iva = (this.ivaActual / 100) + 1;
+                            this.price[index] = (val.pp_valor * parseFloat(iva)).toFixed(2);
+                            this.tipoPrecioVal[index] = val.pp_valor;
+                            this.tipoPrecioId[index] = val.fk_tipo_precio;
+                        });
+                    } else {
+                        sweet_msg_toast("warning", "El producto selecionado, no tiene precios establecidos");
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data.message);
+                }
+
+            },
+            desglosarIva(index) {
+                let precio = this.price[index];
+                let iva = (this.ivaActual / 100) + 1;
+                let priceSinIva = 0;
+                priceSinIva = precio;
+                if (this.editProducto.prodIvaPorcentajeId === '2') {
+                    priceSinIva = precio / parseFloat(iva);
+                }
+
+                this.tipoPrecioVal[index] = priceSinIva;
+                document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
+            },
+            desglosarIva2() {
+                let iva = (this.ivaActual / 100) + 1;
+                let priceSinIva = 0;
+                this.price.map((val, index) => {
+                    priceSinIva = val;
+                    if (this.editProducto.prodIvaPorcentajeId === '2') {
+                        priceSinIva = val / parseFloat(iva);
+                    }
+
+                    this.tipoPrecioVal[index] = priceSinIva;
+                    document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
+                });
+            },
+            aplicaIce() {
+                if (this.editProducto.prodTieneICE === '1') {
+                    document.getElementById("selectImpIce").style.display = "block";
+                } else {
+                    this.editProducto.prodIcePorcentajeId = "";
+                    document.getElementById("selectImpIce").style.display = "none";
+                }
+            },
+            clear() {
+
+            },
+            async openMiniKardex(item) {
+
+                this.productoSeleccionado = item;
+
+                this.loadingMiniKardex = true;
+
+                const datos = {
+                    productoId: item.id,
+                    kardBodega: this.filtros.invBodega
+                };
+                try {
+                    const {data} = await axios.post(this.url + '/kardex/getMiniKardexProducto', datos);
+                    if (data.status === 'success') {
+                        this.modalMiniKardex.show();
+                        this.listaMiniKardex = data.data;
+                    } else {
+                        sweet_msg_dialog('warning', 'No se han detectado movimientos en los últimos 30 dias en el producto seleccionado');
+                    }
+
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.message);
+                } finally {
+                    this.loadingMiniKardex = false;
+                }
+            },
+            formData(obj) {
+                var formData = new FormData();
+                for (var key in obj) {
+                    formData.append(key, obj[key]);
+                }
+                return formData;
+            }
+            ,
             async exportExcel() {
                 const datos = {
                     ...this.filtros,

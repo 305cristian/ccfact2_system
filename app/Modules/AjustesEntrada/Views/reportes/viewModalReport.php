@@ -43,7 +43,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <!-- Contenido del Reporte -->
-                <div v-else id="detalleAjusteModal" class="p-3 p-md-4">
+                <div v-else id="detalleAjusteModal" class="p-3 p-md-4" v-html="detalleHtml">
 
                 </div>
             </div>

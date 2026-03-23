@@ -87,8 +87,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <!--CLOSE MODAL CREATE ROL-->
 
             <!--MODAL ASIGNAR PERMISOS-->
-            <div id="modalAsignacion" class="modal fade" data-bs-backdrop="static" dat-bs-keyboard="false">
-                <div class="modal-dialog" style="max-width: 60%">
+            <div id="modalAsignacion" ref="modalAsignacion" class="modal fade" data-bs-backdrop="static" dat-bs-keyboard="false">
+                <div class="modal-dialog modal-dialog-scrollable" style="max-width: 40%">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class=""><i class="fas fa-clipboard-list-check"></i> Asignar Permisos</h5>
@@ -98,7 +98,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <?php echo view('\Modules\Admin\Views\roles\viewAsignacion') ?>
                         </div>
                         <div class="modal-footer">
-                            <button  class="btn btn-primary" @click="ASIGNARPERMISOS()"><i class="fas fa-file-check"></i> Asignar</button>
+                            <button  class="btn btn-primary" @click="ASIGNARPERMISOS()" :disabled="loading">
+                                <span v-if="loading"><i class="fas fa-spinner fa-spin"></i> Asignando...</span>
+                                <span v-else><i class="fas fa-file-check"></i> Asignar</span>
+                            </button>
                             <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
                     </div>
                 </div>
@@ -145,6 +148,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaAllAcciones: listaAllAcciones,
                 checkedModulos: [],
                 checkedAcciones: [],
+                modulosAbiertos: [],
+                submodulosAbiertos: [],
 
                 //TODO: V-MODELS
                 newRol: {
@@ -157,15 +162,39 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //TODO: VALIDACIONES
                 formValidacion: [],
 
-            }
+                modalAsignacion: null,
+                loading:false
+
+            };
         },
-        created() {
-          
-        },
-        mounted(){
-              this.getRoles();
+
+        mounted() {
+            this.getRoles();
+            this.modalAsignacion = new bootstrap.Modal(this.$refs.modalAsignacion);
         },
         methods: {
+            toggleModulo(id) {
+                const idx = this.modulosAbiertos.indexOf(id);
+                if (idx === -1)
+                    this.modulosAbiertos.push(id);
+                else
+                    this.modulosAbiertos.splice(idx, 1);
+            },
+            toggleSubmodulo(id) {
+                const idx = this.submodulosAbiertos.indexOf(id);
+                if (idx === -1)
+                    this.submodulosAbiertos.push(id);
+                else
+                    this.submodulosAbiertos.splice(idx, 1);
+            },
+            accionesPorModulo(idMod) {
+                const subIds = this.listaAllSubModulos
+                        .filter(s => s.md_padre == idMod)
+                        .map(s => s.id);
+                return this.listaAllAcciones.filter(
+                        a => a.fk_submodulo == idMod || subIds.includes(a.fk_submodulo)
+                );
+            },
             async   getRoles() {
                 try {
                     let response = await axios.get(this.url + '/admin/roles/getRoles');
@@ -251,21 +280,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async loadPermisosRol(idRol) {
                 this.idRol = idRol;
                 let datos = {idRol: idRol};
-                 swalLoading('Cargando...', '');
+                swalLoading('Cargando...', '');
                 let response = await axios.post(this.url + '/admin/roles/loadPermisosRol', datos);
                 if (response.data.listaModulos) {
                     response.data.listaModulos.map((data) => {
                         this.checkedModulos.push(data.fk_modulo);
-                        document.getElementsByClassName(data.fk_modulo)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkmod' + data.fk_modulo).checked = true;
+                        if (!this.modulosAbiertos.includes(data.fk_modulo)) {
+                            this.modulosAbiertos.push(data.fk_modulo);
+                        }
+                        if (!this.submodulosAbiertos.includes(data.fk_modulo)) {
+                            this.submodulosAbiertos.push(data.fk_modulo);
+                        }
+//                        document.getElementsByClassName(data.fk_modulo)[0].style.background = "#EAF2F8";
+//                        document.getElementById('checkmod' + data.fk_modulo).checked = true;
 
                     });
                 }
                 if (response.data.listaAcciones) {
                     response.data.listaAcciones.map((data) => {
                         this.checkedAcciones.push(data.fk_accion);
-                        document.getElementsByClassName('_' + data.fk_accion)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkacc' + data.fk_accion).checked = true;
+//                        document.getElementsByClassName('_' + data.fk_accion)[0].style.background = "#EAF2F8";
+//                        document.getElementById('checkacc' + data.fk_accion).checked = true;
                     });
                 }
                 Swal.close();
@@ -276,55 +311,73 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             selectAllPermisosMod() {
-                v.checkedModulos = [];
-                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
-                    for (let i in this.listaAllModulos) {
-                        this.checkedModulos.push(this.listaAllModulos[i].id);
-                        document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = true;
-                    }
-                } else {
-                    for (let i in this.listaAllModulos) {
-                        this.checkedModulos = [];
-                        document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "transparent";
-                        document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = false;
-
-                    }
+                this.checkedModulos = [];
+                if (!this.selectAll) {
+                    this.listaAllModulos.forEach(m => this.checkedModulos.push(m.id));
+                    this.listaAllSubModulos.forEach(s => this.checkedModulos.push(s.id));
                 }
-                v.selectAllPermisosSubMod();
+//                this.checkedModulos = [];
+//                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
+//                    for (let i in this.listaAllModulos) {
+//                        this.checkedModulos.push(this.listaAllModulos[i].id);
+//                        document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "#EAF2F8";
+//                        document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = true;
+//                    }
+//                } else {
+//                    for (let i in this.listaAllModulos) {
+//                        this.checkedModulos = [];
+//                        document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "transparent";
+//                        document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = false;
+//
+//                    }
+//                }
+//                this.selectAllPermisosSubMod();
             },
             selectAllPermisosSubMod() {
-                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
-                    for (let i in this.listaAllSubModulos) {
-                        this.checkedModulos.push(this.listaAllSubModulos[i].id);
-                        document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = true;
-                    }
+                if (!this.selectAll) {
+                    this.listaAllSubModulos.forEach(s => {
+                        if (!this.checkedModulos.includes(s.id)) {
+                            this.checkedModulos.push(s.id);
+                        }
+                    });
                 } else {
-                    for (let i in this.listaAllSubModulos) {
-                        this.checkedModulos = [];
-                        document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "transparent";
-                        document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = false;
-
-                    }
+                    this.checkedModulos = [];
                 }
+//                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
+//                    for (let i in this.listaAllSubModulos) {
+//                        this.checkedModulos.push(this.listaAllSubModulos[i].id);
+//                        document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "#EAF2F8";
+//                        document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = true;
+//                    }
+//                } else {
+//                    for (let i in this.listaAllSubModulos) {
+//                        this.checkedModulos = [];
+//                        document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "transparent";
+//                        document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = false;
+//
+//                    }
+//                }
             },
             selectAllPermisosAcc() {
                 this.checkedAcciones = [];
-                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
-                    for (let i in this.listaAllAcciones) {
-                        this.checkedAcciones.push(this.listaAllAcciones[i].id);
-                        document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "#EAF2F8";
-                        document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = true;
-                    }
-                } else {
-                    for (let i in this.listaAllAcciones) {
-                        this.checkedAcciones = [];
-                        document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "transparent";
-                        document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = false;
-
-                    }
+                if (!this.selectAll) {
+                    this.listaAllAcciones.forEach(a => this.checkedAcciones.push(a.id));
                 }
+//                this.checkedAcciones = [];
+//                if (!this.selectAll) {//Preguntamos si el check de la tabla arranque desselecionado                 
+//                    for (let i in this.listaAllAcciones) {
+//                        this.checkedAcciones.push(this.listaAllAcciones[i].id);
+//                        document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "#EAF2F8";
+//                        document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = true;
+//                    }
+//                } else {
+//                    for (let i in this.listaAllAcciones) {
+//                        this.checkedAcciones = [];
+//                        document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "transparent";
+//                        document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = false;
+//
+//                    }
+//                }
             },
 
             seletedRowModSubMod(codigo) {
@@ -336,12 +389,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 if (existeModulo) {//Si la condicion es TRUE entro
 
                     newArray = this.checkedModulos.filter((item) => item !== codigo);
-                    document.getElementsByClassName(codigo)[0].style.background = "transparent";
+//                    document.getElementsByClassName(codigo)[0].style.background = "transparent";
                     this.checkedModulos = newArray; //Quito el modulo al arreglo checkedModulos
-                    document.getElementById('checkmod' + codigo).checked = false;
+//                    document.getElementById('checkmod' + codigo).checked = false;
                 } else {
-                    document.getElementsByClassName(codigo)[0].style.background = "#EAF2F8";
-                    document.getElementById('checkmod' + codigo).checked = true;
+//                    document.getElementsByClassName(codigo)[0].style.background = "#EAF2F8";
+//                    document.getElementById('checkmod' + codigo).checked = true;
                     this.checkedModulos.push(codigo); //Agrego el modulo al arreglo checkedModulos
                 }
 
@@ -354,12 +407,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 if (existeAccion) {//Si la condicion es TRUE entro
 
                     newArray = this.checkedAcciones.filter((item) => item !== codigo);
-                    document.getElementsByClassName('_' + codigo)[0].style.background = "transparent";
+//                    document.getElementsByClassName('_' + codigo)[0].style.background = "transparent";
                     this.checkedAcciones = newArray; //Quito la accion del arreglo acciones
-                    document.getElementById('checkacc' + codigo).checked = false;
+//                    document.getElementById('checkacc' + codigo).checked = false;
                 } else {
-                    document.getElementsByClassName('_' + codigo)[0].style.background = "#EAF2F8";
-                    document.getElementById('checkacc' + codigo).checked = true;
+//                    document.getElementsByClassName('_' + codigo)[0].style.background = "#EAF2F8";
+//                    document.getElementById('checkacc' + codigo).checked = true;
                     this.checkedAcciones.push(codigo); //Agrego el modulo al arreglo checkedModulos
                 }
 
@@ -371,15 +424,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         rolId: this.idRol,
                         listaModulos: this.checkedModulos,
                         listaAcciones: this.checkedAcciones
-                    }
+                    };
+                     this.loading=true;
                     let response = await axios.post(this.url + '/admin/roles/aplicarPermisos', datos);
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
+                        this.modalAsignacion.hide();
                     } else {
                         sweet_msg_dialog('warning', response.data.msg);
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                }finally {
+                    this.loading=false;
                 }
 
             },
@@ -393,25 +450,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.idEdit = '';
                 this.checkedModulos = [];
                 this.checkedAcciones = [];
+                this.modulosAbiertos = [];
+                this.submodulosAbiertos = [];
 
-                for (let i in this.listaAllModulos) {
-                    this.checkedModulos = [];
-                    document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "transparent";
-                    document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = false;
-
-                }
-                for (let i in this.listaAllSubModulos) {
-                    this.checkedModulos = [];
-                    document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "transparent";
-                    document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = false;
-
-                }
-                for (let i in this.listaAllAcciones) {
-                    this.checkedAcciones = [];
-                    document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "transparent";
-                    document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = false;
-
-                }
+//                for (let i in this.listaAllModulos) {
+//                    this.checkedModulos = [];
+//                    document.getElementsByClassName(this.listaAllModulos[i].id)[0].style.background = "transparent";
+//                    document.getElementById('checkmod' + this.listaAllModulos[i].id).checked = false;
+//
+//                }
+//                for (let i in this.listaAllSubModulos) {
+//                    this.checkedModulos = [];
+//                    document.getElementsByClassName(this.listaAllSubModulos[i].id)[0].style.background = "transparent";
+//                    document.getElementById('checkmod' + this.listaAllSubModulos[i].id).checked = false;
+//
+//                }
+//                for (let i in this.listaAllAcciones) {
+//                    this.checkedAcciones = [];
+//                    document.getElementsByClassName('_' + this.listaAllAcciones[i].id)[0].style.background = "transparent";
+//                    document.getElementById('checkacc' + this.listaAllAcciones[i].id).checked = false;
+//
+//                }
             },
             clear_() {
                 this.newRol = {

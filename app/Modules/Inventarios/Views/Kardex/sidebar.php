@@ -17,45 +17,33 @@
         <li class="nav-header"></li>
         <li class="nav-item margin  menu-is-opening menu-open">
             <!--AJUSTES DE ENTRADA-->
-            <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fad fa-sort-amount-down-alt me-3 sidebarColorIcon"></i><p>INVENTARIOS<i class="fas fa-angle-left right text-white"></i></p></a>
+            <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fad fa-sort-amount-down-alt me-3 sidebarColorIcon"></i><p>KARDEX<i class="fas fa-angle-left right text-white"></i></p></a>
             <ul class="nav nav-treeview">
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inventarios/existencias' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/inventarios/existencias')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/kardex/kardex' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/kardex/kardex')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-dashboard nav-icon sidebarColorIcon"></i>
                         <p> Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inventarios/viewInventarioGeneral' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/inventarios/viewInventarioGeneral')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/kardex/producto' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/kardex/producto')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-box nav-icon sidebarColorIcon"></i>
-                        <p> Inventario General</p>
+                        <p> Kardex Por Producto</p>
                     </a>
                 </li>
 
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inventarios/viewInventarioLotes' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/inventarios/viewInventarioLotes')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/kardex/lotes' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/kardex/lotes')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-layer-group nav-icon sidebarColorIcon"></i>
-                        <p>Inventario Por Lotes</p>
+                        <p>Kardex Por Lotes</p>
                     </a>
                 </li>
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inventarios/viewInventarioConsolidado' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/inventarios/viewInventarioConsolidado')" class="nav-link" style="cursor: pointer">
-                        <i class="far fa-random nav-icon sidebarColorIcon"></i>
-                        <p>Inventario Consolidado</p>
-                    </a>
-                </li>
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inv/historico' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/inv/historico')" class="nav-link" style="cursor: pointer">
-                        <i class="far fa-history nav-icon sidebarColorIcon"></i>
-                        <p>Inventario Historico</p>
-                    </a>
-                </li>
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/control/caducidad' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/control/caducidad')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/kardex/general' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/kardex/general')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-clipboard-list nav-icon sidebarColorIcon"></i>
-                        <p>Control de Caducidad</p>
+                        <p>Kardex General</p>
                     </a>
-                </li>
+                </li>    
             </ul>
         </li>
 

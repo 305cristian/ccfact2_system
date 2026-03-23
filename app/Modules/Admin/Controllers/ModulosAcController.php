@@ -221,10 +221,10 @@ class ModulosAcController extends \App\Controllers\BaseController {
 
         /*         * VALIDAMOS LOS DATOS DEL FRONT (QUE CNO ESTEN VACIOS) * */
         $this->validation->setRules([
-            'nombreAccion' => ['label' => 'Nombre Acción', 'rules' => 'trim|required'],
-            'detalleAccion' => ['label' => 'Detalle Acción', 'rules' => 'trim|required'],
-            'moduloAccion' => ['label' => 'Módulo Acción', 'rules' => 'trim|required'],
-            'subModuloAccion' => ['label' => ' SubMódulo Acción', 'rules' => 'trim|required'],
+            'nombreAccion' => ['label' => 'Nombre de Acción', 'rules' => 'trim|required'],
+            'detalleAccion' => ['label' => 'Detalle de Acción', 'rules' => 'trim|required'],
+            'moduloAccion' => ['label' => 'Módulo de Acción', 'rules' => 'trim|required'],
+            'subModuloAccion' => ['label' => ' SubMódulo de Acción', 'rules' => 'trim|required'],
         ]);
 
         /*         * VALIDAMOS LA VALIDACION SI LOS CAMPOS SON CORRECTOS CONTINUAMOS CON EL REGISTRO * */
@@ -254,8 +254,8 @@ class ModulosAcController extends \App\Controllers\BaseController {
             $response['status'] = 'vacio';
             $response['msg'] = [
                 'nombreAccion' => $this->validation->getError('nombreAccion'),
-                'detalleAccion' => $this->validation->getError('padreModulo'),
-                'moduloAccion' => $this->validation->getError('detalleAccion'),
+                'detalleAccion' => $this->validation->getError('detalleAccion'),
+                'moduloAccion' => $this->validation->getError('moduloAccion'),
                 'subModuloAccion' => $this->validation->getError('subModuloAccion'),
             ];
         }

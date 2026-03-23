@@ -201,6 +201,7 @@ window.appGestionAjs = Vue.createApp({
             listaAjustes: [],
             cargandoDetalle: false,
             modalInstance: null,
+            detalleHtml: '',
 
             //LISTAS FILTROS
             listaBodegas: listaBodegas,
@@ -310,10 +311,11 @@ window.appGestionAjs = Vue.createApp({
             try {
 
                 const {data} = await axios.get(this.url + '/ajustessalida/getDataDetalle/' + ajuste.id);
+                this.detalleHtml=data;
                 this.cargandoDetalle = false;
-                await Vue.nextTick();
-                const modal = document.getElementById('detalleAjusteModal');
-                modal.innerHTML = data;
+//                await Vue.nextTick();
+//                const modal = document.getElementById('detalleAjusteModal');
+//                modal.innerHTML = data;
 
             } catch (error) {
                 sweet_msg_dialog('error', '', '', 'Error al cargar el detalle del ajuste, ' + error.message);

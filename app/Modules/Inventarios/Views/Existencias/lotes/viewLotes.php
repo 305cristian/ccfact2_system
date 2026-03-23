@@ -18,6 +18,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     .multiselect__tags {
         border-radius: 0px 5px 5px 0px
     }
+    .table-responsive {
+        max-height: 500px;
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
 </style>
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
@@ -304,15 +310,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <small class="text-muted">  {{ item.sgr_nombre || '-' }} </small>
                                     </td>
 
-                                    <!--ACCIONES--> 
+                                    <!-- ACCIONES  -->
                                     <td class="text-center">
-                                        <button
-                                            class="btn btn-outline-primary btn-sm"
-                                            title="Ver Kardex"
-                                            @click="verKardex(item)"
-                                            >
-                                            <i class="fas fa-list"></i>
-                                        </button>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <!--<li><a class="dropdown-item"><i class="fas fa-eye"></i> Ver detalle</a></li>-->
+                                                <li><a class="dropdown-item" @click="verKardex(item)"><i class="fas fa-file-alt"></i> Ver Kardex</a></li>
+                                            </ul>
+                                        </div>
                                     </td>
 
                                 </tr>

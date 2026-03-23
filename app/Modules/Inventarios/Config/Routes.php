@@ -42,6 +42,7 @@ $routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'
     $subroutes->post('exportPdfGeneral', 'PdfExportController::exportInventarioGeneralPdf');
     $subroutes->get('viewStockBodega/(:num)', 'ExistenciasController::viewStockBodega/$1');
     $subroutes->post('viewReserva', 'ExistenciasController::viewReserva');
+    $subroutes->get('getDataProducto/(:num)', 'ExistenciasController::getDataProducto/$1');
 
     //INVENTARIO POR LOTES
     $subroutes->post('lotes', 'ExistenciasController::getInventarioLotes');
@@ -70,15 +71,36 @@ $routes->post('control/consultarProductos', '\Modules\Inventarios\Controllers\Ca
 $routes->post('control/exportPdfCaducidad', '\Modules\Inventarios\Controllers\PdfExportController::exportPdfCaducidad');
 $routes->post('control/exportExcelCaducidad', '\Modules\Inventarios\Controllers\ExcelExportController::exportExcelCaducidad');
 
+//RUTAS ADMIN PARA ACTUALIZR EL PRODUCTO DESDE INVENTARIO
+$routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function ($subroutes) {
+    $subroutes->post('grupos/getSubgrupoByGrupo', 'GruposController::getSubgrupoByGrupo');
+    $subroutes->get('productos/getPreciosProducto/(:num)', 'ProductosController::getPreciosProducto/$1');
+    $subroutes->post('productos/updateProducto', 'ProductosController::updateProducto');
+});
 
 //CONTROL KARDEX
 $routes->group('kardex', ['namespace' => '\Modules\Inventarios\Controllers'], function ($subroutes) {
 
-    $subroutes->get('kardex', 'KardexController::viewKardex');
+    $subroutes->get('kardex', 'KardexController::index');
 
     $subroutes->get('producto', 'KardexController::viewKardexProducto');
     $subroutes->get('general', 'KardexController::viewKardexGeneral');
-    $subroutes->get('lotes', 'KardexController::viewKardexlotes');
+    $subroutes->get('lotes', 'KardexController::viewKardexLote');
+
+    $subroutes->post('getKardexProducto', 'KardexProductoController::getKardexProducto');
+    $subroutes->post('getMiniKardexProducto', 'KardexProductoController::getMiniKardexProducto');
+});
+
+$routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Controllers'], function ($subroutes) {
+    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
+});
+
+$routes->group('transferencias', ['namespace' => '\Modules\Transferencias\Controllers'], function ($subroutes) {
+    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
+});
+
+$routes->group('ajustessalida', ['namespace' => '\Modules\AjustesSalida\Controllers'], function ($subroutes) {
+    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

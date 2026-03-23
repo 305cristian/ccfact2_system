@@ -301,7 +301,7 @@ class ExistenciasController extends \App\Controllers\BaseController {
 
         foreach ($reservas ?? [] as $val) {
             $lote = ($val->fk_lote !== null) ? $val->fk_lote : "";
-            $reservasProducto[$val->fk_producto . '|' . $lote] = (float)$val->res_cantidad;
+            $reservasProducto[$val->fk_producto . '|' . $lote] = (float) $val->res_cantidad;
         }
 
 
@@ -321,5 +321,12 @@ class ExistenciasController extends \App\Controllers\BaseController {
                     'recordsTotal' => $countProductosAllLotes,
                     'recordsFiltered' => $countFilteredProductsLotes,
         ]);
+    }
+
+    public function getDataProducto($productoId) {
+
+        $respuesta = $this->invModel->getDataProducto($productoId);
+
+        return $this->response->setJSON(['data' => $respuesta,]);
     }
 }

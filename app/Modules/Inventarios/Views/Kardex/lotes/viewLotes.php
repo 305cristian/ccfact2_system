@@ -19,8 +19,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         <title></title>
     </head>
     <body>
-        <?php
-        // put your code here
-        ?>
+        <h1>LOTES</h1>
     </body>
 </html>

@@ -81,7 +81,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     nombreAccion: '',
                     detalleAccion: '',
                     estado: '1',
-                    moduloAccion: '-1',
+                    moduloAccion: '',
                     subModuloAccion: '',
                 },
 

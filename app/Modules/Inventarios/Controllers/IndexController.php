@@ -55,6 +55,17 @@ class IndexController extends \App\Controllers\BaseController {
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
         $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
+        $data2['listaUnidadesMedida'] = $this->ccm->getData('cc_unidades_medida', ['um_estado' => 1], '*');
+        $data2['listaMarcas'] = $this->ccm->getData('cc_marcas', ['mrc_estado' => 1], '*');
+        $data2['listaTipoProducto'] = $this->ccm->getData('cc_tipo_producto', ['tp_estado' => 1], '*');
+        $data2['listaImpuestosTarifa'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 1], '*');
+        $data2['listaImpuestosICE'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 2], '*');
+        $data2['listaSubgrupos'] = $this->ccm->getData('cc_subgrupos', ['sgr_estado' => 1], '*');
+        $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
+        $data2['listaCtaContable'] = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_estado' => 1], 'ctad_codigo, CONCAT(ctad_codigo," ",ctad_nombre_cuenta)cuentadet');
+        $data2['listaTiposPvp'] = $this->ccm->getData('cc_tipo_precios', ['tpc_estado' => 1], "*");
+        
+        $data2['updateDataProducto']=$this->user->validatePermisos('update_producto', $this->user->id);
 
         $send['sidebar'] = view($this->dirViewModule . '\Existencias\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\Existencias\general\viewGeneral', $data2);

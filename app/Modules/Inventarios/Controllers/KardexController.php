@@ -24,11 +24,54 @@ class KardexController extends \App\Controllers\BaseController {
         $this->dirViewModule = 'Modules\Inventarios\Views';
     }
 
-    public function viewKardex() {
+    public function index() {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $send['sidebar'] = view($this->dirViewModule . '\Kardex\sidebar', $data);
-        $send['view'] = view($this->dirViewModule . '\Kardex\viewDashboard', $data);
+        $send['view'] = view($this->dirViewModule . '\Kardex\viewDashboard', $data2);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+
+    public function viewKardexProducto() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
+        $send['sidebar'] = view($this->dirViewModule . '\Kardex\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Kardex\producto\viewProductos', $data2);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+
+    public function viewKardexLote() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
+        $send['sidebar'] = view($this->dirViewModule . '\Kardex\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Kardex\lotes\viewLotes', $data2);
+
+        if ($this->request->isAJAX()) {
+            return $this->response->setJSON($send);
+        } else {
+            return view($this->dirTemplate . '\dashboard', $send);
+        }
+    }
+
+    public function viewKardexGeneral() {
+        $this->user->validateSession();
+        $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
+        $send['sidebar'] = view($this->dirViewModule . '\Kardex\sidebar', $data);
+        $send['view'] = view($this->dirViewModule . '\Kardex\general\viewGeneral', $data2);
 
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($send);
