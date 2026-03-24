@@ -232,6 +232,7 @@ class SearchsModel extends \CodeIgniter\Model {
         $builder->select("tb1.id,"
                 . " tb1.prod_nombre,"
                 . " tb1.prod_codigo,"
+                . " tb1.prod_costoultimo,"
                 . " tb1.prod_costopromedio,"
                 . " tb1.prod_isservicio,"
                 . " tb1.prod_stockactual,"

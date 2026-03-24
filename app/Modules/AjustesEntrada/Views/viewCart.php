@@ -81,9 +81,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <td>
                             <div class="quantity-control input-group">
                                 <button class="btn btn-primary btn-sm" @click="item.qty > 1 ? item.qty-- : null; updateProductCart(item)"><i class="fas fa-minus"></i></button>
-                                <input class="form-control form-control-sm" v-model.number="item.qty" type="text" @change="updateProductCart(item)" v-numbers-only="{ decimal: true }">
+                                <input class="form-control form-control-sm"
+                                       v-model.number="item.qty"
+                                       type="text"
+                                       @change="updateProductCart(item)"
+                                       v-numbers-only="{ decimal: true }">
                                 <button class="btn btn-primary btn-sm" @click="item.qty++ ; updateProductCart(item)"><i class="fas fa-plus"></i></button>
-                                <input type="text" class="form-control form-control-sm" style="max-width: 80px;" v-model.number="item.price" @change="updateProductCart(item)" v-numbers-only="{ decimal: true }">
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       :readonly="formDataAjuste.ajenTipo ==='AJUSTE_NORMAL'?true:false "
+                                       style="max-width: 80px;"
+                                       v-model.number="item.price"
+                                       @change="updateProductCart(item)"
+                                       v-numbers-only="{ decimal: true }">
                                 <button class="btn btn-primary btn-sm"><i class="fas fa-dollar-circle"></i></button>
                             </div>
 

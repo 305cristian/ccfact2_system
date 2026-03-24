@@ -21,15 +21,18 @@ class KardexModel extends \CodeIgniter\Model {
 
     public function getKardexProducto(array $filtros): array {
 
-        $builder = $this->db->table('cc_kardex tb1');
+        $tabla = $filtros['kardBodega'] ? 'cc_kardex_bodega tb1' : 'cc_kardex tb1';
+        $abrev = $filtros['kardBodega'] ? 'karb' : 'kar';
 
-        $builder->select(' tb1.kar_fecha,
-                            tb1.kar_hora,
-                            tb1.kar_kardex,
-                            tb1.kar_kardex_total,
-                            tb1.kar_costo_promedio,
-                            tb1.kar_costo_ultimo,
-                            tb1.kar_documento_id,
+        $builder = $this->db->table($tabla);
+
+        $builder->select(' tb1.' . $abrev . '_fecha as kardex_fecha,
+                            tb1.' . $abrev . '_hora,
+                            tb1.' . $abrev . '_kardex,
+                            tb1.' . $abrev . '_kardex_total AS kardex_total,
+                            tb1.' . $abrev . '_costo_promedio AS kardex_costo_promedio,
+                            tb1.' . $abrev . '_costo_ultimo AS kardex_costo_ultimo,
+                            tb1.' . $abrev . '_documento_id AS kardex_documento_id,
                             tb1.fk_bodega,
                             tb2.id AS producto_id,
                             tb2.prod_nombre,
@@ -58,22 +61,22 @@ class KardexModel extends \CodeIgniter\Model {
                                 -- WHEN tb3.tr_codigo IN ("02","02") THEN comp.comp_secuencial
                                 ELSE NULL
                             END AS num_documento');
-        $builder->select('
-                            CASE WHEN tb1.kar_kardex > 0 THEN tb1.kar_kardex ELSE 0 END AS entrada,
-                            CASE WHEN tb1.kar_kardex < 0 THEN tb1.kar_kardex * -1 ELSE 0 END AS salida
+        
+        $builder->select('CASE WHEN tb1.' . $abrev . '_kardex > 0 THEN tb1.' . $abrev . '_kardex ELSE 0 END AS entrada,
+                            CASE WHEN tb1.' . $abrev . '_kardex < 0 THEN tb1.' . $abrev . '_kardex * -1 ELSE 0 END AS salida
                         ', false);
 
         // JOINs obligatorios
         $builder->join('cc_productos tb2', 'tb2.id = tb1.fk_producto');
-        $builder->join('cc_transacciones tb3', 'tb3.tr_codigo = tb1.kar_codigo_transaccion');
+        $builder->join('cc_transacciones tb3', 'tb3.tr_codigo = tb1.' . $abrev . '_codigo_transaccion');
         $builder->join('cc_empleados tb4', 'tb4.id = tb1.fk_user_id');
         $builder->join('cc_bodegas tb6', 'tb6.id = tb1.fk_bodega');
 
         // LEFT JOINs opcionales
         $builder->join('cc_lotes tb5', 'tb5.id = tb1.fk_lote', 'left');
-        $builder->join('cc_ajuste_salida ajs', 'ajs.id = tb1.kar_documento_id AND tb3.tr_codigo = "38"', 'left');
-        $builder->join('cc_ajuste_entrada aje', 'aje.id = tb1.kar_documento_id AND tb3.tr_codigo = "39"', 'left');
-        $builder->join('cc_transferencia_bodega trb', 'trb.id = tb1.kar_documento_id AND tb3.tr_codigo = "17"', 'left');
+        $builder->join('cc_ajuste_salida ajs', 'ajs.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo = "38"', 'left');
+        $builder->join('cc_ajuste_entrada aje', 'aje.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo = "39"', 'left');
+        $builder->join('cc_transferencia_bodega trb', 'trb.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo = "17"', 'left');
 
         //JOINS especiales para obtener el nombre del cliente proveedor
 
@@ -97,10 +100,10 @@ class KardexModel extends \CodeIgniter\Model {
             $rangoFechas = explode(' a ', $filtros['rangoFechas']);
             $fDesde = trim($rangoFechas[0]);
             $fHasta = isset($rangoFechas[1]) ? trim($rangoFechas[1]) : trim($rangoFechas[0]);
-            $builder->where(['tb1.kar_fecha <= ' => $fHasta, 'tb1.kar_fecha >= ' => $fDesde]);
+            $builder->where(['tb1.' . $abrev . '_fecha <= ' => $fHasta, 'tb1.' . $abrev . '_fecha >= ' => $fDesde]);
         }
 
-        $builder->where('tb1.kar_estado >', 0);
+        $builder->where('tb1.' . $abrev . '_estado >', 0);
 
         $response = $builder->get();
 

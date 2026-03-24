@@ -183,8 +183,12 @@ class SalidasLib {
 //        if ($nuevoStock < 0) {
 //            throw new \Exception("El producto {$producto->name} quedaría con stock negativo.");
 //        }
-        // Calcular costo promedio
-        $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
+        // Calcular costo promedio (solo se recalcular en entradas que afecte el costo del producto)
+//        $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
+        $costoPromedio = $this->productLib->getCostoPromedio($producto->id);
+        
+        //Obtengo el costo último
+        $costoUltimo = $this->productLib->getCostoUltimo($producto->id);
 
         // Insertar registro en kardex
         $dataKardex = [
@@ -192,7 +196,7 @@ class SalidasLib {
             'kar_kardex' => -$producto->qty,
             'kar_kardex_total' => $nuevoStock,
             'kar_costo_promedio' => $costoPromedio,
-            'kar_costo_ultimo' => $producto->price,
+            'kar_costo_ultimo' => $costoUltimo,
             'kar_total_costo' => abs($producto->total), //SIEMPRE POSITIVO LOS COSTOS
             'kar_documento_id' => $ajusteId,
             'kar_codigo_transaccion' => $this->tipotransaccionCod,
@@ -213,7 +217,7 @@ class SalidasLib {
                     $producto->id,
                     $nuevoStock,
                     $costoPromedio,
-                    $producto->price,
+                    $costoUltimo,
                     $nuevoCostoInvProducto
             );
             // Actualizar costo inventario total
@@ -223,7 +227,7 @@ class SalidasLib {
         $responseKardex = [
             'kardexId' => $kardexId,
             'costoPromedio' => $costoPromedio,
-            'costoUltimo' => $producto->price,
+            'costoUltimo' => $costoUltimo,
         ];
         return $responseKardex;
     }

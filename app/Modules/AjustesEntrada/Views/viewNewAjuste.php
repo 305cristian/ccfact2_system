@@ -115,9 +115,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <!-- Botones de Seleccion -->
                     <div class="col-md-3 form-group-custom">
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                            <input type="radio" class="btn-check" id="btnradio1" value="AJUSTE_INICIAL" v-model="formDataAjuste.ajenTipo"  autocomplete="off" >
-                            <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Inicial</label>
-                            <input type="radio" class="btn-check" id="btnradio2"  value="COMPRA_SIN_FACTURA" v-model="formDataAjuste.ajenTipo" autocomplete="off" checked>
+                            <input type="radio" class="btn-check" id="btnradio1" value="AJUSTE_NORMAL" v-model="formDataAjuste.ajenTipo"  autocomplete="off" checked>
+                            <label class="btn btn-outline-success" for="btnradio1"> <i class="fas fa-file-archive me-2"></i> Ajuste Normal</label>
+                            <input type="radio" class="btn-check" id="btnradio2"  value="COMPRA_SIN_FACTURA" v-model="formDataAjuste.ajenTipo" autocomplete="off" >
                             <label class="btn btn-outline-primary" for="btnradio2"> <i class="fas fa-file me-2"></i> Compra sin Factura</label>
                         </div>
                     </div>
@@ -331,7 +331,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     ajenEstado: '',
                     ajenObservaciones: '',
                     ajenProveedor: '',
-                    ajenTipo: 'COMPRA_SIN_FACTURA',
+                    ajenTipo: 'AJUSTE_NORMAL',
                     ajenPermitirDuplicados: permitirDuplicados
                 },
 
@@ -579,6 +579,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     id: item.id,
                     qty: 1,
                     bodega: this.formDataAjuste.ajenBodega.id,
+                    tipoAjuste: this.formDataAjuste.ajenTipo,
                     permitirDuplicados: this.formDataAjuste.ajenPermitirDuplicados
 
                 };
@@ -757,7 +758,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             ajenEstado: '',
                             ajenObservaciones: '',
                             ajenProveedor: '',
-                            ajenTipo: 'COMPRA_SIN_FACTURA',
+                            ajenTipo: 'AJUSTE_NORMAL',
                             ajenPermitirDuplicados: permitirDuplicados
                         };
 

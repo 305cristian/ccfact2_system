@@ -164,6 +164,7 @@ class IndexController extends \App\Controllers\BaseController {
         $cantidad = $dataPost->qty;
         $permitirDuplicados = $dataPost->permitirDuplicados;
         $idBodega = $dataPost->bodega;
+        $tipoAjuste = $dataPost->tipoAjuste;
 
         if ($idProd <= '0' or $idProd == null) {
             $msg['status'] = "warning";
@@ -185,13 +186,15 @@ class IndexController extends \App\Controllers\BaseController {
         $tarifaIva = isset($impuestos[0]->impt_porcentage) ? $impuestos[0]->impt_porcentage : 0;
         $tarifaIce = isset($impuestos[1]->impt_porcentage) ? $impuestos[1]->impt_porcentage : 0;
 
+        $precio = $tipoAjuste === 'AJUSTE_NORMAL' ? $dataProducto->prod_costopromedio : $dataProducto->prod_costoultimo;
+
         $item = [
             "id" => (int) $dataProducto->id,
             "qty" => (float) $cantidad,
             "codigo" => $dataProducto->prod_codigo,
             "name" => $dataProducto->prod_nombre,
             "unidadMedida" => $dataProducto->um_nombre_corto,
-            "price" => (float) $dataProducto->prod_costopromedio,
+            "price" => (float) $precio,
             "stock" => number_format($dataProducto->prod_stockactual, 2),
             "stockBodega" => number_format($stockBodega, 2),
             "ivaPorcent" => $tarifaIva,
@@ -562,6 +565,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         $ajusteId = $data->ajusteId;
         $motivoAnulacion = $data->motivoAnulacion;
+        $tipoAjuste = $data->tipoAjuste;
 
         try {
 
@@ -578,7 +582,7 @@ class IndexController extends \App\Controllers\BaseController {
             $this->db->transBegin();
 
             // Ejecutamos la anulación en la librería
-            $response = $this->entradasLib->anularAjuste($ajusteId, $motivoAnulacion);
+            $response = $this->entradasLib->anularAjuste($ajusteId, $motivoAnulacion,$tipoAjuste);
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();

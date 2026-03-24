@@ -31,7 +31,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         transform: translateY(-2px);
     }
     .table-responsive {
-        max-height: 500px;
+        max-height: 600px;
         white-space: nowrap;
         overflow-x: auto;
         overflow-y: auto;
@@ -194,7 +194,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                 <!-- FECHA -->
                                 <td>
-                                    <small class="text-muted">{{ item.kar_fecha }}</small>
+                                    <small class="text-muted">{{ item.kardex_fecha }}</small>
                                 </td>
 
                                 <!--TRANSACCION DOC--> 
@@ -205,7 +205,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                 <!-- BODEGA -->
                                 <td>
-                                    <span class="badge bg-secondary">{{ nombreBodega(item.bod_nombre) }}</span>
+                                    <span class="badge bg-secondary">{{ item.bod_nombre}}</span>
+                                    <!--<span class="badge bg-secondary">{{ nombreBodega(item.bod_nombre) }}</span>-->
                                 </td>
 
 
@@ -216,12 +217,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                 <!--COSTO PROMEDIO--> 
                                 <td class="text-end">
-                                    <small class="text-muted">{{ formatToUSD(item.kar_costo_promedio) }}</small>
+                                    <small class="text-muted">{{ formatToUSD(item.kardex_costo_promedio) }}</small>
                                 </td>
 
                                 <!--COSTO ULTIMO--> 
                                 <td class="text-end">
-                                    <small class="text-muted">{{ formatToUSD(item.kar_costo_ultimo) }}</small>
+                                    <small class="text-muted">{{ formatToUSD(item.kardex_costo_ultimo) }}</small>
                                 </td>
 
                                 <!-- LOTE -->
@@ -242,12 +243,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <!-- SALDO -->
                                 <td class="text-end text-primary fw-bold">
                                     <div class="fw-bold text-primary">
-                                        {{ parseFloat(item.kar_kardex_total).toFixed(2) }}
+                                        {{ parseFloat(item.kardex_total).toFixed(2) }}
                                     </div>
 
                                     <!--                                    <div class="progress mt-1" style="height: 4px;">
                                                                             <div class="progress-bar bg-primary" 
-                                                                                 :style="{width: getPorcentajeStock(item.kar_kardex_total) + '%'}">
+                                                                                 :style="{width: getPorcentajeStock(item.kardex_total) + '%'}">
                                                                             </div>
                                                                         </div>-->
                                 </td>
@@ -266,7 +267,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             <i class="fas fa-ellipsis-v"></i>
                                         </button>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="#" @click="verDocumento(item.kar_documento_id,item.tr_codigo)"><i class="fas fa-file-alt"></i> Ver documento</a></li>
+                                            <li><a class="dropdown-item" href="#" @click="verDocumento(item.kardex_documento_id,item.tr_codigo)"><i class="fas fa-file-alt"></i> Ver documento</a></li>
                                             <!--<li><a class="dropdown-item"><i class="fas fa-eye"></i> Ver detalle</a></li>-->
                                         </ul>
                                     </div>
@@ -385,7 +386,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             saldoFinal() {
                 if (this.listaKardex.length === 0)
                     return 0;
-                return parseFloat(this.listaKardex[this.listaKardex.length - 1].kar_kardex_total).toFixed(2);
+                return parseFloat(this.listaKardex[this.listaKardex.length - 1].kardex_total).toFixed(2);
             }
         },
         methods: {
@@ -462,7 +463,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     }
                 } catch (error) {
-                  
+
                     sweet_msg_dialog('error', '', '', 'Error al cargar el detalle, ' + error.message);
 
                 } finally {

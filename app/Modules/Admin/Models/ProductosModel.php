@@ -44,6 +44,7 @@ class ProductosModel extends \CodeIgniter\Model {
                 $builder->where($key, $val);
             }
         }
+        $builder->orderBy('tb1.prod_nombre','asc');
 
         $response = $builder->get();
 

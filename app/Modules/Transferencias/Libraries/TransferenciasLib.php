@@ -170,7 +170,12 @@ class TransferenciasLib {
 //        }
 //        
         // Calcular costo promedio (LOS COSTOS DE MANTIENEN POR QUE EN TRANSFERNCIAS SOLO MOVEMOS STOCK)
-        $costoPromedio = $nuevoStock > 0 ? ($costoInvProducto / $stockActual) : 0;
+//        $costoPromedio = $nuevoStock > 0 ? ($costoInvProducto / $nuevoStock) : 0;
+        //Obtengo el costo último
+        $costoPromedio = $this->productLib->getCostoPromedio($producto->id);
+
+        //Obtengo el costo último
+        $costoUltimo = $this->productLib->getCostoUltimo($producto->id);
 
         // Insertar registro en kardex
         $dataKardex = [
@@ -178,7 +183,7 @@ class TransferenciasLib {
             'kar_kardex' => $factor * $producto->qty,
             'kar_kardex_total' => $nuevoStock,
             'kar_costo_promedio' => $costoPromedio,
-            'kar_costo_ultimo' => $producto->price,
+            'kar_costo_ultimo' => $costoUltimo,
             'kar_total_costo' => abs($producto->total), //SIEMPRE POSITIVO LOS COSTOS
             'kar_documento_id' => $transferenciaId,
             'kar_codigo_transaccion' => $this->tipotransaccionCod,
@@ -199,7 +204,7 @@ class TransferenciasLib {
                     $producto->id,
                     $nuevoStock,
                     $costoPromedio,
-                    $producto->price,
+                    $costoUltimo,
                     $nuevoCostoInvProducto
             );
             // Actualizar costo inventario total
@@ -386,7 +391,7 @@ class TransferenciasLib {
                 'fk_user_anula' => $this->user->id,
                 'trb_observaciones' => "Transferencia anulada en estado {$text}"
             ];
-            
+
             $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $transferenciaId]);
 
             return [

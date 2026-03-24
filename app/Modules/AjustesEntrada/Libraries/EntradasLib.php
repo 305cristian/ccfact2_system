@@ -151,7 +151,7 @@ class EntradasLib {
             $bodegaId = $dataPostAjuste->ajenBodega;
 
             // 1. Actualizar kardex general
-            $kardex = $this->actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId);
+            $kardex = $this->actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $dataPostAjuste->ajenTipo);
             if (!$kardex['kardexId']) {
                 return [
                     'status' => 'error',
@@ -185,7 +185,7 @@ class EntradasLib {
         }
     }
 
-    public function actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId) {
+    public function actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $tipoAjuste) {
 
         // Obtengo stock actual del producto
         $stockActual = $this->productLib->getStockProducto($producto->id);
@@ -202,9 +202,19 @@ class EntradasLib {
 //        if ($nuevoStock < 0) {
 //            throw new \Exception("El producto {$producto->name} quedaría con stock negativo.");
 //        }
-
         // Calcular costo promedio
-        $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
+        if ($tipoAjuste === 'AJUSTE_NORMAL') {
+            
+            $promedioActual = $this->productLib->getCostoPromedio($producto->id);
+            $costoPromedio = $promedioActual > 0 ? $promedioActual : $producto->price;
+            
+            $costoUltimoActual = $this->productLib->getCostoUltimo($producto->id);
+            $costoUltimo = $costoUltimoActual > 0 ? $costoUltimoActual : $producto->price;
+        } else {
+            $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
+            $costoUltimo = $producto->price;
+        }
+
 
         // Insertar registro en kardex
         $dataKardex = [
@@ -212,7 +222,7 @@ class EntradasLib {
             'kar_kardex' => $producto->qty,
             'kar_kardex_total' => $nuevoStock,
             'kar_costo_promedio' => $costoPromedio,
-            'kar_costo_ultimo' => $producto->price,
+            'kar_costo_ultimo' => $costoUltimo,
             'kar_total_costo' => abs($producto->total), //SIEMPRE POSITIVO
             'kar_documento_id' => $ajusteId,
             'kar_codigo_transaccion' => $this->tipotransaccionCod,
@@ -229,7 +239,7 @@ class EntradasLib {
 
         if ($kardexId) {
             // Actualizar producto
-            $this->productLib->updateCostosProducto($producto->id, $nuevoStock, $costoPromedio, $producto->price, $nuevoCostoInvProducto);
+            $this->productLib->updateCostosProducto($producto->id, $nuevoStock, $costoPromedio, $costoUltimo, $nuevoCostoInvProducto);
 
             // Actualizar costo inventario total
             $this->productLib->actualizarCostoInventarioTotal($nuevoCostoInvTotal);
@@ -238,7 +248,7 @@ class EntradasLib {
         $responseKardex = [
             'kardexId' => $kardexId,
             'costoPromedio' => $costoPromedio,
-            'costoUltimo' => $producto->price,
+            'costoUltimo' => $costoUltimo,
         ];
         return $responseKardex;
     }
@@ -306,7 +316,7 @@ class EntradasLib {
         return $kardexLoteId;
     }
 
-    public function anularAjuste($ajusteId, $motivo) {
+    public function anularAjuste($ajusteId, $motivo, $tipoAjuste) {
 
         // Obtenemos el ajuste
         $ajuste = $this->ccm->getData('cc_ajuste_entrada', ['id' => $ajusteId], '*', null, 1);
@@ -343,7 +353,8 @@ class EntradasLib {
             $dataAjuste = (object) [
                         'ajenFecha' => date('Y-m-d'),
                         'ajenBodega' => $ajuste->fk_bodega,
-                        'ajenEstado' => -1
+                        'ajenEstado' => -1,
+                        'ajenTipo' => $tipoAjuste
             ];
 
             foreach ($detalle as $val) {

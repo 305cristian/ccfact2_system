@@ -58,7 +58,7 @@ class ProductoLib {
             'prod_costoinventario' => $costoInventario,
         ];
 
-        return $this->ccm->actualizar('cc_productos',$datos, ['id' => $productoId]);
+        return $this->ccm->actualizar('cc_productos', $datos, ['id' => $productoId]);
     }
 
     /**
@@ -82,5 +82,21 @@ class ProductoLib {
             ];
             return $this->ccm->guardar($datos, 'cc_empresa_indice');
         }
+    }
+
+    /**
+     * Obtenemos el costo último del producto
+     */
+    public function getCostoUltimo($productoId) {
+        $producto = $this->ccm->getData('cc_productos', ['id' => $productoId], 'prod_costoultimo', null, 1);
+        return $producto ? (float) $producto->prod_costoultimo : 0;
+    }
+    
+     /**
+     * Obtenemos el costo promedio del producto
+     */
+    public function getCostoPromedio($productoId) {
+        $producto = $this->ccm->getData('cc_productos', ['id' => $productoId], 'prod_costopromedio', null, 1);
+        return $producto ? (float) $producto->prod_costopromedio : 0;
     }
 }
