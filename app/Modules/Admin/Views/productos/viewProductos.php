@@ -143,7 +143,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     }
     window.appProductos = Vue.createApp({
         components: {
-            "vue-multiselect": window['vue-multiselect'].Multiselect
+            "vue-multiselect": window['vue-multiselect'].Multiselect,
+            "vue-select": window['vue-select']
         },
         data() {
             return {
@@ -167,8 +168,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodCodigoBarras2: '',
                     prodCodigoBarras3: '',
                     //prodDetalle: '', //no
-                    prodExistenciaMinima: '',
-                    prodExistenciaMaxima: '',
+                    prodExistenciaMinima: '5',
+                    prodExistenciaMaxima: '50',
                     //prodStockActual: '', //no
                     //prodCostoPromedio: '', //no
                     //prodCostoUltimo: '', //no
@@ -237,8 +238,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             };
         },
         created() {
-
-
             this.tipoPrecioId = this.listaTiposPvp.map(ltpc => ltpc.id);
         },
         updated() {
@@ -248,10 +247,108 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             $(".selectpicker").selectpicker();
             this.aplicaIce();
             panelMain.style.display = "none";
-
             this.modalInstance = new bootstrap.Modal(this.$refs.modalProductos);
         },
+        watch: {
+            idGrupo(val) {
+                if (!val) {
+                    this.listaSubGrupos = [];
+                    return;
+                }
+
+                const grupoId = val.id || null;
+
+                if (!grupoId)
+                    return;
+                this.getSubgrupo(grupoId);
+            }
+        },
         methods: {
+
+            async crearMarca(marca) {
+
+                if (this.listaMarcas.some(m => m.mrc_nombre.toLowerCase() === marca.mrc_nombre.toLowerCase())) {
+                    sweet_msg_toast('warning', 'Esta marca ya existe');
+                    await Vue.nextTick();
+                    this.listaMarcas = this.listaMarcas.filter(m => m.id !== null);
+                    this.newProducto.prodMarca = '';
+
+                    return;
+                }
+
+                let url = this.url + '/admin/marcas/saveMarca';
+                let datos = new FormData();
+                datos.append('mrcNombre', marca.mrc_nombre);
+                datos.append('mrcEstado', '1');
+
+                let {data} = await axios.post(url, datos);
+                if (data.status === 'success') {
+                    const nuevaMarca = data.data;
+                    this.listaMarcas.push(nuevaMarca);
+                    this.newProducto.prodMarca = nuevaMarca;
+                    sweet_msg_toast('success', 'Marca creado exitosamente');
+                }
+
+            },
+            async crearGrupo(grupo) {
+
+                if (this.listaGrupos.some(m => m.gr_nombre.toLowerCase() === grupo.gr_nombre.toLowerCase())) {
+                    sweet_msg_toast('warning', 'Este grupo ya existe');
+                    await Vue.nextTick();
+                    this.listaGrupos = this.listaGrupos.filter(g => g.id !== null);
+                    this.idGrupo='';
+                    return;
+                }
+
+                let url = this.url + '/admin/grupos/saveGrupo';
+
+                let datos = new FormData();
+                datos.append('grNombre', grupo.gr_nombre);
+                datos.append('grEstado', '1');
+                datos.append('grDescripcion', 'PRODUCTOS AL GRUPO ' + grupo.gr_nombre);
+                datos.append('grIcon', 'far fa-box');
+
+                let {data} = await axios.post(url, datos);
+                if (data.status === 'success') {
+                    const nuevoGrupo = data.data;
+                    this.listaGrupos.push(nuevoGrupo);
+                    this.idGrupo = nuevoGrupo;
+                    sweet_msg_toast('success', 'Grupo creado exitosamente');
+                }
+
+            },
+
+            async crearSubGrupo(subgrupo) {
+
+                if (this.listaSubGrupos.some(m => m.sgr_nombre.toLowerCase() === subgrupo.sgr_nombre.toLowerCase())) {
+                    sweet_msg_toast('warning', 'Este subgrupo ya existe');
+                    await Vue.nextTick();
+                    this.listaSubGrupos = this.listaSubGrupos.filter(sg => sg.id !== null);
+                    this.newProducto.prodSubgrupo='';
+                    return;
+                }
+
+                let url = this.url + '/admin/grupos/saveSubGrupo';
+
+                let datos = new FormData();
+                datos.append('sgrNombre', subgrupo.sgr_nombre);
+                datos.append('sgrGrupo', this.idGrupo.id);
+                datos.append('sgrDetalle', 'PRODUCTOS AL SUBGRUPO ' + subgrupo.sgr_nombre);
+                datos.append('sgrEstado', '1');
+
+                try {
+                    let {data} = await axios.post(url, datos);
+                    if (data.status === 'success') {
+                        const nuevoSubGrupo = data.data;
+                        this.listaSubGrupos.push(nuevoSubGrupo);
+                        this.newProducto.prodSubgrupo = nuevoSubGrupo;
+                        sweet_msg_toast('success', 'SubGrupo creado exitosamente');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response.data.message);
+                }
+            },
+
             async searchProductos(dataSerach, val) {
                 let datos = {dataSerach: dataSerach, val: val};
                 try {
@@ -313,13 +410,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getSubgrupo(idGrupo) {
 
                 let datos = {
-                    idGrupo: this.idGrupo ? this.idGrupo : idGrupo
+                    idGrupo: this.idGrupo ? this.idGrupo.id : idGrupo
                 };
                 try {
                     let response = await axios.post(this.url + '/admin/grupos/getSubgrupoByGrupo', datos);
                     if (response.data) {
                         this.listaSubGrupos = response.data;
                     } else {
+                        this.listaSubGrupos = [];
                         sweet_msg_dialog('warning', 'No se encontraron subgrupos registradas');
                     }
 
@@ -345,8 +443,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodIsGasto: prod.prod_isgasto === '1' ? true : false,
                     prodValorMedida: prod.prod_valormedida,
                     prodUnidadMedida: prod.fk_unidadmedida,
-                    prodSubgrupo: prod.fk_subgrupo,
-                    prodMarca: prod.fk_marca,
+//                    prodSubgrupo: prod.fk_subgrupo,
+//                    prodMarca: prod.fk_marca,
                     prodTipoProducto: prod.fk_tipoproducto,
 
                     prodIvaPorcentajeId: prod.idImpuesto,
@@ -369,10 +467,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodEstado: prod.prod_estado === '1' ? true : false
 
                 };
-                this.idGrupo = prod.id_grupo;
+                this.newProducto.prodMarca = this.listaMarcas.find(val => val.id === prod.fk_marca);
+                this.newProducto.prodSubgrupo = this.listaSubGrupos.find(val => val.id === prod.fk_subgrupo);
+                this.idGrupo = this.listaGrupos.find(val => val.id === prod.id_grupo);
+
                 this.idEdit = prod.id;
                 this.nameAux = prod.prod_nombre;
                 this.codeAux = prod.prod_codigo;
+
+
+
 
                 Swal.close();
 
@@ -416,7 +520,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         sweet_msg_dialog('success', response.data.msg);
                         this.clear();
                         this.getProductos();
-                        this.consultarAutoCodigo();//Este invoca al autocodigo para cun nuevo producto
+                        this.consultarAutoCodigo();//Este invoca al autocodigo para un nuevo producto
                         this.modalInstance.hide();
                         this.tipoPrecioId = this.listaTiposPvp.map(ltpc => ltpc.id);//Esta linea vuelve a  cargar los ID de los N tipos de precio
                     } else if (response.data.status === 'existe') {
@@ -487,8 +591,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodCodigoBarras: '',
                     prodCodigoBarras2: '',
                     prodCodigoBarras3: '',
-                    prodExistenciaMinima: '',
-                    prodExistenciaMaxima: '',
+                    prodExistenciaMinima: '5',
+                    prodExistenciaMaxima: '50',
                     prodVenta: true,
                     prodCompra: true,
                     prodIsServicio: false,
@@ -524,10 +628,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.price = [];
                 this.tipoPrecioVal = [];
             },
+//            formData(obj) {
+//                var formData = new FormData();
+//                for (var key in obj) {
+//                    formData.append(key, obj[key]);
+//                }
+//                return formData;
+//            },
             formData(obj) {
                 var formData = new FormData();
                 for (var key in obj) {
-                    formData.append(key, obj[key]);
+                    let value = obj[key];
+
+                    if (value === null || value === undefined) {
+                        formData.append(key, '');
+                        continue;
+                    }
+                    if (typeof value === 'object') {
+                        value = value.id || value.sus_codigo || value.codigo || value.value || JSON.stringify(value);
+                    }
+                    formData.append(key, value);
                 }
                 return formData;
             },

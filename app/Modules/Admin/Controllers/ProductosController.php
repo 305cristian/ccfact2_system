@@ -41,8 +41,8 @@ class ProductosController extends \App\Controllers\BaseController {
         $data2['listaCtaContable'] = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_estado' => 1], 'ctad_codigo, CONCAT(ctad_codigo," ",ctad_nombre_cuenta)cuentadet');
         $data2['listaTiposPvp'] = $this->ccm->getData('cc_tipo_precios', ['tpc_estado' => 1], "*");
 
-        $valAutocodigo = $this->ccm->getData('cc_autocodigo', $where = null, 'cod', null, 1);
-        $autocodigo = str_pad(($valAutocodigo->cod + 1), 6, 0, STR_PAD_LEFT);
+        $valAutocodigo = (int)$this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
+        $autocodigo = str_pad(($valAutocodigo + 1), 6, 0, STR_PAD_LEFT);
         $data2['autocodigo'] = getSettings("ABREVIATURA_AUTO_COD") . $autocodigo;
         $data2['user'] = $this->user;
         $send['view'] = view($this->dirViewModule . '\productos\viewProductos', $data2);
@@ -55,8 +55,8 @@ class ProductosController extends \App\Controllers\BaseController {
     }
 
     public function consultarAutoCodigo() {
-        $valAutocodigo = $this->ccm->getData('cc_autocodigo', $where = null, 'cod', $order = null, 1);
-        $codigo = str_pad(($valAutocodigo->cod + 1), 6, 0, STR_PAD_LEFT);
+        $valAutocodigo = (int)$this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
+        $codigo = str_pad(($valAutocodigo + 1), 6, 0, STR_PAD_LEFT);
         $autocodigo = getSettings("ABREVIATURA_AUTO_COD") . $codigo;
         return $this->response->setJSON($autocodigo);
     }
@@ -115,11 +115,12 @@ class ProductosController extends \App\Controllers\BaseController {
     }
 
     public function saveProducto() {
+        
         $prodNombre = $this->request->getPost('prodNombre');
         $prodCodigo = $this->request->getPost('prodCodigo');
         $prodCodigoBarras = $this->request->getPost('prodCodigoBarras');
         $prodCodigoBarras2 = $this->request->getPost('prodCodigoBarras2');
-        $prodCodigoBarras3 = $this->request->getPost('prodCodigoBarras3');
+        $prodCodigoBarras3 = $this->request->getPost('prodCodigoBarras3')??null;
         $prodExistenciaMinima = $this->request->getPost('prodExistenciaMinima');
         $prodExistenciaMaxima = $this->request->getPost('prodExistenciaMaxima');
         $prodVenta = $this->request->getPost('prodVenta'); //BOOLEAN
@@ -216,6 +217,7 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_ctrllote' => $prodCtrlLote == "true" ? 1 : 0,
                 'prod_facturar_ennegativo' => $prodFacturarEnNegativo == "true" ? 1 : 0,
                 'prod_facturar_precio_inferiorcosto' => $prodFacturarPrecioInferiorCosto == "true" ? 1 : 0,
+                'fk_user_id' => $this->user->id,
             ];
 
             $this->db->transBegin();
@@ -268,8 +270,8 @@ class ProductosController extends \App\Controllers\BaseController {
                 $this->ccm->guardar($datosImpuestoTarifaIce, 'cc_producto_impuestotarifa');
             }
 
-            $codigo = $this->ccm->getData('cc_autocodigo', $where = null, 'cod', $order = null, 1);
-            $this->ccm->actualizar("cc_autocodigo", ['cod' => $codigo->cod + 1], $where = null);
+            $codigo = $this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
+            $this->ccm->actualizar("cc_autocodigo", ['cod' => $codigo + 1], $where = null);
             if ($this->db->transStatus == false) {
                 $response['status'] = 'error';
                 $response['msg'] = '<h5>Ha ocurrido un error al tratar de crear el producto ' . $prodNombre . '</h5>';
@@ -403,6 +405,7 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_ctrllote' => $prodCtrlLote == "true" ? 1 : 0,
                 'prod_facturar_ennegativo' => $prodFacturarEnNegativo == "true" ? 1 : 0,
                 'prod_facturar_precio_inferiorcosto' => $prodFacturarPrecioInferiorCosto == "true" ? 1 : 0,
+                'fk_user_id' => $this->user->id,
             ];
 
             $this->db->transBegin();

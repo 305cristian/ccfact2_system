@@ -372,7 +372,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaTipoProducto = <?php echo json_encode($listaTipoProducto); ?>;
     var listaImpuestosTarifa = <?php echo json_encode($listaImpuestosTarifa); ?>;
     var listaImpuestosICE = <?php echo json_encode($listaImpuestosICE); ?>;
-    var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
+//    var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
     var listaSubGruposModal = <?php echo json_encode($listaSubgrupos); ?>;
     var listaCtaContable = <?php echo json_encode($listaCtaContable); ?>;
     var listaTiposPvp = <?php echo json_encode($listaTiposPvp); ?>;

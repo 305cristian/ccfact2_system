@@ -87,8 +87,17 @@ $routes->group('kardex', ['namespace' => '\Modules\Inventarios\Controllers'], fu
     $subroutes->get('general', 'KardexController::viewKardexGeneral');
     $subroutes->get('lotes', 'KardexController::viewKardexLote');
 
+    //KARDEX POR PRODUCTO
     $subroutes->post('getKardexProducto', 'KardexProductoController::getKardexProducto');
     $subroutes->post('getMiniKardexProducto', 'KardexProductoController::getMiniKardexProducto');
+
+    //KARDEX GENERAL
+    $subroutes->post('getKardexGeneral', 'KardexGeneralController::getKardexGeneral');
+    $subroutes->post('exportExcelKardexGeneral', 'ExcelExportController::exportExcelKardexGeneral');
+    $subroutes->post('exportPdfKardexGeneral', 'PdfExportController::exportPdfKardexGeneral');
+
+    //KARDEX LOTES
+    $subroutes->post('getKardexLote', 'KardexLotesController::getKardexLote');
 });
 
 $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Controllers'], function ($subroutes) {
@@ -106,5 +115,6 @@ $routes->group('ajustessalida', ['namespace' => '\Modules\AjustesSalida\Controll
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {
     $subroutes->post('productos/searchProductosFull', 'SearchsController::searchProductosFull');
     $subroutes->get('subgrupos/getSubgrupoByGrupo/(:num)', 'IndexController::getSubgrupoByGrupo/$1');
+    $subroutes->get('lotes/SearchsController/(:num)', 'SearchsController::searchProductoByLote/$1');
 });
 

@@ -15,12 +15,12 @@ namespace Modules\Inventarios\Controllers;
  * @date 27 ene 2026
  * @time 9:14:57 p.m.
  */
-
 use App\Controllers\BaseController;
 use Modules\Comun\Libraries\PdfExportLib;
 use Modules\Inventarios\Models\CaducidadModel;
 use Modules\Inventarios\Models\HistoricoModel;
 use Modules\Inventarios\Models\InventarioModel;
+use Modules\Inventarios\Models\KardexModel;
 use function view;
 
 class PdfExportController extends BaseController {
@@ -30,6 +30,7 @@ class PdfExportController extends BaseController {
     protected $pdfExport;
     protected $hisModel;
     protected $dirViewModule;
+    protected $karModel;
 
     public function __construct() {
 
@@ -37,6 +38,7 @@ class PdfExportController extends BaseController {
         $this->invModel = new InventarioModel();
         $this->caducModel = new CaducidadModel();
         $this->hisModel = new HistoricoModel();
+        $this->karModel = new KardexModel();
 
         //LIBRERIAS
         $this->pdfExport = new PdfExportLib();
@@ -231,6 +233,57 @@ class PdfExportController extends BaseController {
             'title' => 'REPORTE DE INVENTARIO HISTORICO',
             'html' => $html,
             'filename' => 'Inventario_Historico_' . date('Ymd_His') . '.pdf',
+            'orientation' => 'L' // Landscape (opcional)
+        ]);
+    }
+
+    public function exportPdfKardexGeneral() {
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $searchValue = $dataPost->search ?? '';
+        $orderData = $dataPost->order ?? [];
+        $orderBy = $orderData[0]->column ?? 'k.kar_fecha';
+        $orderDir = $orderData[0]->dir ?? 'DESC';
+
+        $movimiento = $dataPost->movimiento ?? null;
+
+        $filtros = [
+            'productoId' => $dataPost->kardProductoId ?? null,
+            'bodegaId' => $dataPost->kardBodega ?? null,
+            'grupoId' => $dataPost->kardGrupo ?? null,
+            'tipoTransferencia' => $dataPost->tipoTransferencia,
+            'rangoFechasKardex' => $dataPost->rangoFechasKardex ?? null,
+            'rangoFechasEmision' => $dataPost->rangoFechasEmision ?? null
+        ];
+
+        $mostrarDocumento = in_array($movimiento, ['COMPRAS', 'VENTAS']);
+        $mostrarMotivo = in_array($movimiento, ['AJUSTES_DE_ENTRADA', 'AJUSTES_DE_SALIDA']);
+        $mostrarProvClie = in_array($movimiento, ['COMPRAS', 'VENTAS']);
+
+        $dataInv = $this->karModel->getKardexGeneral($filtros, $movimiento, null, null, $searchValue, $orderBy, $orderDir);
+
+        $data['data'] = $dataInv['data'];
+        $data['bodgaSelect'] = $dataPost->kardBodega;
+        $data['mostrarDocumento'] = $mostrarDocumento;
+        $data['mostrarMotivo'] = $mostrarMotivo;
+        $data['mostrarProvClie'] = $mostrarProvClie;
+
+        $html = view($this->dirViewModule . '\Kardex\general\viewPdfReport', $data);
+
+        $title = match ($movimiento) {
+            'COMPRAS' => 'REPORTE DE COMPRAS',
+            'VENTAS' => 'REPORTE DE VENTAS',
+            'TRANSFERENCIAS' => 'REPORTE DE TRANSFERENCIAS',
+            'AJUSTES_DE_ENTRADA' => 'REPORTE AJUSTES ENTRADA',
+            'AJUSTES_DE_SALIDA' => 'REPORTE AJUSTES SALIDA',
+            default => 'REPORTE KARDEX GENERAL'
+        };
+        
+        $this->pdfExport->export([
+            'title' => $title,
+            'html' => $html,
+            'filename' => 'Kardex_General_' . date('Ymd_His') . '.pdf',
             'orientation' => 'L' // Landscape (opcional)
         ]);
     }

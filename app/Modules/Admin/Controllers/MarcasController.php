@@ -60,9 +60,13 @@ class MarcasController extends \App\Controllers\BaseController {
             ];
 
             $mrcSave = $this->ccm->guardar($datos, 'cc_marcas');
+
+            $dataMarca = $this->ccm->getData('cc_marcas', ['id' => $mrcSave], '*',null,1);
+
             $this->logs->logSuccess('SE HA CREADO UNA MARCA CON EL ID ' . $mrcSave);
             $response['status'] = 'success';
             $response['msg'] = '<h5>Marca registrado exitosamente</h5>';
+            $response['data'] = $dataMarca;
         } else {
             $response['status'] = 'vacio';
             $response['msg'] = [

@@ -11,14 +11,14 @@ use App\Controllers\BaseController;
 use Modules\Inventarios\Models\KardexModel;
 
 /**
- * Description of KardexProductoController
+ * Description of KardexLotesController
  *
   /**
  * @author CRISTIAN R. PAZ
- * @date 10 mar 2026
- * @time 4:19:41 p.m.
+ * @date 29 abr 2026
+ * @time 6:18:55 p.m.
  */
-class KardexProductoController extends BaseController {
+class KardexLotesController extends BaseController {
 
     protected $karModel;
 
@@ -27,7 +27,7 @@ class KardexProductoController extends BaseController {
         $this->karModel = new KardexModel();
     }
 
-    public function getKardexProducto() {
+    public function getKardexLote() {
         $dataPost = json_decode(file_get_contents('php://input'));
 
         if (empty($dataPost->kardProductoId)) {
@@ -36,31 +36,21 @@ class KardexProductoController extends BaseController {
                         'msg' => "Ingrese un producto para generar el kardex",
             ]);
         }
+        if (empty($dataPost->kardLoteId)) {
+            return $this->response->setJSON([
+                        'status' => 'error',
+                        'msg' => "Debe seleccionar un lote para poder consultar el kardex",
+            ]);
+        }
 
         $filtros = [
             'kardBodega' => $dataPost->kardBodega ?? null,
             'kardProductoId' => $dataPost->kardProductoId,
+            'kardLoteId' => $dataPost->kardLoteId,
             'rangoFechas' => $dataPost->rangoFechas ?? null
         ];
 
-        $respuesta = $this->karModel->getKardexProducto($filtros);
-
-        return $this->response->setJSON([
-                    'status' => !empty($respuesta) ? 'success' : 'warning',
-                    'data' => $respuesta,
-        ]);
-    }
-
-    public function getMiniKardexProducto() {
-        $dataPost = json_decode(file_get_contents('php://input'));
-
-        $filtros = [
-            'kardBodega' => $dataPost->kardBodega ?? null,
-            'productoId' => $dataPost->productoId ?? null,
-            'fecha' => date('Y-m-d', strtotime('-30 days'))
-        ];
-
-        $respuesta = $this->karModel->getMiniKardexProducto($filtros);
+        $respuesta = $this->karModel->getKardexLotes($filtros);
 
         return $this->response->setJSON([
                     'status' => !empty($respuesta) ? 'success' : 'warning',

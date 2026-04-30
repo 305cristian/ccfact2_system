@@ -20,6 +20,7 @@ use Modules\Comun\Libraries\ExcelExportLib;
 use Modules\Inventarios\Models\CaducidadModel;
 use Modules\Inventarios\Models\HistoricoModel;
 use Modules\Inventarios\Models\InventarioModel;
+use Modules\Inventarios\Models\KardexModel;
 
 class ExcelExportController extends BaseController {
 
@@ -27,12 +28,14 @@ class ExcelExportController extends BaseController {
     protected $caducModel;
     protected $hisModel;
     protected $xlsxExport;
+    protected $karModel;
 
     public function __construct() {
         //MODELOS
         $this->invModel = new InventarioModel();
         $this->caducModel = new CaducidadModel();
         $this->hisModel = new HistoricoModel();
+        $this->karModel = new KardexModel();
 
         //LIBRERIAS
         $this->xlsxExport = new ExcelExportLib();
@@ -344,6 +347,114 @@ class ExcelExportController extends BaseController {
             'data' => $rows,
             'filename' => 'Inventario_Histórico_' . date('Ymd_His') . '.xlsx',
             'lastColumn' => 'M'
+        ]);
+    }
+
+    public function exportExcelKardexGeneral() {
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+
+        $searchValue = $dataPost->search ?? '';
+        $orderData = $dataPost->order ?? [];
+        $orderBy = $orderData[0]->column ?? 'k.kar_fecha';
+        $orderDir = $orderData[0]->dir ?? 'DESC';
+
+        $movimiento = $dataPost->movimiento ?? null;
+
+        $filtros = [
+            'productoId' => $dataPost->kardProductoId ?? null,
+            'bodegaId' => $dataPost->kardBodega ?? null,
+            'grupoId' => $dataPost->kardGrupo ?? null,
+            'tipoTransferencia' => $dataPost->tipoTransferencia,
+            'rangoFechasKardex' => $dataPost->rangoFechasKardex ?? null,
+            'rangoFechasEmision' => $dataPost->rangoFechasEmision ?? null
+        ];
+
+        $mostrarDocumento = in_array($movimiento, ['COMPRAS', 'VENTAS']);
+        $mostrarMotivo = in_array($movimiento, ['AJUSTES_DE_ENTRADA', 'AJUSTES_DE_SALIDA']);
+        $mostrarProvClie = in_array($movimiento, ['COMPRAS', 'VENTAS']);
+
+        $data = $this->karModel->getKardexGeneral($filtros, $movimiento, null, null, $searchValue, $orderBy, $orderDir);
+
+        $rows = [];
+        foreach ($data['data'] as $item) {
+            $row = [
+                $item->fecha_movimiento,
+                $item->fecha_emision,
+                $item->prod_codigo,
+                $item->prod_nombre,
+                $item->gr_nombre,
+                $item->sgr_nombre,
+                $item->bod_nombre,
+                $item->lot_lote ?? 'N/A',
+                $item->lot_fecha_caducidad ?? 'N/A',
+                number_format($item->cantidad, 2),
+                $item->kar_costo_promedio,
+                $item->total_promedio,
+                $item->kar_costo_ultimo,
+                $item->total_ultimo,
+                $item->transaccion ?? '-'
+            ];
+
+            if ($mostrarDocumento) {
+                $row[] = $item->documento ?? '-';
+            }
+
+            if ($mostrarMotivo) {
+                $row[] = $item->motivo ?? '-';
+            }
+
+            if ($mostrarProvClie) {
+                $row[] = $item->proveedor_cliente ?? '-';
+            }
+            $rows[] = $row;
+        }
+
+        $headers = [
+            'FECHA MOV.',
+            'FECHA EMISIÓN',
+            'CÓDIGO',
+            'PRODUCTO',
+            'GRUPO',
+            'SUBGRUPO',
+            'BODEGA',
+            'LOTE',
+            'F. CADUC.',
+            'CANTIDAD',
+            'C. PROMEDIO',
+            'TOTAL PROM.',
+            'C. ÚLTIMO',
+            'TOTAL ÚLTIMO',
+            'TRANSACCIÓN'
+        ];
+
+        if ($mostrarDocumento) {
+            $headers[] = 'NUM DOCUMENTO';
+        }
+
+        if ($mostrarMotivo) {
+            $headers[] = 'MOTIVO';
+        }
+
+        if ($mostrarProvClie) {
+            $headers[] = 'PROV/CLI';
+        }
+
+        $title = match ($movimiento) {
+            'COMPRAS' => 'REPORTE DE COMPRAS',
+            'VENTAS' => 'REPORTE DE VENTAS',
+            'TRANSFERENCIAS' => 'REPORTE DE TRANSFERENCIAS',
+            'AJUSTES_DE_ENTRADA' => 'REPORTE AJUSTES ENTRADA',
+            'AJUSTES_DE_SALIDA' => 'REPORTE AJUSTES SALIDA',
+            default => 'REPORTE KARDEX GENERAL'
+        };
+
+        $this->xlsxExport->export([
+            'title' => $title,
+            'headers' => $headers,
+            'data' => $rows,
+            'filename' => 'Kardex_General_' . date('Ymd_His') . '.xlsx',
+            'lastColumn' => chr(64 + count($headers)) // A=1, B=2, ...
         ]);
     }
 }

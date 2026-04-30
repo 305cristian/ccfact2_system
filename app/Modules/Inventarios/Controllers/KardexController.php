@@ -69,6 +69,7 @@ class KardexController extends \App\Controllers\BaseController {
     public function viewKardexGeneral() {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
+        $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
         $data2['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $send['sidebar'] = view($this->dirViewModule . '\Kardex\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\Kardex\general\viewGeneral', $data2);

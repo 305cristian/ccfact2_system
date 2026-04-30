@@ -98,4 +98,11 @@ class SearchsController extends \App\Controllers\BaseController {
         }
         return $this->response->setJSON(false);
     }
+
+    public function searchProductoByLote($productoId) {
+
+        $respuesta = $this->ccm->getData('cc_lotes', ['fk_producto' => $productoId], 'id, CONCAT(" Lote: ",lot_lote," F. Caducidad: ",lot_fecha_caducidad)as lote ,lot_lote, lot_fecha_elaboracion, lot_fecha_caducidad');
+
+        return $this->response->setJSON($respuesta ?? []);
+    }
 }

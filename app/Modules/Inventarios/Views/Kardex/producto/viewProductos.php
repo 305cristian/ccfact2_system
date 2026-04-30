@@ -42,7 +42,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     <div class="card card-system card-outline">
         <div class="card-header">
             <h5 class="card-title text-system">
-                <i class="fas fa-box"></i> Krdex Por Producto
+                <i class="fas fa-box"></i> Kardex Por Producto
             </h5>           
         </div>
 
@@ -122,13 +122,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <!-- Buscar -->
                     <div class="col-md-2 col-sm-6 ">
                         <button class="btn btn-system" @click="searchDataReport()" :disabled="loading">
-                            <span><i class="fas fa-search"></i> Generar Kardex</span>
+                            <span><i class="fas fa-search"></i> Consultar Movimientos</span>
                         </button>
                     </div>
 
                 </div>
                 <div class="row col-md-12">
-                    <span class="badge badge-primary">{{nombreProducto}}</span>
+                    <span class="badge badge-primary fs-6">{{nombreProducto}}</span>
                 </div>
             </fieldset>
             <div  v-if="!showContent" class="empty-state">
@@ -139,7 +139,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     Utiliza los filtros de búsqueda de arriba para proceder
                 </p>
                 <p style="font-size: 0.9rem; color: #d1d5db;">
-                    De click en el boton Generar Kardex
+                    De click en el boton  Consultar Movimientos
                 </p>
             </div>
             <div v-else>
@@ -245,12 +245,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <div class="fw-bold text-primary">
                                         {{ parseFloat(item.kardex_total).toFixed(2) }}
                                     </div>
-
-                                    <!--                                    <div class="progress mt-1" style="height: 4px;">
-                                                                            <div class="progress-bar bg-primary" 
-                                                                                 :style="{width: getPorcentajeStock(item.kardex_total) + '%'}">
-                                                                            </div>
-                                                                        </div>-->
                                 </td>
 
 
@@ -330,16 +324,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaSearchProductos: [],
                 listaKardex: [],
 
-                //PAGINACION
-                pagination: {
-                    currentPage: 1,
-                    pageSize: 10,
-                    totalRecords: 0,
-                    filteredRecords: 0,
-                    searchTerm: '',
-                    sortColumn: '',
-                    sortDirection: ''
-                },
                 searchTimeout: null,
 
                 // Variables para Flatpickr
@@ -503,6 +487,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         this.listaKardex = data.data;
                         Swal.close();
                         dataTable("#tblKardexProducto", 'Reporte Kardex', this.nombreProducto);
+                    } else if (data.status === 'error') {
+                        sweet_msg_dialog('warning', data.msg);
                     } else {
                         sweet_msg_dialog('warning', 'No se han encontrado registros para mostrar');
                     }
@@ -545,49 +531,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             onRemove() {
                 this.listaSearchProductos = [];
                 this.filtros.productoSearch = null;
-            },
-            async exportExcel() {
-                const datos = {
-                    ...this.filtros,
-                    search: this.pagination.searchTerm,
-                };
-                try {
-                    this.downloadingexcel = true;
-                    const {data} = await axios.post(this.url + '/inventarios/exportExcelGeneral', datos, {responseType: 'blob'});
-                    const url = window.URL.createObjectURL(new Blob([data]));
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', 'Inventario_General.xlsx');
-                    document.body.appendChild(link);
-                    link.click();
-                } catch (e) {
-                    sweet_msg_dialog('error', '', '', e.message);
-                } finally {
-                    this.downloadingexcel = false;
-                }
-
-            },
-            async exportPdf() {
-                const datos = {
-                    ...this.filtros,
-                    search: this.pagination.searchTerm
-                };
-                try {
-                    this.downloadingpdf = true;
-                    const {data} = await axios.post(this.url + '/inventarios/exportPdfGeneral', datos, {responseType: 'blob'});
-                    const blob = new Blob([data], {type: 'application/pdf'});
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'Inventario_General.pdf';
-                    link.click();
-                } catch (e) {
-                    sweet_msg_dialog('error', '', '', e.response.data?.message || e.message);
-                } finally {
-                    this.downloadingpdf = false;
-                }
-
-
             },
 
             formatToUSD(amount) {

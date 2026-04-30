@@ -203,7 +203,7 @@ class EntradasLib {
 //            throw new \Exception("El producto {$producto->name} quedaría con stock negativo.");
 //        }
         // Calcular costo promedio
-        if ($tipoAjuste === 'AJUSTE_NORMAL') {
+        if ($tipoAjuste === 'AJUSTE_NORMAL' || $tipoAjuste === 'AJUSTE_INICIAL') {
             
             $promedioActual = $this->productLib->getCostoPromedio($producto->id);
             $costoPromedio = $promedioActual > 0 ? $promedioActual : $producto->price;

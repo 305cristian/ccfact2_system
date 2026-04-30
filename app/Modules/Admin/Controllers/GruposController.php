@@ -89,9 +89,12 @@ class GruposController extends \App\Controllers\BaseController {
             ];
 
             $grSave = $this->ccm->guardar($datos, 'cc_grupos');
+            $dataGrupo = $this->ccm->getData('cc_grupos', ['id' => $grSave], '*', null, 1);
+
             $this->logs->logSuccess('SE HA CREADO UN GRUPO CON EL ID ' . $grSave);
             $response['status'] = 'success';
             $response['msg'] = '<h5>Grupo registrado exitosamente</h5>';
+            $response['data'] = $dataGrupo;
         } else {
             $response['status'] = 'vacio';
             $response['msg'] = [
@@ -190,9 +193,12 @@ class GruposController extends \App\Controllers\BaseController {
             ];
 
             $sgrSave = $this->ccm->guardar($datos, 'cc_subgrupos');
+            $dataSubGrupo = $this->ccm->getData('cc_subgrupos', ['id' => $sgrSave], '*', null, 1);
+
             $this->logs->logSuccess('SE HA CREADO UN SUBGRUPO CON EL ID ' . $sgrSave);
             $response['status'] = 'success';
             $response['msg'] = '<h5>SubGrupo registrado exitosamente</h5>';
+            $response['data'] = $dataSubGrupo;
         } else {
             $response['status'] = 'vacio';
             $response['msg'] = [

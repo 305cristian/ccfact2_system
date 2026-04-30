@@ -35,7 +35,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                         <div class="mb-3 col-md-6">
                             <label for="prodNombre" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span>Código</label>
-                            <input  v-model="newProducto.prodCodigo" type="text" class="form-control" id="prodCodigo" placeholder="Ingrese un código" />
+                            <input  v-model="newProducto.prodCodigo" type="text" class="form-control" id="prodCodigo" placeholder="Ingrese un código"/>
                             <!--validaciones-->
                             <div v-html="formValidacion.prodCodigo" class="text-danger"></div>
                         </div>  
@@ -55,22 +55,36 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <label for="prodCodigoBarras3" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Cod Barras 3</label>
                             <input  v-model="newProducto.prodCodigoBarras3" type="text" class="form-control" id="prodCodigoBarras3" placeholder="Ingrese un codigo de barras" />   
                         </div>  
-                        <div class="mb-3 col-md-6">                             
+                        <div class="mb-3 col-md-6">  
                             <label for="prodMarca" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Marca</label>
-                            <select v-model="newProducto.prodMarca" class="form-select border" id="prodMarca">
+<!--                            <select v-model="newProducto.prodMarca" class="form-select border" id="prodMarca">
                                 <option v-for="lm of listaMarcas" v-bind:value="lm.id">{{lm.mrc_nombre}}</option>
-                            </select>
+                            </select>-->
+                            <vue-select
+                                class="flex-grow-1 border rounded"
+                                :options="listaMarcas"
+                                label="mrc_nombre"
+                                v-model="newProducto.prodMarca"
+                                placeholder="Seleccione una marca o digite una nueva para crearla"
+                                taggable
+                                :create-option="marca => ({ mrc_nombre: marca, id: null })"
+                                @option:created="crearMarca"
+                                > 
+                            </vue-select>
+
+
+
                         </div>
                     </div>  
 
                     <div class="row">
                         <div class="mb-3 col-md-6">
                             <label for="prodExistenciaMinima" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Stock Min</label>
-                            <input  v-model="newProducto.prodExistenciaMinima" type="number" class="form-control" id="prodExistenciaMinima" placeholder="Ingrese el Stock minimo" />   
+                            <input  v-model="newProducto.prodExistenciaMinima" type="number" class="form-control" id="prodExistenciaMinima" placeholder="Ingrese el Stock minimo"/>   
                         </div>       
                         <div class="mb-3 col-md-6">
                             <label for="prodExistenciaMaxima" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Stock Max</label>
-                            <input  v-model="newProducto.prodExistenciaMaxima" type="number" class="form-control" id="prodExistenciaMaxima" placeholder="Ingrese el Stock minimo" />   
+                            <input  v-model="newProducto.prodExistenciaMaxima" type="number" class="form-control" id="prodExistenciaMaxima" placeholder="Ingrese el Stock minimo"/>   
                         </div>       
                     </div>
                     <div class="row">
@@ -89,16 +103,42 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="row">
                         <div class="mb-3 col-md-6">                                      
                             <label for="prodGrupo" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span>Grupo</label>
-                            <select @change="getSubgrupo()" v-model="idGrupo"  class="form-select border" id="prodGrupo">
+<!--                            <select @change="getSubgrupo()" v-model="idGrupo"  class="form-select border" id="prodGrupo">
                                 <option v-for="lg of listaGrupos" v-bind:value="lg.id">{{lg.gr_nombre}}</option>
-                            </select>
+                            </select>-->
+                            
+                             <vue-select
+                                class="flex-grow-1 border rounded"
+                                :options="listaGrupos"
+                                label="gr_nombre"
+                                v-model="idGrupo"
+                                placeholder="Seleccione un grupo"
+                                taggable
+                                :create-option="grupo => ({ gr_nombre: grupo, id: null })"
+                                @option:created="crearGrupo"
+                                >
+                             </vue-select>
+                            
                             <div v-html="formValidacion.grupo" class="text-danger"></div>
                         </div>
                         <div class="mb-3 col-md-6">                             
                             <label for="prodSubgrupo" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span>SubGrupo</label>
-                            <select v-model="newProducto.prodSubgrupo"  class="form-select border" id="prodSubgrupo">
+<!--                            <select v-model="newProducto.prodSubgrupo"  class="form-select border" id="prodSubgrupo">
                                 <option v-for="lsg of listaSubGrupos" v-bind:value="lsg.id">{{lsg.sgr_nombre}}</option>
-                            </select>
+                            </select>-->
+                            
+                             <vue-select
+                                class="flex-grow-1 border rounded"
+                                :options="listaSubGrupos"
+                                label="sgr_nombre"
+                                v-model="newProducto.prodSubgrupo"
+                                placeholder="Seleccione un subgrupo"
+                                taggable
+                                :create-option="subgrupo => ({ sgr_nombre: subgrupo, id: null })"
+                                @option:created="crearSubGrupo"
+                                >
+                             </vue-select>
+                            
                             <div v-html="formValidacion.prodSubgrupo" class="text-danger"></div>                                 
                         </div>
                     </div>
@@ -265,6 +305,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
             </div>
         </div>
-      
+
     </div>
 </div>

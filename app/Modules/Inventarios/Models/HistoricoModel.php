@@ -74,7 +74,7 @@ class HistoricoModel extends \CodeIgniter\Model {
             $builder->orderBy($orderBy, $orderDir);
         }
 
-        if (isset($start) && $start !== null) {
+        if ($start !== null && $length !== null) {
             $builder->limit($length, $start);
         }
 
