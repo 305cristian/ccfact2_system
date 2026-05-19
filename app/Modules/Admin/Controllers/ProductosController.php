@@ -34,14 +34,14 @@ class ProductosController extends \App\Controllers\BaseController {
         $data2['listaUnidadesMedida'] = $this->ccm->getData('cc_unidades_medida', ['um_estado' => 1], '*');
         $data2['listaMarcas'] = $this->ccm->getData('cc_marcas', ['mrc_estado' => 1], '*');
         $data2['listaTipoProducto'] = $this->ccm->getData('cc_tipo_producto', ['tp_estado' => 1], '*');
-        $data2['listaImpuestosTarifa'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 1], '*');
-        $data2['listaImpuestosICE'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 2], '*');
+        $data2['listaImpuestosTarifa'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 1, 'impt_estado' => 'ACTIVO'], '*');
+        $data2['listaImpuestosICE'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 2, 'impt_estado' => 'ACTIVO'], '*');
         $data2['listaSubgrupos'] = $this->ccm->getData('cc_subgrupos', ['sgr_estado' => 1], '*');
         $data2['listaGrupos'] = $this->ccm->getData('cc_grupos', ['gr_estado' => 1], '*');
         $data2['listaCtaContable'] = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_estado' => 1], 'ctad_codigo, CONCAT(ctad_codigo," ",ctad_nombre_cuenta)cuentadet');
         $data2['listaTiposPvp'] = $this->ccm->getData('cc_tipo_precios', ['tpc_estado' => 1], "*");
 
-        $valAutocodigo = (int)$this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
+        $valAutocodigo = (int) $this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
         $autocodigo = str_pad(($valAutocodigo + 1), 6, 0, STR_PAD_LEFT);
         $data2['autocodigo'] = getSettings("ABREVIATURA_AUTO_COD") . $autocodigo;
         $data2['user'] = $this->user;
@@ -55,7 +55,7 @@ class ProductosController extends \App\Controllers\BaseController {
     }
 
     public function consultarAutoCodigo() {
-        $valAutocodigo = (int)$this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
+        $valAutocodigo = (int) $this->ccm->getValueWhere('cc_autocodigo', $where = null, 'cod');
         $codigo = str_pad(($valAutocodigo + 1), 6, 0, STR_PAD_LEFT);
         $autocodigo = getSettings("ABREVIATURA_AUTO_COD") . $codigo;
         return $this->response->setJSON($autocodigo);
@@ -115,12 +115,12 @@ class ProductosController extends \App\Controllers\BaseController {
     }
 
     public function saveProducto() {
-        
+
         $prodNombre = $this->request->getPost('prodNombre');
         $prodCodigo = $this->request->getPost('prodCodigo');
         $prodCodigoBarras = $this->request->getPost('prodCodigoBarras');
         $prodCodigoBarras2 = $this->request->getPost('prodCodigoBarras2');
-        $prodCodigoBarras3 = $this->request->getPost('prodCodigoBarras3')??null;
+        $prodCodigoBarras3 = $this->request->getPost('prodCodigoBarras3') ?? null;
         $prodExistenciaMinima = $this->request->getPost('prodExistenciaMinima');
         $prodExistenciaMaxima = $this->request->getPost('prodExistenciaMaxima');
         $prodVenta = $this->request->getPost('prodVenta'); //BOOLEAN
@@ -142,6 +142,9 @@ class ProductosController extends \App\Controllers\BaseController {
             $prodIcePorcentaje = $this->ccm->getValue('cc_impuesto_tarifa', $prodIcePorcentajeId, "impt_porcentage", "id");
         }
         $prodTieneICE = $this->request->getPost('prodTieneICE');
+
+        $prodTieneIrbpnr = $this->request->getPost('prodTieneIrbpnr');
+        $irbpnrValor = $prodTieneIrbpnr === '1' ? ($this->request->getPost('prodIrbpnrValor') ?: getImpuestoIrbpnr()) : null;
 
         $prodIsPromo = $this->request->getPost('prodIsPromo'); //BOOLEAN
         $prodPvpPromo = $this->request->getPost('prodPvpPromo');
@@ -217,6 +220,8 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_ctrllote' => $prodCtrlLote == "true" ? 1 : 0,
                 'prod_facturar_ennegativo' => $prodFacturarEnNegativo == "true" ? 1 : 0,
                 'prod_facturar_precio_inferiorcosto' => $prodFacturarPrecioInferiorCosto == "true" ? 1 : 0,
+                'prod_tiene_irbpnr' => $prodTieneIrbpnr,
+                'prod_valor_irbpnr' => $irbpnrValor,
                 'fk_user_id' => $this->user->id,
             ];
 
@@ -327,6 +332,9 @@ class ProductosController extends \App\Controllers\BaseController {
         }
         $prodTieneICE = $this->request->getPost('prodTieneICE');
 
+        $prodTieneIrbpnr = $this->request->getPost('prodTieneIrbpnr');
+        $irbpnrValor = $prodTieneIrbpnr === '1' ? ($this->request->getPost('prodIrbpnrValor') ? : getImpuestoIrbpnr()) : null;
+
         $prodIsPromo = $this->request->getPost('prodIsPromo'); //BOOLEAN
         $prodPvpPromo = $this->request->getPost('prodPvpPromo');
         $prodEspecificaciones = $this->request->getPost('prodEspecificaciones');
@@ -390,7 +398,7 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_valormedida' => $prodValorMedida,
                 'fk_unidadmedida' => $prodUnidadMedida,
                 'fk_subgrupo' => $prodSubgrupo,
-                'fk_marca' => $prodMarca == "null" ? NULL : $prodMarca,
+                'fk_marca' => $prodMarca ?: NULL,
                 'fk_tipoproducto' => $prodTipoProducto,
                 'prod_ivaporcentage' => $prodIvaPorcentaje,
                 'prod_iceporcentage' => $prodIcePorcentaje,
@@ -405,6 +413,8 @@ class ProductosController extends \App\Controllers\BaseController {
                 'prod_ctrllote' => $prodCtrlLote == "true" ? 1 : 0,
                 'prod_facturar_ennegativo' => $prodFacturarEnNegativo == "true" ? 1 : 0,
                 'prod_facturar_precio_inferiorcosto' => $prodFacturarPrecioInferiorCosto == "true" ? 1 : 0,
+                'prod_tiene_irbpnr' => $prodTieneIrbpnr,
+                'prod_valor_irbpnr' => $irbpnrValor,
                 'fk_user_id' => $this->user->id,
             ];
 

@@ -155,7 +155,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <label for="prodIvaPorcentajeId" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span>Tipo de Impuesto</label>
                             <select @change="desglosarIva2()" v-model="newProducto.prodIvaPorcentajeId"  class="form-select border" id="prodIvaPorcentajeId">
                                 <option  v-for="lti of listaImpuestosTarifa" v-bind:value="lti.id">
-                                <template v-if="lti.impt_codigo == 2">{{lti.impt_detalle}} {{ivaActual}}%</template>
+                                <template v-if="lti.impt_porcentage > 0">{{lti.impt_detalle}} {{lti.impt_porcentage}}%</template>
                                 <template v-else>{{lti.impt_detalle}}</template>
                                 </option>
                             </select>
@@ -200,6 +200,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <select id="selectImpIce" v-model="newProducto.prodIcePorcentajeId"  class="form-select border" id="prodIcePorcentajeId">
                                 <option v-for="lii of listaImpuestosICE" v-bind:value="lii.id">{{lii.impt_detalle}} {{lii.impt_porcentage}}%</option>
                             </select>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="row">
+                        <div class="mb-3 col-md-6">                             
+                            <label for="prodTieneIrbpnr" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Tiene IRBPNR</label>
+                            <select  v-model="newProducto.prodTieneIrbpnr"  class="form-select border" id="prodTieneIrbpnr">
+                                <option value="1">SI</option>
+                                <option value="0">NO</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 col-md-6">                             
+                            <label for="prodIcePorcentajeId" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> IRBPNR VALOR</label>
+                            <input type="text"  id="selectImpIrbpnr" class="form-control" v-model="newProducto.prodIrbpnrValor"  readonly="true">
                         </div>
 
                     </div>

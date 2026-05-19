@@ -69,6 +69,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join("cc_grupos tb5 ", "tb5.id = tb4.fk_grupo", "left");
         $builder->join("cc_marcas tb6 ", "tb6.id = tb1.fk_marca", "left");
         $builder->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id ");
+        $builder->join("cc_impuesto_tarifa tb9", "tb9.id = tb7.fk_impuestotarifa ");
         $builder->join("cc_unidades_medida tb8", "tb8.id = tb1.fk_unidadmedida", "left");
 
         // Mapeo de filtros a columnas de BD
@@ -86,7 +87,12 @@ class InventarioModel extends \CodeIgniter\Model {
             $builder->where('tb5.id', $filtros['invGrupo']);
         }
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb9.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb9.impt_report_iva', 2);
+            } else {
+                $builder->where('tb9.impt_report_iva', 1);
+            }
         }
         if (!empty($filtros['invProductoId'])) {
             $builder->where('tb1.id', $filtros['invProductoId']);
@@ -132,6 +138,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join('cc_grupos tb5', 'tb5.id = tb4.fk_grupo', 'left');
         $builder->join('cc_marcas tb6', 'tb6.id = tb1.fk_marca', 'left');
         $builder->join('cc_producto_impuestotarifa tb7', 'tb7.fk_producto = tb1.id');
+        $builder->join("cc_impuesto_tarifa tb9", "tb9.id = tb7.fk_impuestotarifa ");
 
         // Filtros
         if (!empty($filtros['invBodega'])) {
@@ -151,7 +158,12 @@ class InventarioModel extends \CodeIgniter\Model {
         }
 
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb9.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb9.impt_report_iva', 2);
+            } else {
+                $builder->where('tb9.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invProductoId'])) {
@@ -274,6 +286,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id ");
         $builder->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
         $builder->join("cc_unidades_medida tb9", "tb9.id = tb1.fk_unidadmedida", "left");
+        $builder->join("cc_impuesto_tarifa tb10", "tb10.id = tb7.fk_impuestotarifa ");
 
         // Mapeo de filtros a columnas de BD
         if (!empty($filtros['invBodega'])) {
@@ -290,7 +303,12 @@ class InventarioModel extends \CodeIgniter\Model {
             $builder->where('tb5.id', $filtros['invGrupo']);
         }
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb10.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb10.impt_report_iva', 2);
+            } else {
+                $builder->where('tb10.impt_report_iva', 1);
+            }
         }
         if (!empty($filtros['invProductoId'])) {
             $builder->where('tb1.id', $filtros['invProductoId']);
@@ -337,6 +355,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder->join('cc_marcas tb6', 'tb6.id = tb1.fk_marca', 'left');
         $builder->join('cc_producto_impuestotarifa tb7', 'tb7.fk_producto = tb1.id');
         $builder->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
+        $builder->join("cc_impuesto_tarifa tb10", "tb10.id = tb7.fk_impuestotarifa ");
 
         // Filtros
         if (!empty($filtros['invBodega'])) {
@@ -356,7 +375,12 @@ class InventarioModel extends \CodeIgniter\Model {
         }
 
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb10.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb10.impt_report_iva', 2);
+            } else {
+                $builder->where('tb10.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invProductoId'])) {
@@ -475,6 +499,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder1->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
         $builder1->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
         $builder1->join("cc_unidades_medida tb8", "tb8.id = tb1.fk_unidadmedida", "left");
+        $builder1->join("cc_impuesto_tarifa tb9", "tb9.id = tb7.fk_impuestotarifa ");
 
         $builder1->where("tb1.prod_ctrllote", 0);
 
@@ -493,7 +518,12 @@ class InventarioModel extends \CodeIgniter\Model {
             $builder1->where('tb5.id', $filtros['invGrupo']);
         }
         if (!empty($filtros['invIva'])) {
-            $builder1->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder1->where('tb9.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder1->where('tb9.impt_report_iva', 2);
+            } else {
+                $builder1->where('tb9.impt_report_iva', 1);
+            }
         }
         if (!empty($filtros['invProductoId'])) {
             $builder1->where('tb1.id', $filtros['invProductoId']);
@@ -551,6 +581,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder2->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
         $builder2->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
         $builder2->join("cc_unidades_medida tb9", "tb9.id = tb1.fk_unidadmedida", "left");
+        $builder2->join("cc_impuesto_tarifa tb10", "tb9.id = tb7.fk_impuestotarifa ");
 
         $builder2->where("tb1.prod_ctrllote", 1);
 
@@ -568,7 +599,12 @@ class InventarioModel extends \CodeIgniter\Model {
             $builder2->where('tb5.id', $filtros['invGrupo']);
         }
         if (!empty($filtros['invIva'])) {
-            $builder2->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder2->where('tb10.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder2->where('tb10.impt_report_iva', 2);
+            } else {
+                $builder2->where('tb10.impt_report_iva', 1);
+            }
         }
         if (!empty($filtros['invProductoId'])) {
             $builder2->where('tb1.id', $filtros['invProductoId']);
@@ -661,6 +697,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $b1->join("cc_grupos tb5", "tb5.id = tb4.fk_grupo", "left");
         $b1->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
         $b1->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
+        $b1->join("cc_impuesto_tarifa tb9", "tb9.id = tb7.fk_impuestotarifa ");
 
         $b1->where("tb1.prod_ctrllote", 0);
 
@@ -678,7 +715,12 @@ class InventarioModel extends \CodeIgniter\Model {
         }
 
         if (!empty($filtros['invIva'])) {
-            $b1->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $b1->where('tb9.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $b1->where('tb9.impt_report_iva', 2);
+            } else {
+                $b1->where('tb9.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invProductoId'])) {
@@ -717,6 +759,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $b2->join("cc_marcas tb6", "tb6.id = tb1.fk_marca", "left");
         $b2->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
         $b2->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
+        $b2->join("cc_impuesto_tarifa tb9", "tb9.id = tb7.fk_impuestotarifa ");
 
         $b2->where("tb1.prod_ctrllote", 1);
 
@@ -734,7 +777,12 @@ class InventarioModel extends \CodeIgniter\Model {
         }
 
         if (!empty($filtros['invIva'])) {
-            $b2->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $b2->where('tb9.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $b2->where('tb9.impt_report_iva', 2);
+            } else {
+                $b2->where('tb9.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invProductoId'])) {

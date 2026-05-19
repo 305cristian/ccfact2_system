@@ -51,7 +51,12 @@ class HistoricoModel extends \CodeIgniter\Model {
             $builder->where('tb6.id', $filtros['invGrupo']);
         }
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb11.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb12.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb12.impt_report_iva', 2);
+            } else {
+                $builder->where('tb12.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invSubgrupo'])) {
@@ -113,8 +118,14 @@ class HistoricoModel extends \CodeIgniter\Model {
         if (!empty($filtros['invGrupo'])) {
             $builder->where('tb6.id', $filtros['invGrupo']);
         }
+
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb11.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb12.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb12.impt_report_iva', 2);
+            } else {
+                $builder->where('tb12.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invSubgrupo'])) {
@@ -157,5 +168,6 @@ class HistoricoModel extends \CodeIgniter\Model {
         $builder->join("cc_unidades_medida tb8", "tb8.id = tb2.fk_unidadmedida", "left");
         $builder->join("cc_cuenta_contabledet tb9", "tb9.ctad_codigo = tb2.fk_cuentacontablecompras", "left");
         $builder->join("cc_producto_impuestotarifa tb11", "tb11.fk_producto = tb1.fk_producto", "left");
+        $builder->join("cc_impuesto_tarifa tb12", "tb12.id = tb11.fk_impuestotarifa ");
     }
 }

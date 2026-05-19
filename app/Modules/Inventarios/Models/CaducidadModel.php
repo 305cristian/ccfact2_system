@@ -53,6 +53,7 @@ class CaducidadModel extends \CodeIgniter\Model {
         $builder->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id ");
         $builder->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
         $builder->join("cc_unidades_medida tb9", "tb9.id = tb1.fk_unidadmedida", "left");
+        $builder->join("cc_impuesto_tarifa tb10", "tb10.id = tb7.fk_impuestotarifa ");
 
         // Mapeo de filtros a columnas de BD
         if (!empty($filtros['invBodega'])) {
@@ -69,7 +70,12 @@ class CaducidadModel extends \CodeIgniter\Model {
             $builder->where('tb5.id', $filtros['invGrupo']);
         }
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb10.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb10.impt_report_iva', 2);
+            } else {
+                $builder->where('tb10.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invSubgrupo'])) {
@@ -111,7 +117,7 @@ class CaducidadModel extends \CodeIgniter\Model {
         }
     }
 
-    public function countFilteredProductsCaducidad(array $filtros, ?string $search=null): int {
+    public function countFilteredProductsCaducidad(array $filtros, ?string $search = null): int {
         $builder = $this->db->table('cc_productos tb1');
         $builder->select('tb1.id');
 
@@ -122,6 +128,7 @@ class CaducidadModel extends \CodeIgniter\Model {
         $builder->join('cc_marcas tb6', 'tb6.id = tb1.fk_marca', 'left');
         $builder->join('cc_producto_impuestotarifa tb7', 'tb7.fk_producto = tb1.id');
         $builder->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
+        $builder->join("cc_impuesto_tarifa tb9", "tb9.id = tb7.fk_impuestotarifa ");
 
         // Filtros
         if (!empty($filtros['invBodega'])) {
@@ -141,7 +148,12 @@ class CaducidadModel extends \CodeIgniter\Model {
         }
 
         if (!empty($filtros['invIva'])) {
-            $builder->where('tb7.fk_impuestotarifa', $filtros['invIva']);
+            $builder->where('tb9.fk_impuesto', 1);
+            if ($filtros['invIva'] == 2) {
+                $builder->where('tb9.impt_report_iva', 2);
+            } else {
+                $builder->where('tb9.impt_report_iva', 1);
+            }
         }
 
         if (!empty($filtros['invProductoId'])) {

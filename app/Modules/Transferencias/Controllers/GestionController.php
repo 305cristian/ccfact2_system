@@ -40,7 +40,7 @@ class GestionController extends \App\Controllers\BaseController {
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaUsuarios'] = $this->ccm->getData('cc_empleados', ['emp_estado' => 1], 'id, CONCAT(emp_nombre, " ", emp_apellido) empleado');
 
-        $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+        $bodegaMainUsuario = bodegaMain($this->user->id);
         $data['userSession'] = $this->user->id;
         $data['rootUser'] = $this->user->root;
         $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;

@@ -85,7 +85,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
         $data['listaServicios'] = $this->ccm->getData('cc_servicios', ['serv_estado' => 1], 'id, serv_nombre');
 
-        $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+        $bodegaMainUsuario = bodegaMain($this->user->id);
 
         // Usamos una clave de sesión independiente a la de entradas
         $data['bodegaId'] = $this->session->get('bodegaIdAjs') ? $this->session->get('bodegaIdAjs') : $bodegaMainUsuario;

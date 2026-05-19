@@ -59,3 +59,22 @@ function getNumeroAsiento($fecha) {
         return $respuesta->pc_valor;
     }
 }
+
+function ivaPredeterminado() {
+    $ccm = Services::ccModel();
+    $respuesta = $ccm->getData('cc_impuesto_tarifa', ['impt_predeterminado' => 1], 'impt_porcentage', null, 1);
+    $val = $ccm->getValue('cc_settings', 'IVA', 'st_value', 'st_nombre');
+    return $respuesta ? $respuesta->impt_porcentage : $val;
+}
+
+function getImpuestoIrbpnr() {
+    $ccm = Services::ccModel();
+    $val = $ccm->getValueWhere('cc_parametros_irbpnr', ['param_clave' => 'IRBPNR_UNITARIO', 'param_estado' => 1], 'param_valor');
+    return $val;
+}
+
+function bodegaMain($userId) {
+    $ccm = Services::ccModel();
+    $bodegaUsuario = $ccm->getValueWhere('cc_empleados', ['id' => $userId], 'fk_bodega_main');
+    return $bodegaUsuario;
+}

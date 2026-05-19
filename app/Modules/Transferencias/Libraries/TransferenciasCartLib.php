@@ -89,7 +89,6 @@ class TransferenciasCartLib {
         }
     }
 
-
     /**
      * Guardar inmediatamente (fuerza el guardado)
      */
@@ -132,7 +131,6 @@ class TransferenciasCartLib {
         throw new \Exception("Error saving cart");
     }
 
-
     /**
      * Insert interno optimizado
      */
@@ -164,9 +162,10 @@ class TransferenciasCartLib {
         $items["priceneto"] = $price_neto;
         $items["totalpriceneto"] = $price_neto * $qty;
 
-        // ICE
-        $iceporcent = isset($items['icePorcent']) ? (float) $items['icePorcent'] : 0;
-        $iceval = $iceporcent > 0 ? ($price_neto * $iceporcent) / 100 : 0;
+        // ICE Esto vamos a aplicar en proceso de compras y ventas mas no en ajustes ni transferencias
+//        $iceporcent = isset($items['icePorcent']) ? (float) $items['icePorcent'] : 0;
+//        $iceval = $iceporcent > 0 ? ($price_neto * $iceporcent) / 100 : 0;
+        $iceval=0;
 
         $items['iceval'] = $iceval;
         $items['toticeval'] = $iceval * $qty;
@@ -204,54 +203,61 @@ class TransferenciasCartLib {
     private function updateTotalsIncremental($newItem, $oldItem = null) {
         $meta = &$this->cart['_meta'];
 
-        // Restar valores antiguos si existe
+        // Procesar item viejo (restar)
         if ($oldItem) {
-            $meta['total_cart'] -= ($oldItem['price'] * $oldItem['qty']);
-            $meta['total_articles'] -= $oldItem['qty'];
-            $meta['total_iva'] -= ($oldItem['totivaval'] ?? 0);
-
-            $ivaporcent = isset($oldItem['ivaPorcent']) ? $oldItem['ivaPorcent'] : 0;
-            if ($ivaporcent == 0) {
-                $meta['tarif_cero'] -= ($oldItem['price'] * $oldItem['qty']);
-                $meta['tarif_ceroneto'] -= ($oldItem['priceneto'] * $oldItem['qty']);
-            } else {
-                $meta['tarif_iva'] -= ($oldItem['price'] * $oldItem['qty']);
-                $meta['tarif_ivaneto'] -= ($oldItem['priceneto'] * $oldItem['qty']);
-            }
-
-            $servicio = isset($oldItem['servicio']) ? $oldItem['servicio'] : 0;
-            if ($servicio == 0) {
-                $meta['total_bienes'] -= ($oldItem['price'] * $oldItem['qty']);
-            } else {
-                $meta['total_servicios'] -= ($oldItem['price'] * $oldItem['qty']);
-            }
+            $this->applyItemToTotals($meta, $oldItem, -1);
         }
 
-        // Sumar valores nuevos
-        $meta['total_cart'] += ($newItem['price'] * $newItem['qty']);
-        $meta['total_articles'] += $newItem['qty'];
-        $meta['total_iva'] += ($newItem['totivaval'] ?? 0);
+        // Procesar item nuevo (sumar)
+        $this->applyItemToTotals($meta, $newItem, 1);
 
-        $ivaporcent = isset($newItem['ivaPorcent']) ? $newItem['ivaPorcent'] : 0;
-        if ($ivaporcent == 0) {
-            $meta['tarif_cero'] += ($newItem['price'] * $newItem['qty']);
-            $meta['tarif_ceroneto'] += ($newItem['priceneto'] * $newItem['qty']);
-        } else {
-            $meta['tarif_iva'] += ($newItem['price'] * $newItem['qty']);
-            $meta['tarif_ivaneto'] += ($newItem['priceneto'] * $newItem['qty']);
-        }
-
-        $servicio = isset($newItem['servicio']) ? $newItem['servicio'] : 0;
-        if ($servicio == 0) {
-            $meta['total_bienes'] += ($newItem['price'] * $newItem['qty']);
-        } else {
-            $meta['total_servicios'] += ($newItem['price'] * $newItem['qty']);
-        }
-
+        // Total final
         $meta['totalcart_iva'] = $meta['total_cart'] + $meta['total_iva'];
 
         // Invalidar cache
         $this->totalsCache = null;
+    }
+
+    private function applyItemToTotals(&$meta, $item, $factor = 1) {
+
+        $qty = (float) ($item['qty'] ?? 0);
+        $price = (float) ($item['price'] ?? 0);
+        $priceneto = (float) ($item['priceneto'] ?? 0);
+        $ivaPorcent = (float) ($item['ivaPorcent'] ?? 0);
+//        $icePorcent = (float) ($item['icePorcent'] ?? 0);
+        $servicio = (int) ($item['servicio'] ?? 0);
+        $totalIva = (float) ($item['totivaval'] ?? 0);
+
+        // ICE
+//        $iceVal = $icePorcent > 0 ? ($priceneto * $icePorcent) / 100 : 0; // Esto vamos a aplicar en proceso de compras y ventas mas no en ajustes ni transferencias
+        $iceVal=0;
+        // Bases
+        $baseIva = $price + $iceVal;
+        $baseIvaneto = $priceneto + $iceVal;
+
+        $total = $baseIva * $qty;
+        $totalNeto = $baseIvaneto * $qty;
+
+        // Totales generales
+        $meta['total_cart'] += $factor * $total;
+        $meta['total_articles'] += $factor * $qty;
+        $meta['total_iva'] += $factor * $totalIva;
+
+        // IVA 0 o IVA
+        if ($ivaPorcent == 0) {
+            $meta['tarif_cero'] += $factor * $total;
+            $meta['tarif_ceroneto'] += $factor * $totalNeto;
+        } else {
+            $meta['tarif_iva'] += $factor * $total;
+            $meta['tarif_ivaneto'] += $factor * $totalNeto;
+        }
+
+        // Bienes o servicios
+        if ($servicio == 0) {
+            $meta['total_bienes'] += $factor * $total;
+        } else {
+            $meta['total_servicios'] += $factor * $total;
+        }
     }
 
     /**

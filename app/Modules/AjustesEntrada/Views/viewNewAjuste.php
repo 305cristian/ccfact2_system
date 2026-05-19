@@ -294,6 +294,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var bodegaIdAje = '<?= $bodegaId; ?>';
     var dataAjuste =<?= json_encode($dataAjuste); ?>;
     var dataProveedor =<?= json_encode($dataProveedor); ?>;
+    
+    var ivaPrdeterminado=<?= ivaPredeterminado() ?>
 
 
     var searchTimeout = null;
@@ -362,7 +364,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 loading: false,
                 loadingBodega: false,
-                loadingProcess: false
+                loadingProcess: false,
+                ivaPrdeterminado:ivaPrdeterminado
             };
         },
         created() {

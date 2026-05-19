@@ -74,7 +74,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo !=' => "DESPACHOS"], 'id, mot_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
 
-        $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+        $bodegaMainUsuario = bodegaMain($this->user->id);
 
         $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;
 
@@ -188,6 +188,8 @@ class IndexController extends \App\Controllers\BaseController {
 
         $precio = $tipoAjuste === 'AJUSTE_NORMAL' ? $dataProducto->prod_costopromedio : $dataProducto->prod_costoultimo;
 
+//        $irbprnValor = $dataProducto->prod_tiene_irbpnr === '1' ? getImpuestoIrbpnr() : null;
+
         $item = [
             "id" => (int) $dataProducto->id,
             "qty" => (float) $cantidad,
@@ -199,6 +201,7 @@ class IndexController extends \App\Controllers\BaseController {
             "stockBodega" => number_format($stockBodega, 2),
             "ivaPorcent" => $tarifaIva,
             "icePorcent" => $tarifaIce,
+//            "irbprnValor" => $irbprnValor,
             "tieneLote" => $dataProducto->prod_ctrllote,
             "permitirDuplicados" => $permitirDuplicados,
             "lote" => null,
@@ -582,7 +585,7 @@ class IndexController extends \App\Controllers\BaseController {
             $this->db->transBegin();
 
             // Ejecutamos la anulación en la librería
-            $response = $this->entradasLib->anularAjuste($ajusteId, $motivoAnulacion,$tipoAjuste);
+            $response = $this->entradasLib->anularAjuste($ajusteId, $motivoAnulacion, $tipoAjuste);
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();

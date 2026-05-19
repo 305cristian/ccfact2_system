@@ -59,7 +59,7 @@ class EntradasLib {
             'fk_proveedor' => $dataPostAjuste->ajenProveedor,
             'fk_centro_costo' => $dataPostAjuste->ajenCentrocosto,
             'codigo_sustento' => $dataPostAjuste->ajenSustento,
-            'iva_porcentaje' => getSettings('IVA'),
+            'iva_porcentaje' => ivaPredeterminado(),
             'ajen_total_items' => $cartData->totalItems,
             'ajen_total' => $cartData->totalCart,
             'ajen_subtotal_bienes' => $cartData->totalBienes,

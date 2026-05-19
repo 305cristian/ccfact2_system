@@ -312,6 +312,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
     var searchTimeout = null;
 
+    var ivaPrdeterminado =<?= ivaPredeterminado() ?>
+
     if (window.appTrb) {
         window.appTrb.unmount();
     }
@@ -374,6 +376,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 secuencialTransferencia: '',
                 cargandoDetalle: false,
                 modalInstance: null,
+                
+                  ivaPrdeterminado: ivaPrdeterminado
             };
         },
         created() {

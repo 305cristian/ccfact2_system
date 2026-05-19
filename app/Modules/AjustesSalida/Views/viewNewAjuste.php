@@ -373,6 +373,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var dataAjuste = <?= json_encode($dataAjuste); ?>;
     var searchTimeout = null;
 
+    var ivaPrdeterminado =<?= ivaPredeterminado() ?>
+
     if (window.appAjs) {
         window.appAjs.unmount();
     }
@@ -438,8 +440,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 loading: false,
                 loadingBodega: false,
-                loadingProcess: false
+                loadingProcess: false,
+                ivaPrdeterminado: ivaPrdeterminado
             };
+
         },
         created() {
             this.showDetailCart();

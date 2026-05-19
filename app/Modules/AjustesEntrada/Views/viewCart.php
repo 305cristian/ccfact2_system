@@ -104,7 +104,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="top" v-tooltip:top=" 'Stock General' " >{{ item.stock }}</span>
                             </div>
                         </td>
-                        <td class="price-cell">{{ formatToUSD(item.total) }}</td>
+                        <!--<td class="price-cell">{{ formatToUSD(item.total) }}</td>-->
+                        <td class="price-cell">{{ formatToUSD(item.totitembaseiva) }}</td>
                         <td class="price-cell">{{ formatToUSD(item.totivaval) }}</td>
                         <td class="price-cell text-primary"><strong>{{ formatToUSD(item.totalpriceiva) }}</strong></td>
                     </tr>
@@ -122,8 +123,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <span class="summary-value">{{ formatToUSD(totalCart) }}</span>
             </div>
             <div class="summary-row">
-                <span class="summary-label">IVA (0%):</span>
+                <span class="summary-label">IVA ({{ivaPrdeterminado}}%):</span>
                 <span class="summary-value">{{ formatToUSD(totalIva) }}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">IRBPRN</span>
+                <span class="summary-value">0.02</span>
             </div>
             <div class="summary-row">
                 <span class="summary-label">Total:</span>

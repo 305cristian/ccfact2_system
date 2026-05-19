@@ -22,8 +22,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         overflow-x: auto;
         overflow-y: auto;
     }
-     .table-scroll {
-        max-height: 600px;  
+    .table-scroll {
+        max-height: 600px;
         overflow-y: auto;
     }
 
@@ -376,7 +376,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaSubGruposModal = <?php echo json_encode($listaSubgrupos); ?>;
     var listaCtaContable = <?php echo json_encode($listaCtaContable); ?>;
     var listaTiposPvp = <?php echo json_encode($listaTiposPvp); ?>;
-    var ivaActual =<?php echo getSettings("IVA"); ?>;
+//    var ivaActual =<?php echo getSettings("IVA"); ?>;
 
     //PERMISOS
 
@@ -431,7 +431,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 formValidacion: [],
                 listaSubGruposModal: listaSubGruposModal,
                 listaSubGruposModalFilter: [],
-                ivaActual: ivaActual,
+//                ivaActual: ivaActual,
                 price: [],
                 tipoPrecioVal: [],
                 tipoPrecioId: [],
@@ -685,7 +685,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (data) {
 
                         data.map((val, index) => {
-                            let iva = (this.ivaActual / 100) + 1;
+                            let ivaActual = this.listaImpuestosTarifa.find(a => parseInt(a.id) === parseInt(this.editProducto.prodIvaPorcentajeId)).impt_porcentage;
+                            let iva = (ivaActual / 100) + 1;
                             this.price[index] = (val.pp_valor * parseFloat(iva)).toFixed(2);
                             this.tipoPrecioVal[index] = val.pp_valor;
                             this.tipoPrecioId[index] = val.fk_tipo_precio;
@@ -699,28 +700,39 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
             desglosarIva(index) {
-                let precio = this.price[index];
-                let iva = (this.ivaActual / 100) + 1;
-                let priceSinIva = 0;
-                priceSinIva = precio;
-                if (this.editProducto.prodIvaPorcentajeId === '2') {
-                    priceSinIva = precio / parseFloat(iva);
+
+                const impuesto = this.listaImpuestosTarifa.find(
+                        a => parseInt(a.id) === parseInt(this.newProducto.prodIvaPorcentajeId)
+                );
+
+                if (!impuesto) {
+                    return;
                 }
 
-                this.tipoPrecioVal[index] = priceSinIva;
-                document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
+                const precio = this.price[index] ?? 0;
+                const ivaFactor = (parseFloat(impuesto.impt_porcentage) / 100) + 1;
+                const aplicaImpuesto = impuesto.impt_porcentage > '0';
+
+                const priceSinIva = aplicaImpuesto ? precio / ivaFactor : precio;
+                this.tipoPrecioVal[index] = parseFloat(priceSinIva).toFixed(4);
+//              
             },
             desglosarIva2() {
-                let iva = (this.ivaActual / 100) + 1;
-                let priceSinIva = 0;
-                this.price.map((val, index) => {
-                    priceSinIva = val;
-                    if (this.editProducto.prodIvaPorcentajeId === '2') {
-                        priceSinIva = val / parseFloat(iva);
-                    }
+                const impuesto = this.listaImpuestosTarifa.find(
+                        a => parseInt(a.id) === parseInt(this.newProducto.prodIvaPorcentajeId)
+                );
 
-                    this.tipoPrecioVal[index] = priceSinIva;
-                    document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
+                if (!impuesto) {
+                    return; // seguridad
+                }
+
+                const ivaFactor = (parseFloat(impuesto.impt_porcentage) / 100) + 1;
+                const aplicaImpuesto = impuesto.impt_porcentage > '0';
+
+                this.price.forEach((val, index) => {
+                    const priceSinIva = aplicaImpuesto ? val / ivaFactor : val;
+                    this.tipoPrecioVal[index] = parseFloat(priceSinIva).toFixed(4);
+
                 });
             },
             aplicaIce() {

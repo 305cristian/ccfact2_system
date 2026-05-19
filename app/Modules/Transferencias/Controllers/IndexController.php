@@ -32,7 +32,6 @@ use Modules\Comun\Models\ProductoModel;
 use Modules\Transferencias\Models\TransferenciasModel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-
 class IndexController extends \App\Controllers\BaseController {
 
     //put your code here
@@ -89,7 +88,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
 
-        $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+        $bodegaMainUsuario = bodegaMain($this->user->id);
 
         $data['bodegaId'] = $this->session->get('bodegaIdTrb') ? $this->session->get('bodegaIdTrb') : $bodegaMainUsuario;
 
@@ -721,7 +720,7 @@ class IndexController extends \App\Controllers\BaseController {
             $this->db->transRollback();
             log_message('info', "[Transferencia de productos] Error al anular Transferencia");
             return $this->responseSetJSON('error', $e->getMessage());
-        } 
+        }
     }
 
     public function changeBodega($bodegaId) {
@@ -732,8 +731,8 @@ class IndexController extends \App\Controllers\BaseController {
                     'bodegaId' => $bodegaId
         ]);
     }
-    
-        public function importarExcel() {
+
+    public function importarExcel() {
         try {
             $file = $this->request->getFile('file');
             $bodegaId = $this->request->getPost('bodegaId');

@@ -41,7 +41,7 @@ class GestionController extends \App\Controllers\BaseController {
         $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo' => "AJUSTES"], 'id, mot_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
 
-        $bodegaMainUsuario = $this->ccm->getValue('cc_bodegas', $this->user->id, 'id', 'id');
+         $bodegaMainUsuario = bodegaMain($this->user->id);
 
         $data['bodegaId'] = $this->session->get('bodegaIdAje') ? $this->session->get('bodegaIdAje') : $bodegaMainUsuario;
         $send['view'] = view($this->dirViewModule . '\viewGesionarAjuste', $data);

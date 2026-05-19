@@ -136,6 +136,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaTiposPvp = <?php echo json_encode($listaTiposPvp); ?>;
     var ivaActual =<?php echo getSettings("IVA"); ?>;
     var autocodigo = '<?php echo $autocodigo; ?>';
+    var valorIrbpnr =<?= getImpuestoIrbpnr() ?>
 
 
     if (window.appProductos) {
@@ -155,7 +156,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 //TODO: VARIABLES
                 estadoSave: true,
-                ivaActual: ivaActual,
+//                ivaActual: ivaActual,
                 loading: false,
 
                 //TODO: V-MODELS
@@ -202,7 +203,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodFacturarEnNegativo: false,
                     prodFacturarPrecioInferiorCosto: false,
                     prodImagen: '',
-                    prodEstado: true
+                    prodEstado: true,
+                    prodIrbpnrValor: '',
+                    prodTieneIrbpnr: '0'
 
                 },
                 //V-MODELS FILTROS SEARCH PROD
@@ -242,10 +245,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
         updated() {
             this.aplicaIce();
+            this.aplicaIrbpnr();
         },
         mounted() {
             $(".selectpicker").selectpicker();
             this.aplicaIce();
+            this.aplicaIrbpnr();
             panelMain.style.display = "none";
             this.modalInstance = new bootstrap.Modal(this.$refs.modalProductos);
         },
@@ -296,7 +301,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_toast('warning', 'Este grupo ya existe');
                     await Vue.nextTick();
                     this.listaGrupos = this.listaGrupos.filter(g => g.id !== null);
-                    this.idGrupo='';
+                    this.idGrupo = '';
                     return;
                 }
 
@@ -324,7 +329,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_toast('warning', 'Este subgrupo ya existe');
                     await Vue.nextTick();
                     this.listaSubGrupos = this.listaSubGrupos.filter(sg => sg.id !== null);
-                    this.newProducto.prodSubgrupo='';
+                    this.newProducto.prodSubgrupo = '';
                     return;
                 }
 
@@ -370,6 +375,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 } else {
                     this.newProducto.prodIcePorcentajeId = "";
                     document.getElementById("selectImpIce").style.display = "none";
+                }
+            },
+            aplicaIrbpnr() {
+                if (this.newProducto.prodTieneIrbpnr === '1') {
+                    document.getElementById("selectImpIrbpnr").style.display = "block";
+                    this.newProducto.prodIrbpnrValor = valorIrbpnr;
+                } else {
+                    this.newProducto.prodIrbpnrValor = "";
+                    document.getElementById("selectImpIrbpnr").style.display = "none";
                 }
             },
 
@@ -426,9 +440,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             async loadProducto(prod) {
+
                 swalLoading('Cargando...', '');
                 await this.getSubgrupo(prod.id_grupo);
-                await this.getPreciosProducto(prod.id);
+
                 this.newProducto = {
                     prodNombre: prod.prod_nombre,
                     prodCodigo: prod.prod_codigo,
@@ -453,6 +468,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodIcePorcentaje: prod.prod_iceporcentage,
                     prodIcePorcentajeId: prod.idImpuestoIce,
                     prodTieneICE: prod.prod_tiene_ice,
+                    
+                    prodTieneIrbpnr: prod.prod_tiene_irbpnr,
 
                     prodIsPromo: prod.prod_ispromo === '12' ? true : false,
                     prodPvpPromo: prod.prod_pvppromo,
@@ -467,6 +484,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     prodEstado: prod.prod_estado === '1' ? true : false
 
                 };
+                await this.getPreciosProducto(prod.id);
+
                 this.newProducto.prodMarca = this.listaMarcas.find(val => val.id === prod.fk_marca);
                 this.newProducto.prodSubgrupo = this.listaSubGrupos.find(val => val.id === prod.fk_subgrupo);
                 this.idGrupo = this.listaGrupos.find(val => val.id === prod.id_grupo);
@@ -474,9 +493,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.idEdit = prod.id;
                 this.nameAux = prod.prod_nombre;
                 this.codeAux = prod.prod_codigo;
-
-
-
 
                 Swal.close();
 
@@ -487,7 +503,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     let {data} = await axios.get(`${this.url}/admin/productos/getPreciosProducto/${idProducto}`);
                     if (data) {
                         data.map((val, index) => {
-                            let iva = (this.ivaActual / 100) + 1;
+                            let ivaActual = this.listaImpuestosTarifa.find(a => parseInt(a.id) === parseInt(this.newProducto.prodIvaPorcentajeId)).impt_porcentage;
+                            let iva = (ivaActual / 100) + 1;
                             this.price[index] = (val.pp_valor * parseFloat(iva)).toFixed(2);
                             this.tipoPrecioVal[index] = val.pp_valor;
                         });
@@ -556,28 +573,50 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             desglosarIva(index) {
-                let precio = this.price[index];
-                let iva = (this.ivaActual / 100) + 1;
-                let priceSinIva = 0;
-                priceSinIva = precio;
-                if (this.newProducto.prodIvaPorcentajeId === '2') {
-                    priceSinIva = precio / parseFloat(iva);
+
+                const impuesto = this.listaImpuestosTarifa.find(
+                        a => parseInt(a.id) === parseInt(this.newProducto.prodIvaPorcentajeId)
+                );
+
+                if (!impuesto) {
+                    return;
                 }
 
-                this.tipoPrecioVal[index] = priceSinIva;
-                document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
+                const precio = this.price[index] ?? 0;
+                const ivaFactor = (parseFloat(impuesto.impt_porcentage) / 100) + 1;
+                const aplicaImpuesto = impuesto.impt_porcentage > '0';
+
+                const priceSinIva = aplicaImpuesto ? precio / ivaFactor : precio;
+                this.tipoPrecioVal[index] = parseFloat(priceSinIva).toFixed(4);
+
+//                const input = document.getElementById("prodPriceSinIva" + index);
+//                if (input) {
+//                    input.value = parseFloat(priceSinIva).toFixed(4);
+//                }
+
+
+//              
             },
             desglosarIva2() {
-                let iva = (this.ivaActual / 100) + 1;
-                let priceSinIva = 0;
-                this.price.map((val, index) => {
-                    priceSinIva = val;
-                    if (this.newProducto.prodIvaPorcentajeId === '2') {
-                        priceSinIva = val / parseFloat(iva);
-                    }
+                const impuesto = this.listaImpuestosTarifa.find(
+                        a => parseInt(a.id) === parseInt(this.newProducto.prodIvaPorcentajeId)
+                );
 
-                    this.tipoPrecioVal[index] = priceSinIva;
-                    document.getElementById("prodPriceSinIva" + index).value = priceSinIva;
+                if (!impuesto) {
+                    return; // seguridad
+                }
+
+                const ivaFactor = (parseFloat(impuesto.impt_porcentage) / 100) + 1;
+                const aplicaImpuesto = impuesto.impt_porcentage > '0';
+
+                this.price.forEach((val, index) => {
+                    const priceSinIva = aplicaImpuesto ? val / ivaFactor : val;
+                    this.tipoPrecioVal[index] = parseFloat(priceSinIva).toFixed(4);
+//                    const input = document.getElementById("prodPriceSinIva" + index);
+//                    if (input) {
+//                        input.value = parseFloat(priceSinIva).toFixed(4);
+//                    }
+
                 });
             },
             onRemove() {
