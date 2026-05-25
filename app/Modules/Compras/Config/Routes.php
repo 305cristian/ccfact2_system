@@ -13,7 +13,6 @@
  * @date 3 may 2026
  * @time 3:38:12 p.m.
  */
-
 //TODO:TODA LA CONFIGURACION INICIAL PÁRA QUE ARRANQUE EL SISTEMA ESTA EN EL ARCHIVO Routes.php en la carpeta Config del sistema
 //$routes->setDefaultNamespace('\Modules\Login\Controllers'); ruta inicial
 //$routes->setDefaultController('IndexController'); metodo inicial
@@ -30,19 +29,20 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
 
     $subroutes->get('dashboard/(:num)', 'IndexController::index/$1');
     $subroutes->get('nuevaCompra', 'IndexController::nuevaCompra');
-//    $subroutes->post('insertProduct', 'IndexController::insertProduct');
-//    $subroutes->post('updateProduct', 'IndexController::updateProduct');
-//    $subroutes->get('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
-//    $subroutes->get('changeBodega/(:num)', 'IndexController::changeBodega/$1');
-//    $subroutes->post('showDetailCart', 'IndexController::showDetailCart');
-//    $subroutes->post('cancelarAjuste', 'IndexController::cancelarAjuste');
-//    $subroutes->post('saveAjuste', 'IndexController::saveAjuste');
-//    $subroutes->post('updateAjuste', 'IndexController::updateAjuste');
-//    $subroutes->post('anularAjuste', 'IndexController::anularAjuste');
-//    $subroutes->get('clonarAjuste/(:num)', 'IndexController::clonarAjuste/$1');
+    $subroutes->post('insertProduct', 'IndexController::insertProduct');
+    $subroutes->post('updateProduct', 'IndexController::updateProduct');
+
+    $subroutes->get('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
+    $subroutes->get('changeBodega/(:num)', 'IndexController::changeBodega/$1');
+    $subroutes->post('showDetailCart', 'IndexController::showDetailCart');
+    $subroutes->post('cancelarCompra', 'IndexController::cancelarCompra');
+    $subroutes->post('saveCompra', 'IndexController::saveCompra');
+    $subroutes->post('updateCompra', 'IndexController::updateCompra');
+    $subroutes->post('anularCompra', 'IndexController::anularCompra');
+//    $subroutes->get('clonarCompra/(:num)', 'IndexController::clonarCompra/$1');
 //    $subroutes->post('importarExcel', 'IndexController::importarExcel');
-//    $subroutes->get('loadAjusteEdit/(:num)', 'IndexController::loadAjusteEdit/$1');
-//    $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
+    $subroutes->get('loadCompraEdit/(:num)', 'IndexController::loadCompraEdit/$1');
+    $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
 
     //GESTION DE AJUSTES
     $subroutes->get('gestionCompras', 'GestionController::index');
@@ -50,7 +50,6 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
 //    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
 //    $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
 //    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
-
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

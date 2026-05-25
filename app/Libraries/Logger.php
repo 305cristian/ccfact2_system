@@ -13,7 +13,7 @@
  * @Time 14:50:14
  */
 
-namespace app\Libraries;
+namespace App\Libraries;
 
 class Logger {
 

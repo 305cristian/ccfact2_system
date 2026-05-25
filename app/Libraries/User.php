@@ -12,7 +12,7 @@
  * @Time 17:24:10
  */
 
-namespace app\Libraries;
+namespace App\Libraries;
 
 use App\Models\Roles;
 use Config\Services;

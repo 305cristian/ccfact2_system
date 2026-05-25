@@ -200,7 +200,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 :options-limit="10"
                                 :show-no-results="true"
                                 :options="listaSearchProveedores"
-                                @remove="onRemove($event)"
                                 @search-change="searchProveedor($event)">
 
                                 <template #option="{ option }">

@@ -581,7 +581,7 @@ class InventarioModel extends \CodeIgniter\Model {
         $builder2->join("cc_producto_impuestotarifa tb7", "tb7.fk_producto = tb1.id");
         $builder2->join("cc_lotes tb8", "tb8.id = tb2.fk_lote");
         $builder2->join("cc_unidades_medida tb9", "tb9.id = tb1.fk_unidadmedida", "left");
-        $builder2->join("cc_impuesto_tarifa tb10", "tb9.id = tb7.fk_impuestotarifa ");
+        $builder2->join("cc_impuesto_tarifa tb10", "tb10.id = tb7.fk_impuestotarifa ");
 
         $builder2->where("tb1.prod_ctrllote", 1);
 

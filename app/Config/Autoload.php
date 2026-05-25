@@ -67,11 +67,11 @@ class Autoload extends AutoloadConfig
      */
     //public $classmap = [];
 	
-	 public $classmap = [
-            'CcModel' => APPPATH . 'App/Models/CcModel.php',
-            'ModulesModel' => APPPATH . 'App/Models/ModulesModel.php',
-            'User' => APPPATH . 'App/Libraries/User.php',
-            'Logger' => APPPATH . 'App/Libraries/Logger.php',
+	 public $classmap = [ // probablemente ya no aporta nada, CI4 ya encuentra la clase automáticamente mediante PSR-4.
+            'CcModel' => APPPATH . 'Models/CcModel.php',
+            'ModulesModel' => APPPATH . 'Models/ModulesModel.php',
+            'User' => APPPATH . 'Libraries/User.php',
+            'Logger' => APPPATH . 'Libraries/Logger.php',
         ];
 
     /**

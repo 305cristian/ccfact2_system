@@ -141,7 +141,7 @@ class EntradasLib {
      * @param int $ajusteId ID del documento (ajuste, compra, venta, etc)
      * @param array $producto Array con datos del producto ['id', 'qty', 'price', 'total']
      * @param int|null $loteId ID del lote (null si no maneja lotes)
-     * @param array $dataPostAjuste (fecha, estado, bodega, etc)
+     * @param object $dataPostAjuste (fecha, estado, bodega, etc)
      * @return bool
      */
     public function updateKardex($ajusteId, $producto, $loteId, $dataPostAjuste) {

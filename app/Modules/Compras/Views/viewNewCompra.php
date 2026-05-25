@@ -23,251 +23,264 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 v-if="isEdit" class="card-title text-system"><i class="fas fa-folder-blank"></i> Actualizar Ajuste de Entrada</h5>
-            <h5 v-else class="card-title text-system"><i class="fas fa-folder-blank"></i> Nuevo Ajuste de Entrada</h5>
+            <h5 v-if="isEdit" class="card-title text-system"><i class="fas fa-folder-blank"></i> Actualizar Compra</h5>
+            <h5 v-else class="card-title text-system"><i class="fas fa-folder-blank"></i> Nueva Campra</h5>
         </div>
         <div class="card-body">
 
             <fieldset>
-                <legend>Datos Generales de Compra</legend>
+                <legend>Información del Comprobante 
+                    <button 
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="showInfoComprobante = !showInfoComprobante"
+                        >
+                        <i  :class="showInfoComprobante ? 'fas fa-chevron-up'  : 'fas fa-chevron-down'"  ></i>
+                    </button>
+                </legend>
+                <div v-show="showInfoComprobante">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <!-- Tipo Comprobante -->
+                            <div class="col-md-12 form-group-custom">
+                                <div class="d-flex justify-content-between align-items-center border">
+                                    <span class="input-group-text bg-cris-system">
+                                        <i class="fas fa-file-invoice me-2"></i> Comprobante
+                                    </span>
+                                    <vue-select 
+                                        class="flex-grow-1"
+                                        :options="listaTiposComprobantes"
+                                        label="comp_nombre"
+                                        v-model="formCompra.compTipoComprobante"
+                                        placeholder="Seleccione un comprobante"/>
+                                </div>
+                            </div>
 
-                <div class="row">
+                            <!-- Sustento -->
+                            <div class="col-md-12 form-group-custom">
+                                <div class="d-flex align-items-center border">
+                                    <span class="input-group-text bg-cris-system">
+                                        <i class="fas fa-receipt me-2"></i> Tipo de Sustento
+                                    </span>
+                                    <vue-select 
+                                        class="flex-grow-1"
+                                        :options="listaSustentos"
+                                        label="sus_nombre"
+                                        v-model="formCompra.compSustento"
+                                        placeholder="Seleccione un sustento"/>
+                                </div>
+                            </div>
 
-                    <!-- Tipo Comprobante -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex justify-content-between align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-file-invoice me-2"></i> Comprobante
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaTiposComprobantes"
-                                label="nombre"
-                                v-model="formCompra.compTipoComprobante"
-                                placeholder="Seleccione tipo"/>
+                            <!-- Tipo Compra -->
+                            <div class="col-md-12 form-group-custom">
+                                <div class="d-flex align-items-center border">
+                                    <span class="input-group-text bg-cris-system">
+                                        <i class="fas fa-tags me-2"></i> Tipo Compra
+                                    </span>
+                                    <vue-select 
+                                        class="flex-grow-1"
+                                        :options="listaTiposCompra"
+                                        label="tc_nombre"
+                                        v-model="formCompra.compTipoCompra"
+                                        placeholder="Seleccione un tipo de compra"/>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                        <div class="col-md-6">
 
-                    <!-- Fecha Emisión -->
-                    <div class="col-md-2 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-calendar me-2"></i> Fecha
-                            </span>
-                            <input v-model="formCompra.compFechaEmision" type="date" class="form-control">
-                        </div>
-                    </div>
 
-                    <!-- Número Comprobante -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-hashtag me-2"></i> N° Comprobante
-                            </span>
-                            <input v-model="formCompra.compNumero" type="text" class="form-control">
-                        </div>
-                    </div>
+                            <!-- Número Comprobante -->
+                            <div class="col-md-12 form-group-custom">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-cris-system">
+                                        <i class="fas fa-hashtag me-2"></i> N° Comprobante
+                                    </span>
+                                    <input v-model="formCompra.compNumeroEstablecimiento" type="text" class="form-control" style="flex:1" placeholder="001">
+                                    <input v-model="formCompra.compNumeroEmision" type="text" class="form-control" style="flex:1" placeholder="002">
+                                    <input v-model="formCompra.compNumeroComprobante" type="text" class="form-control" style="flex:2" placeholder="653">
+                                </div>
+                            </div>
 
-                    <!-- Autorización SRI -->
-                    <div class="col-md-4 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-key me-2"></i> Aut. SRI
-                            </span>
-                            <input v-model="formCompra.compAutSRI" type="text" class="form-control">
-                        </div>
-                    </div>
+                            <!--Fecha de caducidad de comprobante-->
+                            <div class="col-md-6 form-group">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-cris-system">
+                                        <i class="fas fa-calendar me-2"></i> Fecha de Caducidad
+                                    </span>
+                                    <input v-model="formCompra.compFechaCaducidad" type="date" class="form-control">
+                                </div>
+                            </div>
 
-                </div>
+                            <!-- Autorización SRI -->
+                            <div class="col-md-12 form-group-custom">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-cris-system">
+                                        <i class="fas fa-key me-2"></i> Aut. SRI
+                                    </span>
+                                    <input v-model="formCompra.compAutSRI" type="text" class="form-control" placeholder="Ejm. 0123456789">
+                                </div>
+                            </div>
 
-                <div class="row">
-
-                    <!-- Proveedor -->
-                    <div class="col-md-4 form-group-custom">
-                        <div class="d-flex align-items-center">
-                            <vue-multiselect
-                                v-model="formCompra.compProveedor"
-                                placeholder="Buscar proveedor"
-                                label="prov_razon_social"
-                                track-by="prov_ruc"
-                                :options="listaProveedores"
-                                @search-change="searchProveedor"/>
-                            <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                        </div>
-                    </div>
-
-                    <!-- Bodega -->
-                    <div class="col-md-2 form-group-custom">
-                        <div class="d-flex align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-warehouse me-2"></i> Bodega
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaBodegas"
-                                label="bod_nombre"
-                                v-model="formCompra.compBodega"/>
-                        </div>
-                    </div>
-
-                    <!-- Sustento -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-receipt me-2"></i> Sustento
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaSustentos"
-                                label="sus_nombre"
-                                v-model="formCompra.compSustento"/>
-                        </div>
-                    </div>
-
-                    <!-- Centro de costo -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-project-diagram me-2"></i> Centro Costo
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaCentroCostos"
-                                label="cc_nombre"
-                                v-model="formCompra.compCentroCosto"/>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="row">
-
-                    <!-- Tipo Compra -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-tags me-2"></i> Tipo Compra
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaTiposCompra"
-                                label="descripcion"
-                                v-model="formCompra.compTipoCompra"/>
-                        </div>
-                    </div>
-
-                    <!-- Tipo Costos -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-coins me-2"></i> Tipo Costos
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaTiposCostos"
-                                label="nombre"
-                                v-model="formCompra.compTipoCosto"/>
-                        </div>
-                    </div>
-
-                    <!-- ODC -->
-                    <div class="col-md-2 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">ODC</span>
-                            <input v-model="formCompra.compODC" type="text" class="form-control">
-                        </div>
-                    </div>
-
-                    <!-- Aplica Retención -->
-                    <div class="col-md-2 form-group-custom d-flex align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" v-model="formCompra.compAplicaRetencion">
-                            <label class="form-check-label">Aplica Retención</label>
-                        </div>
-                    </div>
-
-                    <!-- Es gasto -->
-                    <div class="col-md-2 form-group-custom d-flex align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" v-model="formCompra.compEsGasto">
-                            <label class="form-check-label">Es gasto</label>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="row">
-
-                    <!-- Forma de pago -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="d-flex align-items-center border">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-credit-card me-2"></i> Forma Pago
-                            </span>
-                            <vue-select 
-                                class="flex-grow-1"
-                                :options="listaFormasPago"
-                                label="nombre"
-                                v-model="formCompra.compFormaPago"/>
-                        </div>
-                    </div>
-
-                    <!-- Tipo pago -->
-                    <div class="col-md-3 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-hand-holding-usd me-2"></i> Tipo
-                            </span>
-                            <select v-model="formCompra.compTipoPago" class="form-select">
-                                <option value="CONTADO">CONTADO</option>
-                                <option value="CREDITO">CRÉDITO</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Cuotas -->
-                    <div class="col-md-2 form-group-custom" v-if="formCompra.compTipoPago === 'CREDITO'">
-                        <div class="input-group">
-                            <span class="input-group-text">Cuotas</span>
-                            <input type="number" v-model="formCompra.compCuotas" class="form-control">
-                        </div>
-                    </div>
-
-                    <!-- Días crédito -->
-                    <div class="col-md-2 form-group-custom" v-if="formCompra.compTipoPago === 'CREDITO'">
-                        <div class="input-group">
-                            <span class="input-group-text">Días</span>
-                            <input type="number" v-model="formCompra.compDiasCredito" class="form-control">
-                        </div>
-                    </div>
-
-                    <!-- Estado -->
-                    <div class="col-md-2 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-toggle-on me-2"></i> Estado
-                            </span>
-                            <select v-model="formCompra.compEstado" class="form-select">
-                                <option value="BORRADOR">BORRADOR</option>
-                                <option value="ARCHIVADO">ARCHIVADO</option>
-                            </select>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Observaciones -->
-                <div class="row">
-                    <div class="col-md-12 form-group-custom">
-                        <div class="input-group">
-                            <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-comments me-2"></i> Observaciones
-                            </span>
-                            <input v-model="formCompra.compObservaciones" type="text" class="form-control">
                         </div>
                     </div>
                 </div>
 
+            </fieldset>
+            <br>
+            <fieldset>
+                <legend>Información General
+                    <button 
+                        type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        @click="showInfoGeneral = !showInfoGeneral"
+                        >
+                        <i  :class="showInfoGeneral ? 'fas fa-chevron-up'  : 'fas fa-chevron-down'"  ></i>
+                    </button>
+                </legend>
+                <div v-show="showInfoGeneral">
+                    <div class="row">
+                        <div class="col-md-6 border-right">
+                            <!-- Proveedor -->
+                            <div class="col-md-12 form-group-custom">
+                                <div class="d-flex align-items-center">
+                                    <vue-multiselect
+                                        v-model="formCompra.compProveedor"
+                                        placeholder="Buscar proveedor"
+                                        label="proveedor"
+                                        track-by="prov_ruc"
+                                        :searchable="true"
+                                        :options-limit="10"
+                                        :options="listaSearchProveedores"
+                                        :show-no-results="true"
+                                        @search-change="searchProveedor">
+
+                                        <template #option="{ option }">
+                                            <span style="font-size: 12px"><strong>{{ option.prov_ruc+': '}} </strong> {{  option.prov_razon_social}}</span>
+                                        </template>
+                                    </vue-multiselect>
+                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                </div>
+                            </div>
+                            <!-- Información proveedor -->
+                            <?php echo view('\Modules\Compras\Views\viewInfoProveedor') ?>
+                        </div>
+                        <div class="col-md-6 ps-md-4">
+                            <div class="row">
+
+                                <!-- Fecha Emisión -->
+                                <div class="col-md-6 form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-cris-system">
+                                            <i class="fas fa-calendar me-2"></i> Fecha de Emisión
+                                        </span>
+                                        <input v-model="formCompra.compFechaEmision" type="date" class="form-control">
+                                    </div>
+                                </div>
+
+                                <!-- Bodega -->
+                                <div class="col-md-6 form-group">
+                                    <div class="d-flex align-items-center border">                           
+                                        <span class="input-group-text bg-cris-system">
+                                            <span v-if='loadingBodega'><i class="fas fa-spin fa-spinner"></i></span>
+                                            <span v-else><i class="fas fa-warehouse me-2"></i></span>
+                                            Bodega
+                                        </span>
+                                        <vue-select 
+                                            class="flex-grow-1"
+                                            @option:selected="changeBodega"
+                                            :options="listaBodegas"
+                                            label="bod_nombre"
+                                            v-model="formCompra.compBodega"
+                                            placeholder="Seleccione una bodega"/>
+                                    </div>
+                                </div>
+
+                                <!-- Observaciones -->
+
+                                <div class="col-md-12 form-group">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-cris-system">
+                                            <i class="fas fa-comments me-2"></i> Observaciones
+                                        </span>
+                                        <textarea v-model="formCompra.compObservaciones" type="text" class="form-control" placeholder="Ejm. Compra de abarrotes"></textarea>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+
+                        <!-- Centro de costo -->
+                        <div class="col-md-3 form-group-custom">
+                            <div class="d-flex align-items-center border">
+                                <span class="input-group-text bg-cris-system">
+                                    <i class="fas fa-project-diagram me-2"></i> Centro Costo
+                                </span>
+                                <vue-select 
+                                    class="flex-grow-1"
+                                    :options="listaCentroCostos"
+                                    label="cc_nombre"
+                                    v-model="formCompra.compCentroCosto"
+                                    placeholder="Seleccione un centro de costos"/>
+                            </div>
+                        </div>
+
+                        <!-- Tipo Costos -->
+                        <div class="col-md-3 form-group-custom">
+                            <div class="d-flex align-items-center border">
+                                <span class="input-group-text bg-cris-system">
+                                    <i class="fas fa-coins me-2"></i> Tipo Costos
+                                </span>
+                                <vue-select 
+                                    class="flex-grow-1"
+                                    :options="listaTiposCostos"
+                                    label="value"
+                                    v-model="formCompra.compTipoCosto"
+                                    placeholder="Seleccione un tipo de costos"/>
+                            </div>
+                        </div>
+
+                        <!-- ODC -->
+                        <div class="col-md-2 form-group-custom">
+                            <div class="d-flex align-items-center border">
+                                <span class="input-group-text bg-cris-system"><input class="form-check-inline" type="checkbox" v-model="formCompra.tieneOdc"> ODC</span>
+                                <vue-select 
+                                    class="flex-grow-1"
+                                    :options="listaOdc"
+                                    label="value"
+                                    :disabled="!formCompra.tieneOdc"
+                                    v-model="formCompra.compODC"
+                                    placeholder="Ejm. 0236"/>
+                            </div>
+                        </div>
+
+                        <!-- Es gasto -->
+                        <div class="col-md-2 form-group-custom d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" v-model="formCompra.compEsGasto">
+                                <label class="form-check-label">Es gasto</label>
+                            </div>
+                        </div>
+
+
+                        <!-- Estado -->
+                        <div class="col-md-2 form-group-custom">
+                            <div class="input-group">
+                                <span class="input-group-text bg-cris-system">
+                                    <i class="fas fa-toggle-on me-2"></i> Estado
+                                </span>
+                                <select v-model="formCompra.compEstado" class="form-select">
+                                    <option value="BORRADOR">BORRADOR</option>
+                                    <option value="ARCHIVADO">ARCHIVADO</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
             </fieldset>
             <br>
             <fieldset>
@@ -287,18 +300,25 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 :searchable="true"
                                 :options-limit="10"
                                 @search-change="searchProductos"
-                                @select="agregarProductoCompra">
+                                @select="agregarProductoCompra($event)">
 
                                 <template #option="{ option }">
-                                    <div class="d-flex justify-content-between w-100">
-                                        <span><strong>{{ option.prod_nombre }}</strong></span>
-                                        <span class="badge bg-info">{{ option.prod_codigo }}</span>
+                                    <div class="producto-option-row">
+                                        <div class="row g-2 align-items-center w-100">
+                                            <div class="col-auto">
+                                                <span class="badge bg-primary">{{ option.codigos }}</span>
+                                            </div>
+                                            <div class="col">
+                                                <span class="fw-bold text-dark">{{ option.prod_nombre }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </template>
 
+
                             </vue-multiselect>
 
-                            <span class="input-group-text">
+                            <span class="input-group-text bg-warning">
                                 <i class="fas fa-search"></i>
                             </span>
                         </div>
@@ -313,17 +333,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 type="text"
                                 class="form-control"
                                 placeholder="Código / Código barras">
-                            <span class="input-group-text">
+                            <span class="input-group-text bg-warning">
                                 <i class="fas fa-barcode"></i>
                             </span>
-                        </div>
-                    </div>
-
-                    <!-- CHECK DUPLICADOS -->
-                    <div class="col-md-2 d-flex align-items-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" v-model="permitirDuplicados">
-                            <label class="form-check-label">Duplicados</label>
                         </div>
                     </div>
 
@@ -333,6 +345,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <!--VIEW CART-->
             <?php echo view('\Modules\Compras\Views\viewCart') ?>
             <!--VIEW CART-->
+
+            <!--VIEW ANEXO ATS-->
+            <?php echo view('\Modules\Compras\Views\viewAnexoATS') ?>
+            <!--VIEW ANEXO ATS-->
+
+            <!--VIEW RETENCION-->
+            <?php echo view('\Modules\Compras\Views\viewRetencion') ?>
+            <!--VIEW RETENCION-->
 
             <!-- Botones de Control -->
             <div v-if="!emptyCar" class="row mt-4 mb-5">
@@ -350,7 +370,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         </div>
     </div>
     <!--MODAL FINALIZAR COMPRA-->
-    <?php echo view('\Modules\Compras\Views\viewPagosRetencion') ?>
+    <?php echo view('\Modules\Compras\Views\viewPagos') ?>
     <!--CLOSE MODAL FINALIZAR COMPRA-->
 </div>
 
@@ -360,15 +380,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaTiposCompra = <?= json_encode($listaTiposCompra); ?>;
     var listaTiposComprobantes = <?= json_encode($listaTiposComprobantes); ?>;
     var listaFormasPago = <?= json_encode($listaFormasPago); ?>;
+    var listaFormasPagoSRI = <?= json_encode($listaFormasPagoSRI); ?>;
     var listaSustentos = <?= json_encode($listaSustentos); ?>;
     var listaBodegas = <?= json_encode($listaBodegas); ?>;
     var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
+    var listaRetenciones = <?= json_encode($listaRetenciones); ?>;
+    var listaCuentasContables = <?= json_encode($listaCuentasContables); ?>;
     var permitirDuplicados = <?= $permitirDuplicados ?>;
     var bodegaIdComp = '<?= $bodegaId; ?>';
     var dataCompra =<?= json_encode($dataCompra); ?>;
     var dataProveedor =<?= json_encode($dataProveedor); ?>;
 
-    var ivaPrdeterminado =<?= ivaPredeterminado() ?>
+    var ivaPrdeterminado =<?= ivaPredeterminado(); ?>;
+    var valorMaximoATSSRI =<?= getSettings('VALOR_MAXIMO_ANEXO_ATS_SRI') ?>;
 
     if (window.appCompra) {
         window.appCompra.unmount();
@@ -393,7 +417,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 formCompra: {
                     compFechaEmision: fechaActual,
                     compTipoComprobante: '',
-                    compNumero: '',
+                    compNumeroComprobante: '',
+                    compNumeroEstablecimiento: '',
+                    compNumeroEmision: '',
+                    compFechaCaducidad: fechaActual,
                     compAutSRI: '',
                     compProveedor: '',
                     compBodega: '',
@@ -401,6 +428,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     compCentroCosto: '',
                     compTipoCompra: '',
                     compTipoCosto: '',
+                    tieneOdc: true,
                     compODC: '',
                     compAplicaRetencion: false,
                     compEsGasto: false,
@@ -409,21 +437,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     compCuotas: 1,
                     compDiasCredito: 0,
                     compEstado: 'BORRADOR',
-                    compObservaciones: ''
+                    compObservaciones: '',
+                    compPermitirDuplicados: permitirDuplicados
                 },
 
                 // =========================
                 // LISTAS
                 // =========================
-                listaProveedores: [],
+                listaSearchProveedores: [],
                 listaBodegas: listaBodegas,
                 listaSustentos: listaSustentos,
                 listaCentroCostos: listaCentroCostos,
                 listaTiposCompra: listaTiposCompra,
                 listaTiposCostos: [{value: 'DIRECTOS', id: 'DIRECTOS'}, {value: 'INDIRECTOS', id: 'INDIRECTOS'}],
                 listaFormasPago: listaFormasPago,
+                listaFormasPagoSRI: listaFormasPagoSRI,
                 listaTiposComprobantes: listaTiposComprobantes,
                 listaIvas: [],
+                listaOdc: [],
+                listaRetenciones: listaRetenciones,
+                listaRetencionesSeleccionadas: [],
+                listaCuentasContables: listaCuentasContables,
 
                 // =========================
                 // BUSCADOR PRODUCTOS
@@ -431,12 +465,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaSearchProductos: [],
                 productoSeleccionado: null,
                 codigoBusqueda: '',
-                permitirDuplicados: false,
 
                 // =========================
                 // DETALLE
                 // =========================
-                listaCompra: [],
+                listaCartData: [],
 
                 // =========================
                 // TOTALES
@@ -453,45 +486,178 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 searchTimeout: null,
                 emptyCar: true,
                 loadingProcess: false,
+                loadingBodega: false,
+                showInfoComprobante: true,
+                showInfoGeneral: true,
 
                 // =========================
-                // MODAL RETENCION PAGOS CUOTAS
+                // MODAL PAGOS CUOTAS
                 // =========================
-                modal: {
-                    compAplicaRetencion: false,
+                modalPagoInstance: null,
 
-                    retNumero: '',
-                    retAutorizacion: '',
-
+                pagos: {
+                    tipoPago: '',
                     formaPago: null,
-                    tipoPago: 'CONTADO',
-
                     cuotas: 1,
-                    dias: 0,
+                    dias: 0, // aqui los dias de credito del proveedor
+                    fechaVenceCredito: '',
+                    listaCuotas: [],
 
-                    listaCuotas: []
+                    cuentaContablePago: null,
+                    nota: '',
+                    banco: '',
+
+                    //TRANSFERENCIA
+                    numeroTransferencia: '',
+                    fechaTransferencia: '',
+
+                    //CHEQUE
+                    numeroCheque: '',
+                    fechaCheque: '',
+
+                    //Tarjeta
+                    marcaTarjeta: '',
+                    loteTarjeta: '',
+                    autorizacionTarjeta: '',
+                    ultimosDigitos: '',
+                    fechaVoucher: '',
                 },
-                modalPagoInstance: null
+
+                // =========================
+                // RETENCION
+                // =========================
+                formRetencion: {
+                    asumirRetencion: 'NO_ASUMIR',
+                    compAplicaRetencion: true,
+                    compNoSujetoRetecion: false,
+                    retNumeroComprobnate: '',
+                    retNumeroEstablecimiento: '',
+                    retNumeroEmision: '',
+                    retFechaEmision: '',
+                    retAutorizacionSri: '',
+                    retDetalle: {}
+                },
+                retencionBienes: '',
+                retencionServicios: '',
+                retencionRenta: '',
+
+                // =========================
+                //INFORMACION ATS
+                // =========================
+
+                ats: {
+                    residente: 'RESIDENTE',
+                    formaPago: []
+                },
+                listaFormasPagoATSSeleccionadas: [],
+                valorMaximoATSSRI: valorMaximoATSSRI,
+
+                global: {
+                    descuentoGlobal: 0,
+                    recargo: 0,
+                    servicios: 0,
+                    otrosCargos: 0
+
+                },
+                tipoDescuento: 'VALOR',
+                descuento: 0,
 
             };
         },
+
         mounted() {
-            this.modalPagoInstance = new bootstrap.Modal(this.$refs.modalFinalizar).show();
+            this.formCompra.compBodega = this.listaBodegas.find(val => val.id === bodegaIdComp);
+            this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(val => val.id === '1');
+            this.modalPagoInstance = new bootstrap.Modal(this.$refs.modalFinalizar);
+        },
+        computed: {
+            listaRetencionesIvaBienes() {
+                return this.listaRetenciones.filter(r => r.ret_impuesto_detalle === 'IVA_BIENES');
+            },
+            listaRetencionesIvaServicios() {
+                return this.listaRetenciones.filter(r => r.ret_impuesto_detalle === 'IVA_SERVICIOS');
+            },
+            listaRetencionesRenta() {
+                return this.listaRetenciones.filter(r => r.ret_impuesto_detalle === 'RENTA');
+            },
+            listaCuentasFormaPago() {
+
+                if (!this.pagos.formaPago) {
+                    return [];
+                }
+
+                let codigo = '';
+
+                switch (this.pagos.formaPago.cod) {
+
+                    case '01':
+                        codigo = '1.01.01';
+                        break;
+
+                    case '02':
+                        codigo = '1.01.02';
+                        break;
+
+                    case '03':
+                        codigo = '1.01.02';
+                        break;
+
+                    case '04':
+                        codigo = '1.01.02';
+                        break;
+
+                    default:
+                        return [];
+
+                }
+
+                return this.listaCuentasContables.filter(
+                        c => c.ctad_codigo.startsWith(codigo)
+                );
+
+            }
         },
         watch: {
-            'modal.listaCuotas': {
+            'pagos.listaCuotas': {
                 deep: true,
                 handler() {
                     this.validarCuotas();
+                }
+            },
+            'formRetencion.compNoSujetoRetecion'(val) {
+                if (val) {
+//                    this.modal.retIvaBienes = null;
+//                    this.modal.retIvaServicios = null;
+//                    this.modal.retValorIva = 0;
                 }
             }
         },
 
         methods: {
 
+            //SEARCH PROVEEDORES
+            searchProveedor(dataSerach) {
+                clearTimeout(this.searchTimeout);
+                const datos = {dataSerach};
+                this.searchTimeout = setTimeout(async () => {
+                    try {
+                        const {data} = await axios.post(this.url + '/comun/proveedores/searchProveedor', datos);
+                        if (data !== false) {
+                            this.listaSearchProveedores = data;
+                        } else {
+                            this.listaSearchProveedores = [];
+                        }
+                    } catch (e) {
+                        sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                        this.listaSearchProveedores = [];
+                    }
+                }, 500);
+
+            },
+
             abrirModalFinalizar() {
 
-                if (!this.listaCompra.length) {
+                if (!this.listaCartData.length) {
                     sweet_msg_toast('warning', 'Debe agregar productos');
                     return;
                 }
@@ -501,8 +667,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             generarCuotas() {
 
                 let total = parseFloat(this.totalGeneral);
-                let cuotas = parseInt(this.modal.cuotas);
-                let dias = parseInt(this.modal.dias);
+                let cuotas = parseInt(this.pagos.cuotas);
+                let dias = parseInt(this.pagos.dias);
 
                 if (!cuotas || cuotas <= 0) {
                     sweet_msg_toast('warning', 'Número de cuotas inválido');
@@ -542,18 +708,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     cuotasArray[cuotasArray.length - 1].saldo += diferencia;
                 }
 
-                this.modal.listaCuotas = cuotasArray;
+                this.pagos.listaCuotas = cuotasArray;
 
                 sweet_msg_toast('success', 'Cuotas generadas correctamente');
             },
             validarCuotas() {
 
-                if (!this.modal.listaCuotas.length) {
+                if (!this.pagos.listaCuotas.length) {
                     sweet_msg_toast('warning', 'Debe generar las cuotas');
                     return false;
                 }
 
-                let suma = this.modal.listaCuotas.reduce((acc, c) => acc + parseFloat(c.valor || 0), 0);
+                let suma = this.pagos.listaCuotas.reduce((acc, c) => acc + parseFloat(c.valor || 0), 0);
 
                 let total = parseFloat(this.totalGeneral);
 
@@ -567,23 +733,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             resetFormulario() {
 
-                this.listaCompra = [];
+                this.listaCartData = [];
 
-                this.modal = {
-                    compAplicaRetencion: false,
-                    retNumero: '',
-                    retAutorizacion: '',
+                this.pagos = {
                     formaPago: null,
                     tipoPago: 'CONTADO',
                     cuotas: 1,
                     dias: 0,
+                    fechaVenceCredito: '',
                     listaCuotas: []
                 };
-
+                this.formRetencion = {
+                    asumirRetencion: 'NO_ASUMIR',
+                    compAplicaRetencion: true,
+                    compNoSujetoRetecion: false,
+                    retNumeroComprobnate: '',
+                    retNumeroEstablecimiento: '',
+                    retNumeroEmision: '',
+                    retFechaEmision: '',
+                    retAutorizacionSri: '',
+                    retDetalle: {}
+                };
                 this.totalGeneral = 0;
             },
 
-            async guardarCompraCompleta() {
+            async guardarCompra() {
 
                 try {
 
@@ -595,7 +769,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         return;
                     }
 
-                    if (!this.listaCompra.length) {
+                    if (!this.listaCartData.length) {
                         sweet_msg_toast('warning', 'Debe agregar productos');
                         return;
                     }
@@ -603,7 +777,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     // =========================
                     // VALIDAR CUOTAS
                     // =========================
-                    if (this.modal.tipoPago === 'CREDITO') {
+                    if (this.pagos.tipoPago === 'CREDITO') {
                         if (!this.validarCuotas())
                             return;
                     }
@@ -616,24 +790,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                         compProveedor: this.formCompra.compProveedor?.id,
                         compBodega: this.formCompra.compBodega?.id,
-                        compFormaPago: this.modal.formaPago?.id,
+                        compFormaPago: this.pagos.formaPago?.id,
 
-                        compTipoPago: this.modal.tipoPago,
-                        compCuotas: this.modal.cuotas,
-                        compDiasCredito: this.modal.dias,
+                        compTipoPago: this.pagos.tipoPago,
+                        compCuotas: this.pagos.cuotas,
+                        compDiasCredito: this.pagos.dias,
 
                         compTotal: this.totalGeneral,
 
                         // 🔥 RETENCION
-                        compAplicaRetencion: this.modal.compAplicaRetencion,
-                        retNumero: this.modal.retNumero,
-                        retAutorizacion: this.modal.retAutorizacion
+                        compAplicaRetencion: this.formRetencion.compAplicaRetencion,
+                        retNumero: this.formRetencion.retNumero,
+                        retAutorizacion: this.formRetencion.retAutorizacion
                     };
 
                     // =========================
                     // ARMAR DETALLE
                     // =========================
-                    const detalle = this.listaCompra.map(i => ({
+                    const detalle = this.listaCartData.map(i => ({
                             producto_id: i.id,
                             cantidad: i.cantidad,
                             precio: i.precio,
@@ -657,8 +831,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     // =========================
                     let cuotas = [];
 
-                    if (this.modal.tipoPago === 'CREDITO') {
-                        cuotas = this.modal.listaCuotas.map(c => ({
+                    if (this.pagos.tipoPago === 'CREDITO') {
+                        cuotas = this.pagos.listaCuotas.map(c => ({
                                 numero: c.numero,
                                 fecha: c.fecha,
                                 valor: c.valor,
@@ -704,12 +878,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 } catch (e) {
 
-                    console.error(e);
                     sweet_msg_toast('error', 'Error en el sistema');
 
                 } finally {
                     this.loading = false;
                 }
+            },
+
+            async changeBodega() {
+                if (this.emptyCar !== false) {
+                    let bodegaId = this.formCompra.compBodega?.id;
+
+                    if (bodegaId) {
+                        try {
+                            this.loadingBodega = true;
+                            let {data} = await axios.get(this.url + '/compras/changeBodega/' + bodegaId);
+                            if (data.status === 'success') {
+                                sweet_msg_toast('success', data.msg);
+                            }
+                        } catch (e) {
+                            sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                        } finally {
+                            this.loadingBodega = false;
+                        }
+                    }
+
+                } else {
+                    this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
+
+                    sweet_msg_dialog('warning', 'Existen productos cargados al carrito<br> No se puede cambiar de bodega');
+                }
+
             },
 
             // =========================
@@ -744,14 +943,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             // =========================
             async buscarPorCodigo() {
 
-                if (!this.codigoBusqueda)
+                if (!this.codigoBusqueda) {
                     return;
+                }
+
 
                 try {
-                    const {data} = await axios.post(
-                            this.url + '/comun/productos/searchByCode',
-                            {codigo: this.codigoBusqueda}
-                    );
+                    const {data} = await axios.post(this.url + '/comun/productos/searchByCode', {codigo: this.codigoBusqueda});
 
                     if (data) {
                         this.agregarProductoCompra(data);
@@ -775,7 +973,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_toast('warning', 'Seleccione una bodega');
                     return;
                 }
-
+                this.emptyCar = false;
                 const nuevoItem = {
                     id: producto.id,
                     codigo: producto.prod_codigo,
@@ -798,7 +996,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 this.calcularItem(nuevoItem);
 
-                this.listaCompra.push(nuevoItem);
+                this.listaCartData.push(nuevoItem);
                 this.productoSeleccionado = null;
 
                 this.calcularTotales();
@@ -806,24 +1004,52 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             // =========================
             // ELIMINAR ITEM
-            // =========================
-            eliminarItem(index) {
-                this.listaCompra.splice(index, 1);
-                this.calcularTotales();
+            // =========================            
+            async deleteProduct(rowId) {
+                try {
+                    this.loading = true;
+                    await axios.get(this.url + '/ajustesentrada/deleteProduct/' + rowId);
+                    this.showDetailCart();
+                    sweet_msg_toast('info', 'Producto eliminado exitosamente');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
             },
 
             // =========================
             // UPDATE ITEM
-            // =========================
-            updateItem(item) {
+            // =========================          
+            async updateProductCart(item) {
+                this.onRemove();//Removemos datos del anterior producto insertado
 
-                if (item.cantidad <= 0)
-                    item.cantidad = 1;
-                if (item.precio < 0)
-                    item.precio = 0;
+                if (item.qty <= 0) {
+                    item.qty = 1;
+                    sweet_msg_toast('warning', 'La cantidad debe ser mayor a cero');
+                    return false;
+                }
 
-                this.calcularItem(item);
-                this.calcularTotales();
+                let datos = item;
+                datos.idBodega = this.formDataAjuste.ajenBodega.id;
+
+                try {
+                    this.loading = true;
+
+                    let {data} = await axios.post(this.url + '/ajustesentrada/updateProduct', datos);
+                    if (data.status === "success") {
+                        sweet_msg_toast('success', data.msg);
+                    } else if (data.status === "warning") {
+                        sweet_msg_toast('warning', data.msg);
+                    }
+
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
+
+                this.showDetailCart();
             },
 
             // =========================
@@ -873,7 +1099,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let irbpnr = 0;
                 let total = 0;
 
-                this.listaCompra.forEach(i => {
+                this.listaCartData.forEach(i => {
                     subtotal += i.subtotal;
                     iva += i.iva_valor;
                     irbpnr += i.irbpnr_total;
@@ -910,6 +1136,110 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 });
 
+
+            },
+
+            //====================
+            //RETENCIONES
+            //====================
+
+            agregarRetencionIva(retencion) {
+
+                const existe = this.listaRetencionesSeleccionadas.some(
+                        r => r.id === retencion.id
+                );
+
+                if (existe) {
+                    sweet_msg_toast('info', 'La retención ya se encuentra agregada');
+                    return;
+                }
+
+                this.listaRetencionesSeleccionadas.push({
+                    ...retencion,
+                    base: this.formRetencion.baseIva ?? 0,
+                    valorRetenido: this.calcularValorRetenido(
+                            this.formRetencion.baseIva,
+                            retencion.ret_porcentaje
+                            )
+                });
+
+            },
+
+            agregarRetencionRenta() {
+
+                if (!this.retencionRenta) {
+                    return;
+                }
+
+                const existe = this.listaRetencionesSeleccionadas.some(
+                        r => r.id === this.retencionRenta.id
+                );
+
+                if (existe) {
+                    sweet_msg_toast('info', 'La retención ya se encuentra agregada');
+                    return;
+                }
+
+                this.listaRetencionesSeleccionadas.push({
+                    ...this.retencionRenta,
+                    base: this.formRetencion.baseRenta ?? 0,
+                    valorRetenido: this.calcularValorRetenido(
+                            this.formRetencion.baseRenta,
+                            this.retencionRenta.ret_porcentaje
+                            )
+                });
+
+                this.retencionRenta = null;
+            },
+
+            calcularValorRetenido(base, porcentaje) {
+
+                let valor = (
+                        parseFloat(base || 0) *
+                        parseFloat(porcentaje || 0)
+                        ) / 100;
+
+                return parseFloat(valor).toFixed(2);
+            },
+            totalValorRetenido() {
+                return this.listaRetencionesSeleccionadas
+                        .reduce((acc, item) => acc + parseFloat(item.valorRetenido || 0), 0)
+                        .toFixed(2);
+            },
+            calcularFechaCredito() {
+                const dias = parseInt(this.pagos.dias || 0);
+                const fecha = new Date();
+                fecha.setDate(fecha.getDate() + dias);
+                this.pagos.fechaVenceCredito = fecha
+                        .toISOString()
+                        .split('T')[0];
+
+            },
+            changeFormaPago() {
+
+                this.pagos.nota = '';
+
+                this.pagos.banco = '';
+                this.pagos.numeroTransferencia = '';
+                this.pagos.fechaTransferencia = '';
+
+                this.pagos.numeroCheque = '';
+                this.pagos.fechaCheque = '';
+
+                this.pagos.marcaTarjeta = '';
+                this.pagos.loteTarjeta = '';
+                this.pagos.autorizacionTarjeta = '';
+                this.pagos.ultimosDigitos = '';
+                this.pagos.fechaVoucher = '';
+
+            },
+            changeTipoDescuento(item, tipo) {
+
+                item.tipoDescuento = tipo;
+
+                item.descuento = 0;
+
+//                this.updateProductCart(item);
 
             },
 

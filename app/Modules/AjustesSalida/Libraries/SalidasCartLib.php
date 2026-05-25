@@ -134,7 +134,7 @@ class SalidasCartLib {
     /**
      * Insert interno optimizado
      */
-    private function _insert($items = [], $update = false, $rowid_) {
+    private function _insert($items = [], $update = false, $rowid_=null) {
         // Generar rowid
         $randonNumer = rand(1, 1000000);
 
@@ -340,7 +340,7 @@ class SalidasCartLib {
 //        return true;
 //    }
 
-    public function update($item = [], $rowidRand) {
+    public function update($item = [], $rowidRand=null) {
         if ($this->cart === null) {
             throw new \Exception("Cart does not exist!");
         }

@@ -95,8 +95,11 @@ class AsientoContableLib {
 
             return $asientoId;
         } catch (\Throwable $exc) {
+            log_message('error', '[AsientoContableLib::guardarAsiento] ' . $exc->getMessage() . PHP_EOL . $exc->getTraceAsString());
 //            throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage());
-            throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage().$exc->getTraceAsString());
+            //throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage().$exc->getTraceAsString());
+            throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage());
+
         }
     }
 
@@ -199,10 +202,10 @@ class AsientoContableLib {
      */
     public function anularAsiento($tipoTransaccion, $docId) {
         try {
-            $resultado = $this->ccm->actualizar(
+            $resultado = $this->ccm->actualizar( 'cc_asiento_contable',
                     ['ac_estado' => -1, 'ac_fecha_anulacion' => date('Y-m-d H:i:s')],
-                    ['ac_codigo_transaccion' => $tipoTransaccion, 'ac_doc_id' => ac_documento_id],
-                    'cc_asiento_contable'
+                    ['ac_codigo_transaccion' => $tipoTransaccion, 'ac_documento_id' => $docId],
+                   
             );
 
             if ($resultado) {

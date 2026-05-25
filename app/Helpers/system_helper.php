@@ -37,11 +37,6 @@ function getSettings($value) {
     return $val;
 }
 
-function numberDecimal($num) {
-    $number = (double) $num;
-    return number_format($number, NUMDECIMALES, '.', '');
-}
-
 function getPeriodoContable($fecha) {
     $ccm = Services::ccModel();
     $respuesta = $ccm->getData('cc_periodos_contables', ['pc_fecha_inicio <=' => $fecha, 'pc_fecha_fin >=' => $fecha, 'pc_estado' => 'ABIERTO'], 'id', null, 1);
