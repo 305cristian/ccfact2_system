@@ -42,6 +42,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     border-right: 1px solid #e5e7eb;
     min-width: 30%;
 }
+.summary-card-table {
+    border-left: 5px solid var(--colorSystem);
+    border-radius: 10px;
+    /*padding: 10px;*/
+    margin-top: 30px;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    min-width: 30%;
+}
 
 
 .empty-state {

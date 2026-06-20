@@ -39,6 +39,7 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
     $subroutes->post('saveCompra', 'IndexController::saveCompra');
     $subroutes->post('updateCompra', 'IndexController::updateCompra');
     $subroutes->post('anularCompra', 'IndexController::anularCompra');
+    $subroutes->post('updateValoresGlobales', 'IndexController::updateValoresGlobales');
 //    $subroutes->get('clonarCompra/(:num)', 'IndexController::clonarCompra/$1');
 //    $subroutes->post('importarExcel', 'IndexController::importarExcel');
     $subroutes->get('loadCompraEdit/(:num)', 'IndexController::loadCompraEdit/$1');

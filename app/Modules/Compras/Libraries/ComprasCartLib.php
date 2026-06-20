@@ -57,9 +57,12 @@ class ComprasCartLib {
     private function emptyCart() {
         return [
             '_meta' => [
-                'total_cart' => 0,
+                'total_subtotal_bruto' => 0,
                 'total_articles' => 0,
                 'total_descuento' => 0,
+                'total_descuento_global' => 0,
+                'total_recargo' => 0,
+                'total_servicios_adc' => 0,
                 'total_subtotal_neto' => 0,
                 'total_iva' => 0,
                 'total_ice' => 0,
@@ -71,8 +74,11 @@ class ComprasCartLib {
                 'tarif_ceroneto' => 0,
                 'tarif_iva' => 0,
                 'tarif_ivaneto' => 0,
-                'impuestos' => [],
-                'proveedor' => null
+                'tarif_excento' => 0,
+                'tarif_excentoneto' => 0,
+                'tarif_noobjeto' => 0,
+                'tarif_noobjetoneto' => 0,
+                'bases_impuesto' => [],
             ]
         ];
     }
@@ -133,9 +139,10 @@ class ComprasCartLib {
         }
 
         $items["rowid"] = $rowid;
-        $items = $this->calculateItem($items);
 
-        $this->cart[$rowid] = $items;
+        $itemsCalculate = $this->calculateItem($items);
+
+        $this->cart[$rowid] = $itemsCalculate;
         $this->recalculateTotals();
 
         return $rowid;
@@ -145,8 +152,8 @@ class ComprasCartLib {
      * Calculate all monetary fields for one row.
      */
     private function calculateItem($items) {
-        $qty = $this->number($items["qty"] ?? $items["cantidad"] ?? 0);
-        $price = $this->number($items["price"] ?? $items["precio"] ?? 0);
+        $qty = $this->number($items["qty"] ?? 0);
+        $price = $this->number($items["price"] ?? 0);
 
         if ($qty <= 0) {
             throw new \Exception("La cantidad debe ser mayor a cero.");
@@ -156,8 +163,8 @@ class ComprasCartLib {
             throw new \Exception("El precio no puede ser negativo.");
         }
 
-        $discountPercent = $this->number($items["descuento_porcentaje"] ?? $items["discountPercent"] ?? 0);
-        $discountValue = $this->number($items["descuento_valor"] ?? $items["discountValue"] ?? $items["descuento"] ?? 0);
+        $discountPercent = $this->number($items["discountPercent"] ?? 0);
+        $discountValue = $this->number($items["discountValue"] ?? 0);
 
         if ($discountPercent < 0 || $discountValue < 0) {
             throw new \Exception("El descuento no puede ser negativo.");
@@ -167,73 +174,59 @@ class ComprasCartLib {
             throw new \Exception("El descuento por porcentaje no puede superar el 100%.");
         }
 
-        $discountPercentValue = $price * ($discountPercent / 100);
-        $discountTotalUnit = min($price, $discountPercentValue + $discountValue);
-        $priceNet = max(0, $price - $discountTotalUnit);
-        $subtotalGross = $price * $qty;
-        $subtotalNet = $priceNet * $qty;
+//        $discountPercentValue = $price * ($discountPercent / 100);
+        $discountTotalUnit = min($price, $discountValue); //Se aplica MIN para que el descuento no sea menor al precio
+        $priceNeto = max(0, $price - $discountTotalUnit); //Se aplica MAX para que el prcio neto no sea menor 0
+        $subtotalBruto = $price * $qty;
+        $subtotalNeto = $priceNeto * $qty;
         $discountTotal = $discountTotalUnit * $qty;
 
-        $icePercent = $this->number($items["icePorcent"] ?? $items["ice_porcentaje"] ?? 0);
-        $iceUnit = $icePercent > 0 ? ($priceNet * $icePercent) / 100 : 0;
-        $iceTotal = $iceUnit * $qty;
+        $icePercent = $this->number($items["icePorcent"] ?? 0);
+        $iceUnitario = $icePercent > 0 ? ($priceNeto * $icePercent) / 100 : 0;
+        $iceTotal = $iceUnitario * $qty;
 
-        $irbpnrUnit = $this->number($items["irbpnr_unitario"] ?? $items["irbpnr"] ?? 0);
-        $irbpnrTotal = $irbpnrUnit * $qty;
+        $irbpnrUnitario = $this->number($items["irbpnrUnitario"] ?? 0);
+        $irbpnrTotal = $irbpnrUnitario * $qty;
 
-        $baseIvaUnit = $priceNet + $iceUnit;
+        $baseIvaUnit = $priceNeto + $iceUnitario;
         $baseIvaTotal = $baseIvaUnit * $qty;
 
-        $ivaPercent = $this->number($items["ivaPorcent"] ?? $items["iva_porcentaje"] ?? $items["impt_porcentaje"] ?? 0);
+        $ivaPercent = $this->number($items["ivaPorcent"] ?? 0);
         $ivaUnit = ($baseIvaUnit * $ivaPercent) / 100;
         $ivaTotal = $ivaUnit * $qty;
 
-        $totalUnit = $priceNet + $iceUnit + $ivaUnit + $irbpnrUnit;
-        $total = $subtotalNet + $iceTotal + $ivaTotal + $irbpnrTotal;
+        $totalUnit = $priceNeto + $iceUnitario + $ivaUnit + $irbpnrUnitario;
+        $total = $subtotalNeto + $iceTotal + $ivaTotal + $irbpnrTotal;
 
         $items["qty"] = $qty;
         $items["cantidad"] = $qty;
         $items["price"] = $price;
-        $items["precio"] = $price;
 
-        $items["descuento_porcentaje"] = $discountPercent;
-        $items["descuento_valor"] = $discountValue;
-        $items["descuento_porcentaje_valor"] = round($discountPercentValue, 4);
-        $items["descuento_unitario"] = round($discountTotalUnit, 4);
-        $items["descuento_total"] = round($discountTotal, 4);
+        $items["descuentoTotal"] = round($discountTotal, 4);
+        $items["discountPercent"] = round($discountPercent, 4);
+        $items["discountValue"] = round($discountValue, 4);
 
-        $items["priceneto"] = round($priceNet, 4);
-        $items["precio_neto"] = round($priceNet, 4);
-        $items["totalpriceneto"] = round($subtotalNet, 4);
-        $items["subtotal"] = round($subtotalNet, 4);
+        $items["priceNeto"] = round($priceNeto, 4);
+        $items["subtotalNeto"] = round($subtotalNeto, 4);
 
         $items["icePorcent"] = $icePercent;
-        $items["ice_porcentaje"] = $icePercent;
-        $items["iceval"] = round($iceUnit, 4);
-        $items["ice_valor_unitario"] = round($iceUnit, 4);
-        $items["toticeval"] = round($iceTotal, 4);
-        $items["ice_valor"] = round($iceTotal, 4);
+        $items["iceValUnit"] = round($iceUnitario, 4);
+        $items["iceValTotal"] = round($iceTotal, 4);
 
-        $items["itembaseiva"] = round($baseIvaUnit, 4);
-        $items["base_iva_unitaria"] = round($baseIvaUnit, 4);
-        $items["totitembaseiva"] = round($baseIvaTotal, 4);
-        $items["base_iva_total"] = round($baseIvaTotal, 4);
+        $items["itemBaseIvaUnit"] = round($baseIvaUnit, 4);
+        $items["itemBaseIvaTotal"] = round($baseIvaTotal, 4);
 
         $items["ivaPorcent"] = $ivaPercent;
-        $items["iva_porcentaje"] = $ivaPercent;
-        $items["ivaval"] = round($ivaUnit, 4);
-        $items["iva_valor_unitario"] = round($ivaUnit, 4);
-        $items["totivaval"] = round($ivaTotal, 4);
-        $items["iva_valor"] = round($ivaTotal, 4);
+        $items["ivaValUnit"] = round($ivaUnit, 4);
+        $items["ivaValTotal"] = round($ivaTotal, 4);
 
-        $items["irbpnr_unitario"] = round($irbpnrUnit, 4);
         $items["irbpnr_total"] = round($irbpnrTotal, 4);
 
-        $items["priceiva"] = round($priceNet + $iceUnit + $ivaUnit, 4);
-        $items["totalpriceiva"] = round($subtotalNet + $iceTotal + $ivaTotal, 4);
-        $items["total_unitario"] = round($totalUnit, 4);
+        $items["priceIva"] = round($priceNeto + $iceUnitario + $ivaUnit, 4);
+        $items["totalPriceIva"] = round($subtotalNeto + $iceTotal + $ivaTotal, 4);
+        $items["totalUnitario"] = round($totalUnit, 4);
         $items["total"] = round($total, 4);
-        $items["subtotal_bruto"] = round($subtotalGross, 4);
+        $items["subtotalBruto"] = round($subtotalBruto, 4);
 
         return $items;
     }
@@ -250,56 +243,80 @@ class ComprasCartLib {
             }
 
             $qty = $this->number($item["qty"] ?? 0);
-            $subtotalGross = $this->number($item["subtotal_bruto"] ?? 0);
-            $subtotalNet = $this->number($item["subtotal"] ?? $item["totalpriceneto"] ?? 0);
-            $discountTotal = $this->number($item["descuento_total"] ?? 0);
-            $ivaTotal = $this->number($item["iva_valor"] ?? $item["totivaval"] ?? 0);
-            $iceTotal = $this->number($item["ice_valor"] ?? $item["toticeval"] ?? 0);
+            $subtotalBruto = $this->number($item["subtotalBruto"] ?? 0);
+            $subtotalNeto = $this->number($item["subtotalNeto"] ?? 0);
+            $discountTotal = $this->number($item["descuentoTotal"] ?? 0);
+            $ivaTotal = $this->number($item["ivaValTotal"] ?? 0);
+            $iceTotal = $this->number($item["iceValTotal"] ?? 0);
             $irbpnrTotal = $this->number($item["irbpnr_total"] ?? 0);
             $total = $this->number($item["total"] ?? 0);
-            $ivaPercent = $this->number($item["iva_porcentaje"] ?? $item["ivaPorcent"] ?? 0);
-            $servicio = (int) ($item["servicio"] ?? $item["prod_servicio"] ?? 0);
+            $ivaPercent = $this->number($item["ivaPorcent"] ?? 0);
+            $servicio = (int) ($item["servicio"] ?? 0);
+            $codigoImpuestoSelect = (int) ($item["codigoImpuestoSelect"] ?? 0);
 
-            $meta["total_cart"] += $subtotalGross;
+            $meta["total_subtotal_bruto"] += $subtotalBruto;
             $meta["total_articles"] += $qty;
             $meta["total_descuento"] += $discountTotal;
-            $meta["total_subtotal_neto"] += $subtotalNet;
+            $meta["total_subtotal_neto"] += $subtotalNeto;
             $meta["total_iva"] += $ivaTotal;
             $meta["total_ice"] += $iceTotal;
             $meta["total_irbpnr"] += $irbpnrTotal;
             $meta["total_general"] += $total;
 
             if ($servicio === 0) {
-                $meta["total_bienes"] += $subtotalNet;
+                $meta["total_bienes"] += $subtotalNeto;
             } else {
-                $meta["total_servicios"] += $subtotalNet;
+                $meta["total_servicios"] += $subtotalNeto;
             }
 
-            if ($ivaPercent == 0) {
-                $meta["tarif_cero"] += $subtotalGross;
-                $meta["tarif_ceroneto"] += $subtotalNet;
-            } else {
-                $meta["tarif_iva"] += $subtotalGross;
-                $meta["tarif_ivaneto"] += $subtotalNet;
-            }
+            $taxKey = (string) ($codigoImpuestoSelect );
 
-            $taxKey = (string) ($item["fk_impuesto_tarifa"] ?? $item["fk_impuestotarifa"] ?? $ivaPercent);
-            if (!isset($meta["impuestos"][$taxKey])) {
-                $meta["impuestos"][$taxKey] = [
-                    "fk_impuesto_tarifa" => $item["fk_impuesto_tarifa"] ?? $item["fk_impuestotarifa"] ?? null,
-                    "codigo" => $item["impt_codigo"] ?? null,
-                    "detalle" => $item["impt_detalle"] ?? ("IVA " . $ivaPercent . "%"),
+            if (!isset($meta["bases_impuesto"][$taxKey])) {
+
+                $meta["bases_impuesto"][$taxKey] = [
+                    "codigo" => $codigoImpuestoSelect ?? null,
+                    "detalle" => $item["detalleImpuestoSelect"] ?? '',
                     "porcentaje" => $ivaPercent,
-                    "base" => 0,
-                    "valor" => 0
+                    "subtotal_bruto" => 0,
+                    "subtotal_neto" => 0,
+                    "iva" => 0,
                 ];
             }
 
-            $meta["impuestos"][$taxKey]["base"] += $this->number($item["base_iva_total"] ?? $item["totitembaseiva"] ?? 0);
-            $meta["impuestos"][$taxKey]["valor"] += $ivaTotal;
+            $meta["bases_impuesto"][$taxKey]["subtotal_bruto"] += $subtotalBruto;
+            $meta["bases_impuesto"][$taxKey]["subtotal_neto"] += $subtotalNeto;
+            $meta["bases_impuesto"][$taxKey]["iva"] += $ivaTotal;
+
+            /*
+              |--------------------------------------------------------------------------
+              | Totales requeridos por SRI
+              |--------------------------------------------------------------------------
+             */
+
+            if ($codigoImpuestoSelect == 0 && $ivaPercent == 0) {
+
+                $meta["tarif_cero"] += $subtotalBruto;
+                $meta["tarif_ceroneto"] += $subtotalNeto;
+            } elseif ($codigoImpuestoSelect == 6) {
+
+                $meta["tarif_noobjeto"] += $subtotalBruto;
+                $meta["tarif_noobjetoneto"] += $subtotalNeto;
+            } elseif ($codigoImpuestoSelect == 7) {
+
+                $meta["tarif_excento"] += $subtotalBruto;
+                $meta["tarif_excentoneto"] += $subtotalNeto;
+            }
         }
 
-        $meta["total_cart"] = round($meta["total_cart"], 4);
+
+
+        $meta['total_descuento_global'] = $this->number($this->cart['_meta']['total_descuento_global'] ?? 0);
+        $meta['total_recargo'] = $this->number($this->cart['_meta']['total_recargo'] ?? 0);
+        $meta['total_servicios_adc'] = $this->number($this->cart['_meta']['total_servicios_adc'] ?? 0);
+
+        $this->aplicarDescuentoGlobal($meta);
+
+        $meta["total_subtotal_bruto"] = round($meta["total_subtotal_bruto"], 4);
         $meta["total_descuento"] = round($meta["total_descuento"], 4);
         $meta["total_subtotal_neto"] = round($meta["total_subtotal_neto"], 4);
         $meta["total_iva"] = round($meta["total_iva"], 4);
@@ -308,19 +325,110 @@ class ComprasCartLib {
         $meta["total_general"] = round($meta["total_general"], 4);
         $meta["total_bienes"] = round($meta["total_bienes"], 4);
         $meta["total_servicios"] = round($meta["total_servicios"], 4);
+
         $meta["tarif_cero"] = round($meta["tarif_cero"], 4);
         $meta["tarif_ceroneto"] = round($meta["tarif_ceroneto"], 4);
+
+        $meta["tarif_noobjeto"] = round($meta["tarif_noobjeto"], 4);
+        $meta["tarif_noobjetoneto"] = round($meta["tarif_noobjetoneto"], 4);
+
+        $meta["tarif_excento"] = round($meta["tarif_excento"], 4);
+        $meta["tarif_excentoneto"] = round($meta["tarif_excentoneto"], 4);
+
         $meta["tarif_iva"] = round($meta["tarif_iva"], 4);
         $meta["tarif_ivaneto"] = round($meta["tarif_ivaneto"], 4);
 
-        foreach ($meta["impuestos"] as $key => $tax) {
-            $meta["impuestos"][$key]["base"] = round($tax["base"], 4);
-            $meta["impuestos"][$key]["valor"] = round($tax["valor"], 4);
+
+        foreach ($meta["bases_impuesto"] as $key => $base) {
+
+            $meta["bases_impuesto"][$key]["subtotal_bruto"] = round($base["subtotal_bruto"], 4);
+
+            $meta["bases_impuesto"][$key]["subtotal_neto"] = round($base["subtotal_neto"], 4);
+
+            $meta["bases_impuesto"][$key]["iva"] = round($base["iva"], 4);
         }
 
-        $provider = $this->cart["_meta"]["proveedor"] ?? null;
         $this->cart["_meta"] = $meta;
-        $this->cart["_meta"]["proveedor"] = $provider;
+    }
+
+    private function aplicarDescuentoGlobal(array &$meta) {
+
+        /*
+          |--------------------------------------------------------------------------
+          | Aplicar descuento global proporcional a las bases
+          |--------------------------------------------------------------------------
+         */
+        $meta['total_general'] = $meta['total_subtotal_neto'] + $meta['total_iva'] + $meta['total_ice'] + $meta['total_irbpnr'] + $meta['total_recargo'] + $meta['total_servicios_adc'];
+
+        $descuentoGlobal = $this->number($meta['total_descuento_global'] ?? 0);
+
+        if ($descuentoGlobal <= 0) {
+            return;
+        }
+        $subtotalNetoOriginal = $meta['total_subtotal_neto'];
+
+        if ($subtotalNetoOriginal <= 0) {
+            return;
+        }
+
+        $nuevoTotalIva = 0;
+
+        foreach ($meta['bases_impuesto'] as $key => &$base) {
+
+            $subtotalBaseOriginal = $base['subtotal_neto'];
+
+            $proporcion = $subtotalBaseOriginal / $subtotalNetoOriginal;
+
+            $descuentoAsignado = $descuentoGlobal * $proporcion;
+
+            $nuevoSubtotal = $subtotalBaseOriginal - $descuentoAsignado;
+
+            $base['subtotal_neto'] = $nuevoSubtotal;
+
+            $base['iva'] = ($nuevoSubtotal * $base['porcentaje']) / 100;
+
+            $nuevoTotalIva += $base['iva'];
+        }
+
+        unset($base);
+
+        /*
+          |--------------------------------------------------------------------------
+          | Recalcular bases SRI
+          |--------------------------------------------------------------------------
+         */
+
+        $meta['tarif_ceroneto'] = 0;
+        $meta['tarif_ivaneto'] = 0;
+        $meta['tarif_excentoneto'] = 0;
+        $meta['tarif_noobjetoneto'] = 0;
+
+        foreach ($meta['bases_impuesto'] as $base) {
+
+            $codigo = (int) $base['codigo'];
+
+            if ($codigo === 0 && $base['porcentaje'] == 0) {
+                $meta['tarif_ceroneto'] += $base['subtotal_neto'];
+            } elseif ($codigo === 6) {
+                $meta['tarif_noobjetoneto'] += $base['subtotal_neto'];
+            } elseif ($codigo === 7) {
+                $meta['tarif_excentoneto'] += $base['subtotal_neto'];
+            } else {
+                $meta['tarif_ivaneto'] += $base['subtotal_neto'];
+            }
+        }
+
+        /*
+          |--------------------------------------------------------------------------
+          | Totales generales
+          |--------------------------------------------------------------------------
+         */
+
+        $meta['total_subtotal_neto'] = $subtotalNetoOriginal - $descuentoGlobal;
+
+        $meta['total_iva'] = $nuevoTotalIva;
+
+        $meta['total_general'] = $meta['total_subtotal_neto'] + $meta['total_iva'] + $meta['total_ice'] + $meta['total_irbpnr'] + $meta['total_recargo'] + $meta['total_servicios_adc'];
     }
 
     /**
@@ -357,7 +465,32 @@ class ComprasCartLib {
         }
 
         unset($this->cart[$rowid]);
+
+        // Si ya no quedan items, limpiar valores globales
+        if (empty($this->getContent())) {
+
+            $this->cart['_meta']['total_descuento_global'] = 0;
+            $this->cart['_meta']['total_recargo'] = 0;
+            $this->cart['_meta']['total_servicios_adc'] = 0;
+        }
+
         $this->recalculateTotals();
+        $this->save();
+
+        return true;
+    }
+
+    /**
+     * Update valores globales.
+     */
+    public function updateValoresGlobales(float $descuentoGlobal = 0, float $recargo = 0, float $serviciosAdc = 0) {
+
+        $this->cart['_meta']['total_descuento_global'] = $descuentoGlobal;
+        $this->cart['_meta']['total_recargo'] = $recargo;
+        $this->cart['_meta']['total_servicios_adc'] = $serviciosAdc;
+
+        $this->recalculateTotals();
+
         $this->save();
 
         return true;
@@ -378,20 +511,40 @@ class ComprasCartLib {
         return empty($result) ? null : $result;
     }
 
-    public function getMeta() {
-        return $this->cart['_meta'];
-    }
+//    public function getMeta() {
+//        return $this->cart['_meta'];
+//    }
 
     public function getImpuestos() {
-        return array_values($this->cart['_meta']['impuestos'] ?? []);
+        return array_values($this->cart['_meta']['bases_impuesto'] ?? []);
     }
 
-    public function totalCart() {
-        return round($this->cart['_meta']['total_cart'], 4);
+    public function totalSubtotalBruto() {
+        return round($this->cart['_meta']['total_subtotal_bruto'], 4);
     }
 
-    public function totalDescuento() {
+    public function totalDescuentoItems() {
         return round($this->cart['_meta']['total_descuento'], 4);
+    }
+
+    public function totalDescuentoGlobal() {
+        return round($this->cart['_meta']['total_descuento_global'], 4);
+    }
+
+    public function totalRecargo() {
+        return round($this->cart['_meta']['total_recargo'], 4);
+    }
+
+    public function totalServiciosAdc() {
+        return round($this->cart['_meta']['total_servicios_adc'], 4);
+    }
+
+    public function totalExcentoIva() {
+        return round($this->cart['_meta']['tarif_excentoneto'], 4);
+    }
+
+    public function totalnoObjetoImpuestos() {
+        return round($this->cart['_meta']['tarif_noobjetoneto'], 4);
     }
 
     public function totalSubtotalNeto() {
@@ -446,16 +599,6 @@ class ComprasCartLib {
         $this->cart = $this->emptyCart();
         $this->save();
         return true;
-    }
-
-    public function setProveedor($data) {
-        $this->cart['_meta']['proveedor'] = $data;
-        $this->save();
-        return true;
-    }
-
-    public function getProveedor() {
-        return $this->cart['_meta']['proveedor'] ?? null;
     }
 
     private function number($value) {

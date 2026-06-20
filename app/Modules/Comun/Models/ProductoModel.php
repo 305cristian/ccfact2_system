@@ -20,7 +20,7 @@ class ProductoModel extends \CodeIgniter\Model {
     function getImpuestoTarifa($prodId) {
 
         $builder = $this->db->table('cc_producto_impuestotarifa tb1');
-        $builder->select('tb2.impt_porcentage');
+        $builder->select('tb2.id, tb2.impt_porcentage, tb2.impt_codigo, tb2.impt_detalle, tb1.fk_impuesto');
         $builder->join('cc_impuesto_tarifa tb2', 'tb2.id = tb1.fk_impuestotarifa');
         $builder->where('tb1.fk_producto', $prodId);
         $builder->whereIn('tb1.fk_impuesto', [1, 2]); //1=>ID DE IMPIESTO IVA, 2=>ID DE IMPIESTO ICE

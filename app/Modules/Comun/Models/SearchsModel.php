@@ -237,7 +237,11 @@ class SearchsModel extends \CodeIgniter\Model {
                 . " tb1.prod_isservicio,"
                 . " tb1.prod_tiene_irbpnr,"
                 . " tb1.prod_stockactual,"
-                . " tb1.prod_ctrllote, tb2.um_nombre_corto");
+                . " tb1.prod_ctrllote,"
+                . " tb1.prod_costoinventario,"
+                . " tb1.fk_cuentacontablecompras,"
+                . " tb1.fk_cuentacontableventas,"
+                . " tb2.um_nombre_corto");
         $builder->join('cc_unidades_medida tb2', 'tb2.id = tb1.fk_unidadmedida');
         if (ctype_digit($codProd)) {
             // Busca por ID O por cualquier código de barras

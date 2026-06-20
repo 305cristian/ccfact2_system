@@ -12,7 +12,7 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
-<div class="cart">
+<div class="cart">          
     <div class="cart-header d-flex justify-content-between align-items-center">
         <h5><i class="fas fa-shopping-cart me-2"></i>Artículos a camprar</h5>
         <div v-if="loading" class="loading-data">
@@ -36,23 +36,38 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <p style="font-size: 0.9rem; color: #d1d5db;">Utiliza la búsqueda de arriba para agregar productos</p>
         </div>
         <div v-else class="table-responsive">
-            <table class="table table-striped table-hover align-middle w-100">
-                <thead>
+
+            <table class="table table-stripped table-hover align-middle w-100">
+                <colgroup>
+                    <col style="width:110px">   <!-- Eliminar -->
+                    <col style="width:90px">   <!-- Cod Prov -->
+                    <col style="width:130px">  <!-- Codigo -->
+                    <col style="width:370px">  <!-- Producto -->
+                    <col v-if="colLotes" style="width:300px">  <!-- Lote -->
+                    <col style="width:90px">   <!-- IVA -->
+                    <col style="width:180px">  <!-- Cuenta -->
+                    <col style="width:310px">  <!-- Cantidad -->
+                    <col style="width:170px">  <!-- Descuento -->
+                    <col style="width:80px">   <!-- ICE -->
+                    <col style="width:80px">   <!-- IVA -->
+                    <col style="width:100px">  <!-- Subtotal -->
+                    <col style="width:100px">  <!-- Centro costo -->
+                </colgroup>
+                <thead class="cart-header">
                     <tr>
                         <th class="text-center" style="width: 100px;"><i  class="fas fa-trash"></i></th>
-                        <th>Cod. Prov</th>
+                        <th>C.P.</th>
                         <th>Codigo</th>
                         <th>Producto</th>
-                        <th>Lote (Fechas)</th>
-                        <th>IVA</th>
+                        <th v-if="colLotes">Lote (Fechas)</th>
+                        <th>IVA %</th>
                         <th>Cta. Contable</th>
                         <th class="text-center">Cantidad / Precio</th>
                         <th class="text-center">Descuento</th>
                         <th class="text-center">ICE</th>
                         <th class="text-center">IVA</th>
                         <th class="text-center">Subtotal</th>
-                        <th class="text-center">Total</th>
-                        <th class="text-center">Centro Costo</th>
+                        <th class="text-center">C.c.</th>
                     </tr>
                 </thead>
 
@@ -74,23 +89,58 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </td>
 
                         <!--CODIGO DE PROVEEDOR-->
-                        <td><input type="text" value="00025" class="form-control form-control-sm"></td>
+                        <td>
+                            <input type="text" value="00025" class="form-control form-control-sm">
+                        </td>
 
                         <!--CODIGO DE PRODUCTO-->
-                        <td style="min-width: 130px;">
+                        <td>
                             <span class="badge bg-cris-system text-wrap w-100 d-inline-block text-start"
                                   style="font-size: 12px;  white-space: normal; line-height: 1.2; "
                                   v-tooltip:top=" item.id ">{{ item.codigo }}</span>
                         </td>
 
                         <!--ITEM-->
-                        <td style="min-width: 220px; max-width: 250px;">
-                            <span class="text-danger">{{item.ivaPorcent != '0.00'? '*':'' }}</span>
-                            <strong>{{ item.nombre }} <span class="text-info"><i class="fas fa-angles-right"></i> {{item.unidadMedida}}</span></strong>
+                        <td>
+                            <span
+                                v-if="item.codigoImpuestoSelect == 4"
+                                class="d-inline-block rounded-circle bg-success me-1"
+                                style="width:12px;height:12px"
+                                title="IVA 15%">
+                            </span>
+
+                            <span
+                                v-else-if="item.codigoImpuestoSelect == 0"
+                                class="d-inline-block rounded-circle bg-dark me-1"
+                                style="width:12px;height:12px"
+                                title="Tarifa 0%">
+                            </span>
+
+                            <span
+                                v-else-if="item.codigoImpuestoSelect == 7"
+                                class="d-inline-block rounded-circle bg-info me-1"
+                                style="width:12px;height:12px"
+                                title="Exento IVA">
+                            </span>
+
+                            <span
+                                v-else-if="item.codigoImpuestoSelect == 6"
+                                class="d-inline-block rounded-circle bg-warning me-1"
+                                style="width:12px;height:12px"
+                                title="No objeto de impuesto">
+                            </span>
+
+
+                            <strong>{{ item.name }}</strong>
+                            <span class="text-info">
+                                <i class="fas fa-angles-right"></i>
+                                {{ item.unidadMedida }}
+                            </span>
+
                         </td>
 
                         <!--DATOS DEL LOTE-->
-                        <td>
+                        <td v-if="colLotes">
                             <div v-if="item.tieneLote === '1' " class="input-group">
                                 <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 130px;">
                                 <input v-model="item.fechaElaboracion" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
@@ -98,22 +148,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </div>
                             <div v-else> <p style="font-size: 0.9rem; color: #d1d5db; font-style: italic">Sin lotes</p></div>
                         </td>
-                        <td style="min-width: 100px; max-width: 100px;">
-                            <select class="form-select form-select-sm">
-                                <option>APLICA IVA</option>
-                                <option>EXCENTO DE IVA</option>
-                                <option>NO OBJETO DE IMPUESTOS</option>
-                                <option>TARIFA 0%</option>
+
+                        <!-- IMPUESTO PORCENTAJE-->
+                        <td >
+                            <select v-model="item.impuestoSelect"  class="form-select form-select-sm border" @change="updateProductCart(item)">
+                                <option  v-for="lti of listaImpuestosTarifa" v-bind:value="lti.id"  :key="lti.id">
+                                    {{ lti.impt_detalle }}
+                                    {{ lti.impt_porcentage > 0 ? ` ${lti.impt_porcentage}%` : '' }}
+                                </option>
                             </select>
                         </td>
-                        <td style="min-width: 160px; max-width: 160px;">
-                            <select class="form-select form-select-sm">
-                                <option>CUENTA contable cod</option>
+
+                        <!--  CUENTA CONTABLE-->
+                        <td>
+                            <select class="form-select form-select-sm" v-model="item.ctaContableProducto" @change="updateProductCart(item)">
+                                <option v-for="lcc in listaCuentasContables" v-bind:value="lcc.ctad_codigo">{{lcc.ctad_codigo+' - '}}{{lcc.ctad_nombre_cuenta}}</option>
                             </select>
                         </td>
 
                         <!--CANTIDAD Y PRECIO-->
-                        <td style="min-width: 220px;">
+                        <td>
                             <div class="quantity-control input-group">
                                 <button class="btn btn-primary btn-sm" @click="item.qty > 1 ? item.qty-- : null; updateProductCart(item)"><i class="fas fa-minus"></i></button>
                                 <input class="form-control form-control-sm"
@@ -134,92 +188,69 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </td>
 
                         <!-- DESCUENTO -->
-                        <td style="min-width: 170px;">
+                        <td>
+                            <div>
+                                <div class="input-group input-group-sm">
+                                    <!-- PORCENTAJE -->
+                                    <button
+                                        class="btn"
+                                        :class="
+                                        item.tipoDescuento === 'PORCENTAJE'
+                                        ? 'btn-info'
+                                        : 'btn-outline-info'
+                                        "
+                                        @click="changeTipoDescuento(item, 'PORCENTAJE')"
+                                        title="Descuento porcentual"
+                                        >
+                                        <i class="fas fa-percent"></i>
+                                    </button>
 
-                            <div class="input-group input-group-sm">
+                                    <!-- VALOR -->
+                                    <button
+                                        class="btn"
+                                        :class="
+                                        item.tipoDescuento === 'VALOR'
+                                        ? 'btn-info'
+                                        : 'btn-outline-info'
+                                        "
+                                        @click="changeTipoDescuento(item, 'VALOR')"
+                                        title="Descuento por valor"
+                                        >
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </button>
 
-                                <!-- PORCENTAJE -->
-                                <button
-                                    class="btn"
-                                    :class="
-                                    tipoDescuento === 'PORCENTAJE'
-                                    ? 'btn-info'
-                                    : 'btn-outline-info'
-                                    "
-                                    @click="changeTipoDescuento(item, 'PORCENTAJE')"
-                                    title="Descuento porcentual"
-                                    >
-                                    <i class="fas fa-percent"></i>
-                                </button>
-
-                                <!-- VALOR -->
-                                <button
-                                    class="btn"
-                                    :class="
-                                    tipoDescuento === 'VALOR'
-                                    ? 'btn-info'
-                                    : 'btn-outline-info'
-                                    "
-                                    @click="changeTipoDescuento(item, 'VALOR')"
-                                    title="Descuento por valor"
-                                    >
-                                    <i class="fas fa-dollar-sign"></i>
-                                </button>
-
-                                <!-- INPUT -->
-                                <input
-                                    type="text"
-                                    class="form-control form-control-sm text-end"
-                                    v-model.number="item.descuento"
-                                    @change="updateProductCart(item)"
-                                    v-numbers-only="{ decimal: true }"
-                                    placeholder="0.00"
-                                    >
-
-
+                                    <!-- INPUT -->
+                                    <input
+                                        type="text"
+                                        class="form-control form-control-sm text-end"
+                                        v-model.number="item.descuento"
+                                        @change="updateProductCart(item)"
+                                        v-numbers-only="{ decimal: true }"
+                                        placeholder="0.00">
+                                </div>
+                                <small
+                                    class="d-block text-center text-primary"
+                                    style="font-size:14px; margin-top:1px;">
+                                    {{ item.discountPercent || 0 }}%  |  ${{ item.discountValue || 0 }}
+                                </small>
                             </div>
 
 
 
                         </td>
-                        <!--                       <td style="min-width: 170px;">
-                                                   
-                                                    <div class="quantity-control input-group">
-                                                        <button class="btn btn-info btn-sm" @click="item.qty > 1 ? item.qty-- : null; updateProductCart(item)"><i class="fas fa-percentage"></i></button>
-                                                        <input class="form-control form-control-sm"
-                                                               v-model.number="item.qty"
-                                                               type="text"
-                                                               @change="updateProductCart(item)"
-                                                               v-numbers-only="{ decimal: true }">
-                        
-                                                        <button class="btn btn-info btn-sm"><i class="fas fa-dollar-sign"></i></button>
-                                                        <input type="text"
-                                                               class="form-control form-control-sm"
-                                                               style="max-width: 80px;"
-                                                               v-model.number="item.price"
-                                                               @change="updateProductCart(item)"
-                                                               v-numbers-only="{ decimal: true }">
-                        
-                                                    </div>
-                        
-                                                </td>-->
 
                         <!--ICE-->
-                        <td class="price-cell">{{ formatToUSD(00) }}</td>
-
-                        <!--IVA BASE-->
-                        <td class="price-cell">{{ formatToUSD(item.totitembaseiva) }}</td>
+                        <td class="price-cell">{{ formatToUSD(item.iceValUnit) }}</td>
 
                         <!--IVA VALOR-->
-                        <td class="price-cell">{{ formatToUSD(item.totivaval) }}</td>
+                        <td class="price-cell">{{ formatToUSD(item.ivaValTotal) }}</td>
 
-                        <!--TOTAL PRECIO MAS IVA-->
-                        <td class="price-cell text-primary"><strong>{{ formatToUSD(item.totalpriceiva) }}</strong></td>
+                        <!--SUBTOTAL-->
+                        <td class="price-cell text-primary">{{ formatToUSD(item.itemBaseIvaTotal) }}</td>
 
-                        <td style="min-width: 100px; max-width: 100px;">
-                            <select class="form-select form-select-sm">
-                                <option>ccofeeerrgergmp</option>
-                                <option>ccfact</option>
+                        <td style="max-width: 150px;">
+                            <select class="form-select form-select-sm" v-model="item.centroCosto" @change="updateProductCart(item)">
+                                <option v-for="cc in listaCentroCostos" v-bind:value="cc.id" :key="cc.id">{{cc.cc_nombre}}</option>
                             </select>
                         </td>
                     </tr>
@@ -229,130 +260,212 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         </div>
     </div>
 
-    <div v-if="!emptyCar" class="d-flex justify-content-end align-items-end mb-4 mt-4 mr-4">
-        <div class="summary-card">
-            <div class="summary-row">
-                <span class="summary-label">Subtotal bruto:</span>
-                <span class="summary-value">{{ formatToUSD(totalCart) }}</span>
+
+    <div   v-if="!emptyCar"  class="d-flex justify-content-between mb-4 mr-4">
+
+
+        <div class="small text-muted mt-2 ml-4">
+
+            <span class="d-inline-block rounded-circle bg-success me-1"
+                  style="width:12px;height:12px"></span>
+            IVA 15%
+
+            <span class="d-inline-block rounded-circle bg-dark ms-3 me-1"
+                  style="width:12px;height:12px"></span>
+            Tarifa 0%
+
+            <span class="d-inline-block rounded-circle bg-info ms-3 me-1"
+                  style="width:12px;height:12px"></span>
+            Exento IVA
+
+            <span class="d-inline-block rounded-circle bg-warning ms-3 me-1"
+                  style="width:12px;height:12px"></span>
+            No objeto
+        </div>
+
+        <div class="summary-card-table overflow-hidden" style="width:750px;">
+
+            <div class="row g-0">
+
+                <!-- IZQUIERDA -->
+                <div class="col-6 border-end">
+
+                    <table class="table-bordered table-sm mb-0 w-100">
+                        <tbody>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>Subtotal bruto</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.totalSubtotalBruto) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>Descuento items</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.totalDescuentoItems) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>Descuento global</strong></td>
+                                <td :class="{'text-warning':totales.totalDescuentoGlobal > 0 }" class="summary-value text-end">{{ formatToUSD(totales.totalDescuentoGlobal) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end fw-bold"><strong>Subtotal neto</strong></td>
+                                <td class="summary-value text-end fw-bold">{{ formatToUSD(totales.totalSubtotalNeto) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>ICE</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.totalIce) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>IRBPNR</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.totalIrbpnr) }}</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <!-- DERECHA -->
+                <div class="col-6">
+
+                    <table class="table-bordered table-sm mb-0 w-100">
+                        <tbody>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>Base tarifa 0%</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.tarifCeroNeto) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>Base exento IVA</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.tarifExcentoNeto) }}</td>
+                            </tr>
+
+                            <tr>
+                                <td class="summary-label text-end"><strong>Base no objeto IVA</strong></td>
+                                <td class="summary-value text-end">{{ formatToUSD(totales.tarifNoObjetoNeto) }}</td>
+                            </tr>
+
+                            <!-- BASES IMPONIBLES -->
+                        <template v-if='basesImpuestoVista.length > 0 '>
+                            <tr v-for="tax in basesImpuestoVista" :key="'base-' + tax.codigo">
+                                <td class="summary-label text-end"> <strong>Base imponible IVA {{ tax.porcentaje }}%</strong> </td>
+                                <td class="summary-value text-end"> {{ formatToUSD(tax.subtotal_neto) }} </td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <tr>
+                                <td class="summary-label text-end"> <strong>Base imponible IVA {{ ivaPrdeterminado }}%</strong> </td>
+                                <td class="summary-value text-end"> $0.00 </td>
+                            </tr>
+                        </template>
+
+                        <!-- IVA -->
+                        <template v-if='basesImpuestoVista.length > 0 '>
+                            <tr v-for="tax in basesImpuestoVista" :key="'iva-' + tax.codigo">
+                                <td class="summary-label text-end"><strong>Monto IVA {{ tax.porcentaje }}%</strong></td>
+                                <td class="summary-value text-end"> {{ formatToUSD(tax.iva) }}</td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <tr>
+                                <td class="summary-label text-end"> <strong>Monto IVA {{ ivaPrdeterminado }}%</strong> </td>
+                                <td class="summary-value text-end"> $0.00 </td>
+                            </tr>
+                        </template>
+
+                        <tr>
+                            <td class="summary-label text-end"><strong>Recargo</strong></td>
+                            <td :class="{'text-warning':global.recargo > 0 }" class="summary-value text-end">{{ formatToUSD(global.recargo) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="summary-label text-end"><strong>Servicios Adc</strong></td>
+                            <td :class="{'text-warning':global.serviciosAdc > 0 }" class="summary-value text-end">{{ formatToUSD(global.serviciosAdc) }}</td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
             </div>
-            <div class="summary-row">
-                <span class="summary-label">IVA ({{ivaPrdeterminado}}%):</span>
-                <span class="summary-value">{{ formatToUSD(totalIva) }}</span>
+
+            <!-- TOTAL -->
+            <div class="border-top p-3 bg-light">
+                <div class="d-flex justify-content-end align-items-center">
+                    <span class="fw-bold fs-4 me-4"> TOTAL </span>
+                    <span class="fw-bold fs-4">{{ formatToUSD(totales.totalGeneral) }} </span>
+                </div>
+
+                <!--                 {{totales.totalBienes}}
+                        {{totales.totalServicios}}-->
             </div>
-            <div class="summary-row">
-                <span class="summary-label">IRBPRN</span>
-                <span class="summary-value">0.02</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Total:</span>
-                <span class="summary-value">{{ formatToUSD(totalCartIva) }}</span>
-            </div>
+
         </div>
     </div>
 
-    <!-- AJUSTES GLOBALES -->
-    <div  v-if="!emptyCar" class="p-3">
-        <div class="row">
+</div>
 
-            <!-- Descuento -->
-            <div class="col-md-2 form-group-custom">
-                <div class="input-group border rounded ">
-                    <span class="input-group-text"> Descuento global: </span>
-                    <input
-                        type="number"
-                        step="0.01"
-                        v-model="global.descuentoGlobal"
-                        class="form-control text-end"
-                        >
-                </div>
-            </div>
+<!-- AJUSTES GLOBALES -->
+<div  v-if="!emptyCar" class="p-3">
+    <div class="row">
 
-            <!-- Recargo -->
-            <div class="col-md-2 form-group-custom">
-                <div class="input-group border rounded ">
-                    <span class="input-group-text"> Recargo: </span>
-                    <input
-                        type="number"
-                        step="0.01"
-                        v-model="global.recargo"
-                        class="form-control text-end"
-                        >
-                </div>
-            </div>
-
-            <!-- Servicios -->
-            <div class="col-md-2 form-group-custom">
-                <div class="input-group border rounded ">
-                    <span class="input-group-text">Servicios: </span>
-                    <input
-                        type="number"
-                        step="0.01"
-                        v-model="global.servicios"
-                        class="form-control text-end"
-                        >
-                </div>
-            </div>
-
-            <!-- Otros -->
-            <div class="col-md-2 form-group-custom">
-                <div class="input-group border rounded ">
-                    <span class="input-group-text">Otros cargos: </span>
-                    <input
-                        type="number"
-                        step="0.01"
-                        v-model="global.otrosCargos"
-                        class="form-control text-end"
-                        >
-                </div>
+        <!-- Descuento -->
+        <div class="col-md-2 form-group-custom">
+            <div class="input-group border rounded ">
+                <span class="input-group-text"> Descuento global: </span>
+                <input
+                    type="number"
+                    step="0.01"
+                    v-model="global.descuentoGlobal"
+                    class="form-control text-end"
+                    @change='updateValoresGlobales()'
+                    >
             </div>
         </div>
-    </div>
 
-
-
-
-    <!--    <div v-if="!emptyCar" class="row justify-content-end mt-3">
-            <div class="col-12 col-lg-5 col-xl-4">
-                <div class="border rounded p-3 bg-light">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal bruto:</span>
-                        <span>{{ formatToUSD(totalCart || 0) }}</span>
-                    </div>
-    
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Descuento:</span>
-                        <span>{{ formatToUSD(totalDescuento || 0) }}</span>
-                    </div>
-    
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal neto:</span>
-                        <span>{{ formatToUSD(totalSubtotal || totalSubtotalNeto || 0) }}</span>
-                    </div>
-    
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>ICE:</span>
-                        <span>{{ formatToUSD(totalIce || 0) }}</span>
-                    </div>
-    
-                    <div v-for="imp in resumenImpuestos"
-                         :key="imp.fk_impuesto_tarifa || imp.porcentaje"
-                         class="d-flex justify-content-between mb-2">
-                        <span>{{ imp.detalle || ('IVA ' + imp.porcentaje + '%') }}:</span>
-                        <span>{{ formatToUSD(imp.valor || 0) }}</span>
-                    </div>
-    
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>IRBPNR:</span>
-                        <span>{{ formatToUSD(totalIrbpnr || 0) }}</span>
-                    </div>
-    
-                    <hr class="my-2">
-    
-                    <div class="d-flex justify-content-between fs-5 text-primary">
-                        <strong>Total:</strong>
-                        <strong>{{ formatToUSD(totalGeneral || 0) }}</strong>
-                    </div>
-                </div>
+        <!-- Recargo -->
+        <div class="col-md-2 form-group-custom">
+            <div class="input-group border rounded ">
+                <span class="input-group-text"> Recargo: </span>
+                <input
+                    type="number"
+                    step="0.01"
+                    v-model="global.recargo"
+                    class="form-control text-end"
+                    @change='updateValoresGlobales()'
+                    >
             </div>
-        </div>-->
+        </div>
+
+        <!-- Servicios -->
+        <div class="col-md-2 form-group-custom">
+            <div class="input-group border rounded ">
+                <span class="input-group-text">Servicios Adicionales: </span>
+                <input
+                    type="number"
+                    step="0.01"
+                    v-model="global.serviciosAdc"
+                    class="form-control text-end"
+                    @change='updateValoresGlobales()'
+                    >
+            </div>
+        </div>
+
+        <!--         Otros 
+                <div class="col-md-2 form-group-custom">
+                    <div class="input-group border rounded ">
+                        <span class="input-group-text">Otros cargos: </span>
+                        <input
+                            type="number"
+                            step="0.01"
+                            v-model="global.otrosCargos"
+                            class="form-control text-end"
+                            >
+                    </div>
+                </div>-->
+    </div>
 </div>

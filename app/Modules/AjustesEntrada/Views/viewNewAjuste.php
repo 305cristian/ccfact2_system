@@ -293,8 +293,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var bodegaIdAje = '<?= $bodegaId; ?>';
     var dataAjuste =<?= json_encode($dataAjuste); ?>;
     var dataProveedor =<?= json_encode($dataProveedor); ?>;
-    
-    var ivaPrdeterminado=<?= ivaPredeterminado() ?>
+
+    var ivaPrdeterminado =<?= ivaPredeterminado() ?>
 
 
     var searchTimeout = null;
@@ -364,7 +364,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 loading: false,
                 loadingBodega: false,
                 loadingProcess: false,
-                ivaPrdeterminado:ivaPrdeterminado
+                ivaPrdeterminado: ivaPrdeterminado
             };
         },
         created() {
@@ -750,19 +750,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             clear() {
-                this.isEdit = false,
-                        this.formDataAjuste = {
-                            ajenSustento: '',
-                            ajenBodega: this.listaBodegas.find(val => val.id === bodegaIdAje),
-                            ajenCentrocosto: '',
-                            ajenFecha: fechaActual,
-                            ajenMotivo: '',
-                            ajenEstado: '',
-                            ajenObservaciones: '',
-                            ajenProveedor: '',
-                            ajenTipo: 'AJUSTE_NORMAL',
-                            ajenPermitirDuplicados: permitirDuplicados
-                        };
+                this.isEdit = false;
+                this.formDataAjuste = {
+                    ajenSustento: '',
+                    ajenBodega: this.listaBodegas.find(val => val.id === bodegaIdAje),
+                    ajenCentrocosto: '',
+                    ajenFecha: fechaActual,
+                    ajenMotivo: '',
+                    ajenEstado: '',
+                    ajenObservaciones: '',
+                    ajenProveedor: '',
+                    ajenTipo: 'AJUSTE_NORMAL',
+                    ajenPermitirDuplicados: permitirDuplicados
+                };
 
             },
 

@@ -16,7 +16,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <style>
     .multiselect__tags {
         border-radius: 5px 0px 0px 5px
-    }
+    }  
 </style>
 <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
 
@@ -52,7 +52,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         :options="listaTiposComprobantes"
                                         label="comp_nombre"
                                         v-model="formCompra.compTipoComprobante"
-                                        placeholder="Seleccione un comprobante"/>
+                                        placeholder="Seleccione un comprobante">
+                                    </vue-select>
                                 </div>
                             </div>
 
@@ -67,7 +68,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         :options="listaSustentos"
                                         label="sus_nombre"
                                         v-model="formCompra.compSustento"
-                                        placeholder="Seleccione un sustento"/>
+                                        placeholder="Seleccione un sustento">
+                                    </vue-select>
                                 </div>
                             </div>
 
@@ -82,7 +84,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         :options="listaTiposCompra"
                                         label="tc_nombre"
                                         v-model="formCompra.compTipoCompra"
-                                        placeholder="Seleccione un tipo de compra"/>
+                                        placeholder="Seleccione un tipo de compra">
+                                    </vue-select>
                                 </div>
                             </div>
                         </div>
@@ -191,7 +194,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             :options="listaBodegas"
                                             label="bod_nombre"
                                             v-model="formCompra.compBodega"
-                                            placeholder="Seleccione una bodega"/>
+                                            placeholder="Seleccione una bodega">
+                                        </vue-select>
                                     </div>
                                 </div>
 
@@ -223,7 +227,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     :options="listaCentroCostos"
                                     label="cc_nombre"
                                     v-model="formCompra.compCentroCosto"
-                                    placeholder="Seleccione un centro de costos"/>
+                                    placeholder="Seleccione un centro de costos">                                       
+                                </vue-select>
                             </div>
                         </div>
 
@@ -238,7 +243,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     :options="listaTiposCostos"
                                     label="value"
                                     v-model="formCompra.compTipoCosto"
-                                    placeholder="Seleccione un tipo de costos"/>
+                                    placeholder="Seleccione un tipo de costos">
+                                </vue-select>
                             </div>
                         </div>
 
@@ -252,7 +258,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     label="value"
                                     :disabled="!formCompra.tieneOdc"
                                     v-model="formCompra.compODC"
-                                    placeholder="Ejm. 0236"/>
+                                    placeholder="Ejm. 0236">
+                                </vue-select>
                             </div>
                         </div>
 
@@ -300,7 +307,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 :searchable="true"
                                 :options-limit="10"
                                 @search-change="searchProductos"
-                                @select="agregarProductoCompra($event)">
+                                @select="insertProductCart($event)">
 
                                 <template #option="{ option }">
                                     <div class="producto-option-row">
@@ -328,8 +335,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="col-md-3 form-group-custom">
                         <div class="input-group">
                             <input 
-                                v-model="codigoBusqueda"
-                                @keyup.enter="buscarPorCodigo"
+                                v-model="codeSearch"
+                                @keyup.enter="insertProductCode($event)"
                                 type="text"
                                 class="form-control"
                                 placeholder="Código / Código barras">
@@ -390,9 +397,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var bodegaIdComp = '<?= $bodegaId; ?>';
     var dataCompra =<?= json_encode($dataCompra); ?>;
     var dataProveedor =<?= json_encode($dataProveedor); ?>;
-
     var ivaPrdeterminado =<?= ivaPredeterminado(); ?>;
     var valorMaximoATSSRI =<?= getSettings('VALOR_MAXIMO_ANEXO_ATS_SRI') ?>;
+    var listaImpuestosTarifa = <?php echo json_encode($listaImpuestosTarifa); ?>;
 
     if (window.appCompra) {
         window.appCompra.unmount();
@@ -410,6 +417,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 url: siteUrl,
                 isEdit: false,
+                ivaPrdeterminado: ivaPrdeterminado,
 
                 // =========================
                 // FORM HEADER
@@ -458,13 +466,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaRetenciones: listaRetenciones,
                 listaRetencionesSeleccionadas: [],
                 listaCuentasContables: listaCuentasContables,
+                listaImpuestosTarifa: listaImpuestosTarifa,
 
                 // =========================
                 // BUSCADOR PRODUCTOS
                 // =========================
                 listaSearchProductos: [],
                 productoSeleccionado: null,
-                codigoBusqueda: '',
+                codeSearch: '',
 
                 // =========================
                 // DETALLE
@@ -555,22 +564,50 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 global: {
                     descuentoGlobal: 0,
                     recargo: 0,
-                    servicios: 0,
-                    otrosCargos: 0
+                    serviciosAdc: 0,
+//                    otrosCargos: 0
 
                 },
-                tipoDescuento: 'VALOR',
-                descuento: 0,
+                totales: {
+                    totalArticles: 0,
+                    totalItems: 0,
+                    totalSubtotalBruto: 0,
+                    totalBienes: 0,
+                    totalServicios: 0,
+                    tarifCeroNeto: 0,
+                    tarifIvaNeto: 0,
+                    totalIva: 0,
+                    totalIce: 0,
+                    totalIrbpnr: 0,
+                    totalDescuentoGlobal: 0,
+                    totalDescuentoItems: 0,
+                    totalSubtotalNeto: 0,
+                    totalGeneral: 0,
+                    tarifNoObjetoNeto: 0,
+                    tarifExcentoNeto: 0
+                },
+                basesImpuesto: []
 
             };
+        },
+        created() {
+            this.showDetailCart();
         },
 
         mounted() {
             this.formCompra.compBodega = this.listaBodegas.find(val => val.id === bodegaIdComp);
             this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(val => val.id === '1');
-            this.modalPagoInstance = new bootstrap.Modal(this.$refs.modalFinalizar);
+            this.$nextTick(() => {
+                if (this.$refs.modalFinalizar) {
+                    this.modalPagoInstance = new bootstrap.Modal(this.$refs.modalFinalizar);
+                }
+            });
         },
         computed: {
+            colLotes() {
+                return this.listaCartData.some(item => Number(item.tieneLote) === 1);
+            },
+
             listaRetencionesIvaBienes() {
                 return this.listaRetenciones.filter(r => r.ret_impuesto_detalle === 'IVA_BIENES');
             },
@@ -614,6 +651,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 return this.listaCuentasContables.filter(
                         c => c.ctad_codigo.startsWith(codigo)
                 );
+
+            },
+
+            basesImpuestoVista() {
+                if (!this.basesImpuesto) {
+                    return [];
+                }
+                return this.basesImpuesto.filter(tax => {
+                    if (Number(tax.porcentaje) === 0) {
+                        return false;
+                    }
+                    return true;
+                });
 
             }
         },
@@ -886,34 +936,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
 
             async changeBodega() {
-                if (this.emptyCar !== false) {
-                    let bodegaId = this.formCompra.compBodega?.id;
 
-                    if (bodegaId) {
-                        try {
-                            this.loadingBodega = true;
-                            let {data} = await axios.get(this.url + '/compras/changeBodega/' + bodegaId);
-                            if (data.status === 'success') {
-                                sweet_msg_toast('success', data.msg);
-                            }
-                        } catch (e) {
-                            sweet_msg_dialog('error', '', '', e.data?.message || e.message);
-                        } finally {
-                            this.loadingBodega = false;
+                let bodegaId = this.formCompra.compBodega?.id;
+
+                if (bodegaId) {
+                    try {
+                        this.loadingBodega = true;
+                        let {data} = await axios.get(this.url + '/compras/changeBodega/' + bodegaId);
+                        if (data.status === 'success') {
+                            sweet_msg_toast('success', data.msg);
                         }
+                    } catch (e) {
+                        sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                    } finally {
+                        this.loadingBodega = false;
                     }
-
-                } else {
-                    this.formDataAjuste.ajenBodega = this.listaBodegas.find(b => b.id === bodegaIdAje);
-
-                    sweet_msg_dialog('warning', 'Existen productos cargados al carrito<br> No se puede cambiar de bodega');
                 }
-
             },
 
             // =========================
             // BUSCAR PRODUCTOS
             // =========================
+            onRemove() {
+                this.listaSearchProductos = [];
+                this.productoSeleccionado = null;
+                this.codeSearch = "";
+            },
+
             async searchProductos(search) {
 
                 clearTimeout(this.searchTimeout);
@@ -941,102 +990,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             // =========================
             // BUSCAR POR CODIGO
             // =========================
-            async buscarPorCodigo() {
-
-                if (!this.codigoBusqueda) {
-                    return;
-                }
-
-
-                try {
-                    const {data} = await axios.post(this.url + '/comun/productos/searchByCode', {codigo: this.codigoBusqueda});
-
-                    if (data) {
-                        this.agregarProductoCompra(data);
-                    } else {
-                        sweet_msg_toast('warning', 'Producto no encontrado');
-                    }
-
-                } catch (e) {
-                    console.error(e);
-                }
-
-                this.codigoBusqueda = '';
-            },
-
-            // =========================
-            // AGREGAR PRODUCTO
-            // =========================
-            agregarProductoCompra(producto) {
-
-                if (!this.formCompra.compBodega) {
-                    sweet_msg_toast('warning', 'Seleccione una bodega');
-                    return;
-                }
-                this.emptyCar = false;
-                const nuevoItem = {
-                    id: producto.id,
-                    codigo: producto.prod_codigo,
-                    nombre: producto.prod_nombre,
-
-                    cantidad: 1,
-                    precio: producto.prod_costoultimo || 0,
-                    descuento: 0,
-
-                    iva_porcentaje: producto.impt_porcentaje || 0,
-                    fk_impuesto: producto.fk_impuesto,
-
-                    ice_porcentaje: producto.ice_porcentaje || 0,
-                    irbpnr_unitario: producto.irbpnr || 0,
-
-                    subtotal: 0,
-                    iva_valor: 0,
-                    total: 0
-                };
-
-                this.calcularItem(nuevoItem);
-
-                this.listaCartData.push(nuevoItem);
-                this.productoSeleccionado = null;
-
-                this.calcularTotales();
-            },
-
-            // =========================
-            // ELIMINAR ITEM
-            // =========================            
-            async deleteProduct(rowId) {
-                try {
-                    this.loading = true;
-                    await axios.get(this.url + '/ajustesentrada/deleteProduct/' + rowId);
-                    this.showDetailCart();
-                    sweet_msg_toast('info', 'Producto eliminado exitosamente');
-                } catch (e) {
-                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
-                } finally {
-                    this.loading = false;
-                }
-            },
-
-            // =========================
-            // UPDATE ITEM
-            // =========================          
-            async updateProductCart(item) {
-                this.onRemove();//Removemos datos del anterior producto insertado
-
-                if (item.qty <= 0) {
-                    item.qty = 1;
-                    sweet_msg_toast('warning', 'La cantidad debe ser mayor a cero');
+            async insertProductCode(evt) {
+                if (evt.target.value === "") {
+                    sweet_msg_toast('warning', 'Por favor digite un código');
                     return false;
                 }
+                let datos = {id: evt.target.value};
+                await this.insertProductCart(datos);
 
-                let datos = item;
-                datos.idBodega = this.formDataAjuste.ajenBodega.id;
+            },
+
+            // =========================
+            // AGREGAR PRODUCTO AL CART
+            // =========================
+            async insertProductCart(item) {
+                this.onRemove();//Removemos datos del anterior producto insertado
+
+                let datos = {
+                    id: item.id,
+                    qty: 1,
+                    permitirDuplicados: this.formCompra.compPermitirDuplicados
+
+                };
 
                 try {
                     this.loading = true;
 
-                    let {data} = await axios.post(this.url + '/ajustesentrada/updateProduct', datos);
+                    let {data} = await axios.post(this.url + '/compras/insertProduct', datos);
                     if (data.status === "success") {
                         sweet_msg_toast('success', data.msg);
                     } else if (data.status === "warning") {
@@ -1050,6 +1030,114 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 this.showDetailCart();
+            },
+
+            // =========================
+            // UPDATE ITEM
+            // =========================                           
+            async updateProductCart(item) {
+                this.onRemove();//Removemos datos del anterior producto insertado
+
+                if (item.qty <= 0) {
+                    item.qty = 1;
+                    sweet_msg_toast('warning', 'La cantidad debe ser mayor a cero');
+                    return false;
+                }
+
+                let datos = item;
+
+                try {
+                    this.loading = true;
+
+                    let {data} = await axios.post(this.url + '/compras/updateProduct', datos);
+                    sweet_msg_toast(data.status, data.msg);
+
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
+
+                this.showDetailCart();
+            },
+
+            // =========================
+            // ELIMINAR ITEM
+            // =========================            
+            async deleteProduct(rowId) {
+                try {
+                    this.loading = true;
+                    const {data} = await axios.get(this.url + '/compras/deleteProduct/' + rowId);
+                    if (data.status === 'success') {
+                        sweet_msg_toast('info', data.msg);
+                        this.showDetailCart();
+
+                    } else {
+                        sweet_msg_toast(data.status, data.msg);
+                    }
+
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            // =========================
+            // CALCULO DATA DE CADA ITEM
+            // =========================
+            async showDetailCart() {
+
+                try {
+                    let {data} = await axios.post(this.url + '/compras/showDetailCart');
+
+                    //TODO DATOS LISTAS
+                    this.listaCartData = data.cartContent || [];
+                    this.totales = {
+                        totalArticles: data.totalArticles,
+                        totalItems: data.totalItems,
+                        totalSubtotalBruto: data.totalSubtotalBruto,
+                        totalBienes: data.totalBienes,
+                        totalServicios: data.totalServicios,
+                        tarifCeroNeto: data.tarifCeroNeto,
+                        tarifIvaNeto: data.tarifIvaNeto,
+                        tarifNoObjetoNeto: data.tarifNoObjetoNeto,
+                        tarifExcentoNeto: data.tarifExcentoNeto,
+                        totalIva: data.totalIva,
+                        totalIce: data.totalIce,
+                        totalIrbpnr: data.totalIrbpnr,
+                        totalDescuentoGlobal: data.totalDescuentoGlobal,
+                        totalDescuentoItems: data.totalDescuentoItems,
+                        totalSubtotalNeto: data.totalSubtotalNeto,
+                        totalGeneral: data.totalGeneral
+                    };
+
+                    //Lista de impuestos (12,15,5, etc)
+                    this.basesImpuesto = data.basesImpuesto;
+
+                    this.global = {
+                        descuentoGlobal: data.totalDescuentoGlobal,
+                        recargo: data.totalRecargo,
+                        serviciosAdc: data.totalServiciosAdc
+                    };
+
+
+                    if (data.totalArticles > 0) {
+                        this.emptyCar = false;
+                    } else {
+                        this.emptyCar = true;
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.data?.message || e.message);
+                }
+
+            },
+            changeTipoDescuento(item, tipo) {
+                item.tipoDescuento = tipo;
+                item.descuento = 0;
+
+//                this.updateProductCart(item);
+
             },
 
             // =========================
@@ -1111,7 +1199,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.totalIrbpnr = irbpnr;
                 this.totalGeneral = total;
             },
-            async cancelarAjuste() {
+            async cancelarCompra() {
                 Swal.fire({
                     title: "Esta seguro que desea cancelar la compra?",
                     html: "<h6>Esta acción borrara toda las lista cargada.</h6>",
@@ -1124,10 +1212,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (result.isConfirmed) {
                         try {
                             this.loading = true;
-                            await axios.post(this.url + '/compras/cancelarCompra');
-                            this.showDetailCart();
-                            this.clear();
-                            window.history.pushState({}, '', this.url + '/compras/nuevaCompra');
+                            const {data} = await axios.post(this.url + '/compras/cancelarCompra');
+                            if (data.status === 'success') {
+                                this.showDetailCart();
+                                this.clear();
+                                window.history.pushState({}, '', this.url + '/compras/nuevaCompra');
+                                sweet_msg_toast('success', data.msg);
+                            } else {
+                                sweet_msg_dialog('error', data.msg);
+                            }
                         } catch (e) {
                             sweet_msg_dialog('error', '', '', e.data?.message || e.message);
                         } finally {
@@ -1137,6 +1230,62 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 });
 
 
+            },
+
+            clear() {
+                this.isEdit = false;
+                this.formCompra = {
+                    compFechaEmision: fechaActual,
+                    compTipoComprobante: '',
+                    compNumeroComprobante: '',
+                    compNumeroEstablecimiento: '',
+                    compNumeroEmision: '',
+                    compFechaCaducidad: fechaActual,
+                    compAutSRI: '',
+                    compProveedor: '',
+                    compBodega: '',
+                    compSustento: '',
+                    compCentroCosto: '',
+                    compTipoCompra: '',
+                    compTipoCosto: '',
+                    tieneOdc: true,
+                    compODC: '',
+                    compAplicaRetencion: false,
+                    compEsGasto: false,
+                    compFormaPago: '',
+                    compTipoPago: 'CONTADO',
+                    compCuotas: 1,
+                    compDiasCredito: 0,
+                    compEstado: 'BORRADOR',
+                    compObservaciones: '',
+                    compPermitirDuplicados: permitirDuplicados
+                };
+                this.global = {
+                    descuentoGlobal: 0,
+                    recargo: 0,
+                    serviciosAdc: 0
+//                    otrosCargos: 0
+
+                };
+                this.totales = {
+                    totalArticles: 0,
+                    totalItems: 0,
+                    totalSubtotalBruto: 0,
+                    totalBienes: 0,
+                    totalServicios: 0,
+                    tarifCeroNeto: 0,
+                    tarifIvaNeto: 0,
+                    totalIva: 0,
+                    totalIce: 0,
+                    totalIrbpnr: 0,
+                    totalDescuentoGlobal: 0,
+                    totalDescuentoItems: 0,
+                    totalSubtotalNeto: 0,
+                    totalGeneral: 0,
+                    tarifNoObjetoNeto: 0,
+                    tarifExcentoNeto: 0
+                };
+                this.basesImpuesto = [];
             },
 
             //====================
@@ -1233,13 +1382,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.pagos.fechaVoucher = '';
 
             },
-            changeTipoDescuento(item, tipo) {
 
-                item.tipoDescuento = tipo;
+            async updateValoresGlobales() {
 
-                item.descuento = 0;
-
-//                this.updateProductCart(item);
+                try {
+                    const {data} = await  axios.post(this.url + '/compras/updateValoresGlobales', this.global);
+                    if (data.status === 'success') {
+                        if (data.status === 'success') {
+                            this.showDetailCart();
+                            sweet_msg_toast('success', data.msg);
+                        } else {
+                            sweet_msg_dialog('warning', data.msg);
+                        }
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', 'Error al actualizar los valores globales');
+                }
 
             },
 
