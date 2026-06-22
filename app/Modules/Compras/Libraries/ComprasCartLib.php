@@ -68,16 +68,22 @@ class ComprasCartLib {
                 'total_ice' => 0,
                 'total_irbpnr' => 0,
                 'total_general' => 0,
-                'total_bienes' => 0,
-                'total_servicios' => 0,
-                'tarif_cero' => 0,
+                'tarif_cerobruto' => 0,
                 'tarif_ceroneto' => 0,
-                'tarif_iva' => 0,
+                'tarif_ivabruto' => 0,
                 'tarif_ivaneto' => 0,
                 'tarif_excento' => 0,
                 'tarif_excentoneto' => 0,
                 'tarif_noobjeto' => 0,
                 'tarif_noobjetoneto' => 0,
+                'subtotal_bienes_bruto' => 0,
+                'subtotal_bienes_neto' => 0,
+                'subtotal_servicios_bruto' => 0,
+                'subtotal_servicios_neto' => 0,
+                'base_renta' => 0,
+                'base_iva' => 0,
+                'iva_bienes' => 0,
+                'iva_servicios' => 0,
                 'bases_impuesto' => [],
             ]
         ];
@@ -264,9 +270,13 @@ class ComprasCartLib {
             $meta["total_general"] += $total;
 
             if ($servicio === 0) {
-                $meta["total_bienes"] += $subtotalNeto;
+                $meta["subtotal_bienes_bruto"] += $subtotalBruto;
+                $meta["subtotal_bienes_neto"] += $subtotalNeto;
+                $meta["iva_bienes"] += $ivaTotal;
             } else {
-                $meta["total_servicios"] += $subtotalNeto;
+                $meta["subtotal_servicios_bruto"] += $subtotalBruto;
+                $meta["subtotal_servicios_neto"] += $subtotalNeto;
+                $meta["iva_servicios"] += $ivaTotal;
             }
 
             $taxKey = (string) ($codigoImpuestoSelect );
@@ -295,7 +305,7 @@ class ComprasCartLib {
 
             if ($codigoImpuestoSelect == 0 && $ivaPercent == 0) {
 
-                $meta["tarif_cero"] += $subtotalBruto;
+                $meta["tarif_cerobruto"] += $subtotalBruto;
                 $meta["tarif_ceroneto"] += $subtotalNeto;
             } elseif ($codigoImpuestoSelect == 6) {
 
@@ -305,8 +315,12 @@ class ComprasCartLib {
 
                 $meta["tarif_excento"] += $subtotalBruto;
                 $meta["tarif_excentoneto"] += $subtotalNeto;
+            } else {
+                $meta["tarif_ivabruto"] += $subtotalBruto;
+                $meta["tarif_ivaneto"] += $subtotalNeto;
             }
         }
+
 
 
 
@@ -316,17 +330,39 @@ class ComprasCartLib {
 
         $this->aplicarDescuentoGlobal($meta);
 
+        $this->aplicarDescuentoGlobalBienesServicios($meta);
+
+        $this->aplicarDescuentoGlobalIvaBienesServicios($meta);
+
+        /*
+          |--------------------------------------------------------------------------
+          | Bases para retenciones
+          |--------------------------------------------------------------------------
+         */
+
+        $meta['base_renta'] = ($meta['tarif_ceroneto'] + $meta['tarif_ivaneto'] + $meta['tarif_excentoneto']);
+
+        $meta['base_iva'] = 0;
+
+        foreach ($meta['bases_impuesto'] as $base) {
+
+            if ($base['porcentaje'] > 0) {
+
+                $meta['base_iva'] += $base['subtotal_neto'];
+            }
+        }
+        //Termina bases de retencion
+
         $meta["total_subtotal_bruto"] = round($meta["total_subtotal_bruto"], 4);
         $meta["total_descuento"] = round($meta["total_descuento"], 4);
         $meta["total_subtotal_neto"] = round($meta["total_subtotal_neto"], 4);
+
         $meta["total_iva"] = round($meta["total_iva"], 4);
         $meta["total_ice"] = round($meta["total_ice"], 4);
         $meta["total_irbpnr"] = round($meta["total_irbpnr"], 4);
         $meta["total_general"] = round($meta["total_general"], 4);
-        $meta["total_bienes"] = round($meta["total_bienes"], 4);
-        $meta["total_servicios"] = round($meta["total_servicios"], 4);
 
-        $meta["tarif_cero"] = round($meta["tarif_cero"], 4);
+        $meta["tarif_cerobruto"] = round($meta["tarif_cerobruto"], 4);
         $meta["tarif_ceroneto"] = round($meta["tarif_ceroneto"], 4);
 
         $meta["tarif_noobjeto"] = round($meta["tarif_noobjeto"], 4);
@@ -335,9 +371,20 @@ class ComprasCartLib {
         $meta["tarif_excento"] = round($meta["tarif_excento"], 4);
         $meta["tarif_excentoneto"] = round($meta["tarif_excentoneto"], 4);
 
-        $meta["tarif_iva"] = round($meta["tarif_iva"], 4);
+        $meta["tarif_ivabruto"] = round($meta["tarif_ivabruto"], 4);
         $meta["tarif_ivaneto"] = round($meta["tarif_ivaneto"], 4);
 
+        $meta["subtotal_bienes_bruto"] = round($meta["subtotal_bienes_bruto"], 4);
+
+        $meta["subtotal_bienes_neto"] = round($meta["subtotal_bienes_neto"], 4);
+
+        $meta["subtotal_servicios_bruto"] = round($meta["subtotal_servicios_bruto"], 4);
+
+        $meta["subtotal_servicios_neto"] = round($meta["subtotal_servicios_neto"], 4);
+
+        $meta["base_renta"] = round($meta["base_renta"], 4);
+
+        $meta["base_iva"] = round($meta["base_iva"], 4);
 
         foreach ($meta["bases_impuesto"] as $key => $base) {
 
@@ -431,6 +478,39 @@ class ComprasCartLib {
         $meta['total_general'] = $meta['total_subtotal_neto'] + $meta['total_iva'] + $meta['total_ice'] + $meta['total_irbpnr'] + $meta['total_recargo'] + $meta['total_servicios_adc'];
     }
 
+    private function aplicarDescuentoGlobalBienesServicios(array &$meta): void {
+        $descuentoGlobal = $this->number($meta['total_descuento_global'] ?? 0);
+
+        if ($descuentoGlobal <= 0) {
+            return;
+        }
+
+        $subtotalOriginal = $meta['subtotal_bienes_neto'] + $meta['subtotal_servicios_neto'];
+
+        if ($subtotalOriginal <= 0) {
+            return;
+        }
+
+        $descBienes = $descuentoGlobal * ($meta['subtotal_bienes_neto'] / $subtotalOriginal);
+        $meta['subtotal_bienes_neto'] -= $descBienes;
+
+        /*
+         * El restante se asigna a servicios para evitar
+         * diferencias por redondeo.
+         */
+        $meta['subtotal_servicios_neto'] = $meta['total_subtotal_neto'] - $meta['subtotal_bienes_neto'];
+    }
+
+    private function aplicarDescuentoGlobalIvaBienesServicios(array &$meta): void {
+        $totalIvaOriginal = $meta['iva_bienes'] + $meta['iva_servicios'];
+
+        if ($totalIvaOriginal <= 0) {
+            return;
+        }
+        $meta['iva_bienes'] = $meta['total_iva'] * ($meta['iva_bienes'] / $totalIvaOriginal);
+        $meta['iva_servicios'] = $meta['total_iva'] - $meta['iva_bienes'];
+    }
+
     /**
      * Update cart row.
      */
@@ -511,16 +591,16 @@ class ComprasCartLib {
         return empty($result) ? null : $result;
     }
 
-//    public function getMeta() {
-//        return $this->cart['_meta'];
-//    }
-
     public function getImpuestos() {
         return array_values($this->cart['_meta']['bases_impuesto'] ?? []);
     }
 
     public function totalSubtotalBruto() {
         return round($this->cart['_meta']['total_subtotal_bruto'], 4);
+    }
+
+    public function totalSubtotalNeto() {
+        return round($this->cart['_meta']['total_subtotal_neto'], 4);
     }
 
     public function totalDescuentoItems() {
@@ -547,10 +627,6 @@ class ComprasCartLib {
         return round($this->cart['_meta']['tarif_noobjetoneto'], 4);
     }
 
-    public function totalSubtotalNeto() {
-        return round($this->cart['_meta']['total_subtotal_neto'], 4);
-    }
-
     public function totalIva() {
         return round($this->cart['_meta']['total_iva'], 4);
     }
@@ -567,32 +643,56 @@ class ComprasCartLib {
         return round($this->cart['_meta']['total_general'], 4);
     }
 
-    public function totalBienes() {
-        return round($this->cart['_meta']['total_bienes'], 4);
+    public function totalBienesBruto() {
+        return round($this->cart['_meta']['subtotal_bienes_bruto'], 4);
     }
 
-    public function totalServicios() {
-        return round($this->cart['_meta']['total_servicios'], 4);
+    public function totalBienesNeto() {
+        return round($this->cart['_meta']['subtotal_bienes_neto'], 4);
+    }
+
+    public function totalServiciosBruto() {
+        return round($this->cart['_meta']['subtotal_servicios_bruto'], 4);
+    }
+
+    public function totalServiciosNeto() {
+        return round($this->cart['_meta']['subtotal_servicios_neto'], 4);
     }
 
     public function totalArticles() {
         return $this->cart['_meta']['total_articles'] ?? 0;
     }
 
-    public function tarifCero() {
-        return round($this->cart['_meta']['tarif_cero'], 4);
+    public function tarifCeroBruto() {
+        return round($this->cart['_meta']['tarif_cerobruto'], 4);
     }
 
     public function tarifCeroNeto() {
         return round($this->cart['_meta']['tarif_ceroneto'], 4);
     }
 
-    public function tarifIva() {
-        return round($this->cart['_meta']['tarif_iva'], 4);
+    public function tarifIvaBruto() {
+        return round($this->cart['_meta']['tarif_ivabruto'], 4);
     }
 
     public function tarifIvaNeto() {
         return round($this->cart['_meta']['tarif_ivaneto'], 4);
+    }
+
+    public function totalBaseIva() {
+        return round($this->cart['_meta']['base_iva'], 4);
+    }
+
+    public function totalBaseRenta() {
+        return round($this->cart['_meta']['base_renta'], 4);
+    }
+
+    public function totalIvaBienes() {
+        return round($this->cart['_meta']['iva_bienes'], 4);
+    }
+
+    public function totalIvaServicios() {
+        return round($this->cart['_meta']['iva_servicios'], 4);
     }
 
     public function destroy() {

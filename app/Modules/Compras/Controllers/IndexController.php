@@ -136,20 +136,23 @@ class IndexController extends BaseController {
         $porcentajeSelect = 0;
         $detallePorcentajeSelect = "";
         if ($tarifas) {
-            foreach ($tarifas as $tarifa) {
+            foreach ($tarifas ?? [] as $tarifa) {
                 if (!isset($tarifa->impt_porcentage)) {
                     continue;
                 }
-                if ($tarifa->fk_impuesto == 1) {
-                    $ivaPorcent = (float) $tarifa->impt_porcentage;
-                    $porcentajeSelect = (int) $tarifa->id;
+                switch ((int) $tarifa->fk_impuesto) {
+                    
+                    case 1: // IVA
+                        $ivaPorcent = (float) $tarifa->impt_porcentage;
+                        $porcentajeSelect = (int) $tarifa->id;
+                        $codigoPorcentajeSelect = $tarifa->impt_codigo;
+                        $detallePorcentajeSelect = $tarifa->impt_detalle;
+                        break;
+                    
+                    case 2: // ICE
+                        $icePorcent = (float) $tarifa->impt_porcentage;
+                        break;
                 }
-                if ($tarifa->fk_impuesto == 2) {
-                    $icePorcent = (float) $tarifa->impt_porcentage;
-                }
-
-                $codigoPorcentajeSelect = $tarifa->impt_codigo;
-                $detallePorcentajeSelect = $tarifa->impt_detalle;
             }
         }
 
@@ -218,11 +221,13 @@ class IndexController extends BaseController {
             'totalIce' => $this->comprasCart->totalIce(),
             'totalIrbpnr' => $this->comprasCart->totalIrbpnr(),
             'totalGeneral' => $this->comprasCart->totalGeneral(),
-            'totalBienes' => $this->comprasCart->totalBienes(),
-            'totalServicios' => $this->comprasCart->totalServicios(),
-            'tarifCero' => $this->comprasCart->tarifCero(),
-            'tarifIva' => $this->comprasCart->tarifIva(),
+            'totalBienesNeto' => $this->comprasCart->totalBienesNeto(),
+            'totalBienesBruto' => $this->comprasCart->totalBienesBruto(),
+            'totalServiciosNeto' => $this->comprasCart->totalServiciosNeto(),
+            'totalServiciosBruto' => $this->comprasCart->totalServiciosBruto(),
+            'tarifCeroBruto' => $this->comprasCart->tarifCeroBruto(),
             'tarifCeroNeto' => $this->comprasCart->tarifCeroNeto(),
+            'tarifIvaBruto' => $this->comprasCart->tarifIvaBruto(),
             'tarifIvaNeto' => $this->comprasCart->tarifIvaNeto(),
             'totalDescuentoItems' => $this->comprasCart->totalDescuentoItems(),
             'totalDescuentoGlobal' => $this->comprasCart->totalDescuentoGlobal(),
@@ -230,6 +235,10 @@ class IndexController extends BaseController {
             'totalRecargo' => $this->comprasCart->totalRecargo(),
             'tarifExcentoNeto' => $this->comprasCart->totalExcentoIva(),
             'tarifNoObjetoNeto' => $this->comprasCart->totalnoObjetoImpuestos(),
+            'baseIva' => $this->comprasCart->totalBaseIva(),
+            'baseRenta' => $this->comprasCart->totalBaseRenta(),
+            'ivaBienes' => $this->comprasCart->totalIvaBienes(),
+            'ivaServicios' => $this->comprasCart->totalIvaServicios(),
             'basesImpuesto' => $this->comprasCart->getImpuestos(),
         ];
 

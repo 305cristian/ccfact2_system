@@ -103,7 +103,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <!--ITEM-->
                         <td>
                             <span
-                                v-if="item.codigoImpuestoSelect == 4"
+                                v-if="item.ivaPorcent > 0 "
                                 class="d-inline-block rounded-circle bg-success me-1"
                                 style="width:12px;height:12px"
                                 title="IVA 15%">
@@ -268,7 +268,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             <span class="d-inline-block rounded-circle bg-success me-1"
                   style="width:12px;height:12px"></span>
-            IVA 15%
+            Aplica IVA
 
             <span class="d-inline-block rounded-circle bg-dark ms-3 me-1"
                   style="width:12px;height:12px"></span>
