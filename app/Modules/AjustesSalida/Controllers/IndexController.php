@@ -30,16 +30,17 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class IndexController extends \App\Controllers\BaseController {
 
     //put your code here
-    protected $dirViewModule;
-    protected $salidasModel;
-    protected $salidasLib;
-    protected $salidasAsientoLib;
-    protected $prodModel;
-    protected $ajesCart;
-    protected $searchModel;
-    protected $stockBodLib;
-    protected $lotesStkModel;
-    protected $reservasLib;
+    protected string $dirViewModule;
+    protected SalidasModel $salidasModel;
+    protected SalidasLib $salidasLib;
+    protected SalidasAsientosLib $salidasAsientoLib;
+    protected ProductoModel $prodModel;
+    protected SalidasCartLib $ajesCart;
+    protected SearchsModel $searchModel;
+    protected StockBodegaLib $stockBodLib;
+    protected LotesStockModel $lotesStkModel;
+    protected ReservasLib $reservasLib;
+    protected $transaccionCod = '38'; // AJUSTE SALIDA
 
     public function __construct() {
 
@@ -69,12 +70,22 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-    public function indexEdit($ajusteId) {
+    /**
+     * Función para cargar la vista de creación de nuevo ajuste de salida
+     * Si se proporciona un ID de ajuste, se cargan los datos del ajuste para edición
+     * @param int|null $ajusteId El identificador único del ajuste a editar (opcional)
+     */
+    public function indexEdit(int|null $ajusteId) {
         $view = $this->parametrosIndex($ajusteId);
         return view($this->dirTemplate . '\dashboard', $view);
     }
 
-    public function parametrosIndex($ajusteId = null) {
+    /**
+     * Función para cargar la vista de creación de nuevo ajuste de salida
+     * Si se proporciona un ID de ajuste, se cargan los datos del ajuste para edición
+     * @param int $ajusteId El identificador único del ajuste a editar (opcional)
+     */
+    public function parametrosIndex(int $ajusteId = null) {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
@@ -104,8 +115,13 @@ class IndexController extends \App\Controllers\BaseController {
         return $send;
     }
 
-    // Helper respuesta JSON estándar
-    public function responseSetJSON($status, $mensaje, $data = null) {
+    /**
+     * Función para generar una respuesta JSON con un formato estándar para las operaciones del módulo de ajustes de salida     
+     * @param string $status El estado de la operación (e.g., 'success', 'error', 'warning')
+     * @param string $mensaje Un mensaje descriptivo sobre el resultado de la operación
+     * @param mixed $data (Opcional) Datos adicionales relacionados con la operación, como detalles del producto o información del ajuste de salida
+     */
+    public function responseSetJSON(string $status, string $mensaje, mixed $data = null) {
         return $this->response->setJSON([
                     'status' => $status,
                     'msg' => $mensaje,
@@ -114,9 +130,10 @@ class IndexController extends \App\Controllers\BaseController {
     }
 
     /**
-     * Carga un ajuste de SALIDA al cart para edición
+     * Función para cargar los datos de un ajuste de salida específico en el carrito de ajustes, permitiendo la edición o clonación del ajuste  
+     * @param int $ajusteId El identificador único del ajuste de salida a cargar en el carrito de ajustes
      */
-    public function loadAjusteEdit($ajusteId) {
+    public function loadAjusteEdit(int $ajusteId) {
         $respuesta = $this->loadDataAjusteCart($ajusteId);
 
         return $this->response->setJSON([
@@ -126,7 +143,13 @@ class IndexController extends \App\Controllers\BaseController {
         ]);
     }
 
-    public function loadDataAjusteCart($ajusteId, $isClone = false) {
+    /**
+     * Función para cargar los datos de un ajuste de salida específico en el carrito de ajustes para clonación, permitiendo crear un nuevo ajuste basado en uno existente   
+     * @param int $ajusteId El identificador único del ajuste de salida a cargar en el carrito de ajustes para clonación    
+     * La función carga los datos del ajuste de salida especificado en el carrito de ajustes utilizando la función loadDataAjusteCart, pero con el parámetro isClone establecido en true para indicar que se trata de una clonación. La respuesta JSON indica si la operación fue exitosa o si ocurrió un error durante el proceso de carga para clonación, proporcionando un mensaje descriptivo sobre el resultado de la operación. En caso de éxito, se incluye una redirección a la vista de edición del nuevo ajuste clonado.
+     * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de salida, para permitir a los usuarios clonar un ajuste existente sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar la clonación del ajuste y proporcionar una experiencia de usuario fluida y eficiente.
+     */
+    public function loadDataAjusteCart(int $ajusteId, bool $isClone = false) {
         $this->ajesCart->destroy();
 
         $dataAjuste = $this->salidasModel->getDataDetalle($ajusteId);
@@ -144,7 +167,7 @@ class IndexController extends \App\Controllers\BaseController {
             $dataStockBodega = $this->ccm->getData('cc_stock_bodega', ['fk_producto' => $idProd, 'fk_bodega' => $idBodega], 'stb_stock', null, 1);
             $stockBodega = $dataStockBodega ? $dataStockBodega->stb_stock : 0;
             $whereReserva = ['tb1.fk_producto' => $idProd, 'tb1.fk_bodega' => $idBodega, 'tb1.res_estado' => 'ACTIVA'];
-            $whereNotReserva = "NOT (tb1.res_codigo_transaccion = 38 AND tb1.res_documento_id = {$ajusteId})";
+            $whereNotReserva = "NOT (tb1.res_codigo_transaccion = {$this->transaccionCod} AND tb1.res_documento_id = {$ajusteId})";
             $rowReserva = $this->ccm->getData("cc_reserva_inventario tb1", $whereReserva, "COALESCE(SUM(tb1.res_cantidad),0) AS reservado", null, 1, null, $whereNotReserva);
             $stockBodegaDisponible = $stockBodega - $rowReserva->reservado;
             if ($stockBodegaDisponible <= 0) {
@@ -160,7 +183,7 @@ class IndexController extends \App\Controllers\BaseController {
                     if ($isClone) {
                         $reservas = $this->reservasLib->getReservasProductoLote($idProd, $idBodega, $val->fk_lote);
                     } else {
-                        $reservas = $this->reservasLib->getReservasProductoLote($idProd, $idBodega, $val->fk_lote, '38', $ajusteId);
+                        $reservas = $this->reservasLib->getReservasProductoLote($idProd, $idBodega, $val->fk_lote, $this->transaccionCod, $ajusteId);
                     }
                     $val->stockLote = $val->stbl_stock - $reservas['reserva'];
                 }
@@ -278,7 +301,7 @@ class IndexController extends \App\Controllers\BaseController {
         // Validar stock disponible (stock real - reservas)
         $idAjuste = empty($dataPost->ajusteId) ? null : $dataPost->ajusteId; //Cuando el updateProduct se ejecutado desde una actualización de una salida en borrrador hacemos uso del ID del ajuste
         $idLote = ($dataPost->tieneLote === '1') ? $dataPost->idLote : null;
-        $validarStock = $this->stockBodLib->validarStockDisponible($idProd, $idBodega, $cantidad, '38', $idAjuste, $idLote);
+        $validarStock = $this->stockBodLib->validarStockDisponible($idProd, $idBodega, $cantidad, $this->transaccionCod, $idAjuste, $idLote);
 
         if ($validarStock['status'] !== 'success') {
             return $this->responseSetJSON($validarStock['status'], $validarStock['msg']);
@@ -321,6 +344,12 @@ class IndexController extends \App\Controllers\BaseController {
         return $this->responseSetJSON('success', 'Producto actualizado');
     }
 
+    /**
+     * Función para mostrar los detalles del carrito de ajustes de salida, incluyendo el contenido del carrito, totales y tarifas aplicables, con la opción de devolver la información en formato JSON o como un objeto PHP para su uso interno en otras funciones del controlador. La función showDetailCart acepta un parámetro opcional $key que determina el formato de la respuesta: si $key es igual a 0, se devuelve una respuesta JSON con los detalles del carrito; si $key es diferente de 0, se devuelve un objeto PHP con la misma información para su uso interno en el controlador. Esta función es fundamental para mantener la consistencia de los datos del carrito de ajustes de salida y facilitar su manipulación tanto en el frontend como en el backend del módulo.   
+     * @param int $key Parámetro opcional que determina el formato de la respuesta (0 para JSON, diferente de 0 para objeto PHP)
+     * @return \CodeIgniter\HTTP\Response|\stdClass Respuesta JSON con los detalles del carrito o un objeto PHP con la misma información, dependiendo del valor de $key
+     * @throws \Exception En caso de que ocurra un error al obtener los detalles del carrito de ajustes de salida   
+     */
     public function showDetailCart($key = 0) {
         $cartContent = $this->ajesCart->getContent();
         $dataCart['cartContent'] = $cartContent ? array_reverse($cartContent) : null;
@@ -343,7 +372,11 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-    public function deleteProduct($rowId) {
+    /**
+     * Función para eliminar un producto específico del carrito de ajustes de salida utilizando su identificador único (rowId), permitiendo a los usuarios gestionar el contenido del carrito de manera eficiente y mantener la precisión de los datos relacionados con los ajustes de salida. La función deleteProduct acepta un parámetro $rowId que corresponde al identificador único del producto dentro del carrito, y utiliza el método removeItem de la biblioteca SalidasCartLib para eliminar el producto correspondiente del carrito de ajustes de salida. Esta función es esencial para garantizar que los usuarios puedan modificar el contenido del carrito según sea necesario antes de finalizar un ajuste de salida, proporcionando una experiencia de usuario flexible y controlada en el proceso de gestión de ajustes de salida.
+     * @param string $rowId El identificador único del producto dentro del carrito de ajustes de salida que se desea eliminar
+     */
+    public function deleteProduct(string $rowId) {
         $this->ajesCart->removeItem($rowId);
     }
 
@@ -351,7 +384,11 @@ class IndexController extends \App\Controllers\BaseController {
         $this->ajesCart->destroy();
     }
 
-    public function changeBodega($bodegaId) {
+    /**
+     * Función para cambiar la bodega seleccionada en el módulo de ajustes de salida, actualizando la sesión del usuario con la nueva bodega seleccionada y devolviendo una respuesta JSON que indica el éxito de la operación, junto con un mensaje descriptivo y el identificador de la nueva bodega seleccionada. La función changeBodega acepta un parámetro $bodegaId que corresponde al identificador de la bodega que se desea seleccionar, y utiliza el método set de la sesión para actualizar la clave 'bodegaIdAjs' con el nuevo valor. Esta función es fundamental para permitir a los usuarios seleccionar diferentes bodegas al gestionar ajustes de salida, asegurando que las operaciones realizadas estén asociadas a la bodega correcta y proporcionando una experiencia de usuario personalizada en función de las preferencias de cada usuario.
+     * @param int $bodegaId El identificador de la bodega que se desea
+     */
+    public function changeBodega(int $bodegaId) {
         $this->session->set('bodegaIdAjs', $bodegaId);
         return $this->response->setJSON([
                     'status' => 'success',
@@ -360,6 +397,14 @@ class IndexController extends \App\Controllers\BaseController {
         ]);
     }
 
+    /**
+     * Función para actualizar un ajuste de salida en estado borrador, validando los campos requeridos, verificando el estado actual del ajuste, y realizando las operaciones necesarias para actualizar la cabecera y el detalle del ajuste, así como manejar las reservas y el stock según el nuevo estado del ajuste. La función updateAjuste procesa los datos enviados a través de una solicitud POST, validando los campos requeridos mediante la función validarCampos, y verificando que el ajuste se encuentre en estado borrador antes de permitir su actualización. Si el ajuste está en un estado que no permite modificaciones (archivado o anulado), se devuelve una respuesta JSON con un mensaje de advertencia. En caso de que la validación sea exitosa y el ajuste esté en estado borrador, la función procede a actualizar la cabecera del ajuste utilizando el método updateAjuste de la biblioteca SalidasLib, eliminando el detalle anterior y registrando el nuevo detalle del ajuste según el contenido del carrito. Además, si el ajuste se archiva durante la actualización, se actualiza el kardex y se manejan las reservas correspondientes según el nuevo estado del ajuste. Esta función es esencial para garantizar que los ajustes de salida puedan ser modificados de manera segura y controlada mientras se mantenga la integridad de los datos relacionados con los ajustes de salida y su impacto en el stock y las reservas.
+     * @return \CodeIgniter\HTTP\Response Respuesta JSON que indica el resultado de la operación de actualización del ajuste de salida, incluyendo el estado, un mensaje descriptivo, y cualquier dato adicional relevante relacionado con la actualización del ajuste de salida.
+     * @throws \Exception En caso de que ocurra un error durante el proceso de actualización del ajuste de salida, como errores en la validación de campos, problemas al actualizar la cabecera o el detalle del ajuste, o errores al manejar las reservas y el stock según el nuevo estado del ajuste.
+     * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de salida, para permitir a los usuarios actualizar un ajuste existente sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios realizados en el ajuste de salida y proporcionar una experiencia de usuario fluida y eficiente durante el proceso de actualización de ajustes de salida.
+     * Además, esta función asume que existen otras funciones y métodos auxiliares, como validarCampos, updateAjuste, saveAjusteDetalle, updateKardex, registrarReservas, y eliminarReservas, que son responsables de realizar tareas específicas dentro del proceso de actualización del ajuste de salida, y que deben ser implementados correctamente para garantizar el correcto funcionamiento de la función updateAjuste y la integridad de los datos relacionados con los ajustes de salida, el stock, y las reservas.    
+     * 
+     */
     public function updateAjuste() {
         $dataPostAjuste = json_decode(json_encode($this->request->getPost()));
 
@@ -370,6 +415,15 @@ class IndexController extends \App\Controllers\BaseController {
         }
 
         $ajusteId = $dataPostAjuste->ajusteId;
+
+        $estadoAjuste = (int) $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId], 'ajes_estado');
+
+        if ($estadoAjuste === 2) {
+            return $this->responseSetJSON("warning", "Este ajuste ya ha sido aprobado previamente, Imposible actualizarlo");
+        }
+        if ($estadoAjuste === -1) {
+            return $this->responseSetJSON("warning", "Este ajuste ya ha sido anulado previamente, Imposible actualizarlo");
+        }
 
         try {
             $cartData = $this->showDetailCart(1);
@@ -409,7 +463,7 @@ class IndexController extends \App\Controllers\BaseController {
                 // Validar stock disponible considerando reservas, para la nueva cantidad
                 // Validar stock disponible (stock real - reservas)
                 $idLote = ($val->tieneLote === '1') ? $val->idLote : null;
-                $validarStock = $this->stockBodLib->validarStockDisponible($val->id, $dataPostAjuste->ajesBodega, $val->qty, '38', $ajusteId, $idLote);
+                $validarStock = $this->stockBodLib->validarStockDisponible($val->id, $dataPostAjuste->ajesBodega, $val->qty, $this->transaccionCod, $ajusteId, $idLote);
                 if ($validarStock['status'] !== 'success') {
                     $this->db->transRollback();
                     return $this->responseSetJSON($validarStock['status'], $validarStock['msg']);
@@ -440,7 +494,7 @@ class IndexController extends \App\Controllers\BaseController {
                 }
             } elseif ($dataPostAjuste->ajesEstado === '2') {
                 // Si pasa a archivado, eliminamos reservas (si existían)
-                $this->reservasLib->eliminarReservas($ajusteId, '38');
+                $this->reservasLib->eliminarReservas($ajusteId, $this->transaccionCod);
 
                 // Generamos asiento si aplica
                 $responseAsiento = $this->salidasAsientoLib->generarAsiento($ajusteId);
@@ -483,6 +537,14 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
+    /**
+     * Función para guardar un nuevo ajuste de salida, validando los campos requeridos, verificando el periodo contable habilitado para la fecha del ajuste, y realizando las operaciones necesarias para registrar la cabecera y el detalle del ajuste, así como manejar las reservas y el stock según el estado del ajuste. La función saveAjuste procesa los datos enviados a través de una solicitud POST, validando los campos requeridos mediante la función validarCampos, y verificando que exista un periodo contable habilitado para la fecha del ajuste utilizando la función getPeriodoContable. Si no se encuentra un periodo contable habilitado, se devuelve una respuesta JSON con un mensaje de error. En caso de que la validación sea exitosa y exista un periodo contable habilitado, la función procede a registrar la cabecera del ajuste utilizando el método saveAjuste de la biblioteca SalidasLib, y luego registra el detalle del ajuste según el contenido del carrito. Además, si el ajuste se archiva durante el proceso de guardado, se actualiza el kardex y se manejan las reservas correspondientes según el estado del ajuste. Esta función es esencial para garantizar que los ajustes de salida puedan ser registrados de manera segura y controlada mientras se mantenga la integridad de los datos relacionados con los ajustes de salida y su impacto en el stock y las reservas.
+     * @return \CodeIgniter\HTTP\Response Respuesta JSON que indica el resultado de la operación de guardado del ajuste de salida, incluyendo el estado, un mensaje descriptivo, y cualquier dato adicional relevante relacionado con el nuevo ajuste de salida registrado.
+     * @throws \Exception En caso de que ocurra un error durante el proceso de guardado del ajuste de salida, como errores en la validación de campos, problemas al registrar la cabecera o el detalle del ajuste, o errores al manejar las reservas y el stock según el estado del ajuste.
+     * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de salida, para permitir a los usuarios registrar un nuevo ajuste sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar la creación del nuevo ajuste de salida y proporcionar una experiencia de usuario fluida y eficiente durante el proceso de registro de ajustes de salida.
+     * Además, esta función asume que existen otras funciones y métodos auxiliares, como validarCampos, getPeriodoContable, saveAjuste, saveAjusteDetalle, updateKardex, y registrarReservas, que son responsables de realizar tareas específicas dentro del proceso de registro del ajuste de salida, y que deben ser implementados correctamente para garantizar el correcto funcionamiento de la función saveAjuste y la integridad de los datos relacionados con los ajustes de salida, el stock, y las reservas.   
+     * 
+     */
     public function saveAjuste() {
         $dataPostAjuste = json_decode(json_encode($this->request->getPost()));
 
@@ -607,7 +669,13 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-    public function validarCampos($data) {
+    /**
+     * Función para validar los campos requeridos en el proceso de creación o actualización de un ajuste de salida, asegurando que se cumplan los requisitos mínimos para registrar o modificar un ajuste de salida de manera adecuada. La función validarCampos acepta un objeto $data que contiene los campos a validar, y verifica que cada uno de los campos requeridos (fecha, bodega, centro de costos, motivo, estado, servicio, tipo) esté presente y no esté vacío. Si algún campo requerido no cumple con la validación, la función devuelve un array con el estado de la validación como verdadero y un mensaje descriptivo indicando qué campo es el que falta o es inválido. Si todos los campos cumplen con la validación, la función devuelve un array con el estado de la validación como falso, indicando que no hay errores en los campos requeridos. Esta función es esencial para garantizar que los ajustes de salida se registren o actualicen con la información necesaria y correcta, evitando errores o inconsistencias en los datos relacionados con los ajustes de salida.
+     * @param object $data Objeto que contiene los campos a validar para la creación o actualización de un ajuste de salida, incluyendo fecha, bodega, centro de costos, motivo, estado, servicio, y tipo.
+     * @return array Un array que indica el resultado de la validación, con un estado booleano que indica si hay errores en los campos requeridos y un mensaje descriptivo en caso de que algún campo no cumpla con la validación. Si todos los campos son válidos, el array indicará que no hay errores en los campos requeridos.   
+     * @throws \Exception En caso de que ocurra un error durante el proceso de validación de los campos, como problemas al acceder a las propiedades del objeto $data o errores inesperados durante la validación. Es importante destacar que esta función asume que el objeto $data contiene las propiedades correspondientes a los campos requeridos (ajesFecha, ajesBodega, ajesCentrocosto, ajesMotivo, ajesEstado, ajesServicio, ajesTipo) y que estas propiedades deben ser validad
+     */
+    public function validarCampos(object $data): array {
         $campos = [
             'ajesFecha' => 'Debe seleccionar una fecha',
             'ajesBodega' => 'Debe seleccionar una bodega',
@@ -630,6 +698,12 @@ class IndexController extends \App\Controllers\BaseController {
         return ['status' => false];
     }
 
+
+    /**
+     * Función para anular un ajuste de salida, validando la sesión del usuario, los datos de entrada, y realizando las operaciones necesarias para cambiar el estado del ajuste a anulado, registrar el motivo de anulación, y manejar cualquier impacto relacionado con el stock o las reservas asociadas al ajuste de salida. La función anularAjuste procesa los datos enviados a través de una solicitud POST, validando que el ID del ajuste y el motivo de anulación estén presentes y sean válidos. Si la validación es exitosa, la función procede a iniciar una transacción en la base de datos, y utiliza el método anularAjuste de la biblioteca SalidasLib para realizar las operaciones necesarias para anular el ajuste de salida. Si ocurre algún error durante el proceso de anulación, se realiza un rollback de la transacción y se devuelve una respuesta JSON con un mensaje de error. Si la anulación es exitosa, se realiza un commit de la transacción, se registra un log de éxito, y se devuelve una respuesta JSON indicando que el ajuste de salida ha sido anulado correctamente. Esta función es esencial para garantizar que los ajustes de salida puedan ser anulados de manera segura y controlada, manteniendo la integridad de los datos relacionados con los ajustes de salida, el stock, y las reservas, y proporcionando una experiencia de usuario adecuada durante el proceso de anulación de ajustes de salida.    
+     * @return \CodeIgniter\HTTP\Response Respuesta JSON que indica el resultado de la operación de anulación del ajuste de salida, incluyendo el estado, un mensaje descriptivo, y cualquier dato adicional relevante relacionado con la anulación del ajuste de salida.
+     * @throws \Exception En caso de que ocurra un error durante el proceso de anulación del ajuste de salida, como errores en la validación de los datos de entrada, problemas al realizar la transacción en la base de datos, o errores inesperados durante el proceso de anulación. Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de salida, para permitir a los usuarios anular un ajuste existente sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios realizados en el ajuste de salida y proporcionar una experiencia de usuario fluida y eficiente durante el proceso de anulación de ajustes de salida. Además, esta función asume que existen otras funciones y métodos auxiliares, como anularAjuste, que es responsable de realizar las operaciones específicas para anular el ajuste de salida, y que debe ser implementado correctamente para garantizar el correcto funcionamiento de la función anularAjuste y la integridad de los datos relacionados con los ajustes de salida, el stock, y las reservas.
+    */
     public function anularAjuste() {
         $this->user->validateSession();
 
@@ -668,7 +742,11 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-    public function clonarAjuste($ajusteId) {
+    /**
+     * Función para clonar un ajuste de salida existente, cargando los datos del ajuste original en el carrito de ajustes de salida para permitir a los usuarios crear un nuevo ajuste basado en la información del ajuste original. La función clonarAjuste acepta un parámetro $ajusteId que corresponde al identificador del ajuste de salida que se desea clonar, y utiliza el método loadDataAjusteCart para cargar los datos del ajuste original en el carrito de ajustes de salida. Si la carga de datos es exitosa, se devuelve una respuesta JSON indicando el éxito de la operación y proporcionando una URL de redirección para crear un nuevo ajuste de salida con los datos clonados. Esta función es esencial para facilitar a los usuarios la creación de nuevos ajustes de salida basados en ajustes existentes, ahorrando tiempo y esfuerzo al evitar la necesidad de ingresar manualmente la misma información para ajustes similares, y proporcionando una experiencia de usuario eficiente y conveniente en el proceso de gestión de ajustes de salida. 
+     * @param int $ajusteId El identificador del ajuste de salida que se desea clonar, utilizado para cargar los datos del ajuste original en el carrito de ajustes de salida.
+    */
+    public function clonarAjuste(int $ajusteId) {
         $respuesta = $this->loadDataAjusteCart($ajusteId, true);
 
         return $this->response->setJSON([
@@ -677,6 +755,11 @@ class IndexController extends \App\Controllers\BaseController {
         ]);
     }
 
+
+    /**
+     * Función para importar productos a un ajuste de salida desde un archivo Excel, procesando el archivo cargado por el usuario, validando los datos de cada fila, y agregando los productos válidos al carrito de ajustes de salida. La función importarExcel maneja la carga del archivo Excel, utilizando la biblioteca PhpSpreadsheet para leer el contenido del archivo y convertirlo en un array de registros. Luego, itera sobre cada fila del archivo (omitiendo la cabecera) y valida los datos de cada producto, incluyendo el código, la cantidad, y el lote (si aplica). Si los datos son válidos, se obtiene la información del producto desde la base de datos, se valida el stock disponible considerando las reservas, y se agrega el producto al carrito de ajustes de salida con la información correspondiente. Si algún registro contiene errores o no cumple con las validaciones, se acumulan los mensajes de error para informar al usuario sobre los problemas encontrados en el proceso de importación. Esta función es esencial para facilitar a los usuarios la incorporación masiva de productos a un ajuste de salida mediante un archivo Excel, ahorrando tiempo y esfuerzo al evitar la necesidad de ingresar manualmente cada producto, y proporcionando una experiencia de usuario eficiente y conveniente durante el proceso de gestión de ajustes de salida.   
+     * 
+    */
     public function importarExcel() {
         try {
             $file = $this->request->getFile('file');

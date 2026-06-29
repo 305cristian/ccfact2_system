@@ -96,7 +96,13 @@ class EntradasLib {
         return $saveDetalle;
     }
 
-    public function updateAjuste($cartData, $dataPostAjuste, $ajusteId) {
+    /**
+     * Función para actualizar un ajuste de entrada existente, modificando los datos del ajuste y recalculando los totales en base a los datos proporcionados
+     * @param object $cartData Objeto con los datos del carrito de compras, incluyendo totales, subtotales, impuestos y tarifas
+     * @param object $dataPostAjuste Objeto con los datos del ajuste de entrada a actualizar, incluyendo fecha, estado, bodega, proveedor, centro de costo, motivo de ajuste, etc
+     * @param int $ajusteId El identificador único del ajuste de entrada a actualizar
+    */
+    public function updateAjuste(object $cartData, object $dataPostAjuste, int $ajusteId) {
 
         $esPendiente = ($dataPostAjuste->ajenEstado == 1);
 
@@ -139,12 +145,12 @@ class EntradasLib {
      * Actualiza todo el kardex (general, bodega y lote)
      * 
      * @param int $ajusteId ID del documento (ajuste, compra, venta, etc)
-     * @param array $producto Array con datos del producto ['id', 'qty', 'price', 'total']
+     * @param object $producto Array con datos del producto ['id', 'qty', 'price', 'total']
      * @param int|null $loteId ID del lote (null si no maneja lotes)
      * @param object $dataPostAjuste (fecha, estado, bodega, etc)
-     * @return bool
+     * @return array
      */
-    public function updateKardex($ajusteId, $producto, $loteId, $dataPostAjuste) {
+    public function updateKardex(int $ajusteId, object $producto, int|null $loteId, object $dataPostAjuste):array {
         try {
             $fecha = $dataPostAjuste->ajenFecha ?? date('Y-m-d');
             $hora = date('H:i:s');
@@ -185,7 +191,27 @@ class EntradasLib {
         }
     }
 
-    public function actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $tipoAjuste) {
+    /**
+     * Función para actualizar el kardex general de un producto, calculando el nuevo stock, costo promedio y costo último, e insertando un registro en la tabla de kardex
+     * @param object $producto Objeto con los datos del producto a ajustar, incluyendo id, cantidad, precio y total
+     * @param int $ajusteId El identificador único del ajuste de entrada asociado al movimiento de inventario
+     * @param int|null $loteId El identificador del lote asociado al movimiento de inventario (null si el producto no maneja lotes)
+     * @param string $fecha La fecha del movimiento de inventario
+     * @param string $hora La hora del movimiento de inventario
+     * @param int $bodegaId El identificador de la bodega donde se realiza el movimiento de inventario
+     * @param string $tipoAjuste El tipo de ajuste que se está realizando (e.g., 'AJUSTE_NORMAL', 'AJUSTE_INICIAL', 'AJUSTE_POSITIVO', 'AJUSTE_NEGATIVO'), utilizado para determinar la lógica de cálculo de costos y stock en el kardex
+     * @return array Un array con el resultado de la actualización del kardex, incluyendo el estado de la operación, mensaje descriptivo y los costos calculados (costo promedio y costo último) si la operación fue exitosa    
+     * La función actualiza el kardex general de un producto realizando los siguientes pasos:
+     * 1. Obtiene el stock actual del producto utilizando la biblioteca ProductoLib.
+     * 2. Calcula el nuevo stock sumando o restando la cantidad del producto según el tipo de ajuste (positivo o negativo).
+     * 3. Obtiene el costo de inventario actual del producto y el costo de inventario total de la empresa.
+     * 4. Calcula el nuevo costo de inventario del producto sumando o restando el total del producto al costo de inventario actual, y calcula el nuevo costo de inventario total sumando o restando el total del producto al costo de inventario total actual.
+     * 5. Calcula el costo promedio y costo último del producto según la lógica definida para cada tipo de ajuste.
+     * 6. Inserta un registro en la tabla de kardex con los datos del movimiento de inventario, incluyendo el nuevo stock, costos calculados, fecha, hora, bodega, lote y usuario responsable.
+     * 7. Si la inserción en el kardex es exitosa, actualiza los costos del producto utilizando la biblioteca ProductoLib y actualiza el costo de inventario total de la empresa.
+     * 8. Devuelve un array con el resultado de la operación, incluyendo el estado ('success' o 'error'), mensaje descriptivo y los costos calculados (costo promedio y costo último) si la operación fue exitosa, o un mensaje de error si ocurrió
+    */
+    public function actualizarKardexGeneral(object $producto, int $ajusteId, int|null $loteId, string $fecha, string $hora, int $bodegaId, string $tipoAjuste):array {
 
         // Obtengo stock actual del producto
         $stockActual = $this->productLib->getStockProducto($producto->id);
@@ -253,7 +279,24 @@ class EntradasLib {
         return $responseKardex;
     }
 
-    public function actualizarKardexBodega($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $kardexCostos) {
+    /**
+     * Función para actualizar el kardex por bodega de un producto, calculando el nuevo stock en la bodega y actualizando o creando el registro correspondiente en la tabla de kardex por bodega
+     * @param object $producto Objeto con los datos del producto a ajustar, incluyendo id, cantidad, precio y total
+     * @param int $ajusteId El identificador único del ajuste de entrada asociado al movimiento de inventario
+     * @param int|null $loteId El identificador del lote asociado al movimiento de inventario (null si el producto no maneja lotes)
+     * @param string $fecha La fecha del movimiento de inventario
+     * @param string $hora La hora del movimiento de inventario
+     * @param int $bodegaId El identificador de la bodega donde se realiza el movimiento de inventario
+     * @param array $kardexCostos Array con los costos calculados en el kardex general (costo promedio y costo último) para utilizar en el kardex por bodega
+     * @return int Retorna true si la actualización del kardex por bodega fue exitosa, o false si ocurrió un error durante el proceso de actualización del kardex por bodega
+     * La función actualiza el kardex por bodega de un producto realizando los siguientes pasos:
+     * 1. Obtiene el stock actual del producto en la bodega utilizando la biblioteca StockBodegaLib.
+     * 2. Calcula el nuevo stock en la bodega sumando o restando la cantidad del producto según el tipo de ajuste (positivo o negativo).
+     * 3. Inserta un registro en la tabla de kardex por bodega con los datos del movimiento de inventario, incluyendo el nuevo stock en la bodega, costos calculados en el kardex general, fecha, hora, lote y usuario responsable.
+     * 4. Si la inserción en el kardex por bodega es exitosa, actualiza o crea el registro de stock por bodega utilizando la biblioteca StockBodegaLib para reflejar el nuevo stock en la bodega.
+     * 5. Retorna true si la actualización del kardex por bodega fue exitosa, o false si ocurrió un error durante el proceso de actualización del kardex por bodega     
+    */
+    public function actualizarKardexBodega(object $producto, int $ajusteId, int|null $loteId, string $fecha, string $hora, int $bodegaId, array $kardexCostos): int{
         // Obtener stock actual en bodega
         $stockBodega = $this->stockBodLib->getStockBodega($bodegaId, $producto->id);
         $nuevoStockBodega = $stockBodega + $producto->qty;
@@ -284,7 +327,24 @@ class EntradasLib {
         return $kardexBodegaId;
     }
 
-    public function actualizarKardexBodegaLote($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $kardexCostos) {
+    /**
+     * Función para actualizar el kardex por bodega y lote de un producto, calculando el nuevo stock en la bodega por lote y actualizando o creando el registro correspondiente en la tabla de kardex por bodega y lote
+     * @param object $producto Objeto con los datos del producto a ajustar, incluyendo id, cantidad, precio y total
+     * @param int $ajusteId El identificador único del ajuste de entrada asociado al movimiento de inventario
+     * @param int $loteId El identificador del lote asociado al movimiento de inventario
+     * @param string $fecha La fecha del movimiento de inventario
+     * @param string $hora La hora del movimiento de inventario
+     * @param int $bodegaId El identificador de la bodega donde se realiza el movimiento de inventario
+     * @param array $kardexCostos Array con los costos calculados en el kardex general (costo promedio y costo último) para utilizar en el kardex por bodega y lote
+     * @return int Retorna true si la actualización del kardex por bodega y lote fue exitosa, o false si ocurrió un error durante el proceso de actualización del kardex por bodega y lote
+     * La función actualiza el kardex por bodega y lote de un producto realizando los siguientes pasos:
+     * 1. Obtiene el stock actual del producto en la bodega por lote utilizando la biblioteca StockBodegaLib.   
+     * 2. Calcula el nuevo stock en la bodega por lote sumando o restando la cantidad del producto según el tipo de ajuste (positivo o negativo).
+     * 3. Inserta un registro en la tabla de kardex por bodega y lote con los datos del movimiento de inventario, incluyendo el nuevo stock en la bodega por lote, costos calculados en el kardex general, fecha, hora, lote y usuario responsable.
+     * 4. Si la inserción en el kardex por bodega y lote es exitosa, actualiza o crea el registro de stock por bodega y lote utilizando la biblioteca StockBodegaLib para reflejar el nuevo stock en la bodega por lote.
+     * 5. Retorna true si la actualización del kardex por bodega y lote fue exitosa, o false si ocurrió un error durante el proceso de actualización del kardex por bodega y lote   
+    */
+    public function actualizarKardexBodegaLote(object $producto, int $ajusteId, int|null $loteId, string $fecha, string $hora, int $bodegaId, array $kardexCostos):int {
         // Obtener stock actual en bodega por lote
         $stockBodegaLote = $this->stockBodLib->getStockBodegaLote($bodegaId, $producto->id, $loteId);
         $nuevoStockBodegaLote = $stockBodegaLote + $producto->qty;
@@ -316,7 +376,22 @@ class EntradasLib {
         return $kardexLoteId;
     }
 
-    public function anularAjuste($ajusteId, $motivo, $tipoAjuste) {
+    /**
+     * Función para anular un ajuste de entrada, actualizando el estado del ajuste, el motivo de anulación y la fecha de anulación, y realizando los movimientos inversos en el kardex para los productos involucrados
+     * @param int $ajusteId El identificador único del ajuste de entrada a anular
+     * @param string $motivo El motivo de anulación proporcionado por el usuario
+     * @param string $tipoAjuste El tipo de ajuste que se está anulando
+     * @return array Un array con el resultado de la operación, incluyendo el estado ('success', 'error' o 'warning') y un mensaje descriptivo del resultado de la anulación    
+     * La función realiza los siguientes pasos para anular un ajuste de entrada:
+     * 1. Obtiene el ajuste de entrada correspondiente al ajusteId proporcionado.
+     * 2. Valida si el ajuste existe y si su estado es diferente de anulado (-1). Si el ajuste no existe o ya está anulado, retorna un mensaje de error o advertencia.
+     * 3. Si el ajuste está en estado pendiente (1), actualiza el estado del ajuste a anulado (-1), registra el motivo de anulación y la fecha de anulación, y retorna un mensaje de éxito indicando que el ajuste en estado borrador fue anulado exitosamente.
+     * 4. Si el ajuste está aprobado, obtiene el detalle del ajuste y realiza los movimientos inversos en el kardex para cada producto involucrado, actualizando el stock y los costos según corresponda.
+     * 5. Marca el ajuste como anulado, actualiza el estado, la fecha de anulación, el usuario que anuló y el motivo de anulación.
+     * 6. Busca el asiento contable asociado al ajuste y, si existe, lo anula automáticamente, registrando el motivo de anulación.
+     * 7. Retorna un mensaje de éxito indicando que el ajuste fue anulado exitosamente, o un mensaje de error si ocurrió algún problema durante el proceso de anulación.
+    */
+    public function anularAjuste( int $ajusteId, string $motivo, string $tipoAjuste):array {
 
         // Obtenemos el ajuste
         $ajuste = $this->ccm->getData('cc_ajuste_entrada', ['id' => $ajusteId], '*', null, 1);
@@ -410,7 +485,7 @@ class EntradasLib {
                 'status' => 'success',
                 'msg' => "Ajuste #{$ajuste->ajen_secuencial} anulado exitosamente."
             ];
-        } catch (Exception $exc) {
+        } catch (\Exception $exc) {
             return ['status' => 'error', 'msg' => 'Error al anular ajuste: ' . $exc->getMessage()];
         } finally {
             $this->tipotransaccionCod = '39'; // volvemos al código de AJUSTE ENTRADA

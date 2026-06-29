@@ -17,7 +17,13 @@ namespace Modules\Comun\Models;
  */
 class ProductoModel extends \CodeIgniter\Model {
 
-    function getImpuestoTarifa($prodId) {
+    /**
+     * Función para obtener las tarifas de impuestos asociadas a un producto específico
+     * @param int $prodId El identificador único del producto
+     * @return array|false Un array con las tarifas de impuestos si se encuentran, o
+     * false si no se encuentran tarifas para el producto
+    */
+    function getImpuestoTarifa(int $prodId):array|false {
 
         $builder = $this->db->table('cc_producto_impuestotarifa tb1');
         $builder->select('tb2.id, tb2.impt_porcentage, tb2.impt_codigo, tb2.impt_detalle, tb1.fk_impuesto');

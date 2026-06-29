@@ -11,7 +11,7 @@
  Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 16/06/2026 17:01:50
+ Date: 22/06/2026 11:49:33
 */
 
 SET NAMES utf8mb4;
@@ -34,7 +34,7 @@ CREATE TABLE `cc_acciones`  (
   INDEX `fk_submodulo`(`fk_submodulo`) USING BTREE,
   CONSTRAINT `cc_acciones_ibfk_1` FOREIGN KEY (`fk_modulo`) REFERENCES `cc_modulos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_acciones_ibfk_2` FOREIGN KEY (`fk_submodulo`) REFERENCES `cc_modulos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_acciones
@@ -101,7 +101,7 @@ CREATE TABLE `cc_ajuste_entrada`  (
   CONSTRAINT `cc_ajuste_entrada_ibfk_6` FOREIGN KEY (`fk_centro_costo`) REFERENCES `cc_centroscosto` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_entrada_ibfk_7` FOREIGN KEY (`codigo_sustento`) REFERENCES `cc_sustentos` (`sus_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_entrada_ibfk_8` FOREIGN KEY (`fk_user_id_aprueba`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 246 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 247 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_ajuste_entrada
@@ -186,6 +186,8 @@ INSERT INTO `cc_ajuste_entrada` VALUES (241, 79, '2026-03-24', '', -1, 1, 'COMPR
 INSERT INTO `cc_ajuste_entrada` VALUES (242, 80, '2026-04-23', 'NADA', 2, 1, 'AJUSTE_INICIAL', NULL, NULL, NULL, 1, 1, 1, 1, '2026-04-23 21:57:23', 1, 1, '02', 15.00, 38.7000, 0.0000, 38.7000, 0.0000, 38.7000, 38.7000, 0.00, 0.0000, 38.7000, 'true', '2026-04-23 16:57:23', '2026-04-23 16:57:23');
 INSERT INTO `cc_ajuste_entrada` VALUES (244, 81, '2026-05-01', 'entrada de cemento', 2, 1, 'COMPRA_SIN_FACTURA', NULL, NULL, NULL, 3, 1, 1, 1, '2026-05-01 17:54:58', 1, 1, '02', 15.00, 85.0000, 0.0000, 89.2500, 4.2500, 0.0000, 0.0000, 85.00, 85.0000, 85.0000, 'true', '2026-05-01 12:54:58', '2026-05-01 12:54:58');
 INSERT INTO `cc_ajuste_entrada` VALUES (246, 82, '2026-05-01', 'wefwe', 2, 1, 'AJUSTE_NORMAL', NULL, NULL, NULL, 3, 1, 1, 1, '2026-05-01 18:18:25', 1, 1, '02', 15.00, 45.0000, 0.0000, 45.0000, 0.0000, 45.0000, 45.0000, 0.00, 0.0000, 45.0000, 'true', '2026-05-01 13:18:25', '2026-05-01 13:18:25');
+INSERT INTO `cc_ajuste_entrada` VALUES (247, 83, '2026-06-22', 'TESTEANDO ANDO', -1, 1, 'AJUSTE_NORMAL', '2026-06-22 16:44:40', 'esta todo mal', 1, 1, 1, 1, 1, '2026-06-22 16:33:37', 1, 1, '02', 15.00, 225.0000, 0.0000, 225.0000, 0.0000, 225.0000, 225.0000, 0.00, 0.0000, 225.0000, 'true', '2026-06-22 11:44:40', '2026-06-22 11:33:37');
+INSERT INTO `cc_ajuste_entrada` VALUES (248, 84, '2026-06-22', 'trester', 2, 1, 'AJUSTE_NORMAL', NULL, NULL, NULL, 1, 1, 1, 1, '2026-06-22 16:44:20', 1, 1, '01', 15.00, 180.0000, 0.0000, 180.0000, 0.0000, 180.0000, 180.0000, 0.00, 0.0000, 180.0000, 'true', '2026-06-22 11:44:20', '2026-06-22 11:44:20');
 
 -- ----------------------------
 -- Table structure for cc_ajuste_entrada_det
@@ -208,7 +210,7 @@ CREATE TABLE `cc_ajuste_entrada_det`  (
   CONSTRAINT `cc_ajuste_entrada_det_ibfk_1` FOREIGN KEY (`fk_ajuste_entrada`) REFERENCES `cc_ajuste_entrada` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_entrada_det_ibfk_2` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_entrada_det_ibfk_3` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 444 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 445 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_ajuste_entrada_det
@@ -333,6 +335,8 @@ INSERT INTO `cc_ajuste_entrada_det` VALUES (441, 241, 336, NULL, 10.000, 3.8000,
 INSERT INTO `cc_ajuste_entrada_det` VALUES (442, 242, 341, 150, 10.000, 3.8700, 38.7000, NULL, 1);
 INSERT INTO `cc_ajuste_entrada_det` VALUES (443, 244, 342, NULL, 10.000, 8.5000, 85.0000, NULL, 1);
 INSERT INTO `cc_ajuste_entrada_det` VALUES (444, 246, 72, 151, 1.000, 45.0000, 45.0000, NULL, 1);
+INSERT INTO `cc_ajuste_entrada_det` VALUES (445, 247, 72, 152, 5.000, 45.0000, 225.0000, NULL, 1);
+INSERT INTO `cc_ajuste_entrada_det` VALUES (446, 248, 72, 153, 4.000, 45.0000, 180.0000, NULL, 1);
 
 -- ----------------------------
 -- Table structure for cc_ajuste_salida
@@ -387,7 +391,7 @@ CREATE TABLE `cc_ajuste_salida`  (
   CONSTRAINT `cc_ajuste_salida_ibfk_6` FOREIGN KEY (`fk_user_id_aprueba`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_ibfk_7` FOREIGN KEY (`fk_servicio`) REFERENCES `cc_servicios` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_ibfk_8` FOREIGN KEY (`fk_cliente`) REFERENCES `cc_clientes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 48 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 49 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_ajuste_salida
@@ -448,7 +452,7 @@ CREATE TABLE `cc_ajuste_salida_det`  (
   CONSTRAINT `cc_ajuste_salida_det_ibfk_1` FOREIGN KEY (`fk_ajuste_salida`) REFERENCES `cc_ajuste_salida` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_det_ibfk_2` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_det_ibfk_3` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 83 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 84 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_ajuste_salida_det
@@ -515,7 +519,7 @@ CREATE TABLE `cc_anillo`  (
   `an_descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `an_estado` tinyint(1) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_anillo
@@ -559,7 +563,7 @@ CREATE TABLE `cc_asiento_contable`  (
   CONSTRAINT `cc_asiento_contable_ibfk_3` FOREIGN KEY (`fk_mes`) REFERENCES `cc_mes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_ibfk_4` FOREIGN KEY (`fk_periodo`) REFERENCES `cc_periodos_contables` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_ibfk_5` FOREIGN KEY (`fk_user_id_anulacion`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 147 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 148 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_asiento_contable
@@ -668,6 +672,8 @@ INSERT INTO `cc_asiento_contable` VALUES (144, 8, 1, 2026, 5, '2026-05-01', '17:
 INSERT INTO `cc_asiento_contable` VALUES (145, 8, 2, 2026, 5, '2026-05-01', '18:10:10', 1, 1, '38', 47, 'AJUSTE DE SALIDA - ', 102, NULL, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
 INSERT INTO `cc_asiento_contable` VALUES (146, 8, 3, 2026, 5, '2026-05-01', '18:18:25', 1, 1, '39', 246, 'AJUSTE DE ENTRADA - wefwe', 103, NULL, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
 INSERT INTO `cc_asiento_contable` VALUES (147, 8, 4, 2026, 5, '2026-05-20', '18:50:16', 1, 1, '38', 48, 'AJUSTE DE SALIDA - ', 104, NULL, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
+INSERT INTO `cc_asiento_contable` VALUES (148, 9, 1, 2026, 6, '2026-06-22', '16:33:37', -1, 1, '39', 247, 'AJUSTE DE ENTRADA - TESTEANDO ANDO', 105, '2026-06-22 16:44:40', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #83', '2026-06-22 11:33:37', '2026-06-22 11:44:40');
+INSERT INTO `cc_asiento_contable` VALUES (149, 9, 2, 2026, 6, '2026-06-22', '16:44:20', 1, 1, '39', 248, 'AJUSTE DE ENTRADA - trester', 106, NULL, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
 
 -- ----------------------------
 -- Table structure for cc_asiento_contable_det
@@ -697,7 +703,7 @@ CREATE TABLE `cc_asiento_contable_det`  (
   CONSTRAINT `cc_asiento_contable_det_ibfk_2` FOREIGN KEY (`codigo_cuenta_contable`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_det_ibfk_3` FOREIGN KEY (`acd_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_det_ibfk_4` FOREIGN KEY (`fk_centro_costos`) REFERENCES `cc_centroscosto` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 292 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 293 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_asiento_contable_det
@@ -920,6 +926,10 @@ INSERT INTO `cc_asiento_contable_det` VALUES (289, 146, '1.01.04.01.01', 'DEBE',
 INSERT INTO `cc_asiento_contable_det` VALUES (290, 146, '1.01.04.02', 'HABER', '45', '39', 246, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
 INSERT INTO `cc_asiento_contable_det` VALUES (291, 147, '1.01.04.02', 'DEBE', '135', '38', 48, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
 INSERT INTO `cc_asiento_contable_det` VALUES (292, 147, '1.01.04.01.01', 'HABER', '135.0000', '38', 48, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (293, 148, '1.01.04.01.01', 'DEBE', '225.0000', '39', 247, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 11:33:37', '2026-06-22 11:33:37');
+INSERT INTO `cc_asiento_contable_det` VALUES (294, 148, '1.01.04.02', 'HABER', '225', '39', 247, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 11:33:37', '2026-06-22 11:33:37');
+INSERT INTO `cc_asiento_contable_det` VALUES (295, 149, '1.01.04.01.01', 'DEBE', '180.0000', '39', 248, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (296, 149, '1.01.04.02', 'HABER', '180', '39', 248, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
 
 -- ----------------------------
 -- Table structure for cc_autocodigo
@@ -933,7 +943,7 @@ CREATE TABLE `cc_autocodigo`  (
 -- ----------------------------
 -- Records of cc_autocodigo
 -- ----------------------------
-INSERT INTO `cc_autocodigo` VALUES (24, 'CCF-');
+INSERT INTO `cc_autocodigo` VALUES (27, 'CCF-');
 
 -- ----------------------------
 -- Table structure for cc_banco_tipo_cuenta
@@ -944,7 +954,7 @@ CREATE TABLE `cc_banco_tipo_cuenta`  (
   `tipo_cuenta` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_banco_tipo_cuenta
@@ -962,7 +972,7 @@ CREATE TABLE `cc_bancos_list`  (
   `banc_estado` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `banc_tipo` enum('BANCO','COOPERATIVA') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'BANCO',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_bancos_list
@@ -1028,7 +1038,7 @@ CREATE TABLE `cc_canton`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_provincia`(`fk_provincia`) USING BTREE,
   CONSTRAINT `cc_canton_ibfk_1` FOREIGN KEY (`fk_provincia`) REFERENCES `cc_provincia` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 225 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 226 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_canton
@@ -1267,7 +1277,7 @@ CREATE TABLE `cc_cargo`  (
   `carg_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `carg_estado` tinyint(1) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_cargo
@@ -1298,7 +1308,7 @@ CREATE TABLE `cc_centroscosto`  (
 -- Records of cc_centroscosto
 -- ----------------------------
 INSERT INTO `cc_centroscosto` VALUES (1, 'CCOMPUTERS', 'centro de costos global', '2024-04-10', 1, NULL);
-INSERT INTO `cc_centroscosto` VALUES (2, 'CCOMPUTERS_TEST', 'testeo en update', '2026-01-09', 0, NULL);
+INSERT INTO `cc_centroscosto` VALUES (2, 'CCOMPUTERS_TEST', 'testeo en update', '2026-01-09', 1, NULL);
 
 -- ----------------------------
 -- Table structure for cc_clientes
@@ -1336,7 +1346,7 @@ CREATE TABLE `cc_clientes`  (
   CONSTRAINT `cc_clientes_ibfk_1` FOREIGN KEY (`fk_tipo_documento`) REFERENCES `cc_tipo_documento` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_clientes_ibfk_2` FOREIGN KEY (`fk_parroquia`) REFERENCES `cc_parroquia` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_clientes_ibfk_3` FOREIGN KEY (`fk_tipo_sujeto`) REFERENCES `cc_tipo_sujetos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_clientes
@@ -1357,46 +1367,60 @@ CREATE TABLE `cc_compras`  (
   `comp_numero_establecimiento` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `comp_numero_emision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `comp_autorizacion_sri` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Numero de autorizacion SRI',
-  `comp_clave_acceso` varchar(49) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Clave de acceso SRI',
+  `comp_fecha_vencimiento_autorizacion` date NULL DEFAULT NULL COMMENT 'Fecha de vencimiento en compras a credito',
   `comp_tipo_comprobante_cod` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Codigo tipo comprobante SRI (FACT, NDC, LIQ, etc)',
   `comp_fecha_emision` date NOT NULL COMMENT 'Fecha de emision del comprobante',
   `comp_fecha_registro` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'Fecha de registro en sistema',
-  `comp_fecha_vencimiento` date NULL DEFAULT NULL COMMENT 'Fecha de vencimiento en compras a credito',
   `fk_bodega` int(0) NULL DEFAULT NULL COMMENT 'FK de la bodega',
   `fk_centro_costo` int(0) NULL DEFAULT NULL COMMENT 'FK del centro de costo',
   `fk_tipo_compra` int(0) NULL DEFAULT NULL COMMENT '1 Inventario, 2 Gasto, 3 Activo Fijo',
   `fk_sustento` int(0) NULL DEFAULT NULL COMMENT 'Codigo de sustento tributario SRI',
   `comp_es_gasto` tinyint(0) NULL DEFAULT 0 COMMENT '1 si es gasto',
   `comp_es_activo_fijo` tinyint(0) NULL DEFAULT 0 COMMENT '1 si es activo fijo',
-  `comp_descuento_porcentaje` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Porcentaje de descuento aplicado',
-  `comp_descuento_valor` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Valor total de descuento aplicado',
-  `comp_subtotal_bienes` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Subtotal bienes',
-  `comp_subtotal_servicios` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Subtotal servicios',
-  `comp_tarifacero` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Base tarifa 0%',
-  `comp_tarifacero_neto` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Base tarifa 0% neto',
-  `comp_tarifaiva` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Base tarifa IVA',
-  `comp_tarifaiva_neto` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Base tarifa IVA neto',
-  `comp_totaliva` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Total IVA',
-  `comp_totalice` decimal(14, 4) NULL DEFAULT 0.0000 COMMENT 'Total ICE',
-  `comp_total` decimal(14, 4) NOT NULL COMMENT 'Total final de la compra',
+  `comp_subtotal_bruto` decimal(14, 6) NULL DEFAULT NULL COMMENT 'Valor total de la factura sin descuentos',
+  `comp_descuento_valor` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Valor total de descuento aplicado',
+  `comp_subtotal_neto` decimal(14, 6) NULL DEFAULT NULL COMMENT 'Valor total despues de aplicar descuentos e impuestos',
+  `comp_totaliva` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Total IVA',
+  `comp_totalice` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Total ICE',
+  `comp_total` decimal(14, 6) NOT NULL COMMENT 'Total final de la compra',
+  `comp_tarifacero_bruto` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Base tarifa 0%',
+  `comp_tarifacero_neto` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Base tarifa 0% neto',
+  `comp_tarifaiva_bruto` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Base tarifa IVA',
+  `comp_tarifaiva_neto` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Base tarifa IVA neto',
+  `comp_subtotal_bienes_bruto` decimal(14, 6) NULL DEFAULT NULL COMMENT 'Subtotal bienes antes de descuentos',
+  `comp_subtotal_bienes_neto` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Subtotal bienes despues de descuentos',
+  `comp_subtotal_servicios_bruto` decimal(14, 6) NULL DEFAULT NULL COMMENT 'Subtotal servicios antes de descuentos',
+  `comp_subtotal_servicios_neto` decimal(14, 6) NULL DEFAULT 0.000000 COMMENT 'Subtotal servicios despues de descuentos',
+  `comp_base_iva` decimal(14, 6) NULL DEFAULT NULL COMMENT 'Valor base del cual se sacara el iva',
   `comp_aplica_retencion` tinyint(0) NULL DEFAULT 1 COMMENT '1 si aplica retencion',
   `fk_retencion` int(0) NULL DEFAULT NULL COMMENT 'FK a tabla cc_retencion',
-  `comp_asume_retencion` enum('NO_ASUMIR','ASUMIR_RENTA','ASUMIR_IVA_RENTA') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `comp_asume_retencion` enum('NO_ASUMIR','ASUMIR_RENTA','ASUMIR_IVA_RENTA') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Si la empresa asume o no la retencion',
   `cod_forma_pago` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'FK a tabla cc_formas_pago (efectivo, transferencia, cheque)',
   `comp_tipo_pago` enum('CREDITO','CONTADO') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'CONTADO o CREDITO',
   `comp_dias_credito` int(0) NULL DEFAULT NULL COMMENT 'Numero de dias de credito',
   `comp_num_cuotas` int(0) NULL DEFAULT NULL COMMENT 'Numero de cuotas en caso de credito',
   `comp_items_duplicados` enum('true','false') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'false' COMMENT 'Indica si existen items duplicados en el detalle',
   `comp_estado` tinyint(0) NULL DEFAULT 1 COMMENT '1 BORRADOR, 2 ARCHIVADO, -1 ANULADO EN PENDIENTE, -2 ANULADA EN ARCHIVADA',
-  `fk_orden_compra` int(0) NULL DEFAULT NULL,
+  `fk_orden_compra` int(0) NULL DEFAULT NULL COMMENT 'Orden de compra asociada',
   `fk_user` int(0) NULL DEFAULT NULL COMMENT 'Usuario que registra',
   `comp_observacion` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT 'Observaciones generales',
-  `comp_created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
-  `comp_updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   `tipo_costo` enum('DIRECTOS','INDIRECTOS') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'DIRECTOS' COMMENT 'DIRECTOS=>COMPRAS NORMALES',
   `fk_compra_relacionada` int(0) NULL DEFAULT NULL COMMENT 'Compra original en caso de nota de credito',
-  `comp_pago_residente` enum('RESIDENTE','NO_RESIDENTE') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `comp_tipo_nota_credito` enum('DEVOLUCION','DESCUENTO') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `comp_pago_residente` enum('RESIDENTE','NO_RESIDENTE') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'SI el proveedor que paga es recidente o no del pais',
   `fk_proyecto` int(0) NULL DEFAULT NULL COMMENT 'PROYECTOS DE LA MISMA EMPRESA O ID DE OTRA  EMPRESA',
+  `comp_fecha_anulacion` datetime(0) NULL DEFAULT NULL,
+  `comp_motivo_anulacion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `fk_user_anulacion` int(0) NULL DEFAULT NULL,
+  `comp_fecha_archivada` datetime(0) NULL DEFAULT NULL,
+  `comp_total_excento_impuestos` decimal(14, 6) NULL DEFAULT NULL,
+  `comp_total_no_objeto_impuestos` decimal(14, 6) NULL DEFAULT NULL,
+  `comp_totalirbpnr` decimal(14, 6) NULL DEFAULT NULL,
+  `comp_autorizado_sri` tinyint(0) NULL DEFAULT NULL COMMENT '1=> autorizado 0=no autorizado',
+  `comp_mensaje_sri` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `comp_codigo_factura_electronica` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `comp_created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `comp_updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_comp_proveedor`(`fk_proveedor`) USING BTREE,
   INDEX `idx_comp_fecha`(`comp_fecha_emision`) USING BTREE,
@@ -1429,7 +1453,7 @@ CREATE TABLE `cc_compras`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `cc_compras_ats_formas_pago`;
 CREATE TABLE `cc_compras_ats_formas_pago`  (
-  `id` int(0) NOT NULL,
+  `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_compra` int(0) NULL DEFAULT NULL,
   `fk_forma_pago_ats` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
@@ -1446,6 +1470,33 @@ CREATE TABLE `cc_compras_ats_formas_pago`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for cc_compras_bases_impuesto
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_compras_bases_impuesto`;
+CREATE TABLE `cc_compras_bases_impuesto`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT,
+  `fk_compra` int(0) NOT NULL,
+  `fk_impuesto_tarifa` int(0) UNSIGNED NULL DEFAULT NULL,
+  `imp_codigo` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `imp_detalle` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `imp_porcentaje` decimal(10, 4) NOT NULL DEFAULT 0.0000,
+  `subtotal_bruto` decimal(14, 6) NOT NULL DEFAULT 0.000000,
+  `subtotal_neto` decimal(14, 6) NOT NULL DEFAULT 0.000000,
+  `iva_valor` decimal(14, 6) NOT NULL DEFAULT 0.000000,
+  `tipo_impuesto` enum('IVA','ICE','IRBPNR') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'IVA',
+  `fecha_registro` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_compra`(`fk_compra`) USING BTREE,
+  INDEX `idx_impuesto_tarifa`(`fk_impuesto_tarifa`) USING BTREE,
+  CONSTRAINT `fk_cc_compra_base_impuesto` FOREIGN KEY (`fk_compra`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_compras_bases_impuesto
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for cc_compras_det
 -- ----------------------------
 DROP TABLE IF EXISTS `cc_compras_det`;
@@ -1454,31 +1505,29 @@ CREATE TABLE `cc_compras_det`  (
   `fk_compra` int(0) NOT NULL COMMENT 'FK a cc_compras',
   `fk_producto` int(0) NOT NULL COMMENT 'FK del producto',
   `fk_bodega` int(0) NOT NULL COMMENT 'FK de la bodega',
-  `compd_cantidad` decimal(15, 4) NOT NULL COMMENT 'Cantidad del producto',
-  `compd_precio_bruto` decimal(15, 4) NOT NULL COMMENT 'Precio unitario sin descuentos (price)',
-  `compd_descuento_valor` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Descuento directo del item',
-  `compd_descuento_porcentaje` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Descuento % del item',
-  `compd_descuento_global_valor` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Descuento global aplicado al item',
-  `compd_descuento_global_porcentaje` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Descuento global %',
-  `compd_precio_neto` decimal(15, 4) NOT NULL COMMENT 'Precio unitario despues ya restado los descuentos  (priceneto)',
-  `compd_total_neto` decimal(15, 4) NOT NULL COMMENT 'Cantidad * precio neto (sin impuestos)  (totalpriceneto)',
-  `compd_ice_porcentaje` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Porcentaje ICE (icePorcent)',
-  `compd_ice_valor` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Valor ICE initario del producto (iceval)',
-  `compd_total_ice_valor` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'ICE del producto * cantidad (toticeval)',
-  `compd_precio_con_ice` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Precio unitario neto + ICE (priceice)',
-  `compd_total_precio_con_ice` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Precio neto con ICE * cantidad  (totalpriceice)',
+  `compd_cantidad` decimal(15, 6) NOT NULL COMMENT 'Cantidad del producto',
+  `compd_precio_bruto` decimal(15, 6) NOT NULL COMMENT 'Precio unitario sin descuentos (price)',
+  `compd_descuento_valor` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Descuento directo del item',
+  `compd_descuento_porcentaje` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Descuento % del item',
+  `compd_precio_neto` decimal(15, 6) NOT NULL COMMENT 'Precio unitario despues ya restado los descuentos  (priceneto)',
+  `compd_total_neto` decimal(15, 6) NOT NULL COMMENT 'Cantidad * precio neto (sin impuestos)  (totalpriceneto)',
+  `compd_ice_porcentaje` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Porcentaje ICE (icePorcent)',
+  `compd_ice_valor` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Valor ICE initario del producto (iceval)',
+  `compd_total_ice_valor` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'ICE del producto * cantidad (toticeval)',
+  `compd_precio_con_ice` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Precio unitario neto + ICE (priceice)',
+  `compd_total_precio_con_ice` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Precio neto con ICE * cantidad  (totalpriceice)',
   `fk_impuesto_tarifa` int(0) NULL DEFAULT NULL COMMENT 'FK a cc_impuesto_tarifa',
   `compd_impt_codigo` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Codigo SRI del impuesto (4,5,0)',
-  `compd_valor_iva` decimal(15, 4) NULL DEFAULT NULL COMMENT 'Valor total IVA ejm: 110 * 15% = 16.5',
-  `compd_impt_porcentaje` decimal(14, 4) NULL DEFAULT NULL COMMENT 'Porcentaje IVA (15,5,0) (ivaPorcent)',
-  `compd_iva_valor` decimal(15, 4) NULL DEFAULT NULL COMMENT 'Valor IVA por unidad del producto (ivaval)',
-  `compd_total_iva_valor` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'IVA total del item (iva del producto * cantidad  (totivaval))',
-  `compd_precio_con_iva` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Precio unitario neto + iva (priceiva)',
-  `compd_total_precio_con_iva` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Precio neto con IVA * cantidad  (totalpriceiva)',
-  `compd_base_iva` decimal(15, 4) NULL DEFAULT NULL COMMENT 'Base imponible para IVA ejm: precio neto + ice = 110 (itembaseiva)',
-  `compd_total_base_iva` decimal(15, 4) NULL DEFAULT NULL COMMENT 'Base imponible para IVA ejm:  110 * cantidad (totitembaseiva)',
-  `compd_irbpnr` decimal(15, 4) NULL DEFAULT 0.0000 COMMENT 'Valor impuesto IRBPNR',
-  `compd_total` decimal(15, 4) NOT NULL COMMENT 'Total final del item: compd_total_neto + iva + ice + irbpnr (total)',
+  `compd_valor_iva` decimal(15, 6) NULL DEFAULT NULL COMMENT 'Valor total IVA ejm: 110 * 15% = 16.5',
+  `compd_impt_porcentaje` decimal(14, 6) NULL DEFAULT NULL COMMENT 'Porcentaje IVA (15,5,0) (ivaPorcent)',
+  `compd_iva_valor` decimal(15, 6) NULL DEFAULT NULL COMMENT 'Valor IVA por unidad del producto (ivaval)',
+  `compd_total_iva_valor` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'IVA total del item (iva del producto * cantidad  (totivaval))',
+  `compd_precio_con_iva` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Precio unitario neto + iva (priceiva)',
+  `compd_total_precio_con_iva` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Precio neto con IVA * cantidad  (totalpriceiva)',
+  `compd_base_iva` decimal(15, 6) NULL DEFAULT NULL COMMENT 'Base imponible para IVA ejm: precio neto + ice = 110 (itembaseiva)',
+  `compd_total_base_iva` decimal(15, 6) NULL DEFAULT NULL COMMENT 'Base imponible para IVA ejm:  110 * cantidad (totitembaseiva)',
+  `compd_irbpnr` decimal(15, 6) NULL DEFAULT 0.000000 COMMENT 'Valor impuesto IRBPNR',
+  `compd_total` decimal(15, 6) NOT NULL COMMENT 'Total final del item: compd_total_neto + iva + ice + irbpnr (total)',
   `compd_cta_entrada` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Cuenta contable del producto',
   `compd_cod_sustento` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Codigo de sustento tributario',
   `compd_centro_costo` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Centro de costo',
@@ -1488,6 +1537,7 @@ CREATE TABLE `cc_compras_det`  (
   `compd_fecha_elaboracion` date NULL DEFAULT NULL COMMENT 'Fecha de elaboracion',
   `compd_estado` tinyint(0) NULL DEFAULT 1 COMMENT '1 ACTIVO, 0 ANULADO',
   `compd_created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `compd_impuesto_seleccionado` int(0) NULL DEFAULT NULL COMMENT 'si es iva15, iva5, excento, no objeta o iva 0',
   `compd_updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_compd_compra`(`fk_compra`) USING BTREE,
@@ -1579,6 +1629,7 @@ INSERT INTO `cc_cuenta_contabledet` VALUES ('5.02', 'GASTOS OPERATIVOS', '5.', '
 INSERT INTO `cc_cuenta_contabledet` VALUES ('5.02.01', 'GASTOS DE ADMINISTRACIÓN', '5.02', '5', '1', '2025-10-19 14:16:44', '2025-10-19 14:17:03');
 INSERT INTO `cc_cuenta_contabledet` VALUES ('5.02.02', 'GASTOS DE VENTAS', '5.02', '5', '1', '2025-10-19 14:16:44', '2025-10-19 14:17:03');
 INSERT INTO `cc_cuenta_contabledet` VALUES ('5.03', 'OTROS GASTOS', '5.', '5', '1', '2025-10-19 14:16:44', '2025-10-19 14:17:03');
+INSERT INTO `cc_cuenta_contabledet` VALUES ('5.03.01', 'GASTOS VARIOS', '5.03', '5', '1', '2026-06-17 10:02:28', '2026-06-17 10:02:28');
 INSERT INTO `cc_cuenta_contabledet` VALUES ('6. ', 'CUENTAS DE CONTROL', '', '6', '1', '2025-10-19 14:16:44', '2025-10-19 14:17:03');
 INSERT INTO `cc_cuenta_contabledet` VALUES ('6.01', 'CUENTAS DE CONTROL', '6.', '6', '1', '2025-10-19 14:16:44', '2025-10-19 14:17:03');
 
@@ -1598,7 +1649,7 @@ CREATE TABLE `cc_cuenta_contabledet_config`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_cuentacotable_det`(`fk_cuentacontable_det`) USING BTREE,
   CONSTRAINT `cc_cuenta_contabledet_config_ibfk_1` FOREIGN KEY (`fk_cuentacontable_det`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_cuenta_contabledet_config
@@ -1607,6 +1658,7 @@ INSERT INTO `cc_cuenta_contabledet_config` VALUES (1, '010', 'INVENTARIO DE MATE
 INSERT INTO `cc_cuenta_contabledet_config` VALUES (2, '012', 'AJUSTES DE ENTRADA', 'INVENT.PRODC.TERM. Y MERC. EN ALMACEN COMPRADO A TERCEROS.', '1.01.04.02', 1, '2025-10-19 14:17:30', '2025-10-23 14:01:39');
 INSERT INTO `cc_cuenta_contabledet_config` VALUES (3, '011', 'INVENTARIO DE MATERIA PRIMA IVA 15%', 'Para procesos que involucran productos con IVA', '1.01.04.01.02', 1, '2025-10-19 14:17:30', '2025-10-19 14:17:47');
 INSERT INTO `cc_cuenta_contabledet_config` VALUES (4, '013', 'AJUSTES DE SALIDA', 'INVENT.PRODC.TERM. Y MERC. EN ALMACEN COMPRADO A TERCEROS.', '1.01.04.02', 1, '2025-11-29 13:45:35', '2025-11-29 13:46:18');
+INSERT INTO `cc_cuenta_contabledet_config` VALUES (5, '014', 'CUENTA DE GASTOS VARIOS', 'CUENTA DE GASTOS VARIOS,  Configuración de cuenta para extraer la cuenta contable para especificar una cuenta de gasTo por defecto', '5.03.01', 1, '2026-06-17 10:03:51', '2026-06-17 10:03:51');
 
 -- ----------------------------
 -- Table structure for cc_cxp
@@ -1679,7 +1731,7 @@ CREATE TABLE `cc_departamento`  (
   `dep_fechacreacion` date NULL DEFAULT NULL,
   `dep_descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_departamento
@@ -1790,12 +1842,12 @@ CREATE TABLE `cc_empresa_indice`  (
   `ind_fecha_actualizacion` datetime(0) NULL DEFAULT NULL,
   `ind_descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_empresa_indice
 -- ----------------------------
-INSERT INTO `cc_empresa_indice` VALUES (1, 'COSTO_INVENTARIO', 11552.1553, '2026-05-20 18:50:16', 'Costo total de inventario de la empresa');
+INSERT INTO `cc_empresa_indice` VALUES (1, 'COSTO_INVENTARIO', 11732.1553, '2026-06-22 16:44:40', 'Costo total de inventario de la empresa');
 
 -- ----------------------------
 -- Table structure for cc_formas_pago
@@ -1870,7 +1922,7 @@ CREATE TABLE `cc_grupos`  (
   `gr_fecha_creacion` date NULL DEFAULT NULL,
   `gr_fecha_actualizacion` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_grupos
@@ -1882,6 +1934,7 @@ INSERT INTO `cc_grupos` VALUES (4, 'ACEITES', 'PRODUCTOS AL GRUPO ACEITES', 1, '
 INSERT INTO `cc_grupos` VALUES (5, 'MANTECAS', 'PRODUCTOS AL GRUPO MANTECAS', 1, 'far fa-box', '2026-04-23', '2026-04-23 13:51:08');
 INSERT INTO `cc_grupos` VALUES (6, 'COSTRUCCION', 'PRODUCTOS AL GRUPO COSTRUCCION', 1, 'far fa-box', '2026-04-30', '2026-04-30 16:52:38');
 INSERT INTO `cc_grupos` VALUES (7, 'OTROS', 'PRODUCTOS AL GRUPO OTROS', 1, 'far fa-box', '2026-05-01', '2026-05-01 11:49:22');
+INSERT INTO `cc_grupos` VALUES (8, 'VARIOS', 'PRODUCTOS AL GRUPO VARIOS', 1, 'far fa-box', '2026-06-20', '2026-06-20 14:34:32');
 
 -- ----------------------------
 -- Table structure for cc_impuesto_tarifa
@@ -1925,7 +1978,7 @@ CREATE TABLE `cc_impuestos`  (
   `imp_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `imp_codigo` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_impuestos
@@ -1969,7 +2022,7 @@ CREATE TABLE `cc_kardex`  (
   CONSTRAINT `cc_kardex_ibfk_3` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_ibfk_4` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_ibfk_5` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 438 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 439 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_kardex
@@ -2210,6 +2263,9 @@ INSERT INTO `cc_kardex` VALUES (435, 342, 1.000, 10.000, 8.5000, 8.5000, 8.5000,
 INSERT INTO `cc_kardex` VALUES (436, 342, -1.000, 9.000, 8.5000, 8.5000, 8.5000, 47, '38', '2026-05-01', '18:10:10', 76.5000, 11642.1553, '1', 1, 1, NULL);
 INSERT INTO `cc_kardex` VALUES (437, 72, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1980.0000, 11687.1553, '1', 1, 1, 151);
 INSERT INTO `cc_kardex` VALUES (438, 72, -3.000, -2.000, 45.0000, 45.0000, 135.0000, 48, '38', '2026-05-20', '18:50:16', 1845.0000, 11552.1553, '1', 1, 1, 71);
+INSERT INTO `cc_kardex` VALUES (439, 72, 5.000, 3.000, 45.0000, 45.0000, 225.0000, 247, '39', '2026-06-22', '16:33:37', 2070.0000, 11777.1553, '1', 1, 1, 152);
+INSERT INTO `cc_kardex` VALUES (440, 72, 4.000, 7.000, 45.0000, 45.0000, 180.0000, 248, '39', '2026-06-22', '16:44:20', 2250.0000, 11957.1553, '1', 1, 1, 153);
+INSERT INTO `cc_kardex` VALUES (441, 72, -5.000, 2.000, 45.0000, 45.0000, 225.0000, 247, '41', '2026-06-22', '16:44:40', 2025.0000, 11732.1553, '1', 1, 1, 152);
 
 -- ----------------------------
 -- Table structure for cc_kardex_bodega
@@ -2242,7 +2298,7 @@ CREATE TABLE `cc_kardex_bodega`  (
   CONSTRAINT `cc_kardex_bodega_ibfk_3` FOREIGN KEY (`karb_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_ibfk_4` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_ibfk_5` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 426 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 427 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_kardex_bodega
@@ -2483,6 +2539,9 @@ INSERT INTO `cc_kardex_bodega` VALUES (423, 342, 2, 1.000, 1.000, 8.5000, 8.5000
 INSERT INTO `cc_kardex_bodega` VALUES (424, 342, 1, -1.000, 8.000, 8.5000, 8.5000, 47, '38', '2026-05-01', '18:10:10', 1, NULL, 1);
 INSERT INTO `cc_kardex_bodega` VALUES (425, 72, 1, 1.000, 44.000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1, 151, 1);
 INSERT INTO `cc_kardex_bodega` VALUES (426, 72, 1, -3.000, 41.000, 45.0000, 45.0000, 48, '38', '2026-05-20', '18:50:16', 1, 71, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (427, 72, 1, 5.000, 46.000, 45.0000, 45.0000, 247, '39', '2026-06-22', '16:33:37', 1, 152, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (428, 72, 1, 4.000, 50.000, 45.0000, 45.0000, 248, '39', '2026-06-22', '16:44:20', 1, 153, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (429, 72, 1, -5.000, 45.000, 45.0000, 45.0000, 247, '41', '2026-06-22', '16:44:40', 1, 152, 1);
 
 -- ----------------------------
 -- Table structure for cc_kardex_bodega_lote
@@ -2514,7 +2573,7 @@ CREATE TABLE `cc_kardex_bodega_lote`  (
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_3` FOREIGN KEY (`karbl_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_4` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_5` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 201 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 202 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_kardex_bodega_lote
@@ -2641,6 +2700,9 @@ INSERT INTO `cc_kardex_bodega_lote` VALUES (198, 62, 1, 1.000, 1.000, 1398.4637,
 INSERT INTO `cc_kardex_bodega_lote` VALUES (199, 341, 1, 10.000, 10.000, 3.8700, 3.8700, 242, '39', '2026-04-23', '21:57:23', 1, 150, 1);
 INSERT INTO `cc_kardex_bodega_lote` VALUES (200, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1, 151, 1);
 INSERT INTO `cc_kardex_bodega_lote` VALUES (201, 72, 1, -3.000, 0.000, 45.0000, 45.0000, 48, '38', '2026-05-20', '18:50:16', 1, 71, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (202, 72, 1, 5.000, 5.000, 45.0000, 45.0000, 247, '39', '2026-06-22', '16:33:37', 1, 152, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (203, 72, 1, 4.000, 4.000, 45.0000, 45.0000, 248, '39', '2026-06-22', '16:44:20', 1, 153, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (204, 72, 1, -5.000, 0.000, 45.0000, 45.0000, 247, '41', '2026-06-22', '16:44:40', 1, 152, 1);
 
 -- ----------------------------
 -- Table structure for cc_log
@@ -2657,7 +2719,7 @@ CREATE TABLE `cc_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_user`(`fk_user`) USING BTREE,
   CONSTRAINT `cc_log_ibfk_1` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 3802 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3829 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_log
@@ -6439,6 +6501,39 @@ INSERT INTO `cc_log` VALUES (3798, 1, 'SE HA INICIADO SECION', '2026-05-23', '16
 INSERT INTO `cc_log` VALUES (3799, 1, 'SE HA INICIADO SECION', '2026-05-24', '12:53:19', '/index.php/welcome', 'INFO');
 INSERT INTO `cc_log` VALUES (3800, 1, 'SE HA INICIADO SECION', '2026-05-24', '16:35:12', '/index.php/welcome', 'INFO');
 INSERT INTO `cc_log` VALUES (3801, 1, 'SE HA INICIADO SECION', '2026-06-16', '21:46:19', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3802, 1, 'SE HA INICIADO SECION', '2026-06-17', '13:59:31', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3803, 1, 'SE HA ACTUALIZADO EL PRODUCTO CON EL ID 343', '2026-06-17', '14:52:29', '/index.php/admin/productos/updateProducto', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3804, 1, 'SE HA REGISTRADO UNA CUENTA CONTABLE CON EL ID 0', '2026-06-17', '15:02:28', '/index.php/admin/cuentascontables/saveCuenta', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3805, 1, 'SE HA REGISTRADO UNA CONFIGURACIÓN DE CUENTA CON EL ID 5', '2026-06-17', '15:03:51', '/index.php/admin/cuentasconfig/saveConfigCuenta', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3806, 1, 'SE HA INICIADO SECION', '2026-06-18', '17:36:05', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3807, 1, 'SE HA INICIADO SECION', '2026-06-19', '13:59:14', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3808, 1, 'SE HA INICIADO SECION', '2026-06-19', '17:46:43', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3809, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-06-19', '20:27:19', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (3810, 1, 'SE HA INICIADO SECION', '2026-06-19', '20:27:27', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3811, 1, 'SE HA INICIADO SECION', '2026-06-19', '20:40:26', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3812, 1, 'SE HA INICIADO SECION', '2026-06-20', '13:13:04', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3813, 1, 'SE HA INICIADO SECION', '2026-06-20', '16:29:41', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3814, 1, 'SE HA INICIADO SECION', '2026-06-20', '19:33:51', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3815, 1, 'SE HA CREADO UN GRUPO CON EL ID 8', '2026-06-20', '19:34:32', '/index.php/admin/grupos/saveGrupo', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3816, 1, 'SE HA CREADO UN SUBGRUPO CON EL ID 15', '2026-06-20', '19:34:46', '/index.php/admin/grupos/saveSubGrupo', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3817, 1, 'SE HA CREADO UN PRODUCTO CON EL ID 345', '2026-06-20', '19:36:21', '/index.php/admin/productos/saveProducto', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3818, 1, 'SE HA CREADO UN SUBGRUPO CON EL ID 16', '2026-06-20', '21:01:55', '/index.php/admin/grupos/saveSubGrupo', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3819, 1, 'SE HA CREADO UN PRODUCTO CON EL ID 346', '2026-06-20', '21:02:30', '/index.php/admin/productos/saveProducto', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3820, 1, 'SE HA INICIADO SECION', '2026-06-21', '13:46:50', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3821, 1, 'SE HA INICIADO SECION', '2026-06-21', '16:54:55', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3822, 1, 'SE HA INICIADO SECION', '2026-06-21', '16:58:07', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3823, 1, 'SE HA INICIADO SECION', '2026-06-21', '20:54:08', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3824, 1, 'SE HA INICIADO SECION', '2026-06-21', '21:34:24', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3825, 1, 'SE HA ACTUALIZADO EL PRODUCTO CON EL ID 343', '2026-06-21', '21:34:52', '/index.php/admin/productos/updateProducto', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3826, 1, 'SE HA CREADO UNA MARCA CON EL ID 128', '2026-06-21', '21:36:25', '/index.php/admin/marcas/saveMarca', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3827, 1, 'SE HA CREADO UN PRODUCTO CON EL ID 347', '2026-06-21', '21:37:08', '/index.php/admin/productos/saveProducto', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3828, 1, 'SE HA INICIADO SECION', '2026-06-22', '13:47:26', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3829, 1, 'SE HA INICIADO SECION', '2026-06-22', '16:32:51', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (3830, 1, 'ASIENTO #148 GENERADO PARA AJUSTE #247 ', '2026-06-22', '16:33:37', '/index.php/ajustesentrada/saveAjuste', 'INFO');
+INSERT INTO `cc_log` VALUES (3831, 1, 'AJUSTE REGISTRADO EXITOSAMENTE ID: 247', '2026-06-22', '16:33:37', '/index.php/ajustesentrada/saveAjuste', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3832, 1, 'ASIENTO #149 GENERADO PARA AJUSTE #248 ', '2026-06-22', '16:44:20', '/index.php/ajustesentrada/saveAjuste', 'INFO');
+INSERT INTO `cc_log` VALUES (3833, 1, 'AJUSTE REGISTRADO EXITOSAMENTE ID: 248', '2026-06-22', '16:44:20', '/index.php/ajustesentrada/saveAjuste', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (3834, 1, '[AJUSTE ENTRADA] ANULADO EXITOSAMENTE ID: 247', '2026-06-22', '16:44:40', '/index.php/ajustesentrada/anularAjuste', 'SUCCESS');
 
 -- ----------------------------
 -- Table structure for cc_login_system
@@ -6451,7 +6546,7 @@ CREATE TABLE `cc_login_system`  (
   `hora_login` time(0) NULL DEFAULT NULL,
   `ip_address` varchar(255) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2863 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2878 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_login_system
@@ -9318,6 +9413,22 @@ INSERT INTO `cc_login_system` VALUES (2859, 1, '2026-05-23', '16:11:22', '127.0.
 INSERT INTO `cc_login_system` VALUES (2860, 1, '2026-05-24', '12:53:19', '127.0.0.1');
 INSERT INTO `cc_login_system` VALUES (2861, 1, '2026-05-24', '16:35:12', '127.0.0.1');
 INSERT INTO `cc_login_system` VALUES (2862, 1, '2026-06-16', '21:46:19', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2863, 1, '2026-06-17', '13:59:31', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2864, 1, '2026-06-18', '17:36:04', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2865, 1, '2026-06-19', '13:59:14', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2866, 1, '2026-06-19', '17:46:43', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2867, 1, '2026-06-19', '20:27:27', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2868, 1, '2026-06-19', '20:40:26', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2869, 1, '2026-06-20', '13:13:04', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2870, 1, '2026-06-20', '16:29:41', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2871, 1, '2026-06-20', '19:33:51', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2872, 1, '2026-06-21', '13:46:49', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2873, 1, '2026-06-21', '16:54:54', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2874, 1, '2026-06-21', '16:58:07', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2875, 1, '2026-06-21', '20:54:08', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2876, 1, '2026-06-21', '21:34:24', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2877, 1, '2026-06-22', '13:47:25', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2878, 1, '2026-06-22', '16:32:51', '127.0.0.1');
 
 -- ----------------------------
 -- Table structure for cc_lotes
@@ -9333,7 +9444,7 @@ CREATE TABLE `cc_lotes`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_producto`(`fk_producto`) USING BTREE,
   CONSTRAINT `cc_lotes_ibfk_1` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 151 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 152 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_lotes
@@ -9383,6 +9494,8 @@ INSERT INTO `cc_lotes` VALUES (148, '34344', '2026-02-02', '2026-05-13', '224', 
 INSERT INTO `cc_lotes` VALUES (149, '342322', '2026-02-04', '2026-05-14', '225', 62);
 INSERT INTO `cc_lotes` VALUES (150, '4344PPE', '2026-08-25', '2027-08-25', '242', 341);
 INSERT INTO `cc_lotes` VALUES (151, '3343', '2026-03-10', '2026-07-16', '246', 72);
+INSERT INTO `cc_lotes` VALUES (152, '343ER', '2026-04-08', '2026-08-22', '247', 72);
+INSERT INTO `cc_lotes` VALUES (153, '342342', '2026-04-08', '2026-08-19', '248', 72);
 
 -- ----------------------------
 -- Table structure for cc_marcas
@@ -9395,7 +9508,7 @@ CREATE TABLE `cc_marcas`  (
   `mrc_fecha_creacion` date NULL DEFAULT NULL,
   `mrc_fecha_actualizacion` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 127 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 129 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_marcas
@@ -9415,6 +9528,7 @@ INSERT INTO `cc_marcas` VALUES (124, 'MSI', 1, '2026-04-13', '2026-04-13 10:14:4
 INSERT INTO `cc_marcas` VALUES (125, 'HORMTS', 1, '2026-04-23', '2026-04-23 15:52:34');
 INSERT INTO `cc_marcas` VALUES (126, 'GUAPAN', 1, '2026-04-30', '2026-04-30 16:52:21');
 INSERT INTO `cc_marcas` VALUES (127, 'COCA COLA', 1, '2026-05-03', '2026-05-03 12:41:27');
+INSERT INTO `cc_marcas` VALUES (128, 'OTROS', 1, '2026-06-21', '2026-06-21 16:36:25');
 
 -- ----------------------------
 -- Table structure for cc_mes
@@ -9425,7 +9539,7 @@ CREATE TABLE `cc_mes`  (
   `mes_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `mes_nombre_english` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_mes
@@ -9489,7 +9603,7 @@ CREATE TABLE `cc_motivos_ajuste`  (
   `created_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `updated_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_motivos_ajuste
@@ -9563,7 +9677,7 @@ CREATE TABLE `cc_parametros_irbpnr`  (
   `param_valor` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `param_estado` tinyint(0) NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_parametros_irbpnr
@@ -9583,7 +9697,7 @@ CREATE TABLE `cc_parroquia`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_canton`(`fk_canton`) USING BTREE,
   CONSTRAINT `cc_parroquia_ibfk_1` FOREIGN KEY (`fk_canton`) REFERENCES `cc_canton` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1399 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1400 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_parroquia
@@ -11002,7 +11116,7 @@ CREATE TABLE `cc_periodos_contables`  (
   `pc_valor` int(0) NULL DEFAULT NULL COMMENT 'ES UN AUTOINCREMENT QUE CUENTA LOS ASIENTOS, EMPIEZA EN 1',
   `pc_created_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_periodos_contables
@@ -11014,7 +11128,24 @@ INSERT INTO `cc_periodos_contables` VALUES (4, 2026, 1, '2026-01-01', '2026-01-3
 INSERT INTO `cc_periodos_contables` VALUES (5, 2026, 2, '2026-02-01', '2026-02-28', 'CERRADO', 2, '2026-02-28 10:47:12');
 INSERT INTO `cc_periodos_contables` VALUES (6, 2026, 3, '2026-03-01', '2026-03-31', 'CERRADO', 31, '2026-03-05 09:55:38');
 INSERT INTO `cc_periodos_contables` VALUES (7, 2026, 4, '2026-04-01', '2026-04-30', 'CERRADO', 2, '2026-04-23 16:29:14');
-INSERT INTO `cc_periodos_contables` VALUES (8, 2026, 5, '2026-05-01', '2026-05-31', 'ABIERTO', 5, '2026-05-01 12:52:27');
+INSERT INTO `cc_periodos_contables` VALUES (8, 2026, 5, '2026-05-01', '2026-05-31', 'CERRADO', 5, '2026-05-01 12:52:27');
+INSERT INTO `cc_periodos_contables` VALUES (9, 2026, 6, '2026-06-01', '2026-06-30', 'ABIERTO', 3, '2026-06-22 11:32:40');
+
+-- ----------------------------
+-- Table structure for cc_prodcuto_proveedor
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_prodcuto_proveedor`;
+CREATE TABLE `cc_prodcuto_proveedor`  (
+  `id` int(0) NOT NULL,
+  `fk_producto` int(0) NULL DEFAULT NULL,
+  `fk_proveedor` int(0) NULL DEFAULT NULL,
+  `codigo_proveedor` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_prodcuto_proveedor
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for cc_producto_impuestotarifa
@@ -11060,8 +11191,11 @@ INSERT INTO `cc_producto_impuestotarifa` VALUES (342, 8, 1);
 INSERT INTO `cc_producto_impuestotarifa` VALUES (60, 7, 1);
 INSERT INTO `cc_producto_impuestotarifa` VALUES (69, 7, 1);
 INSERT INTO `cc_producto_impuestotarifa` VALUES (61, 7, 1);
-INSERT INTO `cc_producto_impuestotarifa` VALUES (343, 3, 1);
 INSERT INTO `cc_producto_impuestotarifa` VALUES (344, 7, 1);
+INSERT INTO `cc_producto_impuestotarifa` VALUES (345, 3, 1);
+INSERT INTO `cc_producto_impuestotarifa` VALUES (346, 4, 1);
+INSERT INTO `cc_producto_impuestotarifa` VALUES (343, 3, 1);
+INSERT INTO `cc_producto_impuestotarifa` VALUES (347, 7, 1);
 
 -- ----------------------------
 -- Table structure for cc_producto_precios
@@ -11108,8 +11242,11 @@ INSERT INTO `cc_producto_precios` VALUES (1, 342, 8.0952);
 INSERT INTO `cc_producto_precios` VALUES (1, 60, 250.0000);
 INSERT INTO `cc_producto_precios` VALUES (1, 69, 12.1739);
 INSERT INTO `cc_producto_precios` VALUES (1, 61, 850.0000);
-INSERT INTO `cc_producto_precios` VALUES (1, 343, 1.0000);
 INSERT INTO `cc_producto_precios` VALUES (1, 344, 0.6522);
+INSERT INTO `cc_producto_precios` VALUES (1, 345, 3.0000);
+INSERT INTO `cc_producto_precios` VALUES (1, 346, 2.0000);
+INSERT INTO `cc_producto_precios` VALUES (1, 343, 1.0000);
+INSERT INTO `cc_producto_precios` VALUES (1, 347, 8.6957);
 
 -- ----------------------------
 -- Table structure for cc_productos
@@ -11179,7 +11316,7 @@ CREATE TABLE `cc_productos`  (
   CONSTRAINT `cc_productos_ibfk_5` FOREIGN KEY (`fk_cuentacontableventas`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_productos_ibfk_6` FOREIGN KEY (`fk_cuentacontablecompras`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_productos_ibfk_7` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 345 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 348 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_productos
@@ -11191,7 +11328,7 @@ INSERT INTO `cc_productos` VALUES (64, 'PLAY STATION 4', 'CCF-000005', '22233444
 INSERT INTO `cc_productos` VALUES (66, 'MONITOR', 'CCF-000006', '12333222', '22332322', '', '', NULL, 2, 6, 3.000, 250.0000, 250.0000, 0.0000, 1, 1, '2024-08-29', '2026-01-26 16:10:55', 0, 0, '1', 9, 2, 2, 1, 15.00, -1.00, 0, 0.000000, 0, '750', 0, NULL, NULL, 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (67, 'IMPRENT DE PRUEBA', 'CCF-000007', '5525252', '2527525', '452452452', '', NULL, 3, 4, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2025-10-14', NULL, 0, 0, '1', 9, 2, 1, 1, 0.00, -1.00, 0, 0.000000, 0, NULL, 0, NULL, NULL, 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (69, 'AZUCAR SPLENDA', 'CCF-000008', '3432432434', '324234234', '', '', NULL, 3, 60, 0.000, 14.5600, 14.0000, 0.0000, 1, 1, '2025-10-19', '2026-05-01 13:15:29', 0, 0, '1', 6, 12, NULL, 1, 15.00, NULL, 0, 0.000000, 0, '728', 0, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 0, 0, 0, NULL, NULL, 1);
-INSERT INTO `cc_productos` VALUES (72, 'ACEITE CANECA', 'CCF-000009', '11111110000', '222226677', 'undefined', '', NULL, 4, 9, -2.000, 45.0000, 45.0000, 0.0000, 1, 1, '2025-11-04', '2026-05-20 13:50:16', 0, 0, '20', 4, 1, 5, 1, 0.00, NULL, 0, 0.000000, 0, '1845', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 1, 0, 0, NULL, NULL, NULL);
+INSERT INTO `cc_productos` VALUES (72, 'ACEITE CANECA', 'CCF-000009', '11111110000', '222226677', 'undefined', '', NULL, 4, 9, 2.000, 45.0000, 45.0000, 0.0000, 1, 1, '2025-11-04', '2026-06-22 11:44:40', 0, 0, '20', 4, 1, 5, 1, 0.00, NULL, 0, 0.000000, 0, '2025', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (74, 'POLLO VACIO', 'CCF-000010', '32343', '433434', '54455', '', NULL, 20, 100, 161.000, 2.5000, 2.5000, 0.0000, 1, 1, '2025-11-04', '2025-11-07 12:16:06', 0, 0, '1', 1, 1, 6, 1, 0.00, -1.00, 0, 0.000000, 0, '402.5', 0, NULL, NULL, 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (77, 'PIERNA DE CERDO', 'CCF-000011', '3243242343', '', 'undefined', '', NULL, 0, 0, 0.000, 2.4600, 2.6000, 0.0000, 1, 1, '2025-11-11', '2026-05-01 13:16:38', 0, 0, '', 1, 1, NULL, 1, 0.00, NULL, 0, 0.000000, 0, '51.6', 0, NULL, NULL, 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (330, 'QUEZO FRESCO', 'CCF-000012', '45202349', '3834031', '37052834', NULL, NULL, 5, 10, 32.000, 1.5740, 1.7368, NULL, 1, 1, '2025-11-26', '2026-03-05 09:55:50', 0, 0, NULL, 9, 3, 7, 1, 0.00, NULL, 0, NULL, 0, '50.368', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 1, 0, 0, NULL, NULL, NULL);
@@ -11206,8 +11343,11 @@ INSERT INTO `cc_productos` VALUES (338, 'PAPAYA', 'CCF-000020', '323232', '33232
 INSERT INTO `cc_productos` VALUES (340, 'HORMIGAS ESPECIALES', 'CCF-000021', '3223322', '3443443', '', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-04-23', '2026-04-23 16:02:03', 0, 0, '5', 1, 9, 125, 1, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, 1);
 INSERT INTO `cc_productos` VALUES (341, 'COSTILLA ESPECILAL DE CERDO', 'CCF-GEN-000011', '2334324', '432432432', '45345345', NULL, NULL, 5, 10, 10.000, 3.8700, 3.8700, NULL, 1, 1, '2026-04-23', '2026-04-23 16:57:23', 0, 0, NULL, 52, 10, 6, 1, 0.00, NULL, 0, NULL, 0, '38.7', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (342, 'SACO DE CEMENTO', 'CCF-000022', '2323', '34324', '234234', '', NULL, 5, 50, 9.000, 8.5000, 8.5000, 0.0000, 1, 1, '2026-04-30', '2026-05-01 13:10:10', 0, 0, '50', 8, 11, 126, 1, 5.00, NULL, 0, 0.000000, 0, '76.5', 0, '1.01.04.01.02', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, 1);
-INSERT INTO `cc_productos` VALUES (343, 'PLANILLA ELECTRICA', 'CCF-000023', '', '', '', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-05-01', '2026-05-01 11:50:03', 0, 0, '1', 9, 13, NULL, 3, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, 1);
+INSERT INTO `cc_productos` VALUES (343, 'PLANILLA ELECTRICA', 'CCF-000023', '', '', '', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-05-01', '2026-06-17 09:52:29', 1, 0, '1', 9, 13, NULL, 3, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, 0, NULL, 1);
 INSERT INTO `cc_productos` VALUES (344, 'COCA COLA 500ML', 'CCF-000024', '34324', '32423', '', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-05-03', '2026-05-03 12:46:27', 0, 0, '500', 9, 14, 127, 1, 15.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.02', 1, 0, 0, 0, 0, 1, 0.0200, 1);
+INSERT INTO `cc_productos` VALUES (345, 'GORROS DE COCINA', 'CCF-000025', '232333', '3434334', '5656545', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-06-20', '2026-06-20 14:36:21', 0, 0, '1', 9, 15, NULL, 1, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '5.03.01', '5.03.01', 1, 0, 0, 0, 0, 0, NULL, 1);
+INSERT INTO `cc_productos` VALUES (346, 'BONCHES DE CLAVELES', 'CCF-000026', '3434434', '43455454', '32545544', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-06-20', '2026-06-20 16:02:30', 0, 0, '1', 9, 16, 49, 1, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '5.03.01', '5.03.01', 1, 0, 0, 0, 0, NULL, NULL, 1);
+INSERT INTO `cc_productos` VALUES (347, 'CONSULTORIA', 'CCF-000027', '323232', '34343', '43434', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-06-21', '2026-06-21 16:37:08', 1, 0, '1', 9, 13, 128, 3, 15.00, NULL, 0, 0.000000, 0, NULL, 0, '5.03.01', '5.03.01', 1, 0, 0, 0, 0, NULL, NULL, 1);
 
 -- ----------------------------
 -- Table structure for cc_proveedor_banco
@@ -11226,7 +11366,7 @@ CREATE TABLE `cc_proveedor_banco`  (
   CONSTRAINT `cc_proveedor_banco_ibfk_1` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_proveedor_banco_ibfk_2` FOREIGN KEY (`fk_banco`) REFERENCES `cc_bancos_list` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_proveedor_banco_ibfk_3` FOREIGN KEY (`fk_tipo_cuenta`) REFERENCES `cc_banco_tipo_cuenta` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 32 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 33 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_proveedor_banco
@@ -11248,7 +11388,7 @@ CREATE TABLE `cc_proveedor_retencion`  (
   INDEX `fk_retencion`(`fk_retencion`) USING BTREE,
   CONSTRAINT `cc_proveedor_retencion_ibfk_1` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_proveedor_retencion_ibfk_2` FOREIGN KEY (`fk_retencion`) REFERENCES `cc_retencion_sri` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_proveedor_retencion
@@ -11292,7 +11432,7 @@ CREATE TABLE `cc_proveedores`  (
   CONSTRAINT `cc_proveedores_ibfk_3` FOREIGN KEY (`fk_tipo_sujeto`) REFERENCES `cc_tipo_sujetos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_proveedores_ibfk_4` FOREIGN KEY (`fk_sector`) REFERENCES `cc_sectores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_proveedores_ibfk_5` FOREIGN KEY (`fk_codigo_cuenta_contable`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_proveedores
@@ -11311,7 +11451,7 @@ CREATE TABLE `cc_provincia`  (
   `prv_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `prv_estado` tinyint(1) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_provincia
@@ -11364,7 +11504,7 @@ CREATE TABLE `cc_puntos_venta`  (
   INDEX `pv_fk_comprobante`(`fk_comprobante`) USING BTREE,
   CONSTRAINT `cc_puntos_venta_ibfk_1` FOREIGN KEY (`pv_fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_puntos_venta_ibfk_2` FOREIGN KEY (`fk_comprobante`) REFERENCES `cc_tipos_comprobante` (`comp_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_puntos_venta
@@ -11423,7 +11563,7 @@ CREATE TABLE `cc_reserva_inventario`  (
   CONSTRAINT `cc_reserva_inventario_ibfk_3` FOREIGN KEY (`res_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_reserva_inventario_ibfk_4` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_reserva_inventario_ibfk_5` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 60 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 61 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_reserva_inventario
@@ -11770,7 +11910,7 @@ CREATE TABLE `cc_sectores`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_anillo`(`fk_anillo`) USING BTREE,
   CONSTRAINT `cc_sectores_ibfk_1` FOREIGN KEY (`fk_anillo`) REFERENCES `cc_anillo` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_sectores
@@ -11792,7 +11932,7 @@ CREATE TABLE `cc_servicios`  (
   `created_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `updated_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_servicios
@@ -11853,7 +11993,7 @@ INSERT INTO `cc_stock_bodega` VALUES (1, 62, '47', '2025-10-19 17:02:39', '2026-
 INSERT INTO `cc_stock_bodega` VALUES (2, 69, '4', '2025-10-19 17:15:25', '2025-12-30 14:59:25');
 INSERT INTO `cc_stock_bodega` VALUES (2, 62, '4', '2025-10-19 17:15:25', '2026-03-23 16:49:55');
 INSERT INTO `cc_stock_bodega` VALUES (1, 60, '6', '2025-10-20 10:49:11', '2025-11-01 19:01:14');
-INSERT INTO `cc_stock_bodega` VALUES (1, 72, '41', '2025-11-04 15:39:39', '2026-05-20 13:50:16');
+INSERT INTO `cc_stock_bodega` VALUES (1, 72, '45', '2025-11-04 15:39:39', '2026-06-22 11:44:40');
 INSERT INTO `cc_stock_bodega` VALUES (1, 74, '161', '2025-11-04 15:39:39', '2025-11-07 12:16:06');
 INSERT INTO `cc_stock_bodega` VALUES (1, 333, '15', '2025-11-25 20:12:21', '2026-02-28 13:00:27');
 INSERT INTO `cc_stock_bodega` VALUES (1, 332, '2', '2025-11-25 20:12:21', '2026-01-26 16:10:55');
@@ -11944,6 +12084,8 @@ INSERT INTO `cc_stock_bodega_lote` VALUES (2, 62, '1', 58, '2026-03-23 16:49:55'
 INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 149, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
 INSERT INTO `cc_stock_bodega_lote` VALUES (1, 341, '10', 150, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
 INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '1', 151, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '0', 152, '2026-06-22 11:33:37', '2026-06-22 11:44:40');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '4', 153, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
 
 -- ----------------------------
 -- Table structure for cc_subgrupos
@@ -11962,7 +12104,7 @@ CREATE TABLE `cc_subgrupos`  (
   INDEX `sgr_fk_grupo`(`fk_grupo`) USING BTREE,
   INDEX `idx_subgrupo_grupo`(`fk_grupo`) USING BTREE,
   CONSTRAINT `cc_subgrupos_ibfk_1` FOREIGN KEY (`fk_grupo`) REFERENCES `cc_grupos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_subgrupos
@@ -11978,6 +12120,8 @@ INSERT INTO `cc_subgrupos` VALUES (11, 'SACOS', 'PRODUCTOS AL SUBGRUPO SACOS', '
 INSERT INTO `cc_subgrupos` VALUES (12, 'AZUCARES', 'PRODUCTOS AL SUBGRUPO AZUCARES', '2026-04-30', NULL, 1, 1, '2026-04-30 17:16:33');
 INSERT INTO `cc_subgrupos` VALUES (13, 'ELECTRICIDAD', 'PRODUCTOS AL SUBGRUPO ELECTRICIDAD', '2026-05-01', NULL, 1, 7, '2026-05-01 11:49:35');
 INSERT INTO `cc_subgrupos` VALUES (14, 'GASEOSAS', 'PRODUCTOS AL SUBGRUPO GASEOSAS', '2026-05-03', NULL, 1, 1, '2026-05-03 12:41:51');
+INSERT INTO `cc_subgrupos` VALUES (15, 'EPA', 'PRODUCTOS AL SUBGRUPO EPA', '2026-06-20', NULL, 1, 8, '2026-06-20 14:34:46');
+INSERT INTO `cc_subgrupos` VALUES (16, 'OTROS', 'PRODUCTOS AL SUBGRUPO OTROS', '2026-06-20', NULL, 1, 8, '2026-06-20 16:01:55');
 
 -- ----------------------------
 -- Table structure for cc_sustentos
@@ -12050,7 +12194,7 @@ CREATE TABLE `cc_tipo_documento`  (
   `doc_nombre` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `doc_descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_tipo_documento
@@ -12070,7 +12214,7 @@ CREATE TABLE `cc_tipo_precios`  (
   `tpc_estado` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `tpc_fecha_creacion` date NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_tipo_precios
@@ -12089,7 +12233,7 @@ CREATE TABLE `cc_tipo_producto`  (
   `tp_fecha_creacion` date NULL DEFAULT NULL,
   `tp_estado` tinyint(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_tipo_producto
@@ -12109,7 +12253,7 @@ CREATE TABLE `cc_tipo_sujetos`  (
   `tps_descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `tps_estado` tinyint(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_tipo_sujetos
@@ -12172,7 +12316,7 @@ CREATE TABLE `cc_transacciones`  (
   `tr_descripcion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `unique_cod`(`tr_codigo`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 46 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_transacciones
@@ -12263,7 +12407,7 @@ CREATE TABLE `cc_transferencia_bodega`  (
   CONSTRAINT `cc_transferencia_bodega_ibfk_4` FOREIGN KEY (`fk_user_crea`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_transferencia_bodega_ibfk_5` FOREIGN KEY (`fk_user_confirma`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_transferencia_bodega_ibfk_6` FOREIGN KEY (`fk_user_anula`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 27 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_transferencia_bodega
@@ -12316,7 +12460,7 @@ CREATE TABLE `cc_transferencia_bodega_det`  (
   CONSTRAINT `cc_transferencia_bodega_det_ibfk_1` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_transferencia_bodega_det_ibfk_2` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_trb_det_cab` FOREIGN KEY (`fk_transferencia_bodega`) REFERENCES `cc_transferencia_bodega` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 40 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_transferencia_bodega_det
@@ -12364,7 +12508,7 @@ CREATE TABLE `cc_unidades_medida`  (
   `um_nombre_corto` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `um_fecha_actualizacion` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 52 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 53 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_unidades_medida

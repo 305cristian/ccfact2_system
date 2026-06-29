@@ -25,8 +25,8 @@ class SalidasAsientosLib {
     protected $tipotransaccionCod = '38';
     protected $ccm;
     protected $user;
-    protected $asientoLib;
-    protected $cuentasConfigLib;
+    protected AsientoContableLib $asientoLib;
+    protected CuentasConfigLib $cuentasConfigLib;
     protected $logs;
 
     public function __construct() {
@@ -41,7 +41,12 @@ class SalidasAsientosLib {
         $this->cuentasConfigLib = new CuentasConfigLib();
     }
 
-    public function generarAsiento($ajusteId) {
+    /**
+     * @param int $ajusteId Identificador del ajuste de salida para el cual se generará el asiento contable
+     * @return array Resultado de la operación con el estado ('success' o 'warning'), mensaje descriptivo y el identificador del asiento generado (si aplica)
+     * La función generarAsiento es responsable de crear un asiento contable para un ajuste de salida específico, validando el estado del ajuste, verificando la existencia de un asiento previo, y luego generando los detalles del
+    */
+    public function generarAsiento(int $ajusteId) {
         $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
         if (!$ajuste) {
             throw new \Exception('Ajuste de salida no encontrado');

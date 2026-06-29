@@ -27,9 +27,9 @@ class SalidasLib {
     protected $ccm;
     protected $user;
     protected $tipotransaccionCod = '38'; // AJUSTE SALIDA
-    protected $productLib;
-    protected $stockBodLib;
-    protected $reservasLib;
+    protected ProductoLib $productLib;
+    protected StockBodegaLib $stockBodLib;
+    protected ReservasLib $reservasLib;
 
     public function __construct() {
 
@@ -43,7 +43,13 @@ class SalidasLib {
         $this->reservasLib = new ReservasLib();
     }
 
-    public function saveAjuste($cartData, $dataPostAjuste) {
+    /**
+     * Función para guardar un nuevo ajuste de salida en la base de datos, utilizando los datos del carrito de ajustes y la información proporcionada por el usuario a través de un formulario. La función saveAjuste recibe los datos del carrito de ajustes (cartData) y los datos del formulario (dataPostAjuste), y realiza el proceso de guardado del ajuste de salida en la base de datos. Primero, se determina si el ajuste se guarda como borrador o como aprobado, y luego se obtiene el siguiente número secuencial para el ajuste de salida. A continuación, se prepara un array de datos con toda la información necesaria para crear el registro del ajuste de salida, incluyendo detalles como la fecha, observaciones, estado, bodega, usuario responsable, totales del ajuste, entre otros. Finalmente, se utiliza el modelo ccModel para guardar el registro en la tabla cc_ajuste_salida y se devuelve el resultado de la operación. Esta función es esencial para permitir a los usuarios registrar nuevos ajustes de salida en el sistema, asegurando que toda la información relevante se almacene correctamente en la base de datos y que el proceso de creación del ajuste sea eficiente y confiable.
+     * @param object $cartData Objeto que contiene los datos del carrito de ajustes, incluyendo totales, subtotales, impuestos, y otros detalles relacionados con los productos agregados al ajuste de salida.
+     * @param object $dataPostAjuste Objeto que contiene los datos del formulario proporcionados por el usuario para crear el ajuste de salida, incluyendo fecha, observaciones, estado, bodega, motivo de ajuste, centro de costo, cliente, tipo de ajuste, servicio asociado, y otros detalles relevantes para la creación del ajuste de salida.  
+     * @return int|false Retorna el identificador del ajuste de salida creado si la operación fue exitosa, o false si ocurrió un error durante el proceso de guardado del ajuste de salida en la base de datos.
+     */
+    public function saveAjuste(object $cartData, object $dataPostAjuste): int|false {
         $esBorrador = ($dataPostAjuste->ajesEstado == 1);
 
         $secuencial = $this->ccm->getData('cc_ajuste_salida', null, 'ajes_secuencial', ['ajes_secuencial' => 'DESC'], 1);
@@ -84,7 +90,15 @@ class SalidasLib {
         return $save;
     }
 
-    public function saveAjusteDetalle($ajusteId, $val, $lote) {
+    /**
+     * Función para guardar el detalle de un ajuste de salida en la base de datos, utilizando el identificador del ajuste de salida, los datos del producto a agregar al detalle, y el identificador del lote (si aplica). La función saveAjusteDetalle recibe el identificador del ajuste de salida (ajusteId), los datos del producto (val) que se van a agregar al detalle del ajuste, y el identificador del lote (lote) si el producto maneja lotes. Luego, se prepara un array de datos con la información necesaria para crear el registro del detalle del ajuste de salida, incluyendo el identificador del ajuste, el producto, el lote, la cantidad, el costo, el costo por cantidad, observaciones, y estado. Finalmente, se utiliza el modelo ccModel para guardar el registro en la tabla cc_ajuste_salida_det y se devuelve el resultado de la operación. Esta función es esencial para permitir a los usuarios agregar productos al detalle de un ajuste de salida, asegurando que toda la información relevante se almacene correctamente en la base de datos y que el proceso de creación del detalle del ajuste sea eficiente y confiable.
+     * @param int $ajusteId Identificador del ajuste de salida al cual se va a agregar el detalle del producto.
+     * @param object $val Objeto que contiene los datos del producto a agregar al detalle del ajuste de salida, incluyendo el identificador del producto, la cantidad, el precio, el total, y otros detalles relevantes para el registro del detalle del ajuste de salida.
+     * @param int|null $lote Identificador del lote si el producto maneja lotes, o null si el producto no maneja lotes. Este parámetro es opcional y se utiliza para registrar el lote asociado al detalle del ajuste de salida en caso de que el producto lo requiera.
+     * @return int|false Retorna el identificador del detalle del ajuste de salida creado si la operación fue exitosa, o false si ocurrió un error durante el proceso de guardado del detalle del ajuste de salida en la base de datos.
+     
+    */
+    public function saveAjusteDetalle(int $ajusteId, object $val, int|null $lote) {
         $datos = [
             'fk_ajuste_salida' => $ajusteId,
             'fk_producto' => $val->id,
@@ -99,7 +113,13 @@ class SalidasLib {
         return $this->ccm->guardar($datos, 'cc_ajuste_salida_det');
     }
 
-    public function updateAjuste($cartData, $dataPostAjuste, $ajusteId) {
+    /**
+     * Función para actualizar un ajuste de salida existente en la base de datos, utilizando los datos del carrito de ajustes y la información proporcionada por el usuario a través de un formulario. La función updateAjuste recibe los datos del carrito de ajustes (cartData), los datos del formulario (dataPostAjuste), y el identificador del ajuste de salida a actualizar (ajusteId). Luego, se determina si el ajuste se guarda como borrador o como aprobado, y se prepara un array de datos con toda la información necesaria para actualizar el registro del ajuste de salida, incluyendo detalles como la fecha, observaciones, estado, bodega, usuario responsable, totales del ajuste, entre otros. Finalmente, se utiliza el modelo ccModel para actualizar el registro en la tabla cc_ajuste_salida con el nuevo conjunto de datos y se devuelve el resultado de la operación. Esta función es esencial para permitir a los usuarios modificar ajustes de salida existentes en el sistema, asegurando que toda la información relevante se actualice correctamente en la base de datos y que el proceso de actualización del ajuste sea eficiente y confiable.
+     * @param object $cartData Objeto que contiene los datos del carrito de ajustes, incluyendo totales, subtotales, impuestos, y otros detalles relacionados con los productos agregados al ajuste de salida.
+     * @param object $dataPostAjuste Objeto que contiene los datos del formulario proporcionados por el usuario para actualizar el ajuste de salida, incluyendo fecha, observaciones, estado, bodega, motivo de ajuste, centro de costo, cliente, tipo de ajuste, servicio asociado, y otros detalles relevantes para la actualización del ajuste de salida.
+     * @param int $ajusteId Identificador del ajuste de salida que se va a actualizar en la base de datos.
+    */
+    public function updateAjuste(object $cartData, object $dataPostAjuste, int $ajusteId) {
         $esBorrador = ($dataPostAjuste->ajesEstado == 1);
 
         $datos = [
@@ -135,10 +155,18 @@ class SalidasLib {
         return $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
     }
 
+    
     /**
-     * Actualiza kardex restando stock (salida)
-     */
-    public function updateKardex($ajusteId, $producto, $loteId, $dataPostAjuste) {
+     * Función para actualizar el kardex general, kardex bodega, y kardex bodega lote (si aplica) al registrar un ajuste de salida, utilizando el identificador del ajuste de salida, los datos del producto a ajustar, el identificador del lote (si aplica), y la información proporcionada por el usuario a través de un formulario. La función updateKardex recibe el identificador del ajuste de salida (ajusteId), los datos del producto (producto) que se va a ajustar, el identificador del lote (loteId) si el producto maneja lotes, y los datos del formulario (dataPostAjuste) para obtener la fecha, hora, bodega, y otros detalles necesarios para actualizar los registros de kardex correspondientes al ajuste de salida. Luego, se realiza la actualización del kardex general restando la cantidad ajustada del stock actual del producto, calculando el nuevo costo promedio y costo último, y registrando un nuevo movimiento en el kardex general. A continuación, se actualiza el kardex bodega restando la cantidad ajustada del stock actual en la bodega correspondiente y registrando un nuevo movimiento en el kardex bodega. Finalmente, si el producto maneja lotes, se actualiza el kardex bodega lote restando la cantidad ajustada del stock actual en el lote correspondiente y registrando un nuevo movimiento en el kardex bodega lote. Esta función es esencial para mantener actualizados los registros de inventario en el sistema al registrar ajustes de salida, asegurando que toda la información relevante se refleje correctamente en los movimientos de inventario y que el proceso de actualización del kardex sea eficiente y confiable.
+     * @param int $ajusteId Identificador del ajuste de salida que se está registrando, utilizado para asociar los movimientos de kardex al ajuste correspondiente.
+     * @param object $producto Objeto que contiene los datos del producto que se va a ajustar, incluyendo el identificador
+     * del producto, la cantidad a ajustar, el precio, el total, y otros detalles relevantes para el registro de los movimientos de kardex.
+     * @param int|null $loteId Identificador del lote si el producto maneja
+     * lotes, o null si el producto no maneja lotes. Este parámetro es opcional y se utiliza para registrar el lote asociado a los movimientos de kardex en caso de que el producto lo requiera.
+     * @param object $dataPostAjuste Objeto que contiene los datos del formulario proporcionados por el usuario para registrar el ajuste de salida, incluyendo fecha, hora, bodega, y otros detalles relevantes para la actualización de los movimientos de kardex.
+     * @return array Retorna un array con el estado de la operación ('success' o 'error') y un mensaje descriptivo sobre el resultado de la actualización de los movimientos de kardex al registrar el ajuste de salida.
+    */
+    public function updateKardex(int $ajusteId, object $producto, int|null $loteId, object $dataPostAjuste):array {
         $fecha = $dataPostAjuste->ajesFecha ?? date('Y-m-d');
         $hora = date('H:i:s');
         $bodegaId = $dataPostAjuste->ajesBodega;
@@ -166,7 +194,18 @@ class SalidasLib {
         return ['status' => 'success'];
     }
 
-    public function actualizarKardexGeneral($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId) {
+
+    /**
+     * Función para actualizar el kardex general al registrar un ajuste de salida, restando la cantidad ajustada del stock actual del producto, calculando el nuevo costo promedio y costo último, y registrando un nuevo movimiento en el kardex general. La función actualizarKardexGeneral recibe el identificador del ajuste de salida (ajusteId), los datos del producto (producto) que se va a ajustar, el identificador del lote (loteId) si el producto maneja lotes, y los datos del formulario (dataPostAjuste) para obtener la fecha, hora, bodega, y otros detalles necesarios para actualizar el registro de kardex general correspondiente al ajuste de salida. Luego, se obtiene el stock actual del producto, se calcula el nuevo stock restando la cantidad ajustada, se obtiene el costo de inventario actual del producto y se calcula el nuevo costo de inventario restando el total ajustado. A continuación, se obtiene el costo de inventario total de la empresa y se calcula el nuevo costo de inventario total restando el total ajustado. Luego, se calcula el nuevo costo promedio considerando el nuevo stock y nuevo costo de inventario del producto. Finalmente, se inserta un nuevo registro en la tabla cc_kardex con toda la información relevante del movimiento de ajuste de salida. Esta función es esencial para mantener actualizado el kardex general en el sistema al registrar ajustes de salida, asegurando que toda la información relevante se refleje correctamente en los movimientos de inventario y que el proceso de actualización del kardex general sea eficiente y confiable.
+     * @param object $producto Objeto que contiene los datos del producto que se va a ajustar, incluyendo el identificador del producto, la cantidad a ajustar, el precio, el total, y otros detalles relevantes para el registro del movimiento de kardex general.
+     * @param int $ajusteId Identificador del ajuste de salida que se está registrando, utilizado para asociar el movimiento de kardex al ajuste correspondiente.
+     * @param int|null $loteId Identificador del lote si el producto maneja lotes, o null si el producto no maneja lotes. Este parámetro es opcional y se utiliza para registrar el lote asociado al movimiento de kardex general en caso de que el producto lo requiera.
+     * @param string $fecha Fecha del movimiento de ajuste de salida, obtenida del formulario o asignada por defecto a la fecha actual. 
+     * @param string $hora Hora del movimiento de ajuste de salida, asignada por defecto a la hora actual.
+     * @param int $bodegaId Identificador de la bodega desde la cual se está realizando el ajuste de salida, obtenido del formulario para registrar el movimiento de kardex general con la información correcta de la bodega involucrada en el ajuste de salida.
+     * @return array Retorna un array con el identificador del movimiento de kardex general creado ('kardexId'), el nuevo costo promedio del producto ('costoPromedio'), y el nuevo costo último del producto ('costoUltimo') después de registrar el ajuste de salida en el kardex general. Si ocurre
+    */
+    public function actualizarKardexGeneral(object $producto, int $ajusteId, int|null $loteId, string $fecha, string $hora, int $bodegaId) {
 
         // Obtengo stock actual del producto
         $stockActual = $this->productLib->getStockProducto($producto->id);
@@ -186,7 +225,7 @@ class SalidasLib {
         // Calcular costo promedio (solo se recalcular en entradas que afecte el costo del producto)
 //        $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
         $costoPromedio = $this->productLib->getCostoPromedio($producto->id);
-        
+
         //Obtengo el costo último
         $costoUltimo = $this->productLib->getCostoUltimo($producto->id);
 
@@ -232,7 +271,18 @@ class SalidasLib {
         return $responseKardex;
     }
 
-    public function actualizarKardexBodega($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $kardexCostos) {
+    /**
+     * Función para actualizar el kardex bodega al registrar un ajuste de salida, restando la cantidad ajustada del stock actual en la bodega correspondiente y registrando un nuevo movimiento en el kardex bodega. La función actualizarKardexBodega recibe el identificador del ajuste de salida (ajusteId), los datos del producto (producto) que se va a ajustar, el identificador del lote (loteId) si el producto maneja lotes, y los datos del formulario (dataPostAjuste) para obtener la fecha, hora, bodega, y otros detalles necesarios para actualizar el registro de kardex bodega correspondiente al ajuste de salida. Luego, se obtiene el stock actual del producto en la bodega, se calcula el nuevo stock restando la cantidad ajustada, y se inserta un nuevo registro en la tabla cc_kardex_bodega con toda la información relevante del movimiento de ajuste de salida en la bodega. Finalmente, se actualiza o crea el registro de stock por bodega con el nuevo stock calculado. Esta función es esencial para mantener actualizado el kardex bodega en el sistema al registrar ajustes de salida, asegurando que toda la información relevante se refleje correctamente en los movimientos de inventario por bodega y que el proceso de actualización del kardex bodega sea eficiente y confiable. 
+     * @param object $producto Objeto que contiene los datos del producto que se va a ajustar, incluyendo el identificador del producto, la cantidad a ajustar, el precio, el total, y otros detalles relevantes para el registro del movimiento de kardex bodega.
+     * @param int $ajusteId Identificador del ajuste de salida que se está registrando, utilizado para asociar el movimiento de kardex bodega al ajuste correspondiente.
+     * @param int|null $loteId Identificador del lote si el producto maneja lotes, o null si el producto no maneja lotes. Este parámetro es opcional y se utiliza para registrar el lote asociado al movimiento de kardex bodega en caso de que el producto lo requiera.
+     * @param string $fecha Fecha del movimiento de ajuste de salida, obtenida del formulario o asignada por defecto a la fecha actual.
+     * @param string $hora Hora del movimiento de ajuste de salida, asignada por defecto a la hora actual.
+     * @param int $bodegaId Identificador de la bodega desde la cual se está realizando el ajuste de salida, obtenido del formulario para registrar el movimiento de kardex bodega con la información correcta de la bodega involucrada en el ajuste de salida.
+     * @param array $kardexCostos Array que contiene el nuevo costo promedio y costo último del producto calculados en el kardex general, utilizados para registrar el movimiento de kardex bodega con la información correcta de costos después de registrar el ajuste de salida en el kardex general.
+     * @return int|false Retorna el identificador del movimiento de kardex bodega creado si la operación fue exitosa, o false si ocurrió un error durante el proceso de guardado del movimiento de kardex bodega en la base de datos al
+    */
+    public function actualizarKardexBodega(object $producto, int $ajusteId, int|null $loteId, string $fecha, string $hora, int $bodegaId, array $kardexCostos):int {
         // Obtener stock actual en bodega
         $stockBodega = $this->stockBodLib->getStockBodega($bodegaId, $producto->id);
         $nuevoStockBodega = $stockBodega - $producto->qty;
@@ -266,7 +316,20 @@ class SalidasLib {
         return $kardexBodegaId;
     }
 
-    public function actualizarKardexBodegaLote($producto, $ajusteId, $loteId, $fecha, $hora, $bodegaId, $kardexCostos) {
+
+    /**
+     * Función para actualizar el kardex bodega lote al registrar un ajuste de salida, restando la cantidad ajustada del stock actual en el lote correspondiente y registrando un nuevo movimiento en el kardex bodega lote. La función actualizarKardexBodegaLote recibe el identificador del ajuste de salida (ajusteId), los datos del producto (producto) que se va a ajustar, el identificador del lote (loteId), y los datos del formulario (dataPostAjuste) para obtener la fecha, hora, bodega, y otros detalles necesarios para actualizar el registro de kardex bodega lote correspondiente al ajuste de salida. Luego, se obtiene el stock actual del producto en el lote de la bodega, se calcula el nuevo stock restando la cantidad ajustada, y se inserta un nuevo registro en la tabla cc_kardex_bodega_lote con toda la información relevante del movimiento de ajuste de salida en el lote de la bodega. Finalmente, se actualiza o crea el registro de stock por bodega y lote con el nuevo stock calculado. Esta función es esencial para mantener actualizado el kardex bodega lote en el sistema al registrar ajustes de salida, asegurando que toda la información relevante se refleje correctamente en los movimientos de inventario por bodega y lote, y que el proceso de actualización del kardex bodega lote sea eficiente y confiable.
+     * @param object $producto Objeto que contiene los datos del producto que se va a
+     * ajustar, incluyendo el identificador del producto, la cantidad a ajustar, el precio, el total, y otros detalles relevantes para el registro del movimiento de kardex bodega lote.
+     * @param int $ajusteId Identificador del ajuste de salida que se está registrando, utilizado para asociar el movimiento de kardex bodega lote al ajuste correspondiente.
+     * @param int $loteId Identificador del lote, utilizado para registrar el movimiento de kardex bodega lote con la información correcta del lote involucrado en el ajuste de salida.
+     * @param string $fecha Fecha del movimiento de ajuste de salida, obtenida del formulario o asignada por defecto a la fecha actual.
+     * @param string $hora Hora del movimiento de ajuste de salida, asignada por defecto a la hora actual.
+     * @param int $bodegaId Identificador de la bodega desde la cual se está realizando el ajuste de salida, obtenido del formulario para registrar el movimiento de kardex bodega lote con la información correcta de la bodega involucrada en el ajuste de salida.
+     * @param array $kardexCostos Array que contiene el nuevo costo promedio y costo último del producto calculados en el kardex general, utilizados para registrar el movimiento de kardex bodega lote con la información correcta de costos después de registrar el ajuste de salida en el kardex general.
+     * @return int|false Retorna el identificador del movimiento de kardex bodega lote creado si la operación fue exitosa, o false si ocurrió un error
+    */
+    public function actualizarKardexBodegaLote(object $producto, int $ajusteId, int|null $loteId, string $fecha, string $hora, int $bodegaId, array $kardexCostos):int {
         // Obtener stock actual en bodega por lote
         $stockBodegaLote = $this->stockBodLib->getStockBodegaLote($bodegaId, $producto->id, $loteId);
         $nuevoStockBodegaLote = $stockBodegaLote - $producto->qty;
@@ -305,8 +368,13 @@ class SalidasLib {
      * Se usa SOLO cuando el ajuste queda en BORRADOR
      * Genera las reservas reales en BORRADOR
      * NO toca stock ni kardex
+     * @param int $ajusteId Identificador del ajuste de salida para el cual se van a registrar las reservas en caso de que el
+     * ajuste quede en estado de BORRADOR, utilizando los datos del carrito de ajustes y la información proporcionada por el usuario a través de un formulario. La función registrarReservas recibe el identificador del ajuste de salida (ajusteId), los datos del carrito de ajustes (cartData), y los datos del formulario (dataPostAjuste) para obtener la información necesaria para registrar las reservas correspondientes al ajuste de salida en caso de que este quede en estado de BORRADOR. Luego, se limpian las reservas previas asociadas al ajuste de salida utilizando la función liberarReservasDocumento, y se crean nuevas reservas para cada producto en el carrito de ajustes utilizando la función reservarLinea, pasando la información relevante como el origen, el identificador del ajuste, la bodega, el producto, el lote (si aplica), y la cantidad a reservar. Esta función es esencial para gestionar las reservas de productos en el sistema cuando un ajuste de salida queda en estado de BORRADOR, asegurando que las reservas se registren correctamente sin afectar el stock ni los movimientos de kardex hasta que el ajuste sea aprobado.
+     * @param object $cartData Objeto que contiene los datos del carrito de ajustes, incluyendo los productos agregados al ajuste de salida, sus cantidades, precios, totales, y otros detalles relevantes para el registro de las reservas correspondientes al ajuste de salida en caso de que este quede en estado de BORRADOR.
+     * @param object $dataPostAjuste Objeto que contiene los datos del formulario proporcionados por el usuario para registrar el ajuste de salida, incluyendo fecha, observaciones, estado, bodega, motivo de ajuste, centro de costo, cliente, tipo de
+     * ajuste, servicio asociado, y otros detalles relevantes para el registro de las reservas correspondientes al ajuste de salida en caso de que este quede en estado de BORRADOR.
      */
-    public function registrarReservas($ajusteId, $cartData, $dataPostAjuste): array {
+    public function registrarReservas(int $ajusteId, object $cartData, object $dataPostAjuste): array {
 
         try {
 
@@ -340,7 +408,7 @@ class SalidasLib {
             }
 
             return ['status' => 'success'];
-        } catch (Exception $exc) {
+        } catch (\Exception $exc) {
             log_message('error', '[AJUSTE SALIDA][RESERVAS] ' . $exc->getMessage());
             return [
                 'status' => 'error',
@@ -349,6 +417,12 @@ class SalidasLib {
         }
     }
 
+    /**
+     * Función para anular un ajuste de salida, liberando las reservas asociadas al ajuste, actualizando el estado del ajuste a anulado, y revirtiendo los movimientos de kardex realizados por el ajuste de salida. La función anularAjuste recibe el identificador del ajuste de salida a anular (ajusteId) y el motivo de la anulación (motivo) proporcionado por el usuario. Luego, se obtiene el ajuste de salida utilizando su identificador y se verifica que exista y que no esté ya anulado. Si el ajuste está en estado de BORRADOR, se liberan las reservas asociadas al ajuste y se marca como anulado sin tocar los movimientos de kardex. Si el ajuste ya fue aprobado, se obtiene el detalle del ajuste y se recorren los productos para revertir los movimientos de kardex correspondientes a cada producto ajustado utilizando la función updateKardex con cantidades inversas. Finalmente, se liberan las reservas nuevamente para asegurar que no queden reservas colgadas, se actualiza el estado del ajuste a anulado con la información del motivo y fecha de anulación, y se anula el asiento contable asociado al ajuste si existe. Esta función es esencial para gestionar la anulación de ajustes de salida en el sistema, asegurando que las reservas se liberen correctamente, los movimientos de kardex se reviertan adecuadamente, y que toda la información relevante sobre la anulación se registre correctamente en la base de datos.
+     * @param int $ajusteId Identificador del ajuste de salida que se va a anular, utilizado para obtener el ajuste de salida, verificar su estado, liberar las reservas asociadas al ajuste, revertir los movimientos de kardex correspondientes, y actualizar el estado del ajuste a anulado en la base de datos.
+     * @param string $motivo Motivo de la anulación proporcionado por el usuario, utilizado para registrar la razón de la anulación en el ajuste de salida y en el asiento contable asociado al ajuste, asegurando que toda la información relevante sobre la anulación se registre correctamente en la base de datos para futuras referencias y auditorías. 
+     * @return array Retorna un array con el estado de la operación ('success', 'error', o 'warning') y un mensaje descriptivo sobre el resultado de la anulación del ajuste de salida, incluyendo información sobre si el ajuste fue anulado exitosamente, si ya estaba anulado previamente, o
+    */
     public function anularAjuste(int $ajusteId, string $motivo): array {
         // ️Obtener el ajuste
         $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
@@ -460,7 +534,7 @@ class SalidasLib {
                 'status' => 'success',
                 'msg' => "Ajuste de salida #{$ajuste->ajes_secuencial} anulado exitosamente."
             ];
-        } catch (Exception $exc) {
+        } catch (\Exception $exc) {
 //            echo $exc->getTraceAsString();
             return [
                 'status' => 'error',

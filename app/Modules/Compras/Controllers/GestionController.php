@@ -19,7 +19,7 @@ use App\Controllers\BaseController;
  */
 class GestionController extends BaseController {
 
-    protected $dirViewModule;
+    protected string $dirViewModule;
 
     public function __construct() {
 

@@ -43,12 +43,27 @@ class GestionController extends \App\Controllers\BaseController {
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
         $data['listaServicios'] = $this->ccm->getData('cc_servicios', ['serv_estado' => 1], 'id, serv_nombre');
 
-         $bodegaMainUsuario = bodegaMain($this->user->id);
+        $bodegaMainUsuario = bodegaMain($this->user->id);
         $data['bodegaId'] = $this->session->get('bodegaIdAjs') ?? $bodegaMainUsuario;
 
         $send['view'] = view($this->dirViewModule . '\viewGestionAjuste', $data);
 
         return $this->request->isAJAX() ? $this->response->setJSON($send) : view($this->dirTemplate . '\dashboard', $send);
+    }
+
+    /**
+     * Función para generar una respuesta JSON con un formato estándar para las operaciones del módulo de ajustes de salida
+     * @param string $status El estado de la operación (e.g., 'success', 'error', 'warning')
+     * @param string $mensaje Un mensaje descriptivo sobre el resultado de la operación
+     * @param mixed $data (Opcional) Datos adicionales relacionados con la operación, como detalles del ajuste o información relevante para el frontend
+     * @return JSON Respuesta formateada con el estado, mensaje y datos proporcionados, que puede ser utilizada por el frontend
+    */
+    public function responseSetJSON(string $status, string $mensaje, mixed $data = null) {
+        return $this->response->setJSON([
+                    'status' => $status,
+                    'msg' => $mensaje,
+                    'data' => $data,
+        ]);
     }
 
     public function searchAjustes() {
@@ -69,7 +84,16 @@ class GestionController extends \App\Controllers\BaseController {
         return $data ? $this->response->setJSON(['status' => 'success', 'data' => $data]) : $this->response->setJSON(['status' => 'warning', 'data' => []]);
     }
 
-    public function getDataDetalle($ajusteId) {
+    /**
+     * Función para obtener los detalles de un ajuste de salida específico y generar una vista HTML con la información del ajuste
+     * @param int $ajusteId El identificador único del ajuste de salida para el cual se desean obtener los detalles
+     * @return JSON Respuesta con el contenido HTML generado a partir de los detalles del ajuste de salida, que puede ser utilizado por el frontend para mostrar la información del ajuste de salida de manera detallada
+     * El método obtiene los detalles del ajuste de salida utilizando el modelo SalidasModel, prepara los datos necesarios para la vista, genera el contenido HTML a partir de la vista 'viewDetalleReport' y devuelve una respuesta JSON con el contenido HTML generado. Esta función es esencial para permitir a los usuarios visualizar la información detallada de un ajuste de salida específico, proporcionando una experiencia de usuario enriquecida y facilitando la comprensión de los detalles asociados al ajuste de salida seleccionado.
+     * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de salida, para permitir a los usuarios obtener los detalles del ajuste de salida sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para mostrar el contenido HTML generado y proporcionar una experiencia de usuario fluida y eficiente al visualizar los detalles del ajuste de salida.
+     * En resumen, esta función es responsable de obtener los detalles de un ajuste de salida específico, generar una vista HTML con la información del ajuste de salida y devolver una respuesta JSON con el contenido HTML generado, para ser utilizado por el frontend en la visualización de los detalles del ajuste de salida seleccionado.
+     * @throws \Exception Si ocurre un error al obtener los detalles del ajuste de salida o al generar la vista HTML, se lanzará una excepción con un mensaje descriptivo del error ocurrido, que puede ser
+    */
+    public function getDataDetalle(int $ajusteId) {
 
         $empresa = enterprice();
         $ajusteData = $this->salidasModel->getDataDetalle($ajusteId);
@@ -83,7 +107,12 @@ class GestionController extends \App\Controllers\BaseController {
         return $this->response->setJSON($view);
     }
 
-    public function generarPDF($ajusteId) {
+    /**
+     * Función para generar un reporte en formato PDF de un ajuste de salida específico, utilizando la biblioteca mPDF para renderizar el contenido HTML y generar el archivo PDF
+     * @param int $ajusteId El identificador único del ajuste de salida para el cual se desea generar el reporte en formato PDF
+     * El método obtiene los detalles del ajuste de salida utilizando el modelo SalidasModel, prepara los datos necesarios para la vista, genera el contenido HTML a partir de la vista 'viewDetalleReport', carga el CSS de Bootstrap para el estilo del PDF, configura la biblioteca mPDF con las opciones necesarias para el formato del PDF, inyecta el contenido HTML y el CSS en mPDF, y finalmente genera el archivo PDF que puede ser descargado o visualizado en línea por el usuario, dependiendo de la configuración de la respuesta HTTP. Esta función es esencial para permitir a los usuarios generar un reporte en formato PDF de un ajuste de salida específico, proporcionando una forma conveniente de obtener un documento formal con la información detallada del ajuste de salida
+    */
+    public function generarPDF(int $ajusteId) {
         $empresa = enterprice();
         $ajusteData = $this->salidasModel->getDataDetalle($ajusteId);
 

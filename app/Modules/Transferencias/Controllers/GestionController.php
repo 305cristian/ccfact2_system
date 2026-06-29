@@ -52,6 +52,21 @@ class GestionController extends \App\Controllers\BaseController {
             return view($this->dirTemplate . '\dashboard', $send);
         }
     }
+    
+     /**
+     * Función para generar una respuesta JSON con un formato estándar para las operaciones del módulo de ajustes de salida
+     * @param string $status El estado de la operación (e.g., 'success', 'error', 'warning')
+     * @param string $mensaje Un mensaje descriptivo sobre el resultado de la operación
+     * @param mixed $data (Opcional) Datos adicionales relacionados con la operación, como detalles del ajuste o información relevante para el frontend
+     * @return JSON Respuesta formateada con el estado, mensaje y datos proporcionados, que puede ser utilizada por el frontend
+    */
+    public function responseSetJSON(string $status, string $mensaje, mixed $data = null) {
+        return $this->response->setJSON([
+                    'status' => $status,
+                    'msg' => $mensaje,
+                    'data' => $data,
+        ]);
+    }
 
     public function searchTransferencias() {
         $this->user->validateSession();

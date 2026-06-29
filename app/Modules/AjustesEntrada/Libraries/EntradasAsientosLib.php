@@ -43,9 +43,9 @@ class EntradasAsientosLib {
      * Genera el asiento contable para un ajuste de entrada
      * 
      * @param int $ajusteId ID del ajuste de entrada
-     * @return int ID del asiento creado
+     * @return array estado delp orceso
      */
-    public function generarAsiento($ajusteId) {
+    public function generarAsiento(int $ajusteId) {
         try {
             // Obtener datos del ajuste
             $ajuste = $this->ccm->getData('cc_ajuste_entrada', ['id' => $ajusteId], '*', null, 1);

@@ -700,7 +700,13 @@ class ComprasCartLib {
         $this->save();
         return true;
     }
+    
 
+    /**
+     * Helper function to convert various input formats to a numeric value. It handles actual numeric values, as well as strings that may contain currency symbols, commas, or other non-numeric characters. If the input is null or an empty string, it returns 0.
+     * @param mixed $value The input value to convert to a number
+     * @return float The numeric representation of the input value
+    */
     private function number($value) {
         if ($value === null || $value === '') {
             return 0;
@@ -713,6 +719,11 @@ class ComprasCartLib {
         return (float) trim(preg_replace('/([^0-9\.\-])/i', '', (string) $value));
     }
 
+    /**
+     * Helper function to convert various input formats to a boolean value. It handles actual boolean values, as well as strings like '1', 'true', 'yes', 'si' (case-insensitive) as true, and everything else as false.
+     * @param mixed $value The input value to convert to boolean
+     * @return bool The boolean representation of the input value
+    */
     private function boolValue($value) {
         if (is_bool($value)) {
             return $value;

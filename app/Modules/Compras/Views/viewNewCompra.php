@@ -12,6 +12,22 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
+<?php
+
+/** @var array $listaTiposCompra */
+/** @var array $listaTiposComprobantes */
+/** @var array $listaFormasPago */
+/** @var array $listaFormasPagoSRI */
+/** @var array $listaSustentos */
+/** @var array $listaBodegas */
+/** @var array $listaCentroCostos */
+/** @var array $listaRetenciones */
+/** @var array $listaCuentasContables */
+/** @var array $listaImpuestosTarifa */
+/** @var object $dataProveedor */
+/** @var object $dataCompra */
+/** @var int $bodegaId */
+/** @var bool $permitirDuplicados */?>
 
 <style>
     .multiselect__tags {
@@ -908,7 +924,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     formData.append('data', JSON.stringify(payload));
 
                     const {data} = await axios.post(
-                            this.url + '/compras/saveCompraCompleta',
+                            this.url + '/compras/saveCompra',
                             formData
                             );
 
@@ -1140,65 +1156,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
 
-            // =========================
-            // CALCULO POR ITEM
-            // =========================
-            calcularItem(item) {
 
-                let precio = parseFloat(item.precio);
-                let cantidad = parseFloat(item.cantidad);
-
-                // DESCUENTO
-                let descuento = parseFloat(item.descuento || 0);
-
-                let precioNeto = precio - descuento;
-                let subtotal = precioNeto * cantidad;
-
-                // ICE
-                let ice_unit = precioNeto * (item.ice_porcentaje / 100);
-                let ice_total = ice_unit * cantidad;
-
-                // BASE IVA
-                let base_iva = precioNeto + ice_unit;
-
-                // IVA
-                let iva_unit = base_iva * (item.iva_porcentaje / 100);
-                let iva_total = iva_unit * cantidad;
-
-                // IRBPNR
-                let irbpnr_total = item.irbpnr_unitario * cantidad;
-
-                // TOTAL
-                let total = subtotal + iva_total + ice_total + irbpnr_total;
-
-                item.subtotal = subtotal;
-                item.iva_valor = iva_total;
-                item.irbpnr_total = irbpnr_total;
-                item.total = total;
-            },
-
-            // =========================
-            // CALCULO GLOBAL
-            // =========================
-            calcularTotales() {
-
-                let subtotal = 0;
-                let iva = 0;
-                let irbpnr = 0;
-                let total = 0;
-
-                this.listaCartData.forEach(i => {
-                    subtotal += i.subtotal;
-                    iva += i.iva_valor;
-                    irbpnr += i.irbpnr_total;
-                    total += i.total;
-                });
-
-                this.totalSubtotal = subtotal;
-                this.totalIva = iva;
-                this.totalIrbpnr = irbpnr;
-                this.totalGeneral = total;
-            },
             async cancelarCompra() {
                 Swal.fire({
                     title: "Esta seguro que desea cancelar la compra?",

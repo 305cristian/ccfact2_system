@@ -8,7 +8,9 @@
 /**
  * Description of Routes
  *
-  /**
+ */
+ 
+/**
  * @author CRISTIAN R. PAZ
  * @date 3 may 2026
  * @time 3:38:12 p.m.
@@ -47,7 +49,7 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
 
     //GESTION DE AJUSTES
     $subroutes->get('gestionCompras', 'GestionController::index');
-//    $subroutes->post('searchAjustes', 'GestionController::searchAjustes');
+//    $subroutes->post('searchCompras', 'GestionController::searchAjustes');
 //    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
 //    $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
 //    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');

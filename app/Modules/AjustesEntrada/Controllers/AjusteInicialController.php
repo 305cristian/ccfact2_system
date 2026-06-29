@@ -389,7 +389,7 @@ class AjusteInicialController extends \App\Controllers\BaseController {
             $dataResponse = ['id' => $ajusteData['id'], 'ajen_secuencial' => $secuencail];
 
             return $this->responseSetJSON("success", "<h5> Ajuste inicial #{$secuencail} registrado exitosamente <br>Documento excel cargado exitosamente</h5>", $dataResponse);
-        } catch (Exception $exc) {
+        } catch (\Exception $exc) {
             $this->db->transRollback();
             $this->logs->logError('Ha ocurrido un error al registrar el Ajuste');
             log_message('error', "[Ajuste Entrada] Error al registrar");
