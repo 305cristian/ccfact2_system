@@ -44,7 +44,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <col style="width:130px">  <!-- Codigo -->
                     <col style="width:370px">  <!-- Producto -->
                     <col v-if="colLotes" style="width:300px">  <!-- Lote -->
-                    <col style="width:90px">   <!-- IVA -->
+                    <col style="width:100px">   <!-- IVA -->
                     <col style="width:180px">  <!-- Cuenta -->
                     <col style="width:310px">  <!-- Cantidad -->
                     <col style="width:170px">  <!-- Descuento -->

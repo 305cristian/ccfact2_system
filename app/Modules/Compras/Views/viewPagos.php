@@ -28,8 +28,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <div class="modal-body">
 
                 <!-- TOTAL -->
-                <div class="alert alert-info text-center">
-                    <strong>Total Compra: {{ formatToUSD(totalGeneral) }}</strong>
+                <div class="alert alert-info">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <strong>Total compra: {{ formatToUSD(totales.totalGeneral) }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Total retenido: {{ formatToUSD(totalRetenidoCompra) }}</strong>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Valor a pagar: {{ formatToUSD(totalPagarCompra) }}</strong>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- FORMA DE PAGO -->
@@ -77,9 +87,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-5 text-end fw-bold"><i class="fas fa-dollar-sign me-1 text-success"></i> Total:
+                                        <div class="col-md-5 text-end fw-bold"><i class="fas fa-dollar-sign me-1 text-success"></i> A pagar:
                                         </div>
-                                        <div class="col-md-7 fw-bold text-success"> $ {{ totalGeneral }}</div>
+                                        <div class="col-md-7 fw-bold text-success">{{ formatToUSD(totalPagarCompra) }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -95,6 +105,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <option value="CREDITO">CRÉDITO</option>
                                     </select>
                                 </div>
+                                <small v-if="erroresPago.tipoPago" class="text-danger d-block mt-1">
+                                    {{ erroresPago.tipoPago }}
+                                </small>
                             </div>
                         </div>
 
@@ -106,12 +119,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <span class="input-group-text bg-info"> <i class="fas fa-list-ol me-2"></i>Cuotas</span>
                                         <input type="number" v-model="pagos.cuotas"class="form-control" placeholder="N° Cuotas">
                                     </div>
+                                    <small v-if="erroresPago.cuotas" class="text-danger d-block mt-1">
+                                        {{ erroresPago.cuotas }}
+                                    </small>
                                 </div>
                                 <div class="col-md-3 form-group-custom">
                                     <div class="input-group">
                                         <span class="input-group-text bg-info"> <i class="fas fa-calendar-day me-2"></i>Días de crédito</span>
                                         <input type="number" v-model="pagos.dias" class="form-control"  @input="calcularFechaCredito" placeholder="Días crédito">
                                     </div>
+                                    <small v-if="erroresPago.dias" class="text-danger d-block mt-1">
+                                        {{ erroresPago.dias }}
+                                    </small>
                                 </div>
 
                                 <div class="col-md-4 form-group-custom">
@@ -119,6 +138,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <span class="input-group-text bg-info"><i class="fas fa-calendar me-2"></i>Fecha vence crédito</span>
                                         <input type="date" v-model="pagos.fechaVenceCredito" class="form-control" placeholder="Días crédito">
                                     </div>
+                                    <small v-if="erroresPago.fechaVenceCredito" class="text-danger d-block mt-1">
+                                        {{ erroresPago.fechaVenceCredito }}
+                                    </small>
                                 </div>
 
                                 <div class="col-md-2">
@@ -143,16 +165,28 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                             <td>
                                                 <input type="date" v-model="c.fecha"class="form-control form-control-sm">
+                                                <small v-if="erroresPago['cuotaFecha_' + i]" class="text-danger d-block mt-1">
+                                                    {{ erroresPago['cuotaFecha_' + i] }}
+                                                </small>
                                             </td>
 
                                             <td>
                                                 <input type="number"  v-model.number="c.valor" class="form-control form-control-sm">
+                                                <small v-if="erroresPago['cuotaValor_' + i]" class="text-danger d-block mt-1">
+                                                    {{ erroresPago['cuotaValor_' + i] }}
+                                                </small>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
+                                <small v-if="erroresPago.totalCuotas" class="text-danger d-block mt-1">
+                                    {{ erroresPago.totalCuotas }}
+                                </small>
 
                             </div>
+                            <small v-if="erroresPago.listaCuotas" class="text-danger d-block mt-1">
+                                {{ erroresPago.listaCuotas }}
+                            </small>
                         </div>
 
                         <!-- CONTADO -->
@@ -174,6 +208,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         </vue-select>
 
                                     </div>
+                                    <small v-if="erroresPago.formaPago" class="text-danger d-block mt-1">
+                                        {{ erroresPago.formaPago }}
+                                    </small>
                                 </div>
 
                                 <!-- Cuenta contable -->
@@ -196,6 +233,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         </vue-select>
 
                                     </div>
+                                    <small v-if="erroresPago.cuentaContablePago" class="text-danger d-block mt-1">
+                                        {{ erroresPago.cuentaContablePago }}
+                                    </small>
 
                                 </div>
 
@@ -216,6 +256,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             placeholder="Ingrese una observación..."
                                             ></textarea>
                                     </div>
+                                    <small v-if="erroresPago.nota" class="text-danger d-block mt-1">
+                                        {{ erroresPago.nota }}
+                                    </small>
 
                                 </div>
 
@@ -232,14 +275,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <div class="input-group border rounded">
                                         <span class="input-group-text bg-primary">  <i class="fas fa-university me-2"></i>Banco  </span>
 
-                                        <input
+                                        <vue-select
+                                            class="flex-grow-1"
+                                            :options="listaBancosSimulados"
+                                            label="nombre"
                                             v-model="pagos.banco"
-                                            type="text"
-                                            class="form-control"
-                                            placeholder="Banco"
+                                            placeholder="Seleccione un banco"
                                             >
+                                        </vue-select>
 
                                     </div>
+                                    <small v-if="erroresPago.banco" class="text-danger d-block mt-1">
+                                        {{ erroresPago.banco }}
+                                    </small>
                                 </div>
 
                                 <!-- Número -->
@@ -255,6 +303,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.numeroTransferencia" class="text-danger d-block mt-1">
+                                        {{ erroresPago.numeroTransferencia }}
+                                    </small>
                                 </div>
 
                                 <!-- Fecha -->
@@ -269,6 +320,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.fechaTransferencia" class="text-danger d-block mt-1">
+                                        {{ erroresPago.fechaTransferencia }}
+                                    </small>
                                 </div>
 
                                 <!-- Nota -->
@@ -284,6 +338,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.nota" class="text-danger d-block mt-1">
+                                        {{ erroresPago.nota }}
+                                    </small>
                                 </div>
                             </div>
 
@@ -298,13 +355,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <div class="input-group border rounded">
                                         <span class="input-group-text bg-warning"> <i class="fas fa-university me-2"></i>Banco</span>
 
-                                        <input
+                                        <vue-select
+                                            class="flex-grow-1"
+                                            :options="listaBancosSimulados"
+                                            label="nombre"
                                             v-model="pagos.banco"
-                                            type="text"
-                                            class="form-control"
+                                            placeholder="Seleccione un banco"
                                             >
+                                        </vue-select>
 
                                     </div>
+                                    <small v-if="erroresPago.banco" class="text-danger d-block mt-1">
+                                        {{ erroresPago.banco }}
+                                    </small>
                                 </div>
 
                                 <!-- N° Cheque -->
@@ -319,6 +382,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.numeroCheque" class="text-danger d-block mt-1">
+                                        {{ erroresPago.numeroCheque }}
+                                    </small>
                                 </div>
 
                                 <!-- Fecha -->
@@ -332,6 +398,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             class="form-control"
                                             >
                                     </div>
+                                    <small v-if="erroresPago.fechaCheque" class="text-danger d-block mt-1">
+                                        {{ erroresPago.fechaCheque }}
+                                    </small>
                                 </div>
                             </div>
 
@@ -354,6 +423,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             <option value="DINERS">DINERS</option>
                                         </select>
                                     </div>
+                                    <small v-if="erroresPago.marcaTarjeta" class="text-danger d-block mt-1">
+                                        {{ erroresPago.marcaTarjeta }}
+                                    </small>
                                 </div>
 
                                 <!-- Lote -->
@@ -369,6 +441,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.loteTarjeta" class="text-danger d-block mt-1">
+                                        {{ erroresPago.loteTarjeta }}
+                                    </small>
                                 </div>
 
                                 <!-- Autorización -->
@@ -384,6 +459,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.autorizacionTarjeta" class="text-danger d-block mt-1">
+                                        {{ erroresPago.autorizacionTarjeta }}
+                                    </small>
                                 </div>
 
                                 <!-- Últimos dígitos -->
@@ -400,6 +478,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.ultimosDigitos" class="text-danger d-block mt-1">
+                                        {{ erroresPago.ultimosDigitos }}
+                                    </small>
                                 </div>
 
                                 <!-- Fecha -->
@@ -414,6 +495,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.fechaVoucher" class="text-danger d-block mt-1">
+                                        {{ erroresPago.fechaVoucher }}
+                                    </small>
                                 </div>
 
                                 <!-- Nota -->
@@ -429,6 +513,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                             >
 
                                     </div>
+                                    <small v-if="erroresPago.nota" class="text-danger d-block mt-1">
+                                        {{ erroresPago.nota }}
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -439,8 +526,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-success" @click="guardarCompra">
-                    <i class="fas fa-save me-2"></i> Completar Registro
+                <button class="btn btn-success" @click="guardarCompra" :disabled="loadingProcess">
+                    <span v-if="loadingProcess"><i class="fas fa-spinner fa-spin me-2"></i> Completando</span>
+                    <span v-else><i class="fas fa-save me-2"></i> Completar Registro</span>
                 </button>
             </div>
 

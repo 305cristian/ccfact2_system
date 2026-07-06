@@ -59,7 +59,7 @@ class AsientoContableLib {
             $usuarioId = $userId ?? $this->user->id;
 
             // Obtener índice (periodo contable)
-            $periodoContable = getPeriodoContable($fecha);
+            $periodoContable = getPeriodoContable(date('Y-m-d'));
             if (!$periodoContable) {
                 throw new \Exception('No se ha encontrado un periodo contable habil para la fecha dada<br>');
             }

@@ -110,9 +110,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <span class="input-group-text bg-cris-system">
                                         <i class="fas fa-hashtag me-2"></i> N° Comprobante
                                     </span>
-                                    <input v-model="formCompra.compNumeroEstablecimiento" type="text" class="form-control" style="flex:1" placeholder="001">
-                                    <input v-model="formCompra.compNumeroEmisión" type="text" class="form-control" style="flex:1" placeholder="002">
-                                    <input v-model="formCompra.compNumeroComprobante" type="text" class="form-control" style="flex:2" placeholder="653">
+                                    <input v-model="formRetencion.retNumeroEstablecimiento" type="text" class="form-control" style="flex:1" placeholder="001">
+                                    <input v-model="formRetencion.retNumeroEmision" type="text" class="form-control" style="flex:1" placeholder="002">
+                                    <input v-model="formRetencion.retNumeroComprobante" type="text" class="form-control" style="flex:2" placeholder="653">
                                 </div>
                             </div>
 
@@ -122,7 +122,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <span class="input-group-text bg-cris-system">
                                         <i class="fas fa-calendar me-2"></i>F. Emisión
                                     </span>
-                                    <input v-model="formCompra.compFechaCaducidad" type="date" class="form-control">
+                                    <input v-model="formRetencion.retFechaEmision" type="date" class="form-control">
                                 </div>
                             </div>
 
@@ -132,7 +132,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <span class="input-group-text bg-cris-system">
                                         <i class="fas fa-key me-2"></i> Aut. SRI
                                     </span>
-                                    <input v-model="formCompra.compAutSRI" type="text" class="form-control" placeholder="Ejm. 0123456789">
+                                    <input v-model="formRetencion.retAutorizacionSri" type="text" class="form-control" placeholder="Ejm. 0123456789">
                                 </div>
                             </div>
 

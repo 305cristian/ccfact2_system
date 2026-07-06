@@ -1,0 +1,391 @@
+<?php
+$numeroComprobante = implode('-', array_filter([
+    $compra->comp_numero_establecimiento,
+    $compra->comp_numero_emision,
+    $compra->comp_numero_comprobante,
+        ]));
+
+$estados = [
+    'BORRADOR' => ['bg-warning', 'BORRADOR'],
+    'ARCHIVADO' => ['bg-success', 'ARCHIVADA'],
+    'ANULADA' => ['bg-danger', 'ANULADA'],
+    'ANULADA_EN_PENDIENTE' => ['bg-secondary', 'ANULADA EN BORRADOR'],
+    'ANULADA_EN_ARCHIVADA' => ['bg-dark', 'ANULADA ARCHIVADA'],
+];
+
+[$estadoClase, $estadoTexto] = $estados[$compra->comp_estado] ?? ['bg-secondary', 'DESCONOCIDO'];
+?>
+
+<div class="border p-3" id="contentExport">
+    <table class="table table-borderless align-middle mb-4">
+        <tr>
+            <td class="text-center bg-light" style="width:30%">
+                <?php if (!empty($empresa->epr_logo)): ?>
+                    <img src="<?= base_url('uploads/img/enterprice/' . $empresa->epr_logo) ?>"
+                         style="width:120px; height:auto;" alt="Logo">
+                     <?php endif; ?>
+                <h6 class="fw-bold"><?= esc($empresa->epr_nombre_comercial) ?></h6>
+                <small>RUC: <?= esc($empresa->epr_ruc) ?></small>
+            </td>
+
+            <td style="width:35%">
+                <p><?= esc($empresa->epr_direccion) ?></p>
+                <p><?= esc($empresa->epr_telefono) ?></p>
+                <p><?= esc($empresa->epr_email) ?></p>
+            </td>
+
+            <td class="text-center border" style="width:35%">
+                <h5 class="fw-bold">COMPRA</h5>
+                <h6 class="text-danger">
+                    #<?= str_pad($compra->comp_secuencial, 5, '0', STR_PAD_LEFT) ?>
+                </h6>
+                <p><?= date('d/m/Y', strtotime($compra->comp_fecha_emision)) ?></p>
+                <span class="badge <?= $estadoClase ?>"><?= $estadoTexto ?></span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="table table-bordered mb-4">
+        <tr>
+            <td style="width:50%">
+                <strong>Comprobante:</strong> <?= esc($numeroComprobante) ?><br>
+                <strong>Tipo:</strong> <?= esc($compra->comprobante_nombre) ?><br>
+                <strong>Sustento:</strong> <?= esc($compra->sus_nombre) ?><br>
+                <strong>Bodega:</strong> <?= esc($compra->bod_nombre) ?><br>
+                <strong>Centro de costo:</strong> <?= esc($compra->cc_nombre) ?>
+            </td>
+            <td style="width:50%">
+                <strong>Proveedor:</strong> <?= esc($compra->prov_razon_social) ?><br>
+                <strong>RUC:</strong> <?= esc($compra->prov_ruc) ?><br>
+                <strong>Dirección:</strong> <?= esc($compra->prov_direccion ?: '-') ?><br>
+                <strong>Tipo de pago:</strong> <?= esc($compra->comp_tipo_pago ?: '-') ?><br>
+                <strong>Usuario:</strong> <?= esc($compra->user_create) ?>
+            </td>
+        </tr>
+    </table>
+
+    <table class="table table-bordered">
+        <thead class="table-secondary">
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Lote</th>
+                <th class="text-end">Cant.</th>
+                <th class="text-end">P. bruto</th>
+                <th class="text-end">Desc.</th>
+                <th class="text-end">P. neto</th>
+                <th class="text-end">IVA</th>
+                <th class="text-end">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($compra->detalle as $item): ?>
+                <tr>
+                    <td><?= esc($item->prod_codigo) ?></td>
+                    <td><?= esc($item->prod_nombre) ?></td>
+                    <td><?= esc($item->lote ?: '-') ?></td>
+                    <td class="text-end"><?= number_format($item->compd_cantidad, 2) ?></td>
+                    <td class="text-end">$<?= number_format($item->compd_precio_bruto, 2) ?></td>
+                    <td class="text-end">$<?= number_format($item->compd_descuento_valor, 2) ?></td>
+                    <td class="text-end">$<?= number_format($item->compd_precio_neto, 2) ?></td>
+                    <td class="text-end">$<?= number_format($item->compd_total_iva_valor, 2) ?></td>
+                    <td class="text-end fw-bold">$<?= number_format($item->compd_total, 2) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <h6 class="fw-bold mt-4">Bases e impuestos</h6>
+
+    <table class="table table-bordered">
+        <thead class="table-secondary">
+            <tr>
+                <th>Impuesto</th>
+                <th class="text-end">Porcentaje</th>
+                <th class="text-end">Subtotal bruto</th>
+                <th class="text-end">Base neta</th>
+                <th class="text-end">Impuesto</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($compra->basesImpuestos as $base): ?>
+                <tr>
+                    <td><?= esc($base->imp_detalle) ?></td>
+                    <td class="text-end"><?= number_format($base->imp_porcentaje, 2) ?>%</td>
+                    <td class="text-end">$<?= number_format($base->subtotal_bruto, 2) ?></td>
+                    <td class="text-end">$<?= number_format($base->subtotal_neto, 2) ?></td>
+                    <td class="text-end">$<?= number_format($base->iva_valor, 2) ?></td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <table class="table table-bordered ms-auto" style="max-width:450px">
+        <tr>
+            <th>Subtotal bruto</th>
+            <td class="text-end">$<?= number_format($compra->comp_subtotal_bruto, 2) ?></td>
+        </tr>
+        <tr>
+            <th>Descuento por ítems</th>
+            <td class="text-end">$<?= number_format($compra->comp_descuento_items, 2) ?></td>
+        </tr>
+        <tr>
+            <th>Descuento global</th>
+            <td class="text-end">$<?= number_format($compra->comp_descuento_global, 2) ?></td>
+        </tr>
+        <tr>
+            <th>Subtotal neto</th>
+            <td class="text-end">$<?= number_format($compra->comp_subtotal_neto, 2) ?></td>
+        </tr>
+        <tr>
+            <th>IVA</th>
+            <td class="text-end">$<?= number_format($compra->comp_totaliva, 2) ?></td>
+        </tr>
+        <tr>
+            <th>ICE</th>
+            <td class="text-end">$<?= number_format($compra->comp_totalice, 2) ?></td>
+        </tr>
+        <tr>
+            <th>IRBPNR</th>
+            <td class="text-end">$<?= number_format($compra->comp_totalirbpnr, 2) ?></td>
+        </tr>
+        <tr>
+            <th>Recargo</th>
+            <td class="text-end">$<?= number_format($compra->comp_recargo, 2) ?></td>
+        </tr>
+        <tr>
+            <th>Servicios adicionales</th>
+            <td class="text-end">$<?= number_format($compra->comp_servicios_adicionales, 2) ?></td>
+        </tr>
+        <tr class="table-success fw-bold">
+            <th>TOTAL</th>
+            <td class="text-end">$<?= number_format($compra->comp_total, 2) ?></td>
+        </tr>
+    </table>
+
+    <?php if ($compra->comp_estado === 'ARCHIVADO'): ?>
+        <?php if (!empty($compra->formasPagoAts)): ?>
+            <h6 class="fw-bold mt-4">Formas de pago ATS</h6>
+
+            <div class="border rounded p-3">
+                <?php foreach ($compra->formasPagoAts as $forma): ?>
+                    <span class="badge bg-info text-dark me-2">
+                        <?= esc($forma->codigo) ?> - <?= esc($forma->nombre) ?>
+                    </span>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!empty($compra->retencion)): ?>
+            <?php
+            $numeroRetencion = implode('-', array_filter([
+                $compra->retencion->ret_numero_establecimiento,
+                $compra->retencion->ret_numero_emision,
+                $compra->retencion->ret_numero_comprobante,
+            ]));
+            ?>
+
+            <h6 class="fw-bold mt-4">Retención</h6>
+
+            <table class="table table-bordered">
+                <tr>
+                    <th>Número</th>
+                    <td><?= esc($numeroRetencion) ?></td>
+                    <th>Fecha</th>
+                    <td>
+                        <?= date('d/m/Y', strtotime($compra->retencion->ret_fecha_emision)) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th>Autorización SRI</th>
+                    <td><?= esc($compra->retencion->ret_autorizacion_sri) ?></td>
+                    <th>Total retenido</th>
+                    <td class="fw-bold text-end">
+                        $<?= number_format($compra->retencion->ret_total_retenido, 2) ?>
+                    </td>
+                </tr>
+            </table>
+
+            <table class="table table-bordered">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Código</th>
+                        <th>Descripción</th>
+                        <th class="text-end">Base</th>
+                        <th class="text-end">Porcentaje</th>
+                        <th class="text-end">Retenido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($compra->retencion->detalle as $retencion): ?>
+                        <tr>
+                            <td><?= esc($retencion->retd_tipo_retencion) ?></td>
+                            <td><?= esc($retencion->retd_codigo_sri) ?></td>
+                            <td><?= esc($retencion->retd_descripcion) ?></td>
+                            <td class="text-end">
+                                $<?= number_format($retencion->retd_base_imponible, 2) ?>
+                            </td>
+                            <td class="text-end">
+                                <?= number_format($retencion->retd_porcentaje, 2) ?>%
+                            </td>
+                            <td class="text-end">
+                                $<?= number_format($retencion->retd_valor_retenido, 2) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if ($compra->comp_estado === 'ARCHIVADO' && !empty($compra->cuentaPorPagar)): ?>
+        <?php $cxp = $compra->cuentaPorPagar; ?>
+
+        <h6 class="fw-bold mt-4">Cuenta por pagar</h6>
+
+        <table class="table table-bordered">
+            <tr>
+                <th>Tipo de pago</th>
+                <td><?= esc($cxp->cxp_tipo_pago) ?></td>
+                <th>Estado</th>
+                <td><?= esc($cxp->cxp_estado) ?></td>
+            </tr>
+            <tr>
+                <th>Total por pagar</th>
+                <td class="text-end">$<?= number_format($cxp->cxp_total, 2) ?></td>
+                <th>Valor pagado</th>
+                <td class="text-end">$<?= number_format($cxp->cxp_valor_pagado, 2) ?></td>
+            </tr>
+            <tr>
+                <th>Saldo</th>
+                <td class="text-end fw-bold">$<?= number_format($cxp->cxp_saldo, 2) ?></td>
+                <th>Número de cuotas</th>
+                <td><?= (int) $cxp->cxp_num_cuotas ?></td>
+            </tr>
+        </table>
+
+        <?php if (!empty($cxp->cuotas)): ?>
+            <h6 class="fw-bold mt-3">Cuotas</h6>
+
+            <table class="table table-bordered">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>#</th>
+                        <th>Vencimiento</th>
+                        <th class="text-end">Valor</th>
+                        <th class="text-end">Pagado</th>
+                        <th class="text-end">Saldo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($cxp->cuotas as $cuota): ?>
+                        <tr>
+                            <td><?= (int) $cuota->cxpc_numero ?></td>
+                            <td><?= date('d/m/Y', strtotime($cuota->cxpc_fecha_vencimiento)) ?></td>
+                            <td class="text-end">$<?= number_format($cuota->cxpc_valor, 2) ?></td>
+                            <td class="text-end">$<?= number_format($cuota->cxpc_pagado, 2) ?></td>
+                            <td class="text-end">$<?= number_format($cuota->cxpc_saldo, 2) ?></td>
+                            <td><?= esc($cuota->cxpc_estado) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <?php if (!empty($cxp->pagos)): ?>
+            <h6 class="fw-bold mt-3">Pagos aplicados</h6>
+
+            <table class="table table-bordered">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Comprobante</th>
+                        <th>Forma de pago</th>
+                        <th>Banco</th>
+                        <th>Cuota</th>
+                        <th class="text-end">Valor aplicado</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($cxp->pagos as $pago): ?>
+                        <tr>
+                            <td><?= date('d/m/Y', strtotime($pago->pg_fecha)) ?></td>
+                            <td><?= esc($pago->pg_numero_secuencial) ?></td>
+                            <td><?= esc($pago->forma_pago ?: '-') ?></td>
+                            <td><?= esc($pago->banco ?: '-') ?></td>
+                            <td><?= esc($pago->numero_cuota ?: '-') ?></td>
+                            <td class="text-end">$<?= number_format($pago->valor_aplicado, 2) ?></td>
+                            <td><?= esc($pago->pg_estado) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    <?php endif; ?>
+
+    <?php if ($compra->comp_estado === 'ARCHIVADO' && !empty($compra->asientoContable)): ?>
+        <?php $asiento = $compra->asientoContable; ?>
+
+        <h6 class="fw-bold mt-4">Asiento contable</h6>
+
+        <table class="table table-bordered">
+            <tr>
+                <th>Número de asiento</th>
+                <td><?= (int) $asiento->ac_num_asiento ?></td>
+                <th>Fecha</th>
+                <td><?= date('d/m/Y', strtotime($asiento->ac_fecha)) ?></td>
+            </tr>
+            <tr>
+                <th>Detalle</th>
+                <td><?= esc($asiento->ac_detalle) ?></td>
+                <th>Usuario</th>
+                <td><?= esc($asiento->usuario_registra) ?></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered">
+            <thead class="table-secondary">
+                <tr>
+                    <th>Código</th>
+                    <th>Cuenta contable</th>
+                    <th>Detalle</th>
+                    <th>Centro de costo</th>
+                    <th class="text-end">Debe</th>
+                    <th class="text-end">Haber</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($asiento->detalle as $movimiento): ?>
+                    <tr>
+                        <td><?= esc($movimiento->codigo_cuenta_contable) ?></td>
+                        <td><?= esc($movimiento->cuenta_contable) ?></td>
+                        <td><?= esc($movimiento->acd_detalle) ?></td>
+                        <td><?= esc($movimiento->centro_costo ?: '-') ?></td>
+                        <td class="text-end">
+                            <?= $movimiento->acd_tipo === 'DEBE' ? '$' . number_format($movimiento->acd_valor, 2) : '-' ?>
+                        </td>
+                        <td class="text-end">
+                            <?= $movimiento->acd_tipo === 'HABER' ? '$' . number_format($movimiento->acd_valor, 2) : '-' ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+            <tfoot class="table-success fw-bold">
+                <tr>
+                    <td colspan="4" class="text-end">TOTALES</td>
+                    <td class="text-end">$<?= number_format($asiento->totalDebe, 2) ?></td>
+                    <td class="text-end">$<?= number_format($asiento->totalHaber, 2) ?></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <?php if (abs($asiento->totalDebe - $asiento->totalHaber) > 0.01): ?>
+            <div class="alert alert-danger">
+                El asiento contable no está cuadrado.
+            </div>
+        <?php endif; ?>
+    <?php endif; ?>
+</div>

@@ -55,26 +55,92 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </template>
                 </td>
                 <td>{{zfill(lp.id)}}</td>
-                <td>{{lp.prod_codigo}}</td>
-                <td>{{lp.prod_nombre}}</td>
-                <td>{{lp.um_nombre_corto}}</td>
-                <td>{{lp.prod_stockactual}}</td>                     
-                <td>{{lp.mrc_nombre? lp.mrc_nombre: "-"}}</td>
-                <td>{{lp.gr_nombre}}</td>
-                <td>{{lp.sgr_nombre}}</td>
-                <td>{{lp.prod_costopromedio}}</td>
-                <td>{{lp.prod_costoultimo}}</td>
-                <td>{{lp.prod_costoalto}}</td>
-                <td>{{parseFloat(lp.pp_valor).toFixed(2)}}</td>
-                <td>{{lp.tp_nombre}}</td>
-                <td> IVA {{parseFloat(lp.prod_ivaporcentage).toFixed(0)}}%</td>
-                <td> <span v-if="lp.prod_compra == 1" class="badge badge-primary">SI</span><span v-else class="badge badge-secondary">NO</span></td>
-                <td> <span v-if="lp.prod_venta == 1" class="badge badge-primary">SI</span><span v-else class="badge badge-secondary">NO</span></td>
-                <td> <span v-if="lp.prod_isservicio == 1" class="badge badge-primary">SI</span><span v-else class="badge badge-secondary">NO</span></td>
-                <td> <span v-if="lp.prod_ctrllote == 1" class="badge badge-primary">SI</span><span v-else class="badge badge-secondary">NO</span></td>
-                <td> <span v-if="lp.prod_tiene_ice == 1" class="badge badge-primary">SI</span><span v-else class="badge badge-secondary">NO</span></td>
-                <td>{{lp.prod_cuentacontablecompras}}</td>
-                <td>{{lp.prod_cuentacontableventas}}</td>
+                <td><span>{{ lp.prod_codigo }}</span> </td>
+
+                <td> <span>{{ lp.prod_nombre }}</span></td>
+
+                <td>
+                    <span v-if="lp.um_nombre_corto">{{ lp.um_nombre_corto }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td> <span>{{ lp.prod_stockactual }}</span> </td>
+
+                <td>
+                    <span v-if="lp.mrc_nombre">{{ lp.mrc_nombre }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.gr_nombre">{{ lp.gr_nombre }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.sgr_nombre">{{ lp.sgr_nombre }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td> <span>{{ lp.prod_costopromedio }}</span> </td>
+
+                <td> <span>{{ lp.prod_costoultimo }}</span> </td>
+
+                <td>
+                    <span v-if="lp.prod_costoalto != null">{{ lp.prod_costoalto }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.pp_valor != null">{{ parseFloat(lp.pp_valor).toFixed(2) }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.tp_nombre">{{ lp.tp_nombre }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.prod_ivaporcentage != null">
+                        IVA {{ parseFloat(lp.prod_ivaporcentage).toFixed(0) }}%
+                    </span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.prod_compra == 1" class="badge bg-primary">SI</span>
+                    <span v-else class="badge bg-secondary">NO</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.prod_venta == 1" class="badge bg-primary">SI</span>
+                    <span v-else class="badge bg-secondary">NO</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.prod_isservicio == 1" class="badge bg-primary">SI</span>
+                    <span v-else class="badge bg-secondary">NO</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.prod_ctrllote == 1" class="badge bg-primary">SI</span>
+                    <span v-else class="badge bg-secondary">NO</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.prod_tiene_ice == 1" class="badge bg-primary">SI</span>
+                    <span v-else class="badge bg-secondary">NO</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.fk_cuentacontablecompras">{{ lp.fk_cuentacontablecompras }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
+
+                <td>
+                    <span v-if="lp.fk_cuentacontableventas">{{ lp.fk_cuentacontableventas }}</span>
+                    <span v-else class="text-muted fst-italic">No registra</span>
+                </td>
 
                 <td v-if="lp.prod_estado == 1"><span class="badge bg-success"><i class="fas fa-check-double"></i>  Activo</span></td>
                 <td v-else><span class="badge bg-danger"><i class="fas fa-stop-circle"></i> Inactivo</span></td>

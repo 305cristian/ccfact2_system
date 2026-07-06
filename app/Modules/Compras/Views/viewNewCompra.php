@@ -13,7 +13,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to c
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
 <?php
-
 /** @var array $listaTiposCompra */
 /** @var array $listaTiposComprobantes */
 /** @var array $listaFormasPago */
@@ -24,15 +23,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 /** @var array $listaRetenciones */
 /** @var array $listaCuentasContables */
 /** @var array $listaImpuestosTarifa */
+/** @var array $listaBancos */
 /** @var object $dataProveedor */
 /** @var object $dataCompra */
 /** @var int $bodegaId */
-/** @var bool $permitirDuplicados */?>
+/** @var bool $permitirDuplicados */
+?>
 
 <style>
     .multiselect__tags {
         border-radius: 5px 0px 0px 5px
-    }  
+    }
 </style>
 <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
 
@@ -374,7 +375,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <!--VIEW ANEXO ATS-->
 
             <!--VIEW RETENCION-->
-            <?php echo view('\Modules\Compras\Views\viewRetencion') ?>
+            <div v-if="formCompra.compEstado === 'ARCHIVADO'">
+                <?php echo view('\Modules\Compras\Views\viewRetencion') ?>
+            </div>
             <!--VIEW RETENCION-->
 
             <!-- Botones de Control -->
@@ -395,6 +398,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     <!--MODAL FINALIZAR COMPRA-->
     <?php echo view('\Modules\Compras\Views\viewPagos') ?>
     <!--CLOSE MODAL FINALIZAR COMPRA-->
+
+    <?php echo view('\Modules\Compras\Views\reportes\viewModalReport') ?>
 </div>
 
 <script type="text/javascript">
@@ -416,6 +421,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var ivaPrdeterminado =<?= ivaPredeterminado(); ?>;
     var valorMaximoATSSRI =<?= getSettings('VALOR_MAXIMO_ANEXO_ATS_SRI') ?>;
     var listaImpuestosTarifa = <?php echo json_encode($listaImpuestosTarifa); ?>;
+    var listaBancos = <?php echo json_encode($listaBancos); ?>;
 
     if (window.appCompra) {
         window.appCompra.unmount();
@@ -432,6 +438,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             return {
 
                 url: siteUrl,
+                idCompra: dataCompra?.id ?? null,
                 isEdit: false,
                 ivaPrdeterminado: ivaPrdeterminado,
 
@@ -483,6 +490,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaRetencionesSeleccionadas: [],
                 listaCuentasContables: listaCuentasContables,
                 listaImpuestosTarifa: listaImpuestosTarifa,
+                listaBancosSimulados: listaBancos,
 
                 // =========================
                 // BUSCADOR PRODUCTOS
@@ -495,14 +503,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 // DETALLE
                 // =========================
                 listaCartData: [],
-
-                // =========================
-                // TOTALES
-                // =========================
-                totalSubtotal: 0,
-                totalIva: 0,
-                totalIrbpnr: 0,
-                totalGeneral: 0,
 
                 // =========================
                 // CONTROL
@@ -519,6 +519,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 // MODAL PAGOS CUOTAS
                 // =========================
                 modalPagoInstance: null,
+                modalReporteInstance: null,
+                secuencialCompra: null,
+                cargandoDetalle: false,
+                detalleHtml: '',
 
                 pagos: {
                     tipoPago: '',
@@ -530,7 +534,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     cuentaContablePago: null,
                     nota: '',
-                    banco: '',
+                    banco: null,
 
                     //TRANSFERENCIA
                     numeroTransferencia: '',
@@ -547,6 +551,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     ultimosDigitos: '',
                     fechaVoucher: '',
                 },
+                erroresPago: {},
 
                 // =========================
                 // RETENCION
@@ -555,7 +560,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     asumirRetencion: 'NO_ASUMIR',
                     compAplicaRetencion: true,
                     compNoSujetoRetecion: false,
-                    retNumeroComprobnate: '',
+                    baseIvaBienes: 0,
+                    baseIvaServicios: 0,
+                    baseRenta: 0,
+                    retNumeroComprobante: '',
                     retNumeroEstablecimiento: '',
                     retNumeroEmision: '',
                     retFechaEmision: '',
@@ -613,9 +621,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         mounted() {
             this.formCompra.compBodega = this.listaBodegas.find(val => val.id === bodegaIdComp);
             this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(val => val.id === '1');
+
+            if (dataCompra) {
+                this.cargarDatosCompra();
+            }
+
             this.$nextTick(() => {
                 if (this.$refs.modalFinalizar) {
                     this.modalPagoInstance = new bootstrap.Modal(this.$refs.modalFinalizar);
+                }
+
+                if (this.$refs.modalReport) {
+                    this.modalReporteInstance = new bootstrap.Modal(this.$refs.modalReport);
                 }
             });
         },
@@ -681,6 +698,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return true;
                 });
 
+            },
+            totalRetenidoCompra() {
+                if (
+                        this.formCompra.compEstado !== 'ARCHIVADO' ||
+                        !this.formRetencion.compAplicaRetencion ||
+                        this.formRetencion.compNoSujetoRetecion
+                        ) {
+                    return 0;
+                }
+
+                return this.listaRetencionesSeleccionadas.reduce(
+                        (total, retencion) => total + Number(retencion.valorRetenido || 0), 0);
+            },
+            totalPagarCompra() {
+                const totalFactura = Number(this.totales.totalGeneral || 0);
+                return Math.max(0, totalFactura - this.totalRetenidoCompra);
             }
         },
         watch: {
@@ -689,17 +722,58 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 handler() {
                     this.validarCuotas();
                 }
-            },
-            'formRetencion.compNoSujetoRetecion'(val) {
-                if (val) {
-//                    this.modal.retIvaBienes = null;
-//                    this.modal.retIvaServicios = null;
-//                    this.modal.retValorIva = 0;
-                }
             }
         },
 
         methods: {
+
+            cargarDatosCompra() {
+                this.isEdit = true;
+
+                const buscarPorId = (lista, id) => lista.find(item => String(item.id) === String(id));
+
+                this.formCompra.compFechaEmision = dataCompra.comp_fecha_emision;
+
+                this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(item => String(item.comp_codigo) === String(dataCompra.comp_tipo_comprobante_cod));
+
+                this.formCompra.compNumeroComprobante = dataCompra.comp_numero_comprobante || '';
+
+                this.formCompra.compNumeroEstablecimiento = dataCompra.comp_numero_establecimiento || '';
+
+                this.formCompra.compNumeroEmision = dataCompra.comp_numero_emision || '';
+
+                this.formCompra.compFechaCaducidad = dataCompra.comp_fecha_vencimiento_autorizacion || '';
+
+                this.formCompra.compAutSRI = dataCompra.comp_autorizacion_sri || '';
+
+                this.formCompra.compProveedor = dataProveedor || null;
+
+                this.formCompra.compBodega = buscarPorId(this.listaBodegas, dataCompra.fk_bodega);
+
+                this.formCompra.compSustento = this.listaSustentos.find(item => String(item.sus_codigo) === String(dataCompra.cod_sustento));
+
+                this.formCompra.compCentroCosto = buscarPorId(this.listaCentroCostos, dataCompra.fk_centro_costo);
+
+                this.formCompra.compTipoCompra = buscarPorId(this.listaTiposCompra, dataCompra.fk_tipo_compra);
+
+                this.formCompra.compTipoCosto = buscarPorId(this.listaTiposCostos, dataCompra.tipo_costo);
+
+                this.formCompra.compEsGasto = Number(dataCompra.comp_es_gasto) === 1;
+
+                this.formCompra.compEstado = dataCompra.comp_estado;
+
+                this.formCompra.compObservaciones = dataCompra.comp_observacion || '';
+
+                this.formCompra.compPermitirDuplicados = dataCompra.comp_items_duplicados === 'true';
+
+                this.formCompra.tieneOdc = Boolean(dataCompra.fk_orden_compra);
+
+                this.formCompra.compODC = dataCompra.fk_orden_compra ?
+                        {
+                            id: dataCompra.fk_orden_compra,
+                            value: `#${dataCompra.fk_orden_compra}`
+                        } : null;
+            },
 
             //SEARCH PROVEEDORES
             searchProveedor(dataSerach) {
@@ -721,18 +795,135 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             },
 
-            abrirModalFinalizar() {
+            async abrirModalFinalizar() {
+
+                const camposRequeridos = [
+                    {valor: this.formCompra.compTipoComprobante, mensaje: 'Debe seleccionar el tipo de comprobante'},
+                    {valor: this.formCompra.compSustento, mensaje: 'Debe seleccionar el tipo de sustento'},
+                    {valor: this.formCompra.compTipoCompra, mensaje: 'Debe seleccionar el tipo de compra'},
+                    {valor: this.formCompra.compNumeroEstablecimiento, mensaje: 'Debe ingresar el número de establecimiento'},
+                    {valor: this.formCompra.compNumeroEmision, mensaje: 'Debe ingresar el punto de emisión'},
+                    {valor: this.formCompra.compNumeroComprobante, mensaje: 'Debe ingresar el número de factura'},
+                    {valor: this.formCompra.compFechaCaducidad, mensaje: 'Debe seleccionar la fecha de caducidad del comprobante'},
+                    {valor: this.formCompra.compAutSRI, mensaje: 'Debe ingresar la autorización SRI'},
+                    {valor: this.formCompra.compProveedor, mensaje: 'Debe seleccionar un proveedor'},
+                    {valor: this.formCompra.compFechaEmision, mensaje: 'Debe seleccionar la fecha de emisión'},
+                    {valor: this.formCompra.compBodega, mensaje: 'Debe seleccionar una bodega'},
+                    {valor: this.formCompra.compCentroCosto, mensaje: 'Debe seleccionar un centro de costos'},
+                    {valor: this.formCompra.compTipoCosto, mensaje: 'Debe seleccionar el tipo de costo'},
+                    {valor: this.formCompra.compEstado, mensaje: 'Debe seleccionar el estado de la compra'}
+                ];
+
+                const campoFaltante = camposRequeridos.find(campo => {
+                    if (campo.valor === null || campo.valor === undefined) {
+                        return true;
+                    }
+
+                    return typeof campo.valor === 'string' && campo.valor.trim() === '';
+                });
+
+                if (campoFaltante) {
+                    sweet_msg_toast('warning', campoFaltante.mensaje);
+                    return;
+                }
+
+                if (this.formCompra.tieneOdc && !this.formCompra.compODC) {
+                    sweet_msg_toast('warning', 'Debe seleccionar una orden de compra');
+                    return;
+                }
 
                 if (!this.listaCartData.length) {
-                    sweet_msg_toast('warning', 'Debe agregar productos');
+                    sweet_msg_toast('warning', 'Debe agregar al menos un producto o servicio');
                     return;
+                }
+
+                const requiereFormaPagoAts =
+                        this.formCompra.compEstado === 'ARCHIVADO' &&
+                        Number(this.totales.totalGeneral) >= Number(this.valorMaximoATSSRI);
+
+                if (requiereFormaPagoAts && (!Array.isArray(this.ats.formaPago) || !this.ats.formaPago.length)) {
+                    sweet_msg_toast('warning', 'Debe seleccionar al menos una forma de pago ATS');
+                    return;
+                }
+
+                const itemInvalido = this.listaCartData.find(item =>
+                    Number(item.qty ?? item.cantidad) <= 0 || Number(item.price ?? item.precio) <= 0
+                );
+
+                if (itemInvalido) {
+                    sweet_msg_toast('warning', `Revise la cantidad y el precio del producto ${itemInvalido.name ?? itemInvalido.codigo}`);
+                    return;
+                }
+
+                //Cuando la compra se guarda en pendiente solo registra la compra y el detalle, omite todo proceso contable y kardex
+                if (this.formCompra.compEstado === 'BORRADOR') {
+                    await this.guardarCompra();
+                    return;
+                }
+
+                const aplicaRetencion = Boolean(this.formRetencion.compAplicaRetencion);
+                const noSujetoRetencion = Boolean(this.formRetencion.compNoSujetoRetecion);
+
+                if (!aplicaRetencion && !noSujetoRetencion) {
+                    sweet_msg_toast('warning', 'Debe indicar si la compra aplica retención');
+                    return;
+                }
+
+                if (aplicaRetencion && !noSujetoRetencion) {
+                    const camposRetencion = [
+                        {
+                            valor: this.formRetencion.retNumeroEstablecimiento,
+                            mensaje: 'Debe ingresar el número de establecimiento de la retención'
+                        },
+                        {
+                            valor: this.formRetencion.retNumeroEmision,
+                            mensaje: 'Debe ingresar el punto de emisión de la retención'
+                        },
+                        {
+                            valor: this.formRetencion.retNumeroComprobante,
+                            mensaje: 'Debe ingresar el número de comprobante de la retención'
+                        },
+                        {
+                            valor: this.formRetencion.retFechaEmision,
+                            mensaje: 'Debe seleccionar la fecha de emisión de la retención'
+                        },
+                        {
+                            valor: this.formRetencion.retAutorizacionSri,
+                            mensaje: 'Debe ingresar la autorización SRI de la retención'
+                        }
+                    ];
+
+                    const campoRetencionFaltante = camposRetencion.find(campo =>
+                        campo.valor === null ||
+                                campo.valor === undefined ||
+                                (typeof campo.valor === 'string' && campo.valor.trim() === '')
+                    );
+
+                    if (campoRetencionFaltante) {
+                        sweet_msg_toast('warning', campoRetencionFaltante.mensaje);
+                        return;
+                    }
+
+                    if (!this.listaRetencionesSeleccionadas.length) {
+                        sweet_msg_toast('warning', 'Debe aplicar al menos una retención antes de finalizar');
+                        return;
+                    }
+
+                    const retencionInvalida = this.listaRetencionesSeleccionadas.some(retencion =>
+                        Number(retencion.base) <= 0 || Number(retencion.valorRetenido) <= 0
+                    );
+
+                    if (retencionInvalida) {
+                        sweet_msg_toast('warning', 'Revise las bases y valores de las retenciones aplicadas');
+                        return;
+                    }
                 }
 
                 this.modalPagoInstance.show();
             },
             generarCuotas() {
 
-                let total = parseFloat(this.totalGeneral);
+                let total = Number(this.totalPagarCompra);
                 let cuotas = parseInt(this.pagos.cuotas);
                 let dias = parseInt(this.pagos.dias);
 
@@ -775,26 +966,132 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 this.pagos.listaCuotas = cuotasArray;
-
-                sweet_msg_toast('success', 'Cuotas generadas correctamente');
             },
             validarCuotas() {
 
+                delete this.erroresPago.listaCuotas;
+                delete this.erroresPago.totalCuotas;
+
                 if (!this.pagos.listaCuotas.length) {
-                    sweet_msg_toast('warning', 'Debe generar las cuotas');
+                    this.erroresPago.listaCuotas = 'Debe generar al menos una cuota';
                     return false;
                 }
 
                 let suma = this.pagos.listaCuotas.reduce((acc, c) => acc + parseFloat(c.valor || 0), 0);
 
-                let total = parseFloat(this.totalGeneral);
+                let total = Number(this.totalPagarCompra);
 
                 if (parseFloat(suma.toFixed(4)) !== parseFloat(total.toFixed(4))) {
-                    sweet_msg_toast('error', 'Las cuotas no cuadran con el total');
+                    this.erroresPago.totalCuotas = 'La suma de las cuotas debe ser igual al valor neto a pagar';
                     return false;
                 }
 
                 return true;
+            },
+
+            validarDatosPago() {
+                this.erroresPago = {};
+
+                if (!this.pagos.tipoPago) {
+                    this.erroresPago.tipoPago = 'Debe seleccionar la forma de pago';
+                }
+
+                if (Number(this.totalPagarCompra) <= 0) {
+                    this.erroresPago.totalPagar = 'El valor a pagar debe ser mayor a cero';
+                }
+
+                if (this.pagos.tipoPago === 'CREDITO') {
+                    if (Number(this.pagos.cuotas) <= 0) {
+                        this.erroresPago.cuotas = 'Debe ingresar un número de cuotas válido';
+                    }
+
+                    if (Number(this.pagos.dias) <= 0) {
+                        this.erroresPago.dias = 'Debe ingresar los días de crédito';
+                    }
+
+                    if (!this.pagos.fechaVenceCredito) {
+                        this.erroresPago.fechaVenceCredito = 'Debe seleccionar la fecha de vencimiento';
+                    }
+
+                    this.pagos.listaCuotas.forEach((cuota, index) => {
+                        if (!cuota.fecha) {
+                            this.erroresPago[`cuotaFecha_${index}`] = 'Seleccione la fecha';
+                        }
+                        if (Number(cuota.valor) <= 0) {
+                            this.erroresPago[`cuotaValor_${index}`] = 'Ingrese un valor mayor a cero';
+                        }
+                    });
+
+                    this.validarCuotas();
+                }
+
+                if (this.pagos.tipoPago === 'CONTADO') {
+                    const camposPagoContado = [
+                        {
+                            campo: 'formaPago',
+                            valor: this.pagos.formaPago,
+                            mensaje: 'Debe seleccionar el método de pago'
+                        },
+                        {
+                            campo: 'cuentaContablePago',
+                            valor: this.pagos.cuentaContablePago,
+                            mensaje: 'Debe seleccionar la cuenta contable del pago'
+                        }
+                    ];
+
+                    const formaPago = this.pagos.formaPago?.cod;
+
+                    if (formaPago === '01') {
+                        camposPagoContado.push({
+                            campo: 'nota',
+                            valor: this.pagos.nota,
+                            mensaje: 'Debe ingresar una nota para el pago en efectivo'
+                        });
+                    } else if (formaPago === '02') {
+                        camposPagoContado.push(
+                                {campo: 'banco', valor: this.pagos.banco, mensaje: 'Debe ingresar el banco de la transferencia'},
+                                {campo: 'numeroTransferencia', valor: this.pagos.numeroTransferencia, mensaje: 'Debe ingresar el número de transferencia'},
+                                {campo: 'fechaTransferencia', valor: this.pagos.fechaTransferencia, mensaje: 'Debe seleccionar la fecha de transferencia'},
+                                {campo: 'nota', valor: this.pagos.nota, mensaje: 'Debe ingresar una nota para la transferencia'}
+                        );
+                    } else if (formaPago === '03') {
+                        camposPagoContado.push(
+                                {campo: 'banco', valor: this.pagos.banco, mensaje: 'Debe ingresar el banco del cheque'},
+                                {campo: 'numeroCheque', valor: this.pagos.numeroCheque, mensaje: 'Debe ingresar el número de cheque'},
+                                {campo: 'fechaCheque', valor: this.pagos.fechaCheque, mensaje: 'Debe seleccionar la fecha del cheque'}
+                        );
+                    } else if (formaPago === '04') {
+                        camposPagoContado.push(
+                                {campo: 'marcaTarjeta', valor: this.pagos.marcaTarjeta, mensaje: 'Debe seleccionar la marca de la tarjeta'},
+                                {campo: 'loteTarjeta', valor: this.pagos.loteTarjeta, mensaje: 'Debe ingresar el lote de la tarjeta'},
+                                {campo: 'autorizacionTarjeta', valor: this.pagos.autorizacionTarjeta, mensaje: 'Debe ingresar la autorización de la tarjeta'},
+                                {campo: 'ultimosDigitos', valor: this.pagos.ultimosDigitos, mensaje: 'Debe ingresar los últimos cuatro dígitos de la tarjeta'},
+                                {campo: 'fechaVoucher', valor: this.pagos.fechaVoucher, mensaje: 'Debe seleccionar la fecha del voucher'},
+                                {campo: 'nota', valor: this.pagos.nota, mensaje: 'Debe ingresar una nota para el pago con tarjeta'}
+                        );
+                    }
+
+                    camposPagoContado.forEach(campo => {
+                        const estaVacio =
+                                campo.valor === null ||
+                                campo.valor === undefined ||
+                                (typeof campo.valor === 'string' && campo.valor.trim() === '');
+
+                        if (estaVacio) {
+                            this.erroresPago[campo.campo] = campo.mensaje;
+                        }
+                    });
+
+                    if (
+                            formaPago === '04' &&
+                            this.pagos.ultimosDigitos &&
+                            !/^\d{4}$/.test(String(this.pagos.ultimosDigitos))
+                            ) {
+                        this.erroresPago.ultimosDigitos = 'Ingrese exactamente cuatro números';
+                    }
+                }
+
+                return Object.keys(this.erroresPago).length === 0;
             },
 
             resetFormulario() {
@@ -807,25 +1104,67 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     cuotas: 1,
                     dias: 0,
                     fechaVenceCredito: '',
-                    listaCuotas: []
+                    listaCuotas: [],
+                    cuentaContablePago: null,
+                    nota: '',
+                    banco: null,
+                    numeroTransferencia: '',
+                    fechaTransferencia: '',
+                    numeroCheque: '',
+                    fechaCheque: '',
+                    marcaTarjeta: '',
+                    loteTarjeta: '',
+                    autorizacionTarjeta: '',
+                    ultimosDigitos: '',
+                    fechaVoucher: ''
                 };
                 this.formRetencion = {
                     asumirRetencion: 'NO_ASUMIR',
                     compAplicaRetencion: true,
                     compNoSujetoRetecion: false,
-                    retNumeroComprobnate: '',
+                    baseIvaBienes: 0,
+                    baseIvaServicios: 0,
+                    baseRenta: 0,
+                    retNumeroComprobante: '',
                     retNumeroEstablecimiento: '',
                     retNumeroEmision: '',
                     retFechaEmision: '',
                     retAutorizacionSri: '',
                     retDetalle: {}
                 };
-                this.totalGeneral = 0;
+                this.listaRetencionesSeleccionadas = [];
+                this.retencionBienes = '';
+                this.retencionServicios = '';
+                this.retencionRenta = '';
+                this.erroresPago = {};
+
+                this.totales = {
+                    totalArticles: 0,
+                    totalItems: 0,
+                    totalSubtotalBruto: 0,
+                    totalBienes: 0,
+                    totalServicios: 0,
+                    tarifCeroNeto: 0,
+                    tarifIvaNeto: 0,
+                    totalIva: 0,
+                    totalIce: 0,
+                    totalIrbpnr: 0,
+                    totalDescuentoGlobal: 0,
+                    totalDescuentoItems: 0,
+                    totalSubtotalNeto: 0,
+                    totalGeneral: 0,
+                    tarifNoObjetoNeto: 0,
+                    tarifExcentoNeto: 0
+                };
+
+                this.modalPagoInstance.hide();
+
             },
 
             async guardarCompra() {
 
                 try {
+                    const esArchivado = this.formCompra.compEstado === 'ARCHIVADO';
 
                     // =========================
                     // VALIDACIONES BÁSICAS
@@ -840,71 +1179,158 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         return;
                     }
 
-                    // =========================
-                    // VALIDAR CUOTAS
-                    // =========================
-                    if (this.pagos.tipoPago === 'CREDITO') {
-                        if (!this.validarCuotas())
-                            return;
+                    if (esArchivado && !this.validarDatosPago()) {
+                        return;
                     }
 
                     // =========================
                     // ARMAR OBJETO COMPRA
                     // =========================
                     const compra = {
-                        ...this.formCompra,
-
+                        compFechaEmision: this.formCompra.compFechaEmision,
+                        compTipoComprobante: this.formCompra.compTipoComprobante?.comp_codigo ?? null,
+                        compTipoComprobanteId: this.formCompra.compTipoComprobante?.id ?? null,
+                        compNumeroComprobante: this.formCompra.compNumeroComprobante?.trim(),
+                        compNumeroEstablecimiento: this.formCompra.compNumeroEstablecimiento?.trim(),
+                        compNumeroEmision: this.formCompra.compNumeroEmision?.trim(),
+                        compFechaCaducidad: this.formCompra.compFechaCaducidad,
+                        compAutSRI: this.formCompra.compAutSRI?.trim(),
                         compProveedor: this.formCompra.compProveedor?.id,
                         compBodega: this.formCompra.compBodega?.id,
-                        compFormaPago: this.pagos.formaPago?.id,
-
-                        compTipoPago: this.pagos.tipoPago,
-                        compCuotas: this.pagos.cuotas,
-                        compDiasCredito: this.pagos.dias,
-
-                        compTotal: this.totalGeneral,
-
-                        // 🔥 RETENCION
-                        compAplicaRetencion: this.formRetencion.compAplicaRetencion,
-                        retNumero: this.formRetencion.retNumero,
-                        retAutorizacion: this.formRetencion.retAutorizacion
+                        compSustento: this.formCompra.compSustento?.sus_codigo ?? null,
+                        compCentroCosto: this.formCompra.compCentroCosto?.id ?? null,
+                        compTipoCompra: this.formCompra.compTipoCompra?.id ?? null,
+                        compTipoCosto: this.formCompra.compTipoCosto?.id ?? null,
+                        compODC: this.formCompra.compODC?.id ?? null,
+                        compEsGasto: Boolean(this.formCompra.compEsGasto),
+                        compEstado: this.formCompra.compEstado,
+                        compObservaciones: this.formCompra.compObservaciones?.trim() ?? '',
+                        compPermitirDuplicados: Boolean(this.formCompra.compPermitirDuplicados),
+                        compTotal: Number(this.totales.totalGeneral || 0)
                     };
+
+                    if (esArchivado) {
+                        Object.assign(compra, {
+                            compFormaPago: this.pagos.formaPago?.cod ?? null,
+                            compTipoPago: this.pagos.tipoPago,
+                            compCuotas: Number(this.pagos.cuotas || 0),
+                            compDiasCredito: Number(this.pagos.dias || 0),
+                            compTotalRetenido: Number(this.totalRetenidoCompra || 0),
+                            compTotalPagar: Number(this.totalPagarCompra || 0)
+                        });
+                    }
 
                     // =========================
                     // ARMAR DETALLE
                     // =========================
-                    const detalle = this.listaCartData.map(i => ({
-                            producto_id: i.id,
-                            cantidad: i.cantidad,
-                            precio: i.precio,
-                            descuento: i.descuento,
-
-                            iva_porcentaje: i.iva_porcentaje,
-                            iva_valor: i.iva_valor,
-
-                            ice_porcentaje: i.ice_porcentaje,
-                            ice_valor: i.ice_valor,
-
-                            irbpnr_unitario: i.irbpnr_unitario,
-                            irbpnr_total: i.irbpnr_total,
-
-                            subtotal: i.subtotal,
-                            total: i.total
+                    const detalle = this.listaCartData.map(item => ({
+                            rowId: item.rowid,
+                            productoId: Number(item.id),
+                            codigo: item.codigo,
+                            nombre: item.name,
+                            cantidad: Number(item.qty || 0),
+                            precioBruto: Number(item.price || 0),
+                            descuentoValor: Number(item.discountValue || 0),
+                            descuentoPorcentaje: Number(item.discountPercent || 0),
+                            precioNeto: Number(item.priceNeto || 0),
+                            subtotalBruto: Number(item.subtotalBruto || 0),
+                            subtotalNeto: Number(item.subtotalNeto || 0),
+                            icePorcentaje: Number(item.icePorcent || 0),
+                            iceValorUnitario: Number(item.iceValUnit || 0),
+                            iceValorTotal: Number(item.iceValTotal || 0),
+                            impuestoTarifaId: item.impuestoSelect ?? null,
+                            impuestoCodigo: item.codigoImpuestoSelect ?? null,
+                            ivaPorcentaje: Number(item.ivaPorcent || 0),
+                            ivaValorUnitario: Number(item.ivaValUnit || 0),
+                            ivaValorTotal: Number(item.ivaValTotal || 0),
+                            baseIvaUnitario: Number(item.itemBaseIvaUnit || 0),
+                            baseIvaTotal: Number(item.itemBaseIvaTotal || 0),
+                            irbpnrUnitario: Number(item.irbpnrUnitario || 0),
+                            irbpnrTotal: Number(item.irbpnr_total || 0),
+                            total: Number(item.total || 0),
+                            cuentaContable: item.ctaContableProducto ?? null,
+                            centroCosto: item.centroCosto ?? null,
+                            controlaLote: Number(item.tieneLote || 0),
+                            lote: item.lote?.trim() || null,
+                            fechaElaboracion: item.fechaElaboracion || null,
+                            fechaCaducidad: item.fechaCaducidad || null,
+                            esServicio: Number(item.servicio || 0)
                         }));
+
+                    const ats = {
+                        residente: this.ats.residente,
+                        formasPago: esArchivado ? (this.ats.formaPago || []).map(forma => forma.codigo) : []
+                    };
+
+                    let retencion = null;
+
+                    if (esArchivado) {
+                        retencion = {
+                            aplica: Boolean(this.formRetencion.compAplicaRetencion),
+                            noSujeto: Boolean(this.formRetencion.compNoSujetoRetecion),
+                            asumir: this.formRetencion.asumirRetencion,
+                            numeroComprobante: this.formRetencion.retNumeroComprobante?.trim() || null,
+                            numeroEstablecimiento: this.formRetencion.retNumeroEstablecimiento?.trim() || null,
+                            numeroEmision: this.formRetencion.retNumeroEmision?.trim() || null,
+                            fechaEmision: this.formRetencion.retFechaEmision || null,
+                            autorizacionSri: this.formRetencion.retAutorizacionSri?.trim() || null,
+                            totalRetenido: Number(this.totalRetenidoCompra || 0),
+                            detalles: this.listaRetencionesSeleccionadas.map(item => ({
+                                    retencionId: Number(item.id),
+                                    tipo: item.ret_impuesto,
+                                    detalle: item.ret_impuesto_detalle,
+                                    codigoSri: item.ret_codigo,
+                                    descripcion: item.ret_nombre,
+                                    porcentaje: Number(item.ret_porcentaje || 0),
+                                    baseImponible: Number(item.base || 0),
+                                    valorRetenido: Number(item.valorRetenido || 0)
+                                }))
+                        };
+                    }
 
                     // =========================
                     // CUOTAS (SI APLICA)
                     // =========================
                     let cuotas = [];
 
-                    if (this.pagos.tipoPago === 'CREDITO') {
+                    if (esArchivado && this.pagos.tipoPago === 'CREDITO') {
                         cuotas = this.pagos.listaCuotas.map(c => ({
-                                numero: c.numero,
+                                numero: Number(c.numero),
                                 fecha: c.fecha,
-                                valor: c.valor,
-                                saldo: c.valor
+                                valor: Number(c.valor || 0),
+                                saldo: Number(c.valor || 0)
                             }));
                     }
+
+                    const valoresGlobales = {
+                        descuentoGlobal: Number(this.global.descuentoGlobal || 0),
+                        recargo: Number(this.global.recargo || 0),
+                        serviciosAdicionales: Number(this.global.serviciosAdc || 0)
+                    };
+
+                    const totales = {
+                        subtotalBruto: Number(this.totales.totalSubtotalBruto || 0),
+                        descuentoItems: Number(this.totales.totalDescuentoItems || 0),
+                        descuentoGlobal: Number(this.totales.totalDescuentoGlobal || 0),
+                        subtotalNeto: Number(this.totales.totalSubtotalNeto || 0),
+                        iva: Number(this.totales.totalIva || 0),
+                        ice: Number(this.totales.totalIce || 0),
+                        irbpnr: Number(this.totales.totalIrbpnr || 0),
+                        recargo: Number(this.global.recargo || 0),
+                        serviciosAdicionales: Number(this.global.serviciosAdc || 0),
+                        totalFactura: Number(this.totales.totalGeneral || 0),
+                        totalRetenido: Number(this.totalRetenidoCompra || 0),
+                        totalPagar: Number(this.totalPagarCompra || 0)
+                    };
+
+                    const basesImpuestos = this.basesImpuestoVista.map(base => ({
+                            codigo: base.codigo,
+                            detalle: base.detalle,
+                            porcentaje: Number(base.porcentaje || 0),
+                            subtotal_bruto: Number(base.subtotal_bruto || 0),
+                            subtotal_neto: Number(base.subtotal_neto || 0),
+                            iva: Number(base.iva || 0)
+                        }));
 
                     // =========================
                     // PAYLOAD FINAL
@@ -912,43 +1338,104 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     const payload = {
                         compra,
                         detalle,
-                        cuotas
+                        valoresGlobales,
+                        totales,
+                        basesImpuestos,
+                        ats
                     };
+
+                    if (this.isEdit) {
+                        payload.idCompra = Number(this.idCompra);
+                    }
+
+                    if (esArchivado) {
+                        payload.retencion = retencion;
+                        payload.cuotas = cuotas;
+                        payload.pago = {
+                            tipoPago: this.pagos.tipoPago,
+                            formaPago: this.pagos.formaPago?.cod ?? null,
+                            cuentaContable: this.pagos.cuentaContablePago?.ctad_codigo ?? null,
+                            banco: this.pagos.banco ? {
+                                codigo: this.pagos.banco.codigo,
+                                nombre: this.pagos.banco.nombre
+                            } : null,
+                            nota: this.pagos.nota?.trim() || null,
+                            numeroTransferencia: this.pagos.numeroTransferencia?.trim() || null,
+                            fechaTransferencia: this.pagos.fechaTransferencia || null,
+                            numeroCheque: this.pagos.numeroCheque?.trim() || null,
+                            fechaCheque: this.pagos.fechaCheque || null,
+                            marcaTarjeta: this.pagos.marcaTarjeta || null,
+                            loteTarjeta: this.pagos.loteTarjeta?.trim() || null,
+                            autorizacionTarjeta: this.pagos.autorizacionTarjeta?.trim() || null,
+                            ultimosDigitos: this.pagos.ultimosDigitos?.trim() || null,
+                            fechaVoucher: this.pagos.fechaVoucher || null,
+                            numeroCuotas: Number(this.pagos.cuotas || 0),
+                            diasCredito: Number(this.pagos.dias || 0),
+                            fechaVencimiento: this.pagos.fechaVenceCredito || null,
+                            totalFactura: Number(this.totales.totalGeneral || 0),
+                            totalRetenido: Number(this.totalRetenidoCompra || 0),
+                            totalPagar: Number(this.totalPagarCompra || 0)
+                        };
+                    }
 
                     // =========================
                     // ENVÍO
                     // =========================
-                    this.loading = true;
+                    this.loadingProcess = true;
 
                     const formData = new FormData();
                     formData.append('data', JSON.stringify(payload));
 
-                    const {data} = await axios.post(
-                            this.url + '/compras/saveCompra',
-                            formData
-                            );
+                    const ruta = this.isEdit ? '/compras/updateCompra' : '/compras/saveCompra';
+                    const {data} = await axios.post(this.url + ruta, formData);
 
-                    // =========================
-                    // RESPUESTA
-                    // =========================
                     if (data.status === 'success') {
-
-                        sweet_msg_toast('success', data.msg || 'Compra guardada');
-
-                        // 🔥 LIMPIAR TODO
-                        this.resetFormulario();
-
+                        const url = this.url + '/compras/nuevaCompra';
+                        this.modalPagoInstance?.hide();
+                        sweetMsgDialogConfirm(data.msg, this.verDetalle, data.data, url);
+                    } else if (data.status === 'warning') {
+                        sweet_msg_dialog('warning', data.msg || 'Alerta al guardar');
                     } else {
-                        sweet_msg_toast('error', data.msg || 'Error al guardar');
+                        sweet_msg_dialog('error', data.msg || 'Error al guardar');
+
                     }
 
                 } catch (e) {
 
-                    sweet_msg_toast('error', 'Error en el sistema');
+                    sweet_msg_dialog('error', 'Error en el sistema al procesar la compra');
 
                 } finally {
-                    this.loading = false;
+                    this.loadingProcess = false;
                 }
+            },
+
+            async verDetalle(compra) {
+                this.idCompra = compra.id;
+                this.secuencialCompra = compra.comp_secuencial;
+                this.detalleHtml = '';
+                this.cargandoDetalle = true;
+                this.modalReporteInstance.show();
+
+                try {
+                    const {data} = await axios.get(`${this.url}/compras/getDataDetalle/${compra.id}`);
+                    this.detalleHtml = data;
+                } catch (e) {
+                    this.modalReporteInstance.hide();
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.cargandoDetalle = false;
+                }
+            },
+
+            generarExcel() {
+                const contenido = document.getElementById('contentExport');
+                const titulo = `Compra_${this.zFill(this.secuencialCompra, 5)}`;
+
+                return generarExcelContent(contenido, titulo);
+            },
+
+            generarPDF() {
+                window.open(`${this.url}/compras/generarPDF/${this.idCompra}?download=1`, '_blank');
             },
 
             async changeBodega() {
@@ -1130,6 +1617,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     //Lista de impuestos (12,15,5, etc)
                     this.basesImpuesto = data.basesImpuesto;
+                    this.formRetencion.baseIvaBienes = Number(data.ivaBienes || 0);
+                    this.formRetencion.baseIvaServicios = Number(data.ivaServicios || 0);
+                    this.formRetencion.baseRenta = Number(data.baseRenta || 0);
 
                     this.global = {
                         descuentoGlobal: data.totalDescuentoGlobal,
@@ -1155,7 +1645,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 //                this.updateProductCart(item);
 
             },
-
 
             async cancelarCompra() {
                 Swal.fire({
@@ -1261,11 +1750,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return;
                 }
 
+                const base = retencion.ret_impuesto_detalle === 'IVA_BIENES'
+                        ? this.formRetencion.baseIvaBienes
+                        : this.formRetencion.baseIvaServicios;
+
                 this.listaRetencionesSeleccionadas.push({
                     ...retencion,
-                    base: this.formRetencion.baseIva ?? 0,
+                    base: base,
                     valorRetenido: this.calcularValorRetenido(
-                            this.formRetencion.baseIva,
+                            base,
                             retencion.ret_porcentaje
                             )
                 });
@@ -1326,7 +1819,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 this.pagos.nota = '';
 
-                this.pagos.banco = '';
+                this.pagos.banco = null;
                 this.pagos.numeroTransferencia = '';
                 this.pagos.fechaTransferencia = '';
 

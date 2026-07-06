@@ -6,7 +6,11 @@ use App\Controllers\BaseController;
 use Modules\Comun\Models\ProductoModel;
 use Modules\Comun\Models\SearchsModel;
 use Modules\Compras\Libraries\ComprasCartLib;
+use Modules\Compras\Libraries\ComprasLib;
+use Modules\Compras\Libraries\ComprasFinanzasLib;
+use Modules\Compras\Libraries\ComprasAsientosLib;
 use Modules\Comun\Libraries\CuentasConfigLib;
+use Modules\Compras\Models\ComprasModel;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -24,17 +28,25 @@ use Modules\Comun\Libraries\CuentasConfigLib;
 class IndexController extends BaseController {
 
     protected string $dirViewModule;
-    protected ComprasCartLib  $comprasCart;
+    protected ComprasCartLib $comprasCart;
+    protected ComprasLib $comprasLib;
+    protected ComprasFinanzasLib $comprasFinanzasLib;
+    protected ComprasAsientosLib $comprasAsientosLib;
     protected ProductoModel $prodModel;
     protected SearchsModel $searchModel;
     protected CuentasConfigLib $cuentasConfigLib;
+    protected ComprasModel $comprasModel;
 
     public function __construct() {
 
         $this->dirViewModule = 'Modules\Compras\Views';
         $this->comprasCart = new ComprasCartLib();
+        $this->comprasLib = new ComprasLib();
+        $this->comprasFinanzasLib = new ComprasFinanzasLib();
+        $this->comprasAsientosLib = new ComprasAsientosLib();
         $this->prodModel = new ProductoModel();
         $this->searchModel = new SearchsModel();
+        $this->comprasModel = new ComprasModel();
 
         //IMPORTAMOS LIBRERIAS
         $this->cuentasConfigLib = new CuentasConfigLib();
@@ -43,8 +55,7 @@ class IndexController extends BaseController {
     /**
      * Función para mostrar el dashboard principal del módulo de compras
      * @param int $moduloId El identificador del módulo a mostrar en el dashboard
-    */
-
+     */
     public function index(int $moduloId) {
         $this->user->validateSession();
         $data['moduloId'] = $moduloId;
@@ -69,13 +80,90 @@ class IndexController extends BaseController {
         }
     }
 
-    /**
-     * Función para cargar la vista de edición de compra con los datos de la compra especificada
-     * @param int $compraId El identificador único de la compra a editar
-    */
-    public function nuevaCompraEdit(int $compraId) {
+    public function indexEdit(int $compraId) {
         $view = $this->parametrosIndex($compraId);
         return view($this->dirTemplate . '\dashboard', $view);
+    }
+
+    public function loadCompraEdit(int $compraId) {
+
+        $respuesta = $this->loadDataCompraCart($compraId);
+
+        return $this->response->setJSON([
+                    'status' => $respuesta['status'],
+                    'msg' => $respuesta['status'] === 'success' ? 'ok' : $respuesta['msg'],
+                    'redirect' => $respuesta['status'] === 'success' ? site_url('compras/indexEdit/' . $compraId) : null,
+        ]);
+    }
+
+    private function loadDataCompraCart(int $compraId): array {
+
+        $compra = $this->comprasModel->getDataDetalle($compraId);
+
+        if (!$compra) {
+            return [
+                'status' => 'error',
+                'msg' => 'No se encontró la compra solicitada.',
+            ];
+        }
+
+        if ($compra->comp_estado !== 'BORRADOR') {
+            return [
+                'status' => 'error',
+                'msg' => 'Solo se pueden modificar compras en BORRADOR.',
+            ];
+        }
+
+        $this->comprasCart->destroy();
+
+        try {
+            foreach ($compra->detalle as $detalle) {
+                $item = [
+                    'id' => (int) $detalle->fk_producto,
+                    'qty' => (float) $detalle->compd_cantidad,
+                    'codigo' => $detalle->prod_codigo,
+                    'name' => $detalle->prod_nombre,
+                    'unidadMedida' => $detalle->um_nombre_corto,
+                    'price' => (float) $detalle->compd_precio_bruto,
+                    'tipoDescuento' => (float) $detalle->compd_descuento_porcentaje > 0 ? 'PORCENTAJE' : 'VALOR',
+                    'discountPercent' => (float) $detalle->compd_descuento_porcentaje,
+                    'discountValue' => (float) $detalle->compd_descuento_valor,
+                    'ivaPorcent' => (float) $detalle->compd_impt_porcentaje,
+                    'icePorcent' => (float) $detalle->compd_ice_porcentaje,
+                    'irbpnrUnitario' => (float) $detalle->compd_irbpnr,
+                    'impuestoSelect' => (int) $detalle->fk_impuesto_tarifa,
+                    'codigoImpuestoSelect' => $detalle->compd_impt_codigo,
+                    'detalleImpuestoSelect' => $detalle->impuesto_detalle,
+                    'tieneLote' => (int) $detalle->prod_ctrllote,
+                    'lote' => $detalle->lote,
+                    'fechaElaboracion' => $detalle->fecha_elaboracion,
+                    'fechaCaducidad' => $detalle->fecha_caducidad,
+                    'servicio' => (int) $detalle->prod_isservicio,
+                    'permitirDuplicados' => $compra->comp_items_duplicados,
+                    'centroCosto' => $detalle->compd_centro_costo,
+                    'ctaContableProducto' => $detalle->compd_cta_entrada,
+                    'codigoImport' => null,
+                    'isNewProduct' => 0,
+                ];
+
+                $this->comprasCart->insert($item);
+            }
+
+            $this->comprasCart->updateValoresGlobales(
+                    (float) $compra->comp_descuento_global,
+                    (float) $compra->comp_recargo,
+                    (float) $compra->comp_servicios_adicionales
+            );
+
+            return ['status' => 'success', 'msg' => ''];
+        } catch (\Throwable $e) {
+            $this->comprasCart->destroy();
+
+            return [
+                'status' => 'error',
+                'msg' => 'No se pudo cargar el borrador: ' . $e->getMessage(),
+            ];
+        }
     }
 
     public function parametrosIndex($compraId = null) {
@@ -94,6 +182,7 @@ class IndexController extends BaseController {
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
         $data['listaRetenciones'] = $this->ccm->getData('cc_retencion_sri', ['ret_estado' => 1], 'id, ret_codigo, ret_nombre, ret_porcentaje, ret_impuesto, ret_impuesto_detalle, CONCAT_WS(" - ",ret_codigo,ret_nombre,ret_porcentaje)retencionName');
+        $data['listaBancos'] = $this->ccm->getData('cc_bancos_list', ['banc_estado' => 1], 'id codigo, banc_nombre nombre, banc_tipo');
 
         $bodegaMainUsuario = bodegaMain($this->user->id);
 
@@ -112,7 +201,6 @@ class IndexController extends BaseController {
 
         return $send;
     }
-    
 
     /**
      * Función para generar una respuesta JSON con un formato estándar para las operaciones del módulo de compras
@@ -120,8 +208,8 @@ class IndexController extends BaseController {
      * @param string $mensaje Un mensaje descriptivo sobre el resultado de la operación
      * @param mixed $data (Opcional) Datos adicionales relacionados con la operación, como detalles del producto o información de la compra
      * @return JSON Respuesta formateada con el estado, mensaje y datos proporcionados
-    */
-    public function responseSetJSON( string $status, string $mensaje, mixed $data = null) {
+     */
+    public function responseSetJSON(string $status, string $mensaje, mixed $data = null) {
         return $this->response->setJSON([
                     'status' => $status,
                     'msg' => $mensaje,
@@ -129,12 +217,11 @@ class IndexController extends BaseController {
         ]);
     }
 
-
     /**
      * Función para agregar un producto al carrito de compras, validando la información del producto y calculando los impuestos correspondientes
      * @return JSON Respuesta con el estado de la operación, mensaje descriptivo y detalles del producto agregado al carrito
      * El método recibe los datos del producto a través de una solicitud POST en formato JSON, valida la información, obtiene los detalles del producto y sus impuestos, y luego agrega el producto al carrito utilizando la biblioteca ComprasCartLib. La respuesta JSON incluye el estado de la operación ('success' o 'warning'), un mensaje descriptivo y los detalles del producto agregado al carrito.
-    */
+     */
     public function insertProduct() {
         $dataPost = json_decode(file_get_contents('php://input'));
 
@@ -232,7 +319,6 @@ class IndexController extends BaseController {
         return $this->responseSetJSON('success', 'Producto agregado al carrito', $item);
     }
 
-
     /**
      * Función para mostrar los detalles del carrito de compras, incluyendo los productos agregados, totales y cálculos de impuestos
      * @return JSON Respuesta con los detalles del carrito de compras, como los productos agregados, totales, impuestos y otros cálculos relacionados
@@ -242,13 +328,14 @@ class IndexController extends BaseController {
      * Esta función es esencial para mantener actualizada la información del carrito de compras en la interfaz de usuario, permitiendo a los usuarios ver los detalles de los productos que han agregado, así como los cálculos relacionados con su compra antes de finalizarla.
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de compras, para actualizar dinámicamente la información del carrito sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios en el carrito de compras y proporcionar una experiencia de usuario fluida y eficiente.
      * En resumen, esta función es responsable de proporcionar una visión detallada y actualizada del carrito de compras, incluyendo los productos agregados, totales, impuestos y otros cálculos relevantes, a través de una respuesta JSON que puede ser utilizada para actualizar la interfaz de usuario del módulo de compras de manera dinámica.
-    */
-    public function showDetailCart() {
+     */
+    public function showDetailCart(int $key = 0) {
         $cartContent = array_values($this->comprasCart->getContent() ?? []);
 
         $dataCart = [
             'cartContent' => $cartContent ? array_reverse($cartContent) : null,
             'totalArticles' => $this->comprasCart->totalArticles(),
+            'totalItems' => count($cartContent),
             'totalSubtotalBruto' => $this->comprasCart->totalSubtotalBruto(),
             'totalSubtotalNeto' => $this->comprasCart->totalSubtotalNeto(),
             'totalIva' => $this->comprasCart->totalIva(),
@@ -276,9 +363,12 @@ class IndexController extends BaseController {
             'basesImpuesto' => $this->comprasCart->getImpuestos(),
         ];
 
+        if ($key === 1) {
+            return json_decode(json_encode($dataCart));
+        }
+
         return $this->response->setJSON($dataCart);
     }
-
 
     /**
      * Función para actualizar la información de un producto específico en el carrito de compras, incluyendo cantidad, precio, impuestos y descuentos
@@ -289,7 +379,7 @@ class IndexController extends BaseController {
      * agregado al carrito de compras, asegurando que los cálculos de impuestos y descuentos se actualicen correctamente en función de los cambios realizados. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios en el carrito de compras y proporcionar una experiencia de usuario fluida y eficiente.
      * En resumen, esta función es responsable de actualizar la información de un producto específico en el carrito de compras, incluyendo cantidad, precio, impuestos y descuentos, a través de una solicitud POST con datos en formato JSON, y devuelve una respuesta JSON con el resultado de la operación y los detalles del producto actualizado en el carrito.
      * 
-    */
+     */
     public function updateProduct() {
         $dataPost = json_decode(file_get_contents('php://input'));
 
@@ -369,12 +459,12 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('error', 'No se pudo actualizar el producto: ' . $ex->getMessage(), $rowId);
         }
     }
-    
+
     /**
      * Función para actualizar los valores globales del carrito de compras, como descuentos globales, recargos y servicios adicionales
      * @return JSON Respuesta con el estado de la operación y mensaje descriptivo sobre el resultado de la actualización de los valores globales del carrito de compras
      * El método recibe los valores globales a través de una solicitud POST en formato JSON,
-    */
+     */
     public function updateValoresGlobales() {
         $dataPost = json_decode(file_get_contents('php://input'));
 
@@ -390,11 +480,10 @@ class IndexController extends BaseController {
         }
     }
 
-
     /**
      * @param string $rowId El identificador único del producto en el carrito a eliminar
       @return JSON Respuesta con el estado de la operación y mensaje correspondiente
-    */
+     */
     public function deleteProduct($rowId) {
         try {
             $this->comprasCart->removeItem($rowId);
@@ -403,7 +492,6 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('error', 'No se pudo eliminar el producto del carrito: ' . $ex->getMessage(), $rowId);
         }
     }
-    
 
     /**
      * Función para cancelar el proceso de compra actual, eliminando todos los productos del carrito y restableciendo los valores globales
@@ -411,7 +499,7 @@ class IndexController extends BaseController {
      * El método destruye el contenido del carrito de compras utilizando la biblioteca ComprasCartLib, eliminando todos los productos agregados y restableciendo cualquier valor global asociado al proceso de compra. La respuesta JSON indica si la operación fue exitosa o si ocurrió un error durante el proceso de cancelación, proporcionando un mensaje descriptivo sobre el resultado de la operación. Esta función es esencial para permitir a los usuarios cancelar el proceso de compra en cualquier momento, asegurando que toda la información relacionada con el carrito de compras se elimine correctamente y se restablezca el estado del proceso para futuras compras.
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de compras, para permitir a los usuarios cancelar el proceso de compra sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar la cancelación del proceso de compra y proporcionar una experiencia de usuario fluida y eficiente.
      * En resumen, esta función es responsable de cancelar el proceso de compra actual, eliminando todos los productos del carrito y restableciendo los valores globales, a través de una solicitud AJAX, y devuelve una respuesta JSON con el resultado de la operación.
-    */
+     */
     public function cancelarCompra() {
         try {
             $this->comprasCart->destroy();
@@ -421,14 +509,369 @@ class IndexController extends BaseController {
         }
     }
 
+    public function anularCompra() {
+        $data = $this->request->getJSON();
+
+        if (!is_object($data)) {
+            return $this->responseSetJSON('warning', 'No se recibieron datos para anular la compra.');
+        }
+
+        $compraId = (int) ($data->compraId ?? 0);
+        $motivoAnulacion = trim((string) ($data->motivoAnulacion ?? ''));
+
+        if ($compraId <= 0) {
+            return $this->responseSetJSON('warning', 'El identificador de la compra no es válido.');
+        }
+
+        if ($motivoAnulacion === '') {
+            return $this->responseSetJSON('warning', 'Debe especificar el motivo de la anulación.');
+        }
+
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_secuencial, comp_estado', null, 1);
+
+        if (!$compra) {
+            return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
+        }
+
+        if (!in_array($compra->comp_estado, ['BORRADOR', 'ARCHIVADO'], true)) {
+            return $this->responseSetJSON('warning', 'La compra ya no se encuentra en un estado que permita anular.');
+        }
+
+        if ($compra->comp_estado === 'ARCHIVADO' && !getPeriodoContable(date('Y-m-d'))) {
+            return $this->responseSetJSON(
+                            'error',
+                            '<h5>Revise el periodo de cierre</h5><h6>No se encontro un periodo contable habil para la fecha de anulacion.</h6>'
+            );
+        }
+
+        $this->db->transBegin();
+
+        try {
+            if ($compra->comp_estado === 'BORRADOR') {
+                $estadoAnulado = 'ANULADA_EN_PENDIENTE';
+                $anulado = $this->comprasLib->anularCompraBorrador($compraId, $motivoAnulacion);
+            } else {
+                $estadoAnulado = 'ANULADA_EN_ARCHIVADA';
+
+                $this->comprasLib->revertirKardexCompra($compraId);
+                $this->comprasFinanzasLib->anularRetencionCompra($compraId);
+                $this->comprasFinanzasLib->anularPagosCompra($compraId);
+                $this->comprasFinanzasLib->anularCuentaPorPagarCompra($compraId);
+                $this->comprasAsientosLib->anularAsientoCompra($compraId);
+
+                $anulado = $this->comprasLib->anularCompraArchivada($compraId, $motivoAnulacion);
+            }
+
+            if (!$anulado || $this->db->transStatus() === false) {
+                throw new \RuntimeException('No se pudo actualizar el estado de la compra, no se completo el proceso de anulación');
+            }
+
+            $this->db->transCommit();
+
+            $datosSend = [
+                'id' => $compraId,
+                'estado' => $estadoAnulado,
+            ];
+            return $this->responseSetJSON('success', "Compra #{$compra->comp_secuencial} anulada correctamente.", $datosSend);
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+
+            return $this->responseSetJSON('error', 'Error al anular la compra: ' . $e->getMessage()
+            );
+        }
+    }
+
+    public function updateCompra() {
+        $json = $this->request->getPost('data');
+
+        if (!is_string($json) || trim($json) === '') {
+            return $this->responseSetJSON('warning', 'No se recibieron datos válidos para actualizar la compra.');
+        }
+
+
+
+        try {
+            $dataPostCompra = json_decode($json, false, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            return $this->responseSetJSON('warning', 'Los datos de la compra no tienen un formato válido.');
+        }
+
+        $compraId = (int) ($dataPostCompra->idCompra ?? 0);
+
+        if ($compraId <= 0) {
+            return $this->responseSetJSON('warning', 'No se recibió la compra que se desea actualizar.');
+        }
+
+        $cartData = $this->showDetailCart(1);
+        $validacion = $this->validarCamposCompra($dataPostCompra, $cartData);
+
+        if ($validacion['status']) {
+            return $this->responseSetJSON('warning', $validacion['msg']);
+        }
+
+        $compraActual = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_secuencial, comp_estado', null, 1);
+
+        if (!$compraActual) {
+            return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
+        }
+
+        if ($compraActual->comp_estado !== 'BORRADOR') {
+            return $this->responseSetJSON('warning', 'Solo se pueden actualizar compras en estado borrador.');
+        }
+
+        $compra = $dataPostCompra->compra;
+        $esArchivado = $compra->compEstado === 'ARCHIVADO';
+
+        if ($esArchivado && !getPeriodoContable(date('Y-m-d'))) {
+            return $this->responseSetJSON(
+                            'error',
+                            '<h5>Revise el período de cierre</h5><h6>No se encontró un período contable hábil para la fecha de emisión.</h6>'
+            );
+        }
+
+        $this->db->transBegin();
+
+        try {
+            $actualizado = $this->comprasLib->actualizarCompra($compraId, $cartData, $dataPostCompra);
+
+            if (!$actualizado) {
+                throw new \RuntimeException('No se pudo actualizar la cabecera de la compra.');
+            }
+
+            $this->ccm->eliminar('cc_compras_det', ['fk_compra' => $compraId]);
+
+            $this->ccm->eliminar('cc_compras_bases_impuesto', ['fk_compra' => $compraId]);
+
+            foreach ($cartData->cartContent as $item) {
+                $loteId = $this->comprasLib->obtenerOCrearLote($compraId, $item);
+
+                $this->comprasLib->guardarDetalleCompra($compraId, $item, (int) $compra->compBodega, (string) $compra->compSustento, $loteId
+                );
+
+                if ($esArchivado) {
+                    $this->comprasLib->generarKardex($compraId, $item, $loteId, $compra);
+                }
+            }
+
+            $this->comprasLib->guardarBasesImpuesto($compraId, $dataPostCompra->basesImpuestos ?? []);
+
+            if ($esArchivado) {
+                $this->comprasLib->guardarFormasPagoAts($compraId, $dataPostCompra->ats ?? (object) []);
+
+                $this->comprasFinanzasLib->guardarRetencion($compraId, $dataPostCompra->retencion ?? (object) []);
+
+                $cxpId = $this->comprasFinanzasLib->crearCuentaPorPagar($compraId);
+
+                if ($compra->compTipoPago === 'CONTADO') {
+                    $this->comprasFinanzasLib->guardarPagoContado($cxpId, $dataPostCompra->pago ?? (object) []);
+                }
+
+                if ($compra->compTipoPago === 'CREDITO') {
+                    $this->comprasFinanzasLib->guardarCuotas($cxpId, $dataPostCompra->cuotas ?? []);
+                }
+
+                $this->comprasAsientosLib->generarAsiento($compraId);
+            }
+
+            if ($this->db->transStatus() === false) {
+                throw new \RuntimeException('La transacción de actualización falló.');
+            }
+
+            $this->db->transCommit();
+            $this->comprasCart->destroy();
+
+            $dataResponse = ['id' => $compraId, 'comp_secuencial' => $compraActual->comp_secuencial];
+
+            $mensaje = $esArchivado ? 'Compra actualizada y archivada correctamente.' : 'Borrador de compra actualizado correctamente.';
+
+            return $this->responseSetJSON('success', $mensaje, $dataResponse
+            );
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+
+            return $this->responseSetJSON('error', 'Error al actualizar la compra: ' . $e->getMessage());
+        }
+    }
+
     /**
+     * Recibe y valida los datos comunes antes de registrar la compra.
+     */
+    public function saveCompra() {
+
+        $json = $this->request->getPost('data');
+
+        if (!is_string($json) || trim($json) === '') {
+            return $this->responseSetJSON('warning', 'No se recibieron datos validos para procesar la compra.');
+        }
+
+
+        try {
+            $dataPostCompra = json_decode($json, false, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            return $this->responseSetJSON('warning', 'Los datos de la compra no tienen un formato válido.');
+        }
+
+        $cartData = $this->showDetailCart(1);
+        $validacion = $this->validarCamposCompra($dataPostCompra, $cartData);
+
+        if ($validacion['status']) {
+            return $this->responseSetJSON('warning', $validacion['msg']);
+        }
+
+        $compra = $dataPostCompra->compra;
+        $esArchivado = $compra->compEstado === 'ARCHIVADO';
+
+        if ($esArchivado && !getPeriodoContable(date('Y-m-d'))) {
+            return $this->responseSetJSON('error', '<h5>Revise el período de cierre</h5><h6>No se encontró un período contable hábil para la fecha de emisión.</h6>');
+        }
+
+        $this->db->transBegin();
+
+        try {
+            $compraId = $this->comprasLib->guardarCompra($cartData, $dataPostCompra);
+
+            foreach ($cartData->cartContent as $item) {
+                $loteId = $this->comprasLib->obtenerOCrearLote($compraId, $item);
+
+                $this->comprasLib->guardarDetalleCompra($compraId, $item, (int) $compra->compBodega, (string) $compra->compSustento, $loteId
+                );
+
+                if ($esArchivado) {
+                    $this->comprasLib->generarKardex($compraId, $item, $loteId, $compra);
+                }
+            }
+
+            $this->comprasLib->guardarBasesImpuesto($compraId, $dataPostCompra->basesImpuestos ?? []);
+
+            if ($esArchivado) {
+
+                $this->comprasLib->guardarFormasPagoAts($compraId, $dataPostCompra->ats ?? (object) []);
+
+                $this->comprasFinanzasLib->guardarRetencion($compraId, $dataPostCompra->retencion ?? (object) []);
+
+                $cxpId = $this->comprasFinanzasLib->crearCuentaPorPagar($compraId);
+
+                if ($compra->compTipoPago === 'CONTADO') {
+                    $this->comprasFinanzasLib->guardarPagoContado($cxpId, $dataPostCompra->pago ?? (object) []);
+                }
+
+                if ($compra->compTipoPago === 'CREDITO') {
+                    $this->comprasFinanzasLib->guardarCuotas($cxpId, $dataPostCompra->cuotas ?? []);
+                }
+
+                $this->comprasAsientosLib->generarAsiento($compraId);
+            }
+
+            $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId], 'comp_secuencial');
+
+            if ($this->db->transStatus() === false) {
+                $this->db->transRollback();
+                return $this->responseSetJSON('error', 'No se pudo registrar la compra.');
+            }
+
+            $this->db->transCommit();
+
+            $this->comprasCart->destroy();
+
+            $dataResponse = ['id' => $compraId, 'comp_secuencial' => $secuencial];
+
+            return $this->responseSetJSON('success', $esArchivado ? 'Compra registrada correctamente.' : 'Compra guardada como borrador.', $dataResponse);
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+
+            return $this->responseSetJSON('error', 'Error al registrar la compra: ' . $e->getMessage());
+        }
+    }
+
+    private function validarCamposCompra(object $dataPostCompra, object $cartData): array {
+        if (empty($dataPostCompra->compra)) {
+            return [
+                'status' => true,
+                'msg' => 'No se recibió la cabecera de la compra.',
+            ];
+        }
+
+        $compra = $dataPostCompra->compra;
+        $campos = [
+            'compFechaEmision' => 'Fecha de emisión',
+            'compTipoComprobante' => 'Tipo de comprobante',
+            'compNumeroComprobante' => 'Número de comprobante',
+            'compNumeroEstablecimiento' => 'Establecimiento',
+            'compNumeroEmision' => 'Punto de emisión',
+            'compFechaCaducidad' => 'Fecha de caducidad',
+            'compAutSRI' => 'Autorización SRI',
+            'compProveedor' => 'Proveedor',
+            'compBodega' => 'Bodega',
+            'compSustento' => 'Sustento',
+            'compCentroCosto' => 'Centro de costos',
+            'compTipoCompra' => 'Tipo de compra',
+            'compTipoCosto' => 'Tipo de costo',
+            'compEstado' => 'Estado',
+        ];
+
+        foreach ($campos as $campo => $nombre) {
+            if (!property_exists($compra, $campo) || $compra->$campo === null || (is_string($compra->$campo) && trim($compra->$campo) === '')) {
+                return [
+                    'status' => true,
+                    'msg' => "El campo {$nombre} es obligatorio.",
+                ];
+            }
+        }
+
+        if (!in_array($compra->compEstado, ['BORRADOR', 'ARCHIVADO'], true)) {
+            return [
+                'status' => true,
+                'msg' => 'El estado de la compra no es válido.',
+            ];
+        }
+
+        if (empty($cartData->cartContent)) {
+            return [
+                'status' => true,
+                'msg' => 'Debe agregar al menos un producto o servicio.',
+            ];
+        }
+
+        $requiereFormaPagoAts = $compra->compEstado === 'ARCHIVADO' && (float) $cartData->totalGeneral >= (float) getSettings('VALOR_MAXIMO_ANEXO_ATS_SRI');
+
+        if ($requiereFormaPagoAts) {
+            $formasPagoAts = (array) ($dataPostCompra->ats->formasPago ?? []);
+
+            if (empty($formasPagoAts)) {
+                return [
+                    'status' => true,
+                    'msg' => 'Debe seleccionar al menos una forma de pago ATS.',
+                ];
+            }
+        }
+
+        foreach ($cartData->cartContent as $item) {
+            $nombreProducto = $item->name ?? 'producto';
+
+            if ((float) ($item->qty ?? 0) <= 0) {
+                return [
+                    'status' => true,
+                    'msg' => "Cantidad inválida para {$nombreProducto}, la cantidad debe ser mayor a 0 .",
+                ];
+            }
+
+            if ((float) ($item->price ?? 0) <= 0) {
+                return [
+                    'status' => true,
+                    'msg' => "Precio inválido para {$nombreProducto}, el precio debe ser mayor a 0.",
+                ];
+            }
+        }
+
+        return ['status' => false, 'msg' => ''];
+    }
+
+    /**
+     * Actualiza la bodega seleccionada para el proceso de compra.
      * @param int $bodegaId_ Identificador unico de la bodega
      * @return JSON Respuesta con el estado de la operación, mensaje descriptivo y el identificador de la bodega seleccionada
-     * La función recibe el identificador de la bodega a través de una solicitud POST, valida el identificador, actualiza la sesión con la bodega seleccionada y devuelve una respuesta JSON indicando el resultado de la operación. Esta función es esencial para permitir a los usuarios seleccionar una bodega específica para sus operaciones de compra, asegurando que la información de la bodega se almacene correctamente en la sesión y se refleje en las operaciones relacionadas con el proceso de compra.
-     * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de compras, para permitir a los usuarios cambiar la bodega seleccionada sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar el cambio de bodega y proporcionar una experiencia de usuario fluida y eficiente.
-     * En resumen, esta función es responsable de cambiar la bodega seleccionada para el proceso de compra, actualizando la sesión con el nuevo identificador de bodega y devolviendo una respuesta JSON con el resultado de la operación.
      */
-    public function changeBodega($bodegaId_) {
+    public function changeBodega(int $bodegaId_) {
         $bodegaId = (int) $bodegaId_;
         $this->session->set('bodegaIdComp', $bodegaId);
         return $this->responseSetJSON('success', 'Bodega seleccionada correctamente', $bodegaId);

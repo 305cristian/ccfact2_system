@@ -49,10 +49,11 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
 
     //GESTION DE AJUSTES
     $subroutes->get('gestionCompras', 'GestionController::index');
-//    $subroutes->post('searchCompras', 'GestionController::searchAjustes');
-//    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
-//    $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
-//    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
+    $subroutes->post('searchCompras', 'GestionController::searchCompras');
+    $subroutes->post('contadoresCompras', 'GestionController::contadoresCompras');
+    $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
+    $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
+    $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

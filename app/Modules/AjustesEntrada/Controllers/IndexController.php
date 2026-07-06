@@ -27,13 +27,13 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class IndexController extends \App\Controllers\BaseController {
 
     //put your code here
-    protected $dirViewModule;
-    protected $entradasModel;
-    protected $entradasLib;
-    protected $entradasAsientoLib;
-    protected $prodModel;
-    protected $ajenCart;
-    protected $searchModel;
+    protected string $dirViewModule;
+    protected EntradasModel $entradasModel;
+    protected EntradasLib $entradasLib;
+    protected EntradasAsientosLib $entradasAsientoLib;
+    protected ProductoModel $prodModel;
+    protected EntradasCartLib $ajenCart;
+    protected SearchsModel $searchModel;
 
     public function __construct() {
         $this->dirViewModule = 'Modules\AjustesEntrada\Views';
@@ -108,7 +108,7 @@ class IndexController extends \App\Controllers\BaseController {
         return $this->response->setJSON([
                     'status' => $respuesta['status'] === 'success' ? 'success' : 'error',
                     'msg' => $respuesta['status'] === 'success' ? 'ok' : $respuesta['msg'],
-                    'redirect' => site_url('ajustesentrada/indexEdit/' . $justeId)
+                    'redirect' => $respuesta['status'] === 'success' ? site_url('ajustesentrada/indexEdit/' . $justeId) : null
         ]);
     }
 
@@ -297,7 +297,7 @@ class IndexController extends \App\Controllers\BaseController {
      * Función para eliminar un producto del carrito de ajustes de entrada, utilizando el identificador único del producto en el carrito (rowId)
      * @param string $rowId El identificador único del producto en el carrito que se desea eliminar
      * El método recibe el identificador del producto en el carrito a través de una solicitud POST, valida el identificador
-    */
+     */
     public function deleteProduct(string $rowId) {
         $this->ajenCart->removeItem($rowId);
     }
@@ -311,7 +311,7 @@ class IndexController extends \App\Controllers\BaseController {
      * @param int $bodegaId El identificador único de la bodega que se desea seleccionar para el proceso de ajuste de entrada
      * @return JSON Respuesta con el estado de la operación, mensaje descriptivo y el identificador de la bodega seleccionada
      * El método recibe el identificador de la bodega a través de una solicitud POST, valida el identificador, actualiza la sesión con la bodega seleccionada y devuelve una respuesta JSON indicando el resultado
-    */
+     */
     public function changeBodega(int $bodegaId) {
         $this->session->set('bodegaIdAje', $bodegaId);
         return $this->response->setJSON([
@@ -323,14 +323,20 @@ class IndexController extends \App\Controllers\BaseController {
 
     /**
      * Función para actualizar un ajuste de entrada existente, procesando los datos del ajuste y su detalle, validando la información, actualizando el ajuste en la base de datos, actualizando el kardex si el ajuste está aprobado, generando el asiento contable correspondiente y devolviendo una respuesta JSON con el resultado de la operación
-      * @return JSON Respuesta con el estado de la operación y mensaje descriptivo sobre el resultado de la actualización del ajuste de entrada
-      * El método recibe los datos del ajuste a través de una solicitud POST en formato JSON, valida la información, procesa el detalle del ajuste, actualiza el ajuste en la base de datos, actualiza el kardex si el ajuste está aprobado, genera el asiento contable correspondiente y devuelve una respuesta JSON indicando el resultado de la operación. Esta función es esencial para permitir a los usuarios actualizar un ajuste de entrada existente, asegurando que toda la información relacionada con el ajuste se procese correctamente y se refleje en las operaciones relacionadas, como el kardex y la contabilidad, proporcionando una experiencia de usuario fluida y eficiente en la gestión de ajustes de entrada.
+     * @return JSON Respuesta con el estado de la operación y mensaje descriptivo sobre el resultado de la actualización del ajuste de entrada
+     * El método recibe los datos del ajuste a través de una solicitud POST en formato JSON, valida la información, procesa el detalle del ajuste, actualiza el ajuste en la base de datos, actualiza el kardex si el ajuste está aprobado, genera el asiento contable correspondiente y devuelve una respuesta JSON indicando el resultado de la operación. Esta función es esencial para permitir a los usuarios actualizar un ajuste de entrada existente, asegurando que toda la información relacionada con el ajuste se procese correctamente y se refleje en las operaciones relacionadas, como el kardex y la contabilidad, proporcionando una experiencia de usuario fluida y eficiente en la gestión de ajustes de entrada.
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de entrada, para permitir a los usuarios actualizar un ajuste de entrada sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar el resultado de la actualización del ajuste de entrada y proporcionar una experiencia de usuario fluida y eficiente.
      * En resumen, esta función es responsable de actualizar un ajuste de entrada existente, procesando los datos del ajuste y su detalle, valid
-    */
+     */
     public function updateAjuste() {
 
         $dataPostAjuste = json_decode(json_encode($this->request->getPost()));
+
+        // Obtener índice (periodo contable)
+        $periodoContable = getPeriodoContable($dataPostAjuste->ajenFecha);
+        if (!$periodoContable) {
+            return $this->responseSetJSON("error", '<h5>Revise el periodo de cierre</h5><br> <h6>Al parecer no se ha encontrado un periodo contable habil para la fecha dada</h6>');
+        }
 
         // Validamos campos antes de procesar
         $statusValidation = $this->validarCampos($dataPostAjuste);
@@ -340,7 +346,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         $ajusteId = $dataPostAjuste->ajusteId;
 
-        $estadoAjuste = (int)$this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId], 'ajen_estado');
+        $estadoAjuste = (int) $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId], 'ajen_estado');
 
         if ($estadoAjuste === 2) {
             return $this->responseSetJSON("warning", "Este ajuste ya ha sido aprobado previamente, Imposible actualizarlo");
@@ -451,7 +457,7 @@ class IndexController extends \App\Controllers\BaseController {
      * El método recibe los datos del nuevo ajuste a través de una solicitud POST en formato JSON, valida la información, procesa el detalle del ajuste, registra el ajuste en la base de datos, actualiza el kardex si el ajuste está aprobado, genera el asiento contable correspondiente y devuelve una respuesta JSON indicando el resultado de la operación. Esta función esencial para permitir a los usuarios registrar un nuevo ajuste de entrada, asegurando que toda la información relacionada con el ajuste se procese correctamente y se refleje en las operaciones relacionadas, como el kardex y la contabilidad, proporcionando una experiencia de usuario fluida y eficiente en la gestión de ajustes de entrada.
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de entrada, para permitir a los usuarios registrar un nuevo ajuste de entrada sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar el resultado del registro del nuevo ajuste de entrada y proporcionar una experiencia de usuario fluida y eficiente.    
      * En resumen, esta función es responsable de guardar un nuevo ajuste de entrada, procesando los datos del ajuste y su detalle, validando la información, registrando el ajuste en la base de datos, actualizando el kardex si el ajuste está aprobado, generando el asiento contable correspondiente y devolviendo una respuesta JSON con el resultado de la operación, permitiendo a los usuarios gestionar eficientemente sus ajustes de entrada.
-    */
+     */
     public function saveAjuste() {
 
         $dataPostAjuste = json_decode(json_encode($this->request->getPost()));
@@ -560,8 +566,8 @@ class IndexController extends \App\Controllers\BaseController {
      * Función para validar los campos requeridos antes de procesar el registro o actualización de un ajuste de entrada, verificando que todos los campos necesarios estén presentes y devolviendo una respuesta con el estado de la validación y un mensaje descriptivo en caso de que falte algún campo requerido
      * @param object $data Objeto con los datos del ajuste de entrada a validar, incluyendo campos como fecha, sustento, bodega, centro de costos, motivo, estado, proveedor y tipo de ajuste
      * @return array Respuesta con el estado de la validación (
-    */
-    public function validarCampos(object $data):array {
+     */
+    public function validarCampos(object $data): array {
 
         $campos = [
             'ajenFecha' => 'Debe seleccionar una fecha',
@@ -593,8 +599,8 @@ class IndexController extends \App\Controllers\BaseController {
      * @param int $ajusteId El identificador del ajuste de entrada al que se desea asociar el lote
      * @param object $producto Objeto con los datos del producto para el cual se desea registrar el lote, incluyendo información como el número de lote, fecha de elaboración y fecha de caducidad
      * @return int ID del lote registrado en la base de datos, o false en caso de que ocurra un error durante el registro del lote  
-    */
-    public function saveLote(int $ajusteId, object $producto):int {
+     */
+    public function saveLote(int $ajusteId, object $producto): int {
         $dataLote = [
             'lot_lote' => $producto->lote,
             'lot_fecha_elaboracion' => $producto->fechaElaboracion,
@@ -608,11 +614,11 @@ class IndexController extends \App\Controllers\BaseController {
 
     /**
      * Función para anular un ajuste de entrada existente, validando la información proporcionada, ejecutando la anulación en la base de datos y devolviendo una respuesta JSON con el resultado de la operación
-      * @return JSON Respuesta con el estado de la operación y mensaje descriptivo sobre el resultado de la anulación del ajuste de entrada
-      * El método recibe los datos necesarios para anular un ajuste de entrada a través de una solicitud POST en formato JSON, valida la información, ejecuta la anulación en la base de datos utilizando la librería correspondiente y devuelve una respuesta JSON indicando el resultado de la operación. Esta función es esencial para permitir a los usuarios anular un ajuste de entrada existente, asegurando que toda la información relacionada con el ajuste se procese correctamente durante la anulación y proporcionando una experiencia de usuario fluida y eficiente en la gestión de ajustes de entrada.
+     * @return JSON Respuesta con el estado de la operación y mensaje descriptivo sobre el resultado de la anulación del ajuste de entrada
+     * El método recibe los datos necesarios para anular un ajuste de entrada a través de una solicitud POST en formato JSON, valida la información, ejecuta la anulación en la base de datos utilizando la librería correspondiente y devuelve una respuesta JSON indicando el resultado de la operación. Esta función es esencial para permitir a los usuarios anular un ajuste de entrada existente, asegurando que toda la información relacionada con el ajuste se procese correctamente durante la anulación y proporcionando una experiencia de usuario fluida y eficiente en la gestión de ajustes de entrada.
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de entrada, para permitir a los usuarios anular un ajuste de entrada sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar el resultado de la anulación del ajuste de entrada y proporcionar una experiencia de usuario fluida y eficiente.    
      * En resumen, esta función es responsable de anular un ajuste de entrada existente, validando la información proporcionada, ejecutando la anulación en la base de datos utilizando la librería correspondiente y devolviendo una respuesta JSON
-    */
+     */
     public function anularAjuste() {
 
         //Validamos que la secion este activa
@@ -660,10 +666,10 @@ class IndexController extends \App\Controllers\BaseController {
 
     /**
      * Función para clonar un ajuste de entrada existente, cargando los datos del ajuste original en el carrito de ajustes de entrada y devolviendo una respuesta JSON con el resultado de la operación y la URL de redirección para editar el nuevo ajuste clonado
-      * @param int $ajusteId El identificador del ajuste de entrada que se desea clonar
-      * @return JSON Respuesta con el estado de la operación y la URL de redirección para editar el nuevo ajuste clonado
-      * El método recibe el identificador del ajuste de entrada a clonar a través de una solicitud POST, carga los datos del ajuste original en el carrito de ajustes de entrada utilizando una función específica, y devuelve una respuesta JSON indicando el resultado de
-    */
+     * @param int $ajusteId El identificador del ajuste de entrada que se desea clonar
+     * @return JSON Respuesta con el estado de la operación y la URL de redirección para editar el nuevo ajuste clonado
+     * El método recibe el identificador del ajuste de entrada a clonar a través de una solicitud POST, carga los datos del ajuste original en el carrito de ajustes de entrada utilizando una función específica, y devuelve una respuesta JSON indicando el resultado de
+     */
     public function clonarAjuste(int $ajusteId) {
         //CARGAMOS LOS DATOS AL CART
         $respuesta = $this->loadDataAjusteCart($ajusteId, true);

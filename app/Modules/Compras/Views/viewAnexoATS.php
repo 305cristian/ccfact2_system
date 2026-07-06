@@ -34,7 +34,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             </div>
 
             <!-- Forma pago ATS -->
-            <div v-if="totalGeneral >= valorMaximoATSSRI" class="col-md-8 form-group-custom ">
+            <div
+                v-if="formCompra.compEstado === 'ARCHIVADO' && Number(totales.totalGeneral) >= Number(valorMaximoATSSRI)"
+                class="col-md-8 form-group-custom"
+                >
                 <div class="d-flex border rounded">
                     <span class="input-group-text bg-cris-system"><i class="fas fa-file-invoice-dollar me-2"></i> Forma pago ATS</span>
                     <vue-select
