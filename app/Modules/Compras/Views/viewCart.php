@@ -165,7 +165,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <!--DATOS DEL LOTE-->
                         <td v-if="colLotes">
                             <div v-if="item.tieneLote === '1' " class="input-group">
-                                <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 130px;">
+                                <input v-model="item.lote" type="text" class="form-control form-control-sm" @change="updateProductCart(item, true)" style="max-width: 130px;">
                                 <input v-model="item.fechaElaboracion" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
                                 <input v-model="item.fechaCaducidad" type="date" class="form-control form-control-sm" @change="updateProductCart(item)" style="max-width: 120px;">
                             </div>

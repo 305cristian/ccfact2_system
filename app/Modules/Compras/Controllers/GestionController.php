@@ -39,8 +39,9 @@ class GestionController extends BaseController {
 
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
-        $data['listaTiposComprobantes'] = $this->ccm->getData('cc_tipos_comprobante', ['comp_estado' => 1], 'id, comp_codigo, comp_nombre');
-        $data['listaTiposCompra'] = $this->ccm->getData('cc_tipo_compra', ['tc_estado' => 1], 'id, tc_nombre');
+        $tiposComprobantes = $this->ccm->getData('cc_tipos_comprobante', ['comp_estado' => 1], 'id, comp_codigo, comp_nombre');
+        $data['listaTiposComprobantes'] = array_values(array_filter($tiposComprobantes, static fn($comprobante) => in_array((string) $comprobante->comp_codigo, ['01', '02', '03'], true)));
+        $data['listaTiposCompra'] = $this->ccm->getData('cc_tipo_compra', ['tc_estado' => 1], 'id, tc_nombre, tc_codigo');
         $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
 
         $bodegaMainUsuario = bodegaMain($this->user->id);
@@ -111,6 +112,7 @@ class GestionController extends BaseController {
         $numeroDocumento = "{$establecimiento}-{$emision}-{$numeroComprobante}";
 
         $datosCompra = [
+            'comp_tipo_comprobante_cod' => trim((string) $dataPost->compTipoComprobante),
             'comp_numero_establecimiento' => $establecimiento,
             'comp_numero_emision' => $emision,
             'comp_numero_comprobante' => $numeroComprobante,
@@ -590,9 +592,10 @@ class GestionController extends BaseController {
     private function validarEdicionRapida(object $dataPost): string {
 
         $campos = [
+            'compTipoComprobante' => 'Debe seleccionar el tipo de comprobante.',
             'compNumeroEstablecimiento' => 'Debe ingresar el punto de establecimiento.',
             'compNumeroEmision' => 'Debe ingresar el punto de emisión.',
-            'compNumeroComprobante' => 'Debe ingresar el número de factura.',
+            'compNumeroComprobante' => 'Debe ingresar el número de comprobante.',
             'compAutSRI' => 'Debe ingresar la autorización SRI.',
             'compFechaEmision' => 'Debe ingresar la fecha de emisión.',
             'compFechaCaducidad' => 'Debe ingresar la fecha de vencimiento de autorización.',
@@ -607,6 +610,10 @@ class GestionController extends BaseController {
             }
         }
 
+        if (!in_array((string) $dataPost->compTipoComprobante, ['01', '02'], true)) {
+            return 'El tipo de comprobante seleccionado no esta permitido para este proceso de compra.';
+        }
+
         if (!preg_match('/^\d{1,3}$/', (string) $dataPost->compNumeroEstablecimiento)) {
             return 'El punto de establecimiento debe tener máximo 3 dígitos.';
         }
@@ -616,7 +623,7 @@ class GestionController extends BaseController {
         }
 
         if (!preg_match('/^\d{1,9}$/', (string) $dataPost->compNumeroComprobante)) {
-            return 'El número de factura debe tener máximo 9 dígitos.';
+            return 'El número de comprobante debe tener máximo 9 dígitos.';
         }
 
         if (!in_array((string) $dataPost->compTipoCosto, ['DIRECTOS', 'INDIRECTOS'], true)) {

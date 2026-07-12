@@ -143,6 +143,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         label="sus_nombre"
                                         v-model="formCompra.compSustento"
                                         placeholder="Seleccione un sustento">
+                                        <template #option="sustento">
+                                            {{ sustento.sus_codigo }} - {{ sustento.sus_nombre }}
+                                        </template>
+                                        <template #selected-option="sustento">
+                                            {{ sustento.sus_codigo }} - {{ sustento.sus_nombre }}
+                                        </template>
                                     </vue-select>
                                 </div>
                             </div>
@@ -159,6 +165,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         label="tc_nombre"
                                         v-model="formCompra.compTipoCompra"
                                         placeholder="Seleccione un tipo de compra">
+                                        <template #option="tipo">
+                                            {{ tipo.tc_codigo }} - {{ tipo.tc_nombre }}
+                                        </template>
+                                        <template #selected-option="tipo">
+                                            {{ tipo.tc_codigo }} - {{ tipo.tc_nombre }}
+                                        </template>
                                     </vue-select>
                                 </div>
                             </div>
@@ -172,9 +184,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <span class="input-group-text bg-cris-system">
                                         <i class="fas fa-hashtag me-2"></i> N° Comprobante
                                     </span>
-                                    <input v-model="formCompra.compNumeroEstablecimiento" type="text" class="form-control" style="flex:1" placeholder="001">
-                                    <input v-model="formCompra.compNumeroEmision" type="text" class="form-control" style="flex:1" placeholder="002">
-                                    <input v-model="formCompra.compNumeroComprobante" type="text" class="form-control" style="flex:2" placeholder="653">
+                                    <input v-model="formCompra.compNumeroEstablecimiento" type="text" class="form-control" style="flex:1" placeholder="001" :readonly="esLiquidacionCompra">
+                                    <input v-model="formCompra.compNumeroEmision" type="text" class="form-control" style="flex:1" placeholder="002" :readonly="esLiquidacionCompra">
+                                    <input v-model="formCompra.compNumeroComprobante" type="text" class="form-control" style="flex:2" placeholder="653" :readonly="esLiquidacionCompra">
                                 </div>
                             </div>
 
@@ -184,7 +196,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <span class="input-group-text bg-cris-system">
                                         <i class="fas fa-calendar me-2"></i> Fecha de Caducidad
                                     </span>
-                                    <input v-model="formCompra.compFechaCaducidad" type="date" class="form-control">
+                                    <input v-model="formCompra.compFechaCaducidad" type="date" class="form-control" :readonly="esLiquidacionCompra">
                                 </div>
                             </div>
 
@@ -194,7 +206,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <span class="input-group-text bg-cris-system">
                                         <i class="fas fa-key me-2"></i> Aut. SRI
                                     </span>
-                                    <input v-model="formCompra.compAutSRI" type="text" class="form-control" placeholder="Ejm. 0123456789">
+                                    <input v-model="formCompra.compAutSRI" type="text" class="form-control" placeholder="Ejm. 0123456789" :readonly="esLiquidacionCompra">
                                 </div>
                             </div>
 
@@ -563,6 +575,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaImpuestosTarifa = <?php echo json_encode($listaImpuestosTarifa); ?>;
     var listaBancos = <?php echo json_encode($listaBancos); ?>;
     var puntoEmisionRetencion = <?php echo json_encode($puntoEmisionRetencion); ?>;
+    var puntoEmisionLiquidacionCompra = <?php echo json_encode($puntoEmisionLiquidacionCompra); ?>;
 
     if (window.appCompra) {
         window.appCompra.unmount();
@@ -633,6 +646,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaImpuestosTarifa: listaImpuestosTarifa,
                 listaBancosSimulados: listaBancos,
                 puntoEmisionRetencion: puntoEmisionRetencion,
+                puntoEmisionLiquidacionCompra: puntoEmisionLiquidacionCompra,
 
                 // =========================
                 // BUSCADOR PRODUCTOS
@@ -771,7 +785,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         mounted() {
             this.formCompra.compBodega = this.listaBodegas.find(val => val.id === bodegaIdComp);
-            this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(val => val.id === '1');
+            this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(val => String(val.comp_codigo) === '01');
             this.aplicarPuntoEmisionRetencion();
 
             if (dataCompra) {
@@ -866,6 +880,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             totalPagarCompra() {
                 const totalFactura = Number(this.totales.totalGeneral || 0);
                 return Math.max(0, totalFactura - this.totalRetenidoCompra);
+            },
+            esLiquidacionCompra() {
+                return String(this.formCompra.compTipoComprobante?.comp_codigo || '') === '03';
             }
         },
         watch: {
@@ -873,6 +890,28 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 deep: true,
                 handler() {
                     this.validarCuotas();
+                }
+            },
+            'formCompra.compTipoComprobante'(nuevo, anterior) {
+                if (this.isEdit) {
+                    return;
+                }
+
+                const codigoNuevo = String(nuevo?.comp_codigo || '');
+                const codigoAnterior = String(anterior?.comp_codigo || '');
+
+                if (codigoNuevo === '03') {
+                    if (!this.puntoEmisionLiquidacionCompra) {
+                        sweet_msg_dialog('warning', 'No puede emitir liquidaciones de compra. Su usuario no está registrado en un punto de emisión para liquidación de compra.');
+                        return;
+                    }
+
+                    this.aplicarPuntoEmisionLiquidacionCompra();
+                    return;
+                }
+
+                if (codigoAnterior === '03') {
+                    this.limpiarDatosComprobante();
                 }
             }
         },
@@ -939,6 +978,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.formRetencion.retFechaEmision = fechaActual;
             },
 
+            aplicarPuntoEmisionLiquidacionCompra() {
+                if (!this.puntoEmisionLiquidacionCompra) {
+                    return;
+                }
+
+                this.formCompra.compNumeroEstablecimiento = this.puntoEmisionLiquidacionCompra.pv_establecimiento || '';
+                this.formCompra.compNumeroEmision = this.puntoEmisionLiquidacionCompra.pv_emision || '';
+                this.formCompra.compNumeroComprobante = this.zFill(this.puntoEmisionLiquidacionCompra.pv_sec_actual, 9);
+                this.formCompra.compAutSRI = this.puntoEmisionLiquidacionCompra.pv_auth_sri || '';
+                this.formCompra.compFechaCaducidad = this.puntoEmisionLiquidacionCompra.pv_fecha_vence_auth || this.formCompra.compFechaCaducidad;
+            },
+
+            limpiarDatosComprobante() {
+                this.formCompra.compNumeroEstablecimiento = '';
+                this.formCompra.compNumeroEmision = '';
+                this.formCompra.compNumeroComprobante = '';
+                this.formCompra.compAutSRI = '';
+                this.formCompra.compFechaCaducidad = fechaActual;
+            },
+
             //SEARCH PROVEEDORES
             searchProveedor(dataSerach) {
                 clearTimeout(this.searchTimeout);
@@ -967,7 +1026,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     {valor: this.formCompra.compTipoCompra, mensaje: 'Debe seleccionar el tipo de compra'},
                     {valor: this.formCompra.compNumeroEstablecimiento, mensaje: 'Debe ingresar el número de establecimiento'},
                     {valor: this.formCompra.compNumeroEmision, mensaje: 'Debe ingresar el punto de emisión'},
-                    {valor: this.formCompra.compNumeroComprobante, mensaje: 'Debe ingresar el número de factura'},
+                    {valor: this.formCompra.compNumeroComprobante, mensaje: 'Debe ingresar el número de comprobante'},
                     {valor: this.formCompra.compFechaCaducidad, mensaje: 'Debe seleccionar la fecha de caducidad del comprobante'},
                     {valor: this.formCompra.compAutSRI, mensaje: 'Debe ingresar la autorización SRI'},
                     {valor: this.formCompra.compProveedor, mensaje: 'Debe seleccionar un proveedor'},
@@ -988,6 +1047,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 if (campoFaltante) {
                     sweet_msg_toast('warning', campoFaltante.mensaje);
+                    return;
+                }
+
+                if (this.esLiquidacionCompra && !this.puntoEmisionLiquidacionCompra) {
+                    sweet_msg_dialog('warning', 'No puede emitir liquidaciones de compra. Su usuario no está registrado en un punto de emisión para liquidación de compra.');
                     return;
                 }
 
@@ -1840,7 +1904,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             // =========================
             // UPDATE ITEM
             // =========================                           
-            async updateProductCart(item) {
+            async updateProductCart(item, actualizarLote = false) {
                 this.onRemove();//Removemos datos del anterior producto insertado
 
                 if (item.qty <= 0) {
@@ -1849,7 +1913,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return false;
                 }
 
-                let datos = item;
+                let datos = {
+                    ...item,
+                    actualizarLote: actualizarLote
+                };
 
                 try {
                     this.loading = true;

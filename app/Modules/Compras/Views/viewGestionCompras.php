@@ -221,6 +221,7 @@
                             <th>ACCIONES</th>
                             <th>CODIGO</th>
                             <th>FECHA DE EMISIÓN</th>
+                            <th>TIPO COMPROBANTE</th>
                             <th>COMPROBANTE</th>
                             <th>PROVEEDOR</th>
                             <th>RUC</th>
@@ -312,6 +313,7 @@
                             </td>
                             <td>{{ zFill(compra.comp_secuencial, 5) }}</td>
                             <td>{{ compra.comp_fecha_emision }}</td>
+                            <td>{{ compra.comp_tipo_comprobante_cod }} - {{ compra.tipo_comprobante ?? '-' }}</td>
                             <td>{{ numeroComprobante(compra) }}</td>
                             <td>{{ compra.proveedor }}</td>
                             <td>{{ compra.prov_ruc }}</td>
@@ -458,6 +460,7 @@
                 listaBodegas: listaBodegas,
                 listaCentroCostos: listaCentroCostos,
                 listaTiposComprobantes: listaTiposComprobantes,
+                listaTiposComprobantesEdicionRapida: listaTiposComprobantes.filter(comprobante => ['01', '02'].includes(String(comprobante.comp_codigo))),
                 listaTiposCompra: listaTiposCompra,
                 listaSustentos: listaSustentos,
                 listaTiposCostos: [
@@ -496,6 +499,7 @@
                 errorSendMail: '',
                 formEdicionRapida: {
                     compraId: null,
+                    compTipoComprobante: null,
                     compNumeroEstablecimiento: '',
                     compNumeroEmision: '',
                     compNumeroComprobante: '',
@@ -774,6 +778,7 @@
                 this.erroresEdicionRapida = {};
                 this.formEdicionRapida = {
                     compraId: Number(compra.id),
+                    compTipoComprobante: compra.comp_tipo_comprobante_cod || null,
                     compNumeroEstablecimiento: compra.comp_numero_establecimiento || '',
                     compNumeroEmision: compra.comp_numero_emision || '',
                     compNumeroComprobante: compra.comp_numero_comprobante || '',
@@ -791,9 +796,10 @@
             validarEdicionRapida() {
                 const errores = {};
                 const requeridos = {
+                    compTipoComprobante: 'Seleccione el tipo de comprobante.',
                     compNumeroEstablecimiento: 'Ingrese el punto de establecimiento.',
                     compNumeroEmision: 'Ingrese el punto de emision.',
-                    compNumeroComprobante: 'Ingrese el numero de factura.',
+                    compNumeroComprobante: 'Ingrese el numero de comprobante.',
                     compAutSRI: 'Ingrese la autorizacion SRI.',
                     compFechaEmision: 'Ingrese la fecha de emision.',
                     compFechaCaducidad: 'Ingrese la fecha de vencimiento de autorizacion.',
@@ -819,6 +825,10 @@
 
                 if (this.formEdicionRapida.compNumeroComprobante && !/^\d{1,9}$/.test(this.formEdicionRapida.compNumeroComprobante)) {
                     errores.compNumeroComprobante = 'Maximo 9 digitos.';
+                }
+
+                if (this.formEdicionRapida.compTipoComprobante && !['01', '02'].includes(String(this.formEdicionRapida.compTipoComprobante))) {
+                    errores.compTipoComprobante = 'Comprobante no permitido.';
                 }
 
                 this.erroresEdicionRapida = errores;

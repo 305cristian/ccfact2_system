@@ -28,6 +28,29 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <div class="row">
+                    <div class="col-md-12 form-group-custom">
+                        <div class="d-flex align-items-center border rounded overflow-visible">
+                            <span class="input-group-text bg-cris-system">
+                                <i class="fas fa-file-invoice me-2"></i> Comprobante
+                            </span>
+                            <vue-select
+                                class="flex-grow-1"
+                                :options="listaTiposComprobantesEdicionRapida"
+                                label="comp_nombre"
+                                v-model="formEdicionRapida.compTipoComprobante"
+                                :reduce="comprobante => comprobante.comp_codigo"
+                                placeholder="Seleccione un comprobante">
+                                <template #option="comprobante">
+                                    {{ comprobante.comp_codigo }} - {{ comprobante.comp_nombre }}
+                                </template>
+                                <template #selected-option="comprobante">
+                                    {{ comprobante.comp_codigo }} - {{ comprobante.comp_nombre }}
+                                </template>
+                            </vue-select>
+                        </div>
+                        <small class="text-danger">{{ erroresEdicionRapida.compTipoComprobante }}</small>
+                    </div>
+
                     <div class="col-md-6 form-group-custom">
                         <div class="input-group">
                             <span class="input-group-text bg-cris-system">
@@ -51,7 +74,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="col-md-6 form-group-custom">
                         <div class="input-group">
                             <span class="input-group-text bg-cris-system">
-                                <i class="fas fa-file-invoice me-2"></i> N. Factura
+                                <i class="fas fa-file-invoice me-2"></i> N. Comprobante
                             </span>
                             <input v-model.trim="formEdicionRapida.compNumeroComprobante" type="text" v-numbers-only inputmode="numeric" maxlength="9" class="form-control" :class="{'is-invalid': erroresEdicionRapida.compNumeroComprobante}">
                         </div>
@@ -123,6 +146,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 v-model="formEdicionRapida.compTipoCompra"
                                 :reduce="tipo => tipo.id"
                                 placeholder="Seleccione un tipo">
+                                <template #option="tipo">
+                                    {{ tipo.tc_codigo }} - {{ tipo.tc_nombre }}
+                                </template>
+                                <template #selected-option="tipo">
+                                    {{ tipo.tc_codigo }} - {{ tipo.tc_nombre }}
+                                </template>
                             </vue-select>
                         </div>
                         <small class="text-danger">{{ erroresEdicionRapida.compTipoCompra }}</small>

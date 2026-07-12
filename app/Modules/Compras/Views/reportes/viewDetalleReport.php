@@ -14,6 +14,7 @@ $estados = [
 ];
 
 [$estadoClase, $estadoTexto] = $estados[$compra->comp_estado] ?? ['bg-secondary', 'DESCONOCIDO'];
+$tituloComprobante = trim( ($compra->comprobante_nombre ?? 'COMPRA'));
 ?>
 
 <div class="border p-3" id="contentExport">
@@ -35,7 +36,7 @@ $estados = [
             </td>
 
             <td class="text-center border" style="width:35%">
-                <h5 class="fw-bold">COMPRA</h5>
+                <h5 class="fw-bold"><?= esc($tituloComprobante) ?></h5>
                 <h6 class="text-danger">
                     #<?= str_pad($compra->comp_secuencial, 5, '0', STR_PAD_LEFT) ?>
                 </h6>

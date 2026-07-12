@@ -48,10 +48,12 @@ class ComprasLib {
 
         $secuencial = $ultimo ? (int) $ultimo->comp_secuencial + 1 : 1;
 
+        $numeroComprobante = str_pad(trim((string) $compra->compNumeroComprobante), 9, '0', STR_PAD_LEFT);
+
         $datos = [
             'comp_secuencial' => $secuencial,
             'fk_proveedor' => $compra->compProveedor,
-            'comp_numero_comprobante' => $compra->compNumeroComprobante,
+            'comp_numero_comprobante' => $numeroComprobante,
             'comp_numero_establecimiento' => $compra->compNumeroEstablecimiento,
             'comp_numero_emision' => $compra->compNumeroEmision,
             'comp_autorizacion_sri' => $compra->compAutSRI,

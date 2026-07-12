@@ -196,10 +196,11 @@ class IndexController extends BaseController {
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
         $data['title'] = "Nueva Compra";
-        $data['listaTiposCompra'] = $this->ccm->getData('cc_tipo_compra', ['tc_estado' => 1], 'id, tc_nombre');
+        $data['listaTiposCompra'] = $this->ccm->getData('cc_tipo_compra', ['tc_estado' => 1], 'id, tc_nombre, tc_codigo');
         $data['listaFormasPago'] = $this->ccm->getData('cc_formas_pago', ['fp_estado' => 1], 'cod, fp_nombre');
         $data['listaFormasPagoSRI'] = $this->ccm->getData('cc_formas_pago_sri', ['fp_estado' => 1], 'codigo, fp_nombre_sri');
-        $data['listaTiposComprobantes'] = $this->ccm->getData('cc_tipos_comprobante', ['comp_estado' => 1], 'comp_codigo, comp_nombre, id');
+        $tiposComprobantes = $this->ccm->getData('cc_tipos_comprobante', ['comp_estado' => 1], 'comp_codigo, comp_nombre, id');
+        $data['listaTiposComprobantes'] = array_values(array_filter($tiposComprobantes, static fn($comprobante) => in_array((string) $comprobante->comp_codigo, ['01', '02', '03'], true)));
         $data['listaCuentasContables'] = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_estado' => 1], 'ctad_codigo, ctad_nombre_cuenta, CONCAT_WS(" ",ctad_codigo,ctad_nombre_cuenta)cuenta ');
         $data['listaImpuestosTarifa'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 1, 'impt_estado' => 'ACTIVO'], '*');
         $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
@@ -208,6 +209,7 @@ class IndexController extends BaseController {
         $data['listaRetenciones'] = $this->ccm->getData('cc_retencion_sri', ['ret_estado' => 1], 'id, ret_codigo, ret_nombre, ret_porcentaje, ret_impuesto, ret_impuesto_detalle, CONCAT_WS(" - ",ret_codigo,ret_nombre,ret_porcentaje)retencionName');
         $data['listaBancos'] = $this->ccm->getData('cc_bancos_list', ['banc_estado' => 1], 'id codigo, banc_nombre nombre, banc_tipo');
         $data['puntoEmisionRetencion'] = $this->comprasModel->obtenerPuntoEmisionRetencionUsuario((int) $this->user->id);
+        $data['puntoEmisionLiquidacionCompra'] = $this->comprasModel->obtenerPuntoEmisionUsuario((int) $this->user->id, '03');
 
         $bodegaMainUsuario = bodegaMain($this->user->id);
 
@@ -648,6 +650,19 @@ class IndexController extends BaseController {
             $discountValue = ($precio * $discountPercent) / 100;
         }
 
+        $lote = $dataPost->lote ?? null;
+        $fechaElaboracion = $dataPost->fechaElaboracion ?? null;
+        $fechaCaducidad = $dataPost->fechaCaducidad ?? null;
+
+        if (!empty($dataPost->actualizarLote) && trim((string) $lote) !== '' && (int) ($dataPost->tieneLote ?? 0) === 1) {
+            $dataLote = $this->ccm->getData('cc_lotes', ['lot_lote' => trim((string) $lote), 'fk_producto' => $idProd], 'lot_fecha_elaboracion, lot_fecha_caducidad', null, 1);
+
+            if ($dataLote) {
+                $fechaElaboracion = $dataLote->lot_fecha_elaboracion;
+                $fechaCaducidad = $dataLote->lot_fecha_caducidad;
+            }
+        }
+
         $item = [
             'id' => $idProd,
             'qty' => $cantidad,
@@ -666,9 +681,9 @@ class IndexController extends BaseController {
             'descuento' => $descuento,
             'permitirDuplicados' => $dataPost->permitirDuplicados ?? false,
             'tieneLote' => $dataPost->tieneLote ?? null,
-            'lote' => $dataPost->lote ?? null,
-            'fechaElaboracion' => $dataPost->fechaElaboracion ?? null,
-            'fechaCaducidad' => $dataPost->fechaCaducidad ?? null,
+            'lote' => $lote,
+            'fechaElaboracion' => $fechaElaboracion,
+            'fechaCaducidad' => $fechaCaducidad,
             'servicio' => $dataPost->servicio ?? null,
             'irbpnrUnitario' => $dataPost->irbpnrUnitario ?? 0,
             'centroCosto' => $dataPost->centroCosto ?? null,
@@ -904,6 +919,8 @@ class IndexController extends BaseController {
                 }
 
                 $this->comprasAsientosLib->generarAsiento($compraId);
+
+                $this->actualizarSecuencialLiquidacionCompra($compra);
             }
 
             if ($this->db->transStatus() === false) {
@@ -996,6 +1013,8 @@ class IndexController extends BaseController {
                 }
 
                 $this->comprasAsientosLib->generarAsiento($compraId);
+
+                $this->actualizarSecuencialLiquidacionCompra($compra);
             }
 
             $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId], 'comp_secuencial');
@@ -1061,6 +1080,42 @@ class IndexController extends BaseController {
             ];
         }
 
+        if (!in_array((string) $compra->compTipoComprobante, ['01', '02', '03'], true)) {
+            return [
+                'status' => true,
+                'msg' => 'El tipo de comprobante seleccionado no esta permitido para este proceso de compra.',
+            ];
+        }
+
+        if ((string) $compra->compTipoComprobante === '03') {
+            $puntoEmision = $this->comprasModel->obtenerPuntoEmisionUsuario((int) $this->user->id, '03');
+
+            if (!$puntoEmision) {
+                return [
+                    'status' => true,
+                    'msg' => 'Su usuario no esta registrado en un punto de emisión para liquidación de compra.',
+                ];
+            }
+
+            if ((int) $puntoEmision->pv_sec_actual > (int) $puntoEmision->pv_sec_final) {
+                return [
+                    'status' => true,
+                    'msg' => 'El punto de emisión para liquidación de compra ya no tiene secuenciales disponibles.',
+                ];
+            }
+
+            if (
+                    (string) $compra->compNumeroEstablecimiento !== (string) $puntoEmision->pv_establecimiento ||
+                    (string) $compra->compNumeroEmision !== (string) $puntoEmision->pv_emision ||
+                    (string) $compra->compNumeroComprobante !== str_pad((string) $puntoEmision->pv_sec_actual, 9, '0', STR_PAD_LEFT)
+            ) {
+                return [
+                    'status' => true,
+                    'msg' => 'Los datos del comprobante no coinciden con el punto de emisión asignado para liquidación de compra.',
+                ];
+            }
+        }
+
         if (empty($cartData->cartContent)) {
             return [
                 'status' => true,
@@ -1107,6 +1162,35 @@ class IndexController extends BaseController {
         }
 
         return ['status' => false, 'msg' => ''];
+    }
+
+    private function actualizarSecuencialLiquidacionCompra(object $compra): void {
+
+        if ((string) ($compra->compTipoComprobante ?? '') !== '03') {
+            return;
+        }
+
+        $puntoEmision = $this->comprasModel->obtenerPuntoEmisionUsuario((int) $this->user->id, '03');
+
+        if (!$puntoEmision) {
+            throw new \RuntimeException('Su usuario no esta registrado en un punto de emisión para liquidación de compra.');
+        }
+
+        $secuencialActual = (int) $puntoEmision->pv_sec_actual;
+
+        if ($secuencialActual > (int) $puntoEmision->pv_sec_final) {
+            throw new \RuntimeException('El punto de emisión para liquidación de compra ya no tiene secuenciales disponibles.');
+        }
+
+        if (
+                (string) $compra->compNumeroEstablecimiento !== (string) $puntoEmision->pv_establecimiento ||
+                (string) $compra->compNumeroEmision !== (string) $puntoEmision->pv_emision ||
+                (string) $compra->compNumeroComprobante !== str_pad((string) $secuencialActual, 9, '0', STR_PAD_LEFT)
+        ) {
+            throw new \RuntimeException('Los datos del comprobante no coinciden con el punto de emisión asignado para liquidación de compra.');
+        }
+
+        $this->ccm->actualizar('cc_puntos_venta', ['pv_sec_actual' => $secuencialActual + 1], ['id' => $puntoEmision->id]);
     }
 
     /**
