@@ -248,6 +248,16 @@
                                                 <i class="fas fa-eye me-2"></i> Ver detalle
                                             </button>
                                         </li>
+                                        <li>
+                                            <button class="dropdown-item" @click="openModalEmail(compra)">
+                                                <i class="fas fa-envelope me-2"></i> Enviar por email
+                                            </button>
+                                        </li>
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO'">
+                                            <button class="dropdown-item" @click="verAsientoContable(compra)">
+                                                <i class="fas fa-balance-scale me-2"></i> Ver asiento contable
+                                            </button>
+                                        </li>
                                         <li v-if="compra.comp_estado === 'BORRADOR'">
                                             <button
                                                 class="dropdown-item text-warning"
@@ -255,11 +265,39 @@
                                                 <i class="fas fa-edit me-2"></i> Modificar compra
                                             </button>
                                         </li>
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO'">
+                                            <button
+                                                class="dropdown-item text-primary"
+                                                @click="edicionRapidaCompra(compra)">
+                                                <i class="fas fa-edit me-2"></i> Edición rápida
+                                            </button>
+                                        </li>
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO'">
+                                            <button
+                                                class="dropdown-item"
+                                                @click="editarCentrosCostos(compra)">
+                                                <i class="fas fa-project-diagram me-2"></i> Editar centros de costos
+                                            </button>
+                                        </li>
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO'">
+                                            <button
+                                                class="dropdown-item"
+                                                @click="editarLotes(compra)">
+                                                <i class="fas fa-boxes me-2"></i> Editar lotes
+                                            </button>
+                                        </li>
                                         <li>
                                             <button
                                                 class="dropdown-item"
                                                 @click="clonarCompra(compra.id)">
                                                 <i class="fas fa-clone me-2"></i> Clonar compra
+                                            </button>
+                                        </li>
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO'">
+                                            <button
+                                                class="dropdown-item"
+                                                @click="generarNotaCredito(compra)">
+                                                <i class="fas fa-file-invoice me-2"></i> Generar nota de crédito
                                             </button>
                                         </li>
                                         <li v-if="['BORRADOR', 'ARCHIVADO'].includes(compra.comp_estado)">
@@ -299,7 +337,79 @@
         </div>
     </div>
 
+    <?php echo view('\Modules\Compras\Views\viewEdicionLotes') ?>
+    <?php echo view('\Modules\Compras\Views\viewEdicionCentroCostos') ?>
+    <?php echo view('\Modules\Compras\Views\viewEdicionRapida') ?>
     <?php echo view('\Modules\Compras\Views\reportes\viewModalReport') ?>
+
+    <div ref="modalSendEmail" class="modal fade" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-fullscreen-md-down modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header text-dark">
+                    <h5 class="modal-title mb-0">
+                        <i class="fas fa-envelope me-2"></i> Enviar compra por email
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Para <span class="text-danger">*</span></label>
+                            <input
+                                type="text"
+                                v-model.trim="emailData.para"
+                                class="form-control"
+                                placeholder="correo@empresa.com">
+                            <small class="text-muted">Puede ingresar varios correos separados por coma.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">CC</label>
+                            <input
+                                type="text"
+                                v-model.trim="emailData.cc"
+                                class="form-control"
+                                placeholder="(opcional)">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Asunto <span class="text-danger">*</span></label>
+                            <input
+                                type="text"
+                                v-model.trim="emailData.asunto"
+                                class="form-control"
+                                placeholder="Reporte de Compra #00001">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Mensaje</label>
+                            <textarea
+                                v-model="emailData.mensaje"
+                                class="form-control"
+                                rows="5"
+                                placeholder="Escriba un mensaje adicional..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <div v-if="errorSendMail" class="text-danger fw-semibold me-auto" v-html="errorSendMail"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-primary" :disabled="loadingEmail" @click="sendEmailReport">
+                        <span v-if="loadingEmail">
+                            <i class="fas fa-spinner fa-spin me-2"></i> Enviando...
+                        </span>
+                        <span v-else>
+                            <i class="fas fa-paper-plane me-2"></i> Enviar Email
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -308,6 +418,8 @@
     var listaBodegas = <?= json_encode($listaBodegas); ?>;
     var listaCentroCostos = <?= json_encode($listaCentroCostos); ?>;
     var listaTiposComprobantes = <?= json_encode($listaTiposComprobantes); ?>;
+    var listaTiposCompra = <?= json_encode($listaTiposCompra); ?>;
+    var listaSustentos = <?= json_encode($listaSustentos); ?>;
 
     if (window.appGestionCompras) {
         window.appGestionCompras.unmount();
@@ -346,6 +458,8 @@
                 listaBodegas: listaBodegas,
                 listaCentroCostos: listaCentroCostos,
                 listaTiposComprobantes: listaTiposComprobantes,
+                listaTiposCompra: listaTiposCompra,
+                listaSustentos: listaSustentos,
                 listaTiposCostos: [
                     {value: 'DIRECTOS', label: 'DIRECTOS'},
                     {value: 'INDIRECTOS', label: 'INDIRECTOS'}
@@ -357,7 +471,55 @@
                 secuencialCompra: null,
                 cargandoDetalle: false,
                 detalleHtml: '',
-                modalInstance: null
+                modalTitulo: 'Detalle de Compra',
+                mostrarBotonesReporte: true,
+                modalInstance: null,
+                modalEdicionRapidaInstance: null,
+                modalCentrosCostosInstance: null,
+                modalLotesInstance: null,
+                modalInstanceEmail: null,
+                loadingEdicionRapida: false,
+                loadingCentrosCostos: false,
+                loadingGuardarCentrosCostos: false,
+                loadingLotes: false,
+                loadingGuardarLotes: false,
+                loadingEmail: false,
+                compraEdicionRapida: null,
+                compraCentrosCostos: null,
+                compraLotes: null,
+                emailData: {
+                    para: '',
+                    cc: '',
+                    asunto: '',
+                    mensaje: ''
+                },
+                errorSendMail: '',
+                formEdicionRapida: {
+                    compraId: null,
+                    compNumeroEstablecimiento: '',
+                    compNumeroEmision: '',
+                    compNumeroComprobante: '',
+                    compAutSRI: '',
+                    compFechaEmision: '',
+                    compFechaCaducidad: '',
+                    compSustento: null,
+                    compTipoCompra: null,
+                    compTipoCosto: null,
+                    compODC: '',
+                    compObservaciones: ''
+                },
+                erroresEdicionRapida: {},
+                formCentrosCostos: {
+                    compraId: null,
+                    centroCostoId: null,
+                    detalles: []
+                },
+                erroresCentrosCostos: {},
+                formLotes: {
+                    compraId: null,
+                    detalles: []
+                },
+                erroresLotes: {}
             };
         },
         mounted() {
@@ -383,6 +545,10 @@
             });
 
             this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
+            this.modalEdicionRapidaInstance = new bootstrap.Modal(this.$refs.modalEdicionRapida);
+            this.modalCentrosCostosInstance = new bootstrap.Modal(this.$refs.modalCentrosCostos);
+            this.modalLotesInstance = new bootstrap.Modal(this.$refs.modalLotes);
+            this.modalInstanceEmail = new bootstrap.Modal(this.$refs.modalSendEmail);
             this.searchCompras();
         },
         methods: {
@@ -558,6 +724,8 @@
             async verDetalle(compra) {
                 this.idCompra = compra.id;
                 this.secuencialCompra = compra.comp_secuencial;
+                this.modalTitulo = 'Detalle de Compra';
+                this.mostrarBotonesReporte = true;
                 this.detalleHtml = '';
                 this.cargandoDetalle = true;
                 this.modalInstance.show();
@@ -572,6 +740,313 @@
                     this.cargandoDetalle = false;
                 }
             },
+            async verAsientoContable(compra) {
+                this.idCompra = compra.id;
+                this.secuencialCompra = compra.comp_secuencial;
+                this.modalTitulo = `Asiento contable - Compra #${this.zFill(compra.comp_secuencial, 5)}`;
+                this.mostrarBotonesReporte = false;
+                this.detalleHtml = '';
+                this.cargandoDetalle = true;
+                this.modalInstance.show();
+
+                try {
+                    const {data} = await axios.get(`${this.url}/compras/getAsientoContable/${compra.id}`);
+
+                    if (data.status !== 'success') {
+                        this.modalInstance.hide();
+                        sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo cargar el asiento contable.');
+                        return;
+                    }
+
+                    this.detalleHtml = data.data;
+                } catch (e) {
+                    this.modalInstance.hide();
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.cargandoDetalle = false;
+                }
+            },
+            generarNotaCredito(compra) {
+                sweet_msg_dialog('info', `La generación de nota de crédito para la compra #${this.zFill(compra.comp_secuencial, 5)} se implementará en el siguiente paso.`);
+            },
+            edicionRapidaCompra(compra) {
+                this.compraEdicionRapida = compra;
+                this.erroresEdicionRapida = {};
+                this.formEdicionRapida = {
+                    compraId: Number(compra.id),
+                    compNumeroEstablecimiento: compra.comp_numero_establecimiento || '',
+                    compNumeroEmision: compra.comp_numero_emision || '',
+                    compNumeroComprobante: compra.comp_numero_comprobante || '',
+                    compAutSRI: compra.comp_autorizacion_sri || '',
+                    compFechaEmision: compra.comp_fecha_emision || '',
+                    compFechaCaducidad: compra.comp_fecha_vencimiento_autorizacion || '',
+                    compSustento: compra.cod_sustento || null,
+                    compTipoCompra: compra.fk_tipo_compra || null,
+                    compTipoCosto: compra.tipo_costo || 'DIRECTOS',
+                    compODC: compra.fk_orden_compra || '',
+                    compObservaciones: compra.comp_observacion || ''
+                };
+                this.modalEdicionRapidaInstance.show();
+            },
+            validarEdicionRapida() {
+                const errores = {};
+                const requeridos = {
+                    compNumeroEstablecimiento: 'Ingrese el punto de establecimiento.',
+                    compNumeroEmision: 'Ingrese el punto de emision.',
+                    compNumeroComprobante: 'Ingrese el numero de factura.',
+                    compAutSRI: 'Ingrese la autorizacion SRI.',
+                    compFechaEmision: 'Ingrese la fecha de emision.',
+                    compFechaCaducidad: 'Ingrese la fecha de vencimiento de autorizacion.',
+                    compSustento: 'Seleccione el sustento tributario.',
+                    compTipoCompra: 'Seleccione el tipo de compra.',
+                    compTipoCosto: 'Seleccione el tipo de costo.'
+                };
+
+                Object.entries(requeridos).forEach(([campo, mensaje]) => {
+                    const valor = this.formEdicionRapida[campo];
+                    if (valor === null || valor === undefined || String(valor).trim() === '') {
+                        errores[campo] = mensaje;
+                    }
+                });
+
+                if (this.formEdicionRapida.compNumeroEstablecimiento && !/^\d{1,3}$/.test(this.formEdicionRapida.compNumeroEstablecimiento)) {
+                    errores.compNumeroEstablecimiento = 'Maximo 3 digitos.';
+                }
+
+                if (this.formEdicionRapida.compNumeroEmision && !/^\d{1,3}$/.test(this.formEdicionRapida.compNumeroEmision)) {
+                    errores.compNumeroEmision = 'Maximo 3 digitos.';
+                }
+
+                if (this.formEdicionRapida.compNumeroComprobante && !/^\d{1,9}$/.test(this.formEdicionRapida.compNumeroComprobante)) {
+                    errores.compNumeroComprobante = 'Maximo 9 digitos.';
+                }
+
+                this.erroresEdicionRapida = errores;
+                return Object.keys(errores).length === 0;
+            },
+            async guardarEdicionRapida() {
+                if (!this.validarEdicionRapida()) {
+                    return;
+                }
+
+                try {
+                    this.loadingEdicionRapida = true;
+                    const {data} = await axios.post(`${this.url}/compras/updateEdicionRapida`, this.formEdicionRapida);
+
+                    if (data.status === 'success') {
+                        this.modalEdicionRapidaInstance.hide();
+                        sweet_msg_dialog('success', data.msg);
+                        await this.searchCompras();
+                        return;
+                    }
+
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo actualizar la compra.');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingEdicionRapida = false;
+                }
+            },
+            editarCentrosCostos(compra) {
+                this.compraCentrosCostos = compra;
+                this.erroresCentrosCostos = {};
+                this.formCentrosCostos = {
+                    compraId: Number(compra.id),
+                    centroCostoId: compra.fk_centro_costo || null,
+                    detalles: []
+                };
+                this.modalCentrosCostosInstance.show();
+                this.cargarCentrosCostosCompra(compra.id);
+            },
+            async cargarCentrosCostosCompra(compraId) {
+                try {
+                    this.loadingCentrosCostos = true;
+                    const {data} = await axios.get(`${this.url}/compras/getCentrosCostosCompra/${compraId}`);
+
+                    if (data.status !== 'success') {
+                        this.modalCentrosCostosInstance.hide();
+                        sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudieron cargar los centros de costo.');
+                        return;
+                    }
+
+                    this.formCentrosCostos.centroCostoId = data.data.compra.fk_centro_costo || null;
+                    this.formCentrosCostos.detalles = (data.data.detalle || []).map(detalle => ({
+                        id: Number(detalle.id),
+                        codigo: detalle.prod_codigo,
+                        producto: detalle.prod_nombre,
+                        cantidad: Number(detalle.compd_cantidad || 0),
+                        centroCostoId: detalle.compd_centro_costo || null
+                    }));
+                } catch (e) {
+                    this.modalCentrosCostosInstance.hide();
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingCentrosCostos = false;
+                }
+            },
+            validarCentrosCostos() {
+                const errores = {
+                    detalles: {}
+                };
+
+                if (!this.formCentrosCostos.centroCostoId) {
+                    errores.centroCostoId = 'Seleccione el centro de costo global.';
+                }
+
+                if (!this.formCentrosCostos.detalles.length) {
+                    errores.detallesGeneral = 'La compra no tiene detalles para actualizar.';
+                }
+
+                this.formCentrosCostos.detalles.forEach(detalle => {
+                    if (!detalle.centroCostoId) {
+                        errores.detalles[detalle.id] = 'Seleccione un centro.';
+                    }
+                });
+
+                this.erroresCentrosCostos = errores;
+                return !errores.centroCostoId && !errores.detallesGeneral && Object.keys(errores.detalles).length === 0;
+            },
+            async guardarCentrosCostos() {
+                if (!this.validarCentrosCostos()) {
+                    return;
+                }
+
+                const payload = {
+                    compraId: this.formCentrosCostos.compraId,
+                    centroCostoId: this.formCentrosCostos.centroCostoId,
+                    detalles: this.formCentrosCostos.detalles.map(detalle => ({
+                        id: detalle.id,
+                        centroCostoId: detalle.centroCostoId
+                    }))
+                };
+
+                try {
+                    this.loadingGuardarCentrosCostos = true;
+                    const {data} = await axios.post(`${this.url}/compras/updateCentrosCostosCompra`, payload);
+
+                    if (data.status === 'success') {
+                        this.modalCentrosCostosInstance.hide();
+                        sweet_msg_dialog('success', data.msg);
+                        await this.searchCompras();
+                        return;
+                    }
+
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudieron actualizar los centros de costo.');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingGuardarCentrosCostos = false;
+                }
+            },
+            editarLotes(compra) {
+                this.compraLotes = compra;
+                this.erroresLotes = {};
+                this.formLotes = {
+                    compraId: Number(compra.id),
+                    detalles: []
+                };
+                this.modalLotesInstance.show();
+                this.cargarLotesCompra(compra.id);
+            },
+            async cargarLotesCompra(compraId) {
+                try {
+                    this.loadingLotes = true;
+                    const {data} = await axios.get(`${this.url}/compras/getLotesCompra/${compraId}`);
+
+                    if (data.status !== 'success') {
+                        this.modalLotesInstance.hide();
+                        sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudieron cargar los lotes.');
+                        return;
+                    }
+
+                    this.formLotes.detalles = (data.data.detalle || []).map(detalle => ({
+                        id: Number(detalle.id),
+                        loteId: detalle.fk_lote ? Number(detalle.fk_lote) : null,
+                        productoId: Number(detalle.fk_producto),
+                        codigo: detalle.prod_codigo,
+                        producto: detalle.prod_nombre,
+                        cantidad: Number(detalle.compd_cantidad || 0),
+                        lote: detalle.lot_lote || detalle.compd_lote || '',
+                        fechaElaboracion: detalle.lot_fecha_elaboracion || detalle.compd_fecha_elaboracion || '',
+                        fechaCaducidad: detalle.lot_fecha_caducidad || detalle.compd_fecha_caducidad || ''
+                    }));
+                } catch (e) {
+                    this.modalLotesInstance.hide();
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingLotes = false;
+                }
+            },
+            validarLotes() {
+                const errores = {
+                    detalles: {}
+                };
+
+                if (!this.formLotes.detalles.length) {
+                    errores.detallesGeneral = 'La compra no tiene items con control de lote.';
+                }
+
+                this.formLotes.detalles.forEach(detalle => {
+                    const itemErrores = {};
+
+                    if (!detalle.lote || String(detalle.lote).trim() === '') {
+                        itemErrores.lote = 'Ingrese el lote.';
+                    }
+
+                    if (!detalle.fechaElaboracion) {
+                        itemErrores.fechaElaboracion = 'Ingrese la fecha.';
+                    }
+
+                    if (!detalle.fechaCaducidad) {
+                        itemErrores.fechaCaducidad = 'Ingrese la fecha.';
+                    }
+
+                    if (detalle.fechaElaboracion && detalle.fechaCaducidad && detalle.fechaElaboracion > detalle.fechaCaducidad) {
+                        itemErrores.fechaCaducidad = 'La caducidad debe ser mayor.';
+                    }
+
+                    if (Object.keys(itemErrores).length) {
+                        errores.detalles[detalle.id] = itemErrores;
+                    }
+                });
+
+                this.erroresLotes = errores;
+                return !errores.detallesGeneral && Object.keys(errores.detalles).length === 0;
+            },
+            async guardarLotes() {
+                if (!this.validarLotes()) {
+                    return;
+                }
+
+                const payload = {
+                    compraId: this.formLotes.compraId,
+                    detalles: this.formLotes.detalles.map(detalle => ({
+                        id: detalle.id,
+                        loteId: detalle.loteId,
+                        lote: detalle.lote,
+                        fechaElaboracion: detalle.fechaElaboracion,
+                        fechaCaducidad: detalle.fechaCaducidad
+                    }))
+                };
+
+                try {
+                    this.loadingGuardarLotes = true;
+                    const {data} = await axios.post(`${this.url}/compras/updateLotesCompra`, payload);
+
+                    if (data.status === 'success') {
+                        this.modalLotesInstance.hide();
+                        sweet_msg_dialog('success', data.msg);
+                        await this.searchCompras();
+                        return;
+                    }
+
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudieron actualizar los lotes.');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingGuardarLotes = false;
+                }
+            },
 
             generarExcel() {
                 const contenido = document.getElementById('contentExport');
@@ -582,6 +1057,50 @@
 
             generarPDF() {
                 window.open(`${this.url}/compras/generarPDF/${this.idCompra}?download=1`, '_blank');
+            },
+
+            openModalEmail(compra) {
+                this.idCompra = compra.id;
+                this.secuencialCompra = compra.comp_secuencial;
+                this.errorSendMail = '';
+                this.emailData = {
+                    para: compra.prov_email || '',
+                    cc: '',
+                    asunto: `Reporte de Compra #${this.zFill(compra.comp_secuencial, 5)}`,
+                    mensaje: 'Estimado(a), adjunto el reporte solicitado.'
+                };
+                this.modalInstanceEmail.show();
+            },
+
+            async sendEmailReport() {
+                this.errorSendMail = '';
+
+                if (!this.emailData.para || !this.emailData.asunto) {
+                    this.errorSendMail = 'Debe completar los campos obligatorios (Para y Asunto).';
+                    return;
+                }
+
+                const datos = {
+                    ...this.emailData,
+                    idCompra: this.idCompra
+                };
+
+                try {
+                    this.loadingEmail = true;
+                    const {data} = await axios.post(`${this.url}/compras/sendEmailReport`, datos);
+
+                    if (data.status === 'success') {
+                        this.modalInstanceEmail.hide();
+                        sweet_msg_dialog('success', data.msg);
+                        return;
+                    }
+
+                    this.errorSendMail = data.msg || 'No se pudo enviar el correo.';
+                } catch (e) {
+                    this.errorSendMail = 'Error al enviar email: ' + (e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingEmail = false;
+                }
             },
 
             numeroComprobante(compra) {
@@ -632,6 +1151,6 @@
             }
         }
     });
-
+    window.appGestionCompras.use(AllDirectives);
     window.appGestionCompras.mount('#app');
 </script>

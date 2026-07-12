@@ -54,7 +54,13 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
     $subroutes->get('gestionCompras', 'GestionController::index');
     $subroutes->post('searchCompras', 'GestionController::searchCompras');
     $subroutes->post('contadoresCompras', 'GestionController::contadoresCompras');
+    $subroutes->post('updateEdicionRapida', 'GestionController::updateEdicionRapida');
+    $subroutes->get('getCentrosCostosCompra/(:num)', 'GestionController::getCentrosCostosCompra/$1');
+    $subroutes->post('updateCentrosCostosCompra', 'GestionController::updateCentrosCostosCompra');
+    $subroutes->get('getLotesCompra/(:num)', 'GestionController::getLotesCompra/$1');
+    $subroutes->post('updateLotesCompra', 'GestionController::updateLotesCompra');
     $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
+    $subroutes->get('getAsientoContable/(:num)', 'GestionController::getAsientoContable/$1');
     $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
     $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
 });

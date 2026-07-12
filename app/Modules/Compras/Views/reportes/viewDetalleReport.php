@@ -16,20 +16,6 @@ $estados = [
 [$estadoClase, $estadoTexto] = $estados[$compra->comp_estado] ?? ['bg-secondary', 'DESCONOCIDO'];
 ?>
 
-<style>
-    .section-title-report {
-        border-bottom: 2px solid #34495e;
-        color: #34495e;
-        font-size: 1rem;
-        font-weight: 700;
-        letter-spacing: .02em;
-        margin-bottom: 1rem;
-        margin-top: 1.5rem;
-        padding-bottom: .4rem;
-        text-transform: uppercase;
-    }
-</style>
-
 <div class="border p-3" id="contentExport">
     <table class="table table-borderless align-middle mb-4">
         <tr>
@@ -80,7 +66,7 @@ $estados = [
 
     <?php if (in_array($compra->comp_estado, ['ANULADA', 'ANULADA_EN_PENDIENTE', 'ANULADA_EN_ARCHIVADA'], true)): ?>
         <div class="alert alert-danger mb-4">
-            <h5 class="section-title-report mt-0">Datos de anulacion</h5>
+            <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase" class="section-title-report mt-0">Datos de anulacion</h5>
             <div>
                 <strong>Fecha:</strong>
                 <?= $compra->comp_fecha_anulacion ? date('d/m/Y H:i', strtotime($compra->comp_fecha_anulacion)) : '-' ?>
@@ -187,7 +173,7 @@ $estados = [
     <hr>
     <?php if ($compra->comp_estado === 'ARCHIVADO'): ?>
         <?php if (!empty($compra->formasPagoAts)): ?>
-            <h5 class="section-title-report">Formas de pago ATS</h5>
+            <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase">Formas de pago ATS</h5>
 
             <div class="border rounded p-3">
                 <?php foreach ($compra->formasPagoAts as $forma): ?>
@@ -207,7 +193,7 @@ $estados = [
             ]));
             ?>
             <hr>
-            <h5 class="section-title-report">Retención</h5>
+            <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase">Retención</h5>
 
             <table class="table table-bordered">
                 <tr>
@@ -264,7 +250,7 @@ $estados = [
     <?php if ($compra->comp_estado === 'ARCHIVADO' && !empty($compra->cuentaPorPagar)): ?>
         <?php $cxp = $compra->cuentaPorPagar; ?>
         <hr>
-        <h5 class="section-title-report">Cuenta por pagar</h5>
+        <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase">Cuenta por pagar</h5>
 
         <table class="table table-bordered">
             <tr>
@@ -288,7 +274,7 @@ $estados = [
         </table>
 
         <?php if (!empty($cxp->cuotas)): ?>
-            <h5 class="section-title-report">Cuotas</h5>
+            <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase">Cuotas</h5>
 
             <table class="table table-bordered">
                 <thead class="table-secondary">
@@ -318,7 +304,7 @@ $estados = [
 
         <?php if (!empty($cxp->pagos)): ?>
             <hr>
-            <h5 class="section-title-report">Pagos aplicados</h5>
+            <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase">Pagos aplicados</h5>
 
             <table class="table table-bordered">
                 <thead class="table-secondary">
@@ -352,7 +338,7 @@ $estados = [
     <?php if ($compra->comp_estado === 'ARCHIVADO' && !empty($compra->asientoContable)): ?>
         <?php $asiento = $compra->asientoContable; ?>
         <hr>
-        <h5 class="section-title-report">Asiento contable</h5>
+        <h5 style=" border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 1.5rem;padding-bottom: .4rem; text-transform: uppercase">Asiento contable</h5>
 
         <table class="table table-bordered">
             <tr>

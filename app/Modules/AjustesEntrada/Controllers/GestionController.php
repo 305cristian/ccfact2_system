@@ -98,10 +98,20 @@ class GestionController extends \App\Controllers\BaseController {
         return $this->response->setJSON($view);
     }
 
-    public function generarPDF($ajusteId) {
+    public function generarPDF(int $ajusteId) {
+        $this->user->validateSession();
         $empresa = enterprice();
         $ajusteData = $this->entadasModel->getDataDetalle($ajusteId);
-
+        
+        if (!$ajusteData) {
+            return $this->response
+                            ->setStatusCode(404)
+                            ->setJSON([
+                                'status' => 'warning',
+                                'message' => 'No se encontró el ajuste solicitado.',
+            ]);
+        }
+        
         $data = [
             'ajuste' => $ajusteData,
             'empresa' => $empresa,

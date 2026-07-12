@@ -53,6 +53,11 @@ class CcModel extends \CodeIgniter\Model {
         }
     }
 
+    /**
+     * @param string $table_name
+     * @param array $data_set
+     * @param array $where_data
+     */
     public function actualizar($table_name, $data_set, $where_data) {
         $builder = $this->db->table($table_name);
         $builder->update($data_set, $where_data);
@@ -65,6 +70,15 @@ class CcModel extends \CodeIgniter\Model {
         return true;
     }
 
+    /**
+     * @param string $table_name
+     * @param array $where_data
+     * @param string $fields
+     * @param array $order_by
+     * @param int $rows_num
+     * @param array $group_by
+     * @param string $whereNot
+     */
     public function getData($table_name, $where_data = null, $fields = '', $order_by = null, $rows_num = 0, $group_by = null, $whereNot = null) {
 
         $builder = $this->db->table($table_name);

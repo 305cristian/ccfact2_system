@@ -106,6 +106,7 @@ class ComprasModel extends Model {
                 'compra.*,'
                 . ' proveedor.prov_razon_social AS proveedor,'
                 . ' proveedor.prov_ruc,'
+                . ' proveedor.prov_email,'
                 . ' bodega.bod_nombre AS bodega,'
                 . ' centro.cc_nombre AS centro_costo,'
                 . ' tipoCompra.tc_nombre AS tipo_compra,'
@@ -171,6 +172,30 @@ class ComprasModel extends Model {
         } else {
             return [];
         }
+    }
+
+    public function getDetalleCentrosCostos(int $compraId): array {
+        $builder = $this->db->table("cc_compras_det detalle");
+        $builder->select("detalle.id, detalle.compd_cantidad, detalle.compd_centro_costo, producto.prod_codigo, producto.prod_nombre");
+        $builder->join("cc_productos producto", "producto.id = detalle.fk_producto");
+        $builder->where(["detalle.fk_compra" => $compraId, "detalle.compd_estado" => 1]);
+        $builder->orderBy("detalle.id", "ASC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDetalleLotesCompra(int $compraId): array {
+        $builder = $this->db->table("cc_compras_det detalle");
+        $builder->select(
+                "detalle.id, detalle.fk_producto, detalle.fk_lote, detalle.compd_cantidad,"
+                . " detalle.compd_lote, detalle.compd_fecha_elaboracion, detalle.compd_fecha_caducidad,"
+                . " producto.prod_codigo, producto.prod_nombre, producto.prod_ctrllote,"
+                . " lote.lot_lote, lote.lot_fecha_elaboracion, lote.lot_fecha_caducidad"
+        );
+        $builder->join("cc_productos producto", "producto.id = detalle.fk_producto");
+        $builder->join("cc_lotes lote", "lote.id = detalle.fk_lote", "left");
+        $builder->where(["detalle.fk_compra" => $compraId, "detalle.compd_estado" => 1, "producto.prod_ctrllote" => 1]);
+        $builder->orderBy("detalle.id", "ASC");
+        return $builder->get()->getResult();
     }
 
     public function existeActivoFijo(array $productoIds): bool {

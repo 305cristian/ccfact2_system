@@ -672,6 +672,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 secuencialCompra: null,
                 cargandoDetalle: false,
                 detalleHtml: '',
+                modalTitulo: 'Detalle de Compra',
+                mostrarBotonesReporte: true,
 
                 pagos: {
                     tipoPago: '',
