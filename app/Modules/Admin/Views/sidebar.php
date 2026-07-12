@@ -151,7 +151,7 @@
                     <a @click.prevent="navigate('<?= site_url() ?>/admin/pventa/managamentPuntosVenta')" class="nav-link" style="cursor: pointer">
                     <!--<a href="<?= site_url() ?>/admin/pventa/managamentPuntosVenta" class="nav-link">-->
                         <i class="far fa-circle nav-icon sidebarColorIcon"></i>
-                        <p>Puntos de Venta</p>
+                        <p>Puntos de Emisión</p>
                     </a>
                 </li>
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/motivos/managamentMotivos' }">

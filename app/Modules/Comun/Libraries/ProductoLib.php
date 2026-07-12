@@ -50,7 +50,25 @@ class ProductoLib {
     /**
      * Actualiza los datos del producto (stock, costos)
      */
-    public function updateCostosProducto($productoId, $nuevoStock, $costoPromedio, $costoUltimo, $costoInventario) {
+    public function updateCostosProducto($productoId, $nuevoStock_, $costoPromedio_, $costoUltimo_, $costoInventario_) {
+
+        $nuevoStock = (float) $nuevoStock_;
+        $costoPromedio = (float) $costoPromedio_;
+        $costoUltimo = (float) $costoUltimo_;
+        $costoInventario = (float) $costoInventario_;
+
+        if ($nuevoStock > 0 && $costoPromedio <= 0) {
+            throw new \RuntimeException("No se puede actualizar el producto {$productoId} con costo promedio 0 teniendo stock positivo.");
+        }
+
+        if ($nuevoStock > 0 && $costoUltimo <= 0) {
+            throw new \RuntimeException("No se puede actualizar el producto {$productoId} con costo ultimo 0 teniendo stock positivo.");
+        }
+
+        if ($nuevoStock <= 0) {
+            $costoInventario = 0;
+        }
+
         $datos = [
             'prod_stockactual' => $nuevoStock,
             'prod_costopromedio' => $costoPromedio,

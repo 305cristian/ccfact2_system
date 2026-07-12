@@ -265,6 +265,34 @@ class ComprasLib {
         return (int) $this->ccm->guardar($datos, 'cc_compras_det');
     }
 
+    public function guardarProductoProveedor(int $proveedorId, object $item): void {
+        $codigoProveedor = trim((string) ($item->codigoImport ?? ''));
+
+        if ($proveedorId <= 0 || $codigoProveedor === '') {
+            return;
+        }
+
+        if ((int) ($item->isNewProduct ?? 0) !== 1 || (int) ($item->productoTemporal ?? 0) === 1) {
+            return;
+        }
+
+        $relacion = $this->ccm->getData('cc_producto_proveedor', ['fk_proveedor' => $proveedorId, 'codigo_proveedor' => $codigoProveedor,], 'id, fk_producto', null, 1);
+
+        if ($relacion) {
+            if ((int) $relacion->fk_producto !== (int) $item->id) {
+                $this->ccm->actualizar('cc_producto_proveedor', ['fk_producto' => (int) $item->id], ['id' => (int) $relacion->id]);
+            }
+            return;
+        }
+
+        $formData = [
+            'fk_producto' => (int) $item->id,
+            'fk_proveedor' => $proveedorId,
+            'codigo_proveedor' => $codigoProveedor,
+        ];
+        $this->ccm->guardar($formData, 'cc_producto_proveedor');
+    }
+
     public function guardarBasesImpuesto(int $compraId, array $basesImpuesto): int {
 
         $basesIva = array_values(array_filter($basesImpuesto, static fn($base) => (float) ($base->porcentaje ?? 0) > 0));
@@ -389,10 +417,10 @@ class ComprasLib {
                 $loteId = !empty($item->fk_lote) ? (int) $item->fk_lote : null;
                 $bodegaId = (int) $item->fk_bodega;
 
-                $validarStock = $this->stockBodegaLib->validarStockDisponible((int) $item->fk_producto, $bodegaId,abs((float) $item->compd_cantidad),null, null, $loteId );
+                $validarStock = $this->stockBodegaLib->validarStockDisponible((int) $item->fk_producto, $bodegaId, abs((float) $item->compd_cantidad), null, null, $loteId);
 
                 if ($validarStock['status'] !== 'success') {
-                    throw new \RuntimeException( "No se puede anular la compra porque el producto {$item->fk_producto} no tiene stock suficiente.<br>{$validarStock['msg']}" );
+                    throw new \RuntimeException("No se puede anular la compra porque el producto {$item->fk_producto} no tiene stock suficiente.<br>{$validarStock['msg']}");
                 }
 
                 // Armamos el producto para el movimiento inverso
@@ -425,6 +453,14 @@ class ComprasLib {
         $costoUnitario = (float) $item->priceNeto;
         $costoTotal = (float) $item->subtotalNeto;
 
+        if ($cantidad == 0.0) {
+            throw new \RuntimeException("La cantidad del producto {$item->name} no puede ser 0.");
+        }
+
+        if ($costoUnitario <= 0.0) {
+            throw new \RuntimeException("El costo unitario del producto {$item->name} no puede ser 0.");
+        }
+
         $stockActual = (float) $this->productoLib->getStockProducto($item->id);
         $nuevoStock = $stockActual + $cantidad;
 
@@ -434,14 +470,18 @@ class ComprasLib {
         $costoInventarioTotal = (float) $this->productoLib->getCostoInventarioTotal();
         $nuevoCostoInventarioTotal = $costoInventarioTotal + $costoTotal;
 
-        $costoPromedio = $nuevoStock > 0 ? $nuevoCostoInventarioProducto / $nuevoStock : 0;
+        $costoPromedioActual = (float) $this->productoLib->getCostoPromedio($item->id);
+        $costoUltimoActual = (float) $this->productoLib->getCostoUltimo($item->id);
+
+        $costoPromedio = $nuevoStock > 0 ? $nuevoCostoInventarioProducto / $nuevoStock : $costoPromedioActual;
+        $costoUltimoProducto = $costoUnitario > 0 ? $costoUnitario : $costoUltimoActual;
 
         $formData = [
             'fk_producto' => $item->id,
             'kar_kardex' => $cantidad,
             'kar_kardex_total' => $nuevoStock,
             'kar_costo_promedio' => $costoPromedio,
-            'kar_costo_ultimo' => $costoUnitario,
+            'kar_costo_ultimo' => $costoUltimoProducto,
             'kar_total_costo' => abs($costoTotal),
             'kar_documento_id' => $compraId,
             'kar_codigo_transaccion' => $this->tipoTransaccion,
@@ -456,14 +496,14 @@ class ComprasLib {
 
         $kardexId = (int) $this->ccm->guardar($formData, 'cc_kardex');
 
-        $this->productoLib->updateCostosProducto($item->id, $nuevoStock, $costoPromedio, $costoUnitario, $nuevoCostoInventarioProducto);
+        $this->productoLib->updateCostosProducto($item->id, $nuevoStock, $costoPromedio, $costoUltimoProducto, $nuevoCostoInventarioProducto);
 
         $this->productoLib->actualizarCostoInventarioTotal($nuevoCostoInventarioTotal);
 
         return [
             'kardexId' => $kardexId,
             'costoPromedio' => $costoPromedio,
-            'costoUltimo' => $costoUnitario,
+            'costoUltimo' => $costoUltimoProducto,
         ];
     }
 

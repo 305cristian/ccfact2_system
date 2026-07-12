@@ -220,7 +220,7 @@
                         <tr>
                             <th>ACCIONES</th>
                             <th>CODIGO</th>
-                            <th>FECHA</th>
+                            <th>FECHA DE EMISIÓN</th>
                             <th>COMPROBANTE</th>
                             <th>PROVEEDOR</th>
                             <th>RUC</th>
@@ -253,6 +253,13 @@
                                                 class="dropdown-item text-warning"
                                                 @click="loadCompraEdit(compra.id)">
                                                 <i class="fas fa-edit me-2"></i> Modificar compra
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button
+                                                class="dropdown-item"
+                                                @click="clonarCompra(compra.id)">
+                                                <i class="fas fa-clone me-2"></i> Clonar compra
                                             </button>
                                         </li>
                                         <li v-if="['BORRADOR', 'ARCHIVADO'].includes(compra.comp_estado)">
@@ -479,6 +486,24 @@
                         return;
                     }
                     sweet_msg_dialog('error', data.msg);
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    Swal.close();
+                }
+            },
+            async clonarCompra(compraId) {
+                try {
+                    swalLoading('Clonando compra');
+
+                    const {data} = await axios.get(`${this.url}/compras/clonarCompra/${compraId}`);
+
+                    if (data.status === 'success') {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+
+                    sweet_msg_dialog('error', data.msg || 'No se pudo clonar la compra.');
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
                 } finally {

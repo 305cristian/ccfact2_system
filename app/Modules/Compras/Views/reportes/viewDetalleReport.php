@@ -16,6 +16,20 @@ $estados = [
 [$estadoClase, $estadoTexto] = $estados[$compra->comp_estado] ?? ['bg-secondary', 'DESCONOCIDO'];
 ?>
 
+<style>
+    .section-title-report {
+        border-bottom: 2px solid #34495e;
+        color: #34495e;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        margin-bottom: 1rem;
+        margin-top: 1.5rem;
+        padding-bottom: .4rem;
+        text-transform: uppercase;
+    }
+</style>
+
 <div class="border p-3" id="contentExport">
     <table class="table table-borderless align-middle mb-4">
         <tr>
@@ -64,6 +78,24 @@ $estados = [
         </tr>
     </table>
 
+    <?php if (in_array($compra->comp_estado, ['ANULADA', 'ANULADA_EN_PENDIENTE', 'ANULADA_EN_ARCHIVADA'], true)): ?>
+        <div class="alert alert-danger mb-4">
+            <h5 class="section-title-report mt-0">Datos de anulacion</h5>
+            <div>
+                <strong>Fecha:</strong>
+                <?= $compra->comp_fecha_anulacion ? date('d/m/Y H:i', strtotime($compra->comp_fecha_anulacion)) : '-' ?>
+            </div>
+            <div>
+                <strong>Usuario:</strong>
+                <?= esc($compra->usuario_anulacion ?: '-') ?>
+            </div>
+            <div>
+                <strong>Motivo:</strong>
+                <?= esc($compra->comp_motivo_anulacion ?: '-') ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <table class="table table-bordered">
         <thead class="table-secondary">
             <tr>
@@ -95,77 +127,67 @@ $estados = [
         </tbody>
     </table>
 
-    <h6 class="fw-bold mt-4">Bases e impuestos</h6>
+    <?php
+    $filasIzquierda = [
+        ['Subtotal bruto', (float) $compra->comp_subtotal_bruto],
+        ['Descuento items', (float) $compra->comp_descuento_items],
+        ['Descuento global', (float) $compra->comp_descuento_global],
+        ['Subtotal neto', (float) $compra->comp_subtotal_neto],
+        ['ICE', (float) $compra->comp_totalice],
+        ['IRBPNR', (float) $compra->comp_totalirbpnr],
+    ];
 
-    <table class="table table-bordered">
-        <thead class="table-secondary">
-            <tr>
-                <th>Impuesto</th>
-                <th class="text-end">Porcentaje</th>
-                <th class="text-end">Subtotal bruto</th>
-                <th class="text-end">Base neta</th>
-                <th class="text-end">Impuesto</th>
-            </tr>
-        </thead>
+    $filasDerecha = [
+        ['Base tarifa 0%', (float) $compra->comp_tarifacero_neto],
+        ['Base exento IVA', (float) $compra->comp_total_excento_impuestos],
+        ['Base no objeto IVA', (float) $compra->comp_total_no_objeto_impuestos],
+    ];
+
+    foreach ($compra->basesImpuestos as $base) {
+        $porcentaje = number_format((float) $base->imp_porcentaje, 0);
+        $filasDerecha[] = ["Base imponible IVA {$porcentaje}%", (float) $base->subtotal_neto];
+    }
+
+    foreach ($compra->basesImpuestos as $base) {
+        $porcentaje = number_format((float) $base->imp_porcentaje, 0);
+        $filasDerecha[] = ["Monto IVA {$porcentaje}%", (float) $base->iva_valor];
+    }
+
+    $filasDerecha[] = ['Recargo', (float) $compra->comp_recargo];
+    $filasDerecha[] = ['Servicios Adc', (float) $compra->comp_servicios_adicionales];
+
+    $totalFilas = max(count($filasIzquierda), count($filasDerecha));
+    ?>
+
+    <table class="table table-bordered ms-auto mb-4" style="max-width:680px;">
         <tbody>
-            <?php foreach ($compra->basesImpuestos as $base): ?>
+            <?php for ($i = 0; $i < $totalFilas; $i++): ?>
+                <?php
+                $izquierda = $filasIzquierda[$i] ?? ['', null];
+                $derecha = $filasDerecha[$i] ?? ['', null];
+                ?>
                 <tr>
-                    <td><?= esc($base->imp_detalle) ?></td>
-                    <td class="text-end"><?= number_format($base->imp_porcentaje, 2) ?>%</td>
-                    <td class="text-end">$<?= number_format($base->subtotal_bruto, 2) ?></td>
-                    <td class="text-end">$<?= number_format($base->subtotal_neto, 2) ?></td>
-                    <td class="text-end">$<?= number_format($base->iva_valor, 2) ?></td>
+                    <th class="text-end text-muted" style="width:34%"><?= esc($izquierda[0]) ?></th>
+                    <td class="text-end" style="width:16%">
+                        <?= $izquierda[1] !== null ? '$' . number_format($izquierda[1], 2) : '' ?>
+                    </td>
+                    <th class="text-end text-muted" style="width:34%"><?= esc($derecha[0]) ?></th>
+                    <td class="text-end" style="width:16%">
+                        <?= $derecha[1] !== null ? '$' . number_format($derecha[1], 2) : '' ?>
+                    </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php endfor; ?>
+            <tr class="table-success">
+                <td colspan="4" class="text-end fw-bold fs-5 py-3">
+                    TOTAL&nbsp;&nbsp;&nbsp; $<?= number_format($compra->comp_total, 2) ?>
+                </td>
+            </tr>
         </tbody>
     </table>
-
-    <table class="table table-bordered ms-auto" style="max-width:450px">
-        <tr>
-            <th>Subtotal bruto</th>
-            <td class="text-end">$<?= number_format($compra->comp_subtotal_bruto, 2) ?></td>
-        </tr>
-        <tr>
-            <th>Descuento por ítems</th>
-            <td class="text-end">$<?= number_format($compra->comp_descuento_items, 2) ?></td>
-        </tr>
-        <tr>
-            <th>Descuento global</th>
-            <td class="text-end">$<?= number_format($compra->comp_descuento_global, 2) ?></td>
-        </tr>
-        <tr>
-            <th>Subtotal neto</th>
-            <td class="text-end">$<?= number_format($compra->comp_subtotal_neto, 2) ?></td>
-        </tr>
-        <tr>
-            <th>IVA</th>
-            <td class="text-end">$<?= number_format($compra->comp_totaliva, 2) ?></td>
-        </tr>
-        <tr>
-            <th>ICE</th>
-            <td class="text-end">$<?= number_format($compra->comp_totalice, 2) ?></td>
-        </tr>
-        <tr>
-            <th>IRBPNR</th>
-            <td class="text-end">$<?= number_format($compra->comp_totalirbpnr, 2) ?></td>
-        </tr>
-        <tr>
-            <th>Recargo</th>
-            <td class="text-end">$<?= number_format($compra->comp_recargo, 2) ?></td>
-        </tr>
-        <tr>
-            <th>Servicios adicionales</th>
-            <td class="text-end">$<?= number_format($compra->comp_servicios_adicionales, 2) ?></td>
-        </tr>
-        <tr class="table-success fw-bold">
-            <th>TOTAL</th>
-            <td class="text-end">$<?= number_format($compra->comp_total, 2) ?></td>
-        </tr>
-    </table>
-
+    <hr>
     <?php if ($compra->comp_estado === 'ARCHIVADO'): ?>
         <?php if (!empty($compra->formasPagoAts)): ?>
-            <h6 class="fw-bold mt-4">Formas de pago ATS</h6>
+            <h5 class="section-title-report">Formas de pago ATS</h5>
 
             <div class="border rounded p-3">
                 <?php foreach ($compra->formasPagoAts as $forma): ?>
@@ -184,8 +206,8 @@ $estados = [
                 $compra->retencion->ret_numero_comprobante,
             ]));
             ?>
-
-            <h6 class="fw-bold mt-4">Retención</h6>
+            <hr>
+            <h5 class="section-title-report">Retención</h5>
 
             <table class="table table-bordered">
                 <tr>
@@ -241,8 +263,8 @@ $estados = [
 
     <?php if ($compra->comp_estado === 'ARCHIVADO' && !empty($compra->cuentaPorPagar)): ?>
         <?php $cxp = $compra->cuentaPorPagar; ?>
-
-        <h6 class="fw-bold mt-4">Cuenta por pagar</h6>
+        <hr>
+        <h5 class="section-title-report">Cuenta por pagar</h5>
 
         <table class="table table-bordered">
             <tr>
@@ -266,7 +288,7 @@ $estados = [
         </table>
 
         <?php if (!empty($cxp->cuotas)): ?>
-            <h6 class="fw-bold mt-3">Cuotas</h6>
+            <h5 class="section-title-report">Cuotas</h5>
 
             <table class="table table-bordered">
                 <thead class="table-secondary">
@@ -295,7 +317,8 @@ $estados = [
         <?php endif; ?>
 
         <?php if (!empty($cxp->pagos)): ?>
-            <h6 class="fw-bold mt-3">Pagos aplicados</h6>
+            <hr>
+            <h5 class="section-title-report">Pagos aplicados</h5>
 
             <table class="table table-bordered">
                 <thead class="table-secondary">
@@ -328,8 +351,8 @@ $estados = [
 
     <?php if ($compra->comp_estado === 'ARCHIVADO' && !empty($compra->asientoContable)): ?>
         <?php $asiento = $compra->asientoContable; ?>
-
-        <h6 class="fw-bold mt-4">Asiento contable</h6>
+        <hr>
+        <h5 class="section-title-report">Asiento contable</h5>
 
         <table class="table table-bordered">
             <tr>

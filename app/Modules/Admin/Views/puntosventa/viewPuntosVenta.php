@@ -16,7 +16,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 class="card-title text-system"><i class="fas fa-shop"></i> Puntos de Venta</h5>
+            <h5 class="card-title text-system"><i class="fas fa-shop"></i> Puntos de Emisión</h5>
         </div>
         <div class="card-body">
             <div style="overflow-x: auto">
@@ -30,6 +30,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <td>AUTH. SRI</td>
                             <td>FECHA VENCE AUTH.</td>
                             <td>SEC. INICIAL</td>
+                            <td>SEC. ACTUAL</td>
                             <td>SEC. FINAL</td>
                             <td>ELECTRONICO</td>
                             <td>BODEGA</td>
@@ -47,6 +48,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <td>{{lpv.pv_auth_sri}}</td>
                             <td>{{lpv.pv_fecha_vence_auth}}</td>
                             <td>{{lpv.pv_sec_inicial}}</td>
+                            <td>{{lpv.pv_sec_actual}}</td>
                             <td>{{lpv.pv_sec_final}}</td>
 
                             <td v-if="lpv.pv_is_electronica == 1 "><span class="badge bg-success"><i class="fas fa-check-double"></i>  SI</span></td>
@@ -83,23 +85,36 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <input type="hidden" v-model="idEdit">
                                 <div class="mb-3">
                                     <label for="pvComprobante" class="col-form-label col-form-label-sm"><i class="fal fa-clipboard-list"></i> Comprobante</label>
-                                    <select title="Seleccione un comprobante" class="form-control selectpicker show-tick border" data-live-search="true" v-model="newPV.pvComprobante" id="pvComprobante">
-                                        <option v-for="lc of listaComprobantes" v-bind:value="lc.comp_codigo">{{lc.comp_nombre}}</option>
-                                    </select>
+                                    <vue-select
+                                        class="border rounded"
+                                        :options="listaComprobantes"
+                                        label="comp_nombre"
+                                        :reduce="comprobante => comprobante.comp_codigo"
+                                        v-model="newPV.pvComprobante"
+                                        placeholder="Seleccione un comprobante">
+                                        <template #option="{ comp_codigo, comp_nombre }">
+                                            <span class="badge bg-primary me-2">{{ comp_codigo }}</span>
+                                            <span>{{ comp_nombre }}</span>
+                                        </template>
+                                        <template #selected-option="{ comp_codigo, comp_nombre }">
+                                            <span class="badge bg-primary me-2">{{ comp_codigo }}</span>
+                                            <span>{{ comp_nombre }}</span>
+                                        </template>
+                                    </vue-select>
                                     <!--validaciones-->
                                     <div v-html="formValidacion.pvComprobante" class="text-danger"></div>
                                 </div>    
 
                                 <div class="mb-3 col-md-6">
                                     <label for="pvEstablecimiento" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> P. Establecimiento</label>
-                                    <input  v-model="newPV.pvEstablecimiento" type="number" class="form-control" id="pvEstablecimiento" placeholder="Ingrese un punto de establecimiento" />
+                                    <input  v-model="newPV.pvEstablecimiento"  type="text" v-numbers-only class="form-control" id="pvEstablecimiento" placeholder="Ingrese un punto de establecimiento" />
                                     <!--validaciones-->
                                     <div v-html="formValidacion.pvEstablecimiento" class="text-danger"></div>
                                 </div>       
 
                                 <div class="mb-3 col-md-6">
                                     <label for="pvEmision" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> P. Emisión</label>
-                                    <input  v-model="newPV.pvEmision" type="number" class="form-control" id="pvEmision" placeholder="Ingrese un punto de emisión" />
+                                    <input  v-model="newPV.pvEmision"  type="text" class="form-control" v-numbers-only id="pvEmision" placeholder="Ingrese un punto de emisión" />
                                     <!--validaciones-->
                                     <div v-html="formValidacion.pvEmision" class="text-danger"></div>
                                 </div>                          
@@ -118,14 +133,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     <div v-html="formValidacion.pvFechaVenceAuthSri" class="text-danger"></div>
                                 </div>
 
-                                <div class="mb-3 col-md-6">
+                                <div class="mb-3 col-md-4">
                                     <label for="pvSecInicial" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Secuencia Inicial</label>
                                     <input  v-model="newPV.pvSecInicial" type="number" class="form-control" id="pvSecInicial" placeholder="Ingrese la secuencia inicial" />
                                     <!--validaciones-->
                                     <div v-html="formValidacion.pvSecInicial" class="text-danger"></div>
                                 </div>       
 
-                                <div class="mb-3 col-md-6">
+                                <div class="mb-3 col-md-4">
+                                    <label for="pvSecActual" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Secuencia Actual</label>
+                                    <input  v-model="newPV.pvSecActual" type="number" class="form-control" id="pvSecActual" placeholder="Ingrese la secuencia actual" />
+                                    <!--validaciones-->
+                                    <div v-html="formValidacion.pvSecActual" class="text-danger"></div>
+                                </div>
+
+                                <div class="mb-3 col-md-4">
                                     <label for="pvSecFinal" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Secuencia Final</label>
                                     <input  v-model="newPV.pvSecFinal" type="number" class="form-control" id="pvSecFinal" placeholder="Ingrese la secuencia final" />
                                     <!--validaciones-->
@@ -134,9 +156,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                                 <div class="mb-3">
                                     <label for="pvBodega" class="col-form-label col-form-label-sm"><i class="fal fa-clipboard-list"></i> Bodega</label>
-                                    <select title="Seleccione una bodega" class="form-control selectpicker show-tick border" data-live-search="true" v-model="newPV.pvBodega" id="pvBodega">
-                                        <option v-for="lb of listaBodegas" v-bind:value="lb.id">{{lb.bod_nombre}}</option>
-                                    </select>
+                                    <vue-select
+                                        class="border rounded"
+                                        :options="listaBodegas"
+                                        label="bod_nombre"
+                                        :reduce="bodega => bodega.id"
+                                        v-model="newPV.pvBodega"
+                                        placeholder="Seleccione una bodega">
+                                    </vue-select>
                                     <!--validaciones-->
                                     <div v-html="formValidacion.pvBodega" class="text-danger"></div>
                                 </div>    
@@ -230,7 +257,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     window.appPuntoVenta = Vue.createApp({
 
         components: {
-            'vue-multiselect': window['vue-multiselect'].Multiselect
+            'vue-multiselect': window['vue-multiselect'].Multiselect,
+            "vue-select": window['vue-select']
         },
         data() {
             return {
@@ -251,6 +279,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     pvAuthSri: '',
                     pvFechaVenceAuthSri: '',
                     pvSecInicial: '',
+                    pvSecActual: '',
                     pvSecFinal: '',
                     pvIsElectronica: '0',
                     pvBodega: '',
@@ -310,14 +339,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     pvAuthSri: pv.pv_auth_sri,
                     pvFechaVenceAuthSri: pv.pv_fecha_vence_auth,
                     pvSecInicial: pv.pv_sec_inicial,
+                    pvSecActual: pv.pv_sec_actual,
                     pvSecFinal: pv.pv_sec_final,
                     pvIsElectronica: pv.pv_is_electronica,
                     pvBodega: pv.pv_fk_bodega,
                     pvEstado: pv.pv_estado
                 };
-                $('#pvComprobante').selectpicker('val', pv.fk_comprobante);
-                $('#pvBodega').selectpicker('val', pv.pv_fk_bodega);
-
                 this.idEdit = pv.id;
                 this.nameAux = pv.fk_comprobante;
 
@@ -373,13 +400,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     pvAuthSri: '',
                     pvFechaVenceAuthSri: '',
                     pvSecInicial: '',
+                    pvSecActual: '',
                     pvSecFinal: '',
                     pvIsElectronica: '0',
                     pvBodega: '',
                     pvEstado: '1',
                 };
-                $('#pvComprobante').selectpicker('val', '');
-                $('#pvBodega').selectpicker('val', '');
                 this.pvEmpleados = '';
 
                 this.estadoSave = true;
@@ -398,6 +424,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             }
         }
     });
+    window.appPuntoVenta.use(AllDirectives);
     window.appPuntoVenta.mount('#app');
 
 </script>

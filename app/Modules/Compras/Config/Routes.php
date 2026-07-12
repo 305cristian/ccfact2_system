@@ -42,12 +42,15 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
     $subroutes->post('updateCompra', 'IndexController::updateCompra');
     $subroutes->post('anularCompra', 'IndexController::anularCompra');
     $subroutes->post('updateValoresGlobales', 'IndexController::updateValoresGlobales');
-//    $subroutes->get('clonarCompra/(:num)', 'IndexController::clonarCompra/$1');
-//    $subroutes->post('importarExcel', 'IndexController::importarExcel');
+    $subroutes->get('clonarCompra/(:num)', 'IndexController::clonarCompra/$1');
+    $subroutes->post('importarExcel', 'IndexController::importarExcel');
+    $subroutes->post('importarXmlSri', 'SriImportController::importarXmlSri');
+    $subroutes->post('consultarAutorizacionSri', 'SriImportController::consultarAutorizacionSri');
+    $subroutes->post('reemplazarProductoImportado', 'SriImportController::reemplazarProductoImportado');
     $subroutes->get('loadCompraEdit/(:num)', 'IndexController::loadCompraEdit/$1');
     $subroutes->get('indexEdit/(:num)', 'IndexController::indexEdit/$1');
 
-    //GESTION DE AJUSTES
+    //GESTION DE COMPRAS
     $subroutes->get('gestionCompras', 'GestionController::index');
     $subroutes->post('searchCompras', 'GestionController::searchCompras');
     $subroutes->post('contadoresCompras', 'GestionController::contadoresCompras');
@@ -62,6 +65,7 @@ $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function 
     $subroutes->post('productos/searchProductosStock', 'SearchsController::searchProductosStock');
     $subroutes->get('productos/searchProductoCode/(:segment)', 'SearchsController::searchProductoCode/$1');
     $subroutes->post('exportar/generarExcel', 'IndexController::generarExcel');
+    $subroutes->get('descargar/downloadPlantillaExcelCompra', 'IndexController::downloadPlantillaExcelCompra');
     $subroutes->get('descargar/downloadPlantillaExcelEntrada', 'IndexController::downloadPlantillaExcelEntrada');
     $subroutes->get('descargar/downloadPlantillaExcelAjusteInicial', 'IndexController::downloadPlantillaExcelAjusteInicial');
 });

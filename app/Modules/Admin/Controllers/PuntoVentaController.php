@@ -70,6 +70,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $pvAuthSri = $this->request->getPost('pvAuthSri');
         $pvFechaVenceAuthSri = $this->request->getPost('pvFechaVenceAuthSri');
         $pvSecInicial = $this->request->getPost('pvSecInicial');
+        $pvSecActual = $this->request->getPost('pvSecActual');
         $pvSecFinal = $this->request->getPost('pvSecFinal');
         $pvIsElectronica = $this->request->getPost('pvIsElectronica');
         $pvBodega = $this->request->getPost('pvBodega');
@@ -85,11 +86,30 @@ class PuntoVentaController extends \App\Controllers\BaseController {
             'pvAuthSri' => ['label' => 'Autorización SRI', 'rules' => 'trim|required'],
             'pvFechaVenceAuthSri' => ['label' => 'Fecha Vence Autorización SRI', 'rules' => 'trim|required'],
             'pvSecInicial' => ['label' => 'Secuencia Inicial', 'rules' => 'trim|required'],
+            'pvSecActual' => ['label' => 'Secuencia Actual', 'rules' => 'trim|required'],
             'pvSecFinal' => ['label' => 'Secuencia Final', 'rules' => 'trim|required'],
             'pvBodega' => ['label' => 'Bodega Punto Venta', 'rules' => 'trim|required'],
         ]);
 
         if ($this->validation->withRequest($this->request)->run()) {
+
+            $erroresSecuencia = $this->validarSecuencias($pvSecInicial, $pvSecActual, $pvSecFinal);
+            if (!empty($erroresSecuencia)) {
+                $this->db->transRollback();
+                $response['status'] = 'vacio';
+                $response['msg'] = [
+                    'pvComprobante' => '',
+                    'pvEstablecimiento' => '',
+                    'pvEmision' => '',
+                    'pvAuthSri' => '',
+                    'pvFechaVenceAuthSri' => '',
+                    'pvSecInicial' => $erroresSecuencia['pvSecInicial'] ?? '',
+                    'pvSecActual' => $erroresSecuencia['pvSecActual'] ?? '',
+                    'pvSecFinal' => $erroresSecuencia['pvSecFinal'] ?? '',
+                    'pvBodega' => '',
+                ];
+                return $this->response->setJson($response);
+            }
 
 //            $existe = $this->ccm->getData('cc_puntos_venta', ['fk_comprobante' => $pvComprobante]);
 //            if (count($existe) > 0) {
@@ -105,6 +125,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 'pv_auth_sri' => $pvAuthSri,
                 'pv_fecha_vence_auth' => $pvFechaVenceAuthSri,
                 'pv_sec_inicial' => $pvSecInicial,
+                'pv_sec_actual' => $pvSecActual,
                 'pv_sec_final' => $pvSecFinal,
                 'pv_is_electronica' => $pvIsElectronica,
                 'pv_fk_bodega' => $pvBodega,
@@ -144,6 +165,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 'pvAuthSri' => $this->validation->getError('pvAuthSri'),
                 'pvFechaVenceAuthSri' => $this->validation->getError('pvFechaVenceAuthSri'),
                 'pvSecInicial' => $this->validation->getError('pvSecInicial'),
+                'pvSecActual' => $this->validation->getError('pvSecActual'),
                 'pvSecFinal' => $this->validation->getError('pvSecFinal'),
                 'pvBodega' => $this->validation->getError('pvBodega'),
             ];
@@ -158,6 +180,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $pvAuthSri = $this->request->getPost('pvAuthSri');
         $pvFechaVenceAuthSri = $this->request->getPost('pvFechaVenceAuthSri');
         $pvSecInicial = $this->request->getPost('pvSecInicial');
+        $pvSecActual = $this->request->getPost('pvSecActual');
         $pvSecFinal = $this->request->getPost('pvSecFinal');
         $pvIsElectronica = $this->request->getPost('pvIsElectronica');
         $pvBodega = $this->request->getPost('pvBodega');
@@ -175,11 +198,30 @@ class PuntoVentaController extends \App\Controllers\BaseController {
             'pvAuthSri' => ['label' => 'Autorización SRI', 'rules' => 'trim|required'],
             'pvFechaVenceAuthSri' => ['label' => 'Fecha Vence Autorización SRI', 'rules' => 'trim|required'],
             'pvSecInicial' => ['label' => 'Secuencia Inicial', 'rules' => 'trim|required'],
+            'pvSecActual' => ['label' => 'Secuencia Actual', 'rules' => 'trim|required'],
             'pvSecFinal' => ['label' => 'Secuencia Final', 'rules' => 'trim|required'],
             'pvBodega' => ['label' => 'Bodega Punto Venta', 'rules' => 'trim|required'],
         ]);
 
         if ($this->validation->withRequest($this->request)->run()) {
+
+            $erroresSecuencia = $this->validarSecuencias($pvSecInicial, $pvSecActual, $pvSecFinal);
+            if (!empty($erroresSecuencia)) {
+                $this->db->transRollback();
+                $response['status'] = 'vacio';
+                $response['msg'] = [
+                    'pvComprobante' => '',
+                    'pvEstablecimiento' => '',
+                    'pvEmision' => '',
+                    'pvAuthSri' => '',
+                    'pvFechaVenceAuthSri' => '',
+                    'pvSecInicial' => $erroresSecuencia['pvSecInicial'] ?? '',
+                    'pvSecActual' => $erroresSecuencia['pvSecActual'] ?? '',
+                    'pvSecFinal' => $erroresSecuencia['pvSecFinal'] ?? '',
+                    'pvBodega' => '',
+                ];
+                return $this->response->setJson($response);
+            }
 
 //            $existe = $this->ccm->getData('cc_puntos_venta', ['fk_comprobante' => $pvComprobante]);
 //            if (count($existe) > 0) {
@@ -195,6 +237,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 'pv_auth_sri' => $pvAuthSri,
                 'pv_fecha_vence_auth' => $pvFechaVenceAuthSri,
                 'pv_sec_inicial' => $pvSecInicial,
+                'pv_sec_actual' => $pvSecActual,
                 'pv_sec_final' => $pvSecFinal,
                 'pv_is_electronica' => $pvIsElectronica,
                 'pv_fk_bodega' => $pvBodega,
@@ -235,10 +278,32 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 'pvAuthSri' => $this->validation->getError('pvAuthSri'),
                 'pvFechaVenceAuthSri' => $this->validation->getError('pvFechaVenceAuthSri'),
                 'pvSecInicial' => $this->validation->getError('pvSecInicial'),
+                'pvSecActual' => $this->validation->getError('pvSecActual'),
                 'pvSecFinal' => $this->validation->getError('pvSecFinal'),
                 'pvBodega' => $this->validation->getError('pvBodega'),
             ];
         }
         return $this->response->setJson($response);
+    }
+
+    private function validarSecuencias($secInicial_, $secActual_, $secFinal_): array {
+        $secInicial = (int) $secInicial_;
+        $secActual = (int) $secActual_;
+        $secFinal = (int) $secFinal_;
+        $errores = [];
+
+        if ($secInicial < 1) {
+            $errores['pvSecInicial'] = 'La secuencia inicial debe ser mayor a cero.';
+        }
+
+        if ($secFinal < $secInicial) {
+            $errores['pvSecFinal'] = 'La secuencia final no puede ser menor que la inicial.';
+        }
+
+        if ($secActual < $secInicial || $secActual > $secFinal) {
+            $errores['pvSecActual'] = 'La secuencia actual debe estar dentro del rango inicial y final.';
+        }
+
+        return $errores;
     }
 }

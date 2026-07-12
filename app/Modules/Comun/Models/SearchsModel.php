@@ -22,7 +22,17 @@ class SearchsModel extends \CodeIgniter\Model {
 
     public function searchProveedores($dataSearch) {
         $builder = $this->db->table('cc_proveedores tb1');
-        $builder->select('tb1.id, tb1.prov_email, tb1.prov_telefono, tb1.prov_direccion, tb1.prov_celular, tb1.prov_nombres, tb1.prov_apellidos, tb1.prov_razon_social, tb1.prov_ruc, CONCAT(tb1.prov_ruc," : ",tb1.prov_razon_social)proveedor ');
+        $builder->select('tb1.id,'
+                . ' tb1.prov_email,'
+                . ' tb1.prov_telefono,'
+                . ' tb1.prov_direccion,'
+                . ' tb1.prov_celular,'
+                . ' tb1.prov_nombres,'
+                . ' tb1.prov_apellidos,'
+                . ' tb1.prov_razon_social,'
+                . ' tb1.prov_ruc,'
+                . ' tb1.prov_dias_credito,'
+                . ' CONCAT(tb1.prov_ruc," : ",tb1.prov_razon_social)proveedor ');
         $builder->where('tb1.prov_estado', 1);
         $builder->like('tb1.prov_razon_social', $dataSearch);
         $builder->orLike('tb1.prov_ruc', $dataSearch);
@@ -235,6 +245,7 @@ class SearchsModel extends \CodeIgniter\Model {
                 . " tb1.prod_costoultimo,"
                 . " tb1.prod_costopromedio,"
                 . " tb1.prod_isservicio,"
+                . " tb1.fk_tipoproducto,"
                 . " tb1.prod_tiene_irbpnr,"
                 . " tb1.prod_stockactual,"
                 . " tb1.fk_cuentacontablecompras,"

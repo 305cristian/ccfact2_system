@@ -171,12 +171,6 @@
     <script src="<?php echo base_url(); ?>/resources/plugins/Flatpickr/js/flatpickr.js"></script>
     <script src="<?php echo base_url(); ?>/resources/plugins/Flatpickr/js/es.js"></script>
 
-    <!-- para exportacion pdf-->
-<!--    <script src="<?php echo base_url(); ?>/resources/plugins/html2canva/html2canvas.min.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/plugins/html2pdf/html2pdf.bundle.min.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.umd.min.js"></script>
-    <script src="<?php echo base_url(); ?>/resources/plugins/jspdf/jspdf.plugin.autotable.min.js"></script>-->
-
     <!-- libreria helper-->
     <script src="<?php echo base_url(); ?>/resources/js/cclibrary.js"></script>
     <script src="<?php echo base_url(); ?>/resources/js/directivasVue3.js"></script>

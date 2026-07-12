@@ -34,6 +34,63 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     .multiselect__tags {
         border-radius: 5px 0px 0px 5px
     }
+
+    .cart-product-link-cell {
+        position: relative;
+        z-index: 50;
+    }
+
+    .cart .table-responsive,
+    .cart table,
+    .cart tbody,
+    .cart tr,
+    .cart td {
+        overflow: visible;
+    }
+
+    .cart-product-link-select {
+        min-width: 115px;
+        max-width: 125px;
+    }
+
+    .cart-product-link-select.vs--open {
+        z-index: 4000;
+    }
+
+    .cart-product-link-select .vs__dropdown-toggle {
+        min-height: 30px;
+        padding: 0 4px;
+    }
+
+    .cart-product-link-select .vs__selected-options {
+        min-width: 0;
+        flex-wrap: nowrap;
+    }
+
+    .cart-product-link-select .vs__selected,
+    .cart-product-link-select .vs__search {
+        font-size: 12px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .cart-product-link-select .vs__dropdown-menu {
+        position: absolute;
+        min-width: 360px;
+        width: max-content;
+        max-width: 520px;
+        max-height: 360px;
+        overflow-y: auto;
+        z-index: 5000;
+    }
+
+    .cart-product-link-select .vs__dropdown-option {
+        white-space: nowrap;
+    }
+
+    .cart-product-link-select .producto-option-row {
+        min-width: 330px;
+    }
 </style>
 <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
 
@@ -363,6 +420,89 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </div>
                     </div>
 
+                    <div class="col-md-4 form-group-custom text-end">
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary"
+                            @click="showImportaciones = !showImportaciones">
+                            <i class="fas fa-file-import me-1"></i>
+                            Importaciones
+                            <i class="ms-1" :class="showImportaciones ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+                        </button>
+                    </div>
+
+                    <div class="col-md-12 form-group-custom" v-show="showImportaciones">
+                        <div class="border rounded p-2 bg-light">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-md-5">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-success text-white">
+                                            <i class="fas fa-file-excel me-1"></i> Excel
+                                        </span>
+                                        <input
+                                            type="file"
+                                            ref="inputExcelCompra"
+                                            class="form-control"
+                                            accept=".xlsx,.xls"
+                                            @change="seleccionarArchivoExcel">
+                                        <button
+                                            type="button"
+                                            class="btn btn-success"
+                                            :disabled="!selectedExcelFile || loadingProcess"
+                                            @click="cargarExcel">
+                                            <span v-if="loadingProcess"><i class="fas fa-spinner fa-spin"></i>Cargando</span>
+                                            <span v-else>Cargar</span>
+                                        </button>
+                                        <a :href="url + '/comun/descargar/downloadPlantillaExcelCompra'" class="btn btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-cris-system">
+                                            <i class="fas fa-key me-1"></i> SRI
+                                        </span>
+                                        <input
+                                            v-model="sriImport.claveAcceso"
+                                            type="text"
+                                            maxlength="49"
+                                            class="form-control"
+                                            placeholder="Clave de acceso">
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            :disabled="loadingSriImport"
+                                            @click="consultarFacturaSri">
+                                            <span v-if="loadingSriImport"><i class="fas fa-spinner fa-spin"></i>Consultando</span>
+                                            <span v-else>Consultar</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="input-group">
+                                        <input
+                                            type="file"
+                                            ref="inputXmlSriCompra"
+                                            class="form-control"
+                                            accept=".xml,text/xml,application/xml"
+                                            @change="seleccionarXmlSri">
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-success"
+                                            :disabled="!sriImport.xmlFile || loadingSriImport"
+                                            @click="importarXmlSri">
+                                            <span v-if="loadingSriImport"><i class="fas fa-spinner fa-spin me-1"></i>Cargando</span>
+                                            <span v-else><i class="fas fa-file-code me-1"></i> Cargar XML</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </fieldset>
             <br>
@@ -422,6 +562,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var valorMaximoATSSRI =<?= getSettings('VALOR_MAXIMO_ANEXO_ATS_SRI') ?>;
     var listaImpuestosTarifa = <?php echo json_encode($listaImpuestosTarifa); ?>;
     var listaBancos = <?php echo json_encode($listaBancos); ?>;
+    var puntoEmisionRetencion = <?php echo json_encode($puntoEmisionRetencion); ?>;
 
     if (window.appCompra) {
         window.appCompra.unmount();
@@ -491,6 +632,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaCuentasContables: listaCuentasContables,
                 listaImpuestosTarifa: listaImpuestosTarifa,
                 listaBancosSimulados: listaBancos,
+                puntoEmisionRetencion: puntoEmisionRetencion,
 
                 // =========================
                 // BUSCADOR PRODUCTOS
@@ -512,6 +654,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 emptyCar: true,
                 loadingProcess: false,
                 loadingBodega: false,
+                selectedExcelFile: null,
+                loadingSriImport: false,
+                sriImport: {
+                    claveAcceso: '',
+                    xmlFile: null
+                },
+                showImportaciones: false,
                 showInfoComprobante: true,
                 showInfoGeneral: true,
 
@@ -621,6 +770,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         mounted() {
             this.formCompra.compBodega = this.listaBodegas.find(val => val.id === bodegaIdComp);
             this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(val => val.id === '1');
+            this.aplicarPuntoEmisionRetencion();
 
             if (dataCompra) {
                 this.cargarDatosCompra();
@@ -775,6 +925,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         } : null;
             },
 
+            aplicarPuntoEmisionRetencion() {
+                if (!this.puntoEmisionRetencion) {
+                    return;
+                }
+
+                this.formRetencion.retNumeroEstablecimiento = this.puntoEmisionRetencion.pv_establecimiento || '';
+                this.formRetencion.retNumeroEmision = this.puntoEmisionRetencion.pv_emision || '';
+                this.formRetencion.retNumeroComprobante = this.zFill(this.puntoEmisionRetencion.pv_sec_actual, 9);
+                this.formRetencion.retAutorizacionSri = this.puntoEmisionRetencion.pv_auth_sri || '';
+                this.formRetencion.retFechaEmision = fechaActual;
+            },
+
             //SEARCH PROVEEDORES
             searchProveedor(dataSerach) {
                 clearTimeout(this.searchTimeout);
@@ -870,6 +1032,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 if (aplicaRetencion && !noSujetoRetencion) {
+                    if (!this.puntoEmisionRetencion) {
+                        sweet_msg_dialog('warning', 'No puede emitir retenciones. Su usuario no está registrado en un punto de emisión para comprobante de retención.');
+                        return;
+                    }
+
+                    this.aplicarPuntoEmisionRetencion();
+
                     const camposRetencion = [
                         {
                             valor: this.formRetencion.retNumeroEstablecimiento,
@@ -918,6 +1087,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         return;
                     }
                 }
+                this.pagos.dias = this.formCompra.compProveedor.prov_dias_credito;
+                this.calcularFechaCredito();
 
                 this.modalPagoInstance.show();
             },
@@ -1132,6 +1303,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     retAutorizacionSri: '',
                     retDetalle: {}
                 };
+                this.aplicarPuntoEmisionRetencion();
                 this.listaRetencionesSeleccionadas = [];
                 this.retencionBienes = '';
                 this.retencionServicios = '';
@@ -1254,7 +1426,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             lote: item.lote?.trim() || null,
                             fechaElaboracion: item.fechaElaboracion || null,
                             fechaCaducidad: item.fechaCaducidad || null,
-                            esServicio: Number(item.servicio || 0)
+                            esServicio: Number(item.servicio || 0),
+                            codigoImport: item.codigoImport || null,
+                            isNewProduct: Number(item.isNewProduct || 0),
+                            productoTemporal: Number(item.productoTemporal || 0)
                         }));
 
                     const ats = {
@@ -1490,6 +1665,131 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }, 400);
             },
 
+            seleccionarArchivoExcel(event) {
+                const file = event.target.files[0] || null;
+                this.selectedExcelFile = file;
+            },
+
+            async cargarExcel() {
+                if (!this.selectedExcelFile) {
+                    sweet_msg_toast('warning', 'Seleccione un archivo Excel primero');
+                    return;
+                }
+
+                const datos = new FormData();
+                datos.append('file', this.selectedExcelFile);
+                datos.append('centroCostoId', this.formCompra.compCentroCosto?.id ?? '');
+                datos.append('permitirDuplicados', this.formCompra.compPermitirDuplicados ? 1 : 0);
+
+                try {
+                    this.loadingProcess = true;
+                    const {data} = await axios.post(this.url + '/compras/importarExcel', datos);
+
+                    if (data.status === 'success') {
+                        sweet_msg_dialog('success', data.msg);
+                        this.selectedExcelFile = null;
+                        if (this.$refs.inputExcelCompra) {
+                            this.$refs.inputExcelCompra.value = '';
+                        }
+                        this.showDetailCart();
+                        return;
+                    }
+
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo importar el archivo.');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingProcess = false;
+                }
+            },
+
+            seleccionarXmlSri(event) {
+                this.sriImport.xmlFile = event.target.files[0] || null;
+            },
+
+            async importarXmlSri() {
+                if (!this.sriImport.xmlFile) {
+                    sweet_msg_toast('warning', 'Seleccione un archivo XML primero');
+                    return;
+                }
+
+                const datos = new FormData();
+                datos.append('file', this.sriImport.xmlFile);
+                datos.append('centroCostoId', this.formCompra.compCentroCosto?.id ?? '');
+                datos.append('permitirDuplicados', this.formCompra.compPermitirDuplicados ? 1 : 0);
+
+                try {
+                    this.loadingSriImport = true;
+                    const {data} = await axios.post(this.url + '/compras/importarXmlSri', datos);
+                    this.procesarRespuestaImportacionSri(data);
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingSriImport = false;
+                }
+            },
+
+            async consultarFacturaSri() {
+                const claveAcceso = (this.sriImport.claveAcceso || '').trim();
+
+                if (!/^\d{49}$/.test(claveAcceso)) {
+                    sweet_msg_toast('warning', 'La clave de acceso debe tener 49 dígitos');
+                    return;
+                }
+
+                try {
+                    this.loadingSriImport = true;
+                    const {data} = await axios.post(this.url + '/compras/consultarAutorizacionSri', {
+                        claveAcceso,
+                        centroCostoId: this.formCompra.compCentroCosto?.id ?? null,
+                        permitirDuplicados: this.formCompra.compPermitirDuplicados
+                    });
+                    this.procesarRespuestaImportacionSri(data);
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingSriImport = false;
+                }
+            },
+
+            procesarRespuestaImportacionSri(data) {
+                if (data.status !== 'success') {
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo importar la factura SRI.');
+                    return;
+                }
+
+                this.aplicarDatosFacturaSri(data.data);
+                this.showDetailCart();
+                sweet_msg_dialog('success', data.msg);
+
+                this.sriImport.claveAcceso = '';
+                this.sriImport.xmlFile = null;
+                if (this.$refs.inputXmlSriCompra) {
+                    this.$refs.inputXmlSriCompra.value = '';
+                }
+            },
+
+            aplicarDatosFacturaSri(dataSri) {
+                const factura = dataSri?.factura || {};
+
+                this.formCompra.compNumeroEstablecimiento = factura.estab || '';
+                this.formCompra.compNumeroEmision = factura.ptoEmi || '';
+                this.formCompra.compNumeroComprobante = factura.secuencial || '';
+                this.formCompra.compAutSRI = factura.numeroAutorizacion || factura.claveAcceso || '';
+                this.formCompra.compFechaEmision = factura.fechaEmision || this.formCompra.compFechaEmision;
+
+                const tipoComprobante = this.listaTiposComprobantes.find(item => String(item.comp_codigo) === String(factura.codDoc));
+                if (tipoComprobante) {
+                    this.formCompra.compTipoComprobante = tipoComprobante;
+                }
+
+                if (dataSri?.proveedor) {
+                    this.formCompra.compProveedor = dataSri.proveedor;
+                } else if (factura.rucEmisor) {
+                    sweet_msg_dialog('warning', `La factura pertenece al RUC ${factura.rucEmisor}, pero no se encontró un proveedor activo con ese RUC.`);
+                }
+            },
+
             // =========================
             // BUSCAR POR CODIGO
             // =========================
@@ -1562,6 +1862,50 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 this.showDetailCart();
+            },
+
+            async searchProductosVincular(search, item) {
+                clearTimeout(item.searchVincularTimeout);
+
+                item.searchVincularTimeout = setTimeout(async () => {
+                    const datos = {
+                        dataSerach: search,
+                        estado: 1
+                    };
+
+                    try {
+                        const {data} = await axios.post(this.url + '/comun/productos/searchProductos', datos);
+                        item.listaProductosVincular = data !== false ? data : [];
+                    } catch (e) {
+                        item.listaProductosVincular = [];
+                        sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                    }
+                }, 400);
+            },
+
+            async reemplazarProductoImportado(item, producto = null) {
+                const codigoProducto = producto?.id ?? (item.codigoProductoReemplazo || '').trim();
+
+                if (!codigoProducto) {
+                    sweet_msg_toast('warning', 'Seleccione el producto del sistema.');
+                    return;
+                }
+
+                try {
+                    this.loading = true;
+
+                    const {data} = await axios.post(this.url + '/compras/reemplazarProductoImportado', {
+                        rowid: item.rowid,
+                        codigoProducto
+                    });
+
+                    sweet_msg_toast(data.status, data.msg);
+                    this.showDetailCart();
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loading = false;
+                }
             },
 
             // =========================
@@ -1705,7 +2049,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     compDiasCredito: 0,
                     compEstado: 'BORRADOR',
                     compObservaciones: '',
-                    compPermitirDuplicados: permitirDuplicados
+                    compPermitirDuplicados: permitirDuplicados,
                 };
                 this.global = {
                     descuentoGlobal: 0,
@@ -1733,6 +2077,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     tarifExcentoNeto: 0
                 };
                 this.basesImpuesto = [];
+                selectedExcelFile: null;
             },
 
             //====================

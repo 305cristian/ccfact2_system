@@ -40,7 +40,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <table class="table table-stripped table-hover align-middle w-100">
                 <colgroup>
                     <col style="width:110px">   <!-- Eliminar -->
-                    <col style="width:90px">   <!-- Cod Prov -->
+                    <col style="width:125px">   <!-- Cod Prov -->
                     <col style="width:130px">  <!-- Codigo -->
                     <col style="width:370px">  <!-- Producto -->
                     <col v-if="colLotes" style="width:300px">  <!-- Lote -->
@@ -89,8 +89,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </td>
 
                         <!--CODIGO DE PROVEEDOR-->
-                        <td>
-                            <input type="text" value="00025" class="form-control form-control-sm">
+                        <td class="cart-product-link-cell" style="min-width: 125px;">
+                            <vue-select 
+                                class="w-100 cart-product-link-select"
+                                v-model="item.productoVinculado"
+                                :options="item.listaProductosVincular || []"
+                                label="prod_nombre"
+                                :placeholder="item.codigoImport || 'C.P.'"
+                                @search="search => searchProductosVincular(search, item)"
+                                @option:selected="producto => reemplazarProductoImportado(item, producto)">
+
+                                <template #selected-option="{ prod_nombre }">
+                                    <span>{{ item.codigoImport }}</span>
+                                </template>
+
+                                <template #option="option">
+                                    <div class="producto-option-row d-flex align-items-center gap-2 flex-nowrap">
+                                        <span class="badge bg-primary flex-shrink-0">{{ option.codigos }}</span>
+                                        <span class="fw-bold text-dark text-truncate">{{ option.prod_nombre }}</span>
+                                    </div>
+                                </template>
+                            </vue-select>
                         </td>
 
                         <!--CODIGO DE PRODUCTO-->
@@ -136,6 +155,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <i class="fas fa-angles-right"></i>
                                 {{ item.unidadMedida }}
                             </span>
+
+                            <div v-if="Number(item.productoTemporal || 0) === 1">
+                                <small class="text-danger">Producto importado pendiente de vincular.</small>
+                            </div>
 
                         </td>
 

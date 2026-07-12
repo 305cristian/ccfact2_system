@@ -33,7 +33,7 @@ class GestionController extends BaseController {
 
     public function index() {
         $this->user->validateSession();
-
+        $data['title'] = "Listar Compras";
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
@@ -179,7 +179,7 @@ class GestionController extends BaseController {
 
         return $this->response
                         ->setHeader('Content-Type', 'application/pdf')
-                        ->setHeader('Content-Disposition', 'inline; filename="' . $nombre . '"' )
+                        ->setHeader('Content-Disposition', 'inline; filename="' . $nombre . '"')
                         ->setBody($mpdf->Output($nombre, 'S'));
     }
 }

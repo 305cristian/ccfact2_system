@@ -225,20 +225,17 @@ class EntradasLib {
         $costoInvTotal = $this->productLib->getCostoInventarioTotal();
         $nuevoCostoInvTotal = $costoInvTotal + $producto->total;
 
-//        if ($nuevoStock < 0) {
-//            throw new \Exception("El producto {$producto->name} quedaría con stock negativo.");
-//        }
+        $promedioActual = (float) $this->productLib->getCostoPromedio($producto->id);
+        $costoUltimoActual = (float) $this->productLib->getCostoUltimo($producto->id);
+
         // Calcular costo promedio
         if ($tipoAjuste === 'AJUSTE_NORMAL' || $tipoAjuste === 'AJUSTE_INICIAL') {
             
-            $promedioActual = $this->productLib->getCostoPromedio($producto->id);
             $costoPromedio = $promedioActual > 0 ? $promedioActual : $producto->price;
-            
-            $costoUltimoActual = $this->productLib->getCostoUltimo($producto->id);
             $costoUltimo = $costoUltimoActual > 0 ? $costoUltimoActual : $producto->price;
         } else {
-            $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : 0;
-            $costoUltimo = $producto->price;
+            $costoPromedio = $nuevoStock > 0 ? ($nuevoCostoInvProducto / $nuevoStock) : $promedioActual;
+            $costoUltimo = (float) $producto->price > 0 ? (float) $producto->price : $costoUltimoActual;
         }
 
 

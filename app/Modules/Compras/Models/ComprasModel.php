@@ -37,7 +37,8 @@ class ComprasModel extends Model {
                 . ' tipoComprobante.comp_nombre AS comprobante_nombre,'
                 . ' sustento.sus_nombre,'
                 . ' formaPago.fp_nombre,'
-                . ' CONCAT(usuario.emp_nombre, " ", usuario.emp_apellido) AS user_create'
+                . ' CONCAT(usuario.emp_nombre, " ", usuario.emp_apellido) AS user_create,'
+                . ' CONCAT(usuarioAnulacion.emp_nombre, " ", usuarioAnulacion.emp_apellido) AS usuario_anulacion'
         );
 
         $builder->join('cc_proveedores proveedor', 'proveedor.id = compra.fk_proveedor');
@@ -48,6 +49,7 @@ class ComprasModel extends Model {
         $builder->join('cc_sustentos sustento', 'sustento.sus_codigo = compra.cod_sustento', 'left');
         $builder->join('cc_formas_pago formaPago', 'formaPago.cod = compra.cod_forma_pago', 'left');
         $builder->join('cc_empleados usuario', 'usuario.id = compra.fk_user', 'left');
+        $builder->join('cc_empleados usuarioAnulacion', 'usuarioAnulacion.id = compra.fk_user_anulacion', 'left');
         $builder->where('compra.id', $compraId);
 
         $compra = $builder->get()->getRow();
@@ -180,6 +182,27 @@ class ComprasModel extends Model {
                         ->whereIn('id', $productoIds)
                         ->where('fk_tipoproducto', 2)
                         ->countAllResults() > 0;
+    }
+
+    public function obtenerPuntoEmisionRetencionUsuario(int $empleadoId): ?object {
+        $builder = $this->db->table("cc_puntos_venta tb1");
+        $builder->select("tb1.id, tb1.pv_establecimiento, tb1.pv_emision, tb1.pv_auth_sri, tb1.pv_fecha_vence_auth, tb1.pv_sec_inicial, tb1.pv_sec_actual, tb1.pv_sec_final, tb1.pv_is_electronica");
+        $builder->join("cc_puntoventa_empleado tb2", "tb2.fk_punto_venta = tb1.id");
+        $builder->where(["tb1.fk_comprobante" => "07", "tb1.pv_estado" => "1", "tb2.fk_empleado" => $empleadoId]);
+        $builder->orderBy("tb1.id", "ASC");
+        return $builder->get()->getRow();
+    }
+
+    public function obtenerPuntoEmisionRetencion(string $establecimiento, string $emision): ?object {
+        $builder = $this->db->table("cc_puntos_venta");
+        $builder->where(["fk_comprobante" => "07", "pv_establecimiento" => $establecimiento, "pv_emision" => $emision, "pv_estado" => "1"]);
+        return $builder->get()->getRow();
+    }
+
+    public function usuarioPuedeEmitirEnPuntoRetencion(int $puntoEmisionId, int $empleadoId): bool {
+        $builder = $this->db->table("cc_puntoventa_empleado");
+        $builder->where(["fk_punto_venta" => $puntoEmisionId, "fk_empleado" => $empleadoId]);
+        return $builder->countAllResults() > 0;
     }
 
     private function obtenerFormasPagoAts(int $compraId): array {
@@ -322,5 +345,14 @@ class ComprasModel extends Model {
 
         $builder->where($campo . ' >=', $desde);
         $builder->where($campo . ' <=', $hasta);
+    }
+
+    public function getRelacionProducto(int $proveedorId, string $codigoProveedor): ?object {
+
+        $builder = $this->db->table("cc_producto_proveedor tb1");
+        $builder->select("fk_producto");
+        $builder->join("cc_productos tb2", "tb2.id = tb1.fk_producto");
+        $builder->where(['fk_proveedor' => $proveedorId, "codigo_proveedor" => $codigoProveedor, "tb2.prod_estado" => 1]);
+        return $builder->get()->getRow();
     }
 }

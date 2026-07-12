@@ -65,11 +65,11 @@ class AsientoContableLib {
             }
 
             // Obtener siguiente número de asiento en el periodo actual
-            $nroAsiento = getNumeroAsiento($fecha);
+            $nroAsiento = getNumeroAsiento(date('Y-m-d'));
 
             // Obtener numero secuencial
-            $dataCecuencial = $this->ccm->getData('cc_asiento_contable', null, 'ac_secuencial', ['ac_secuencial' => 'DESC'], 1);
-            $secuencial = (isset($dataCecuencial) ? $dataCecuencial->ac_secuencial + 1 : 1);
+            $dataSecuencial = $this->ccm->getData('cc_asiento_contable', null, 'ac_secuencial', ['ac_secuencial' => 'DESC'], 1);
+            $secuencial = (isset($dataSecuencial) ? $dataSecuencial->ac_secuencial + 1 : 1);
 
             // Datos del asiento
             $datosAsiento = [
@@ -96,7 +96,6 @@ class AsientoContableLib {
             return $asientoId;
         } catch (\Throwable $exc) {
             log_message('error', '[AsientoContableLib::guardarAsiento] ' . $exc->getMessage() . PHP_EOL . $exc->getTraceAsString());
-//            throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage());
             //throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage().$exc->getTraceAsString());
             throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage());
 

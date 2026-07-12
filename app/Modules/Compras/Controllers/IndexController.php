@@ -11,6 +11,7 @@ use Modules\Compras\Libraries\ComprasFinanzasLib;
 use Modules\Compras\Libraries\ComprasAsientosLib;
 use Modules\Comun\Libraries\CuentasConfigLib;
 use Modules\Compras\Models\ComprasModel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -58,6 +59,7 @@ class IndexController extends BaseController {
      */
     public function index(int $moduloId) {
         $this->user->validateSession();
+        $data['title'] = "Compras";
         $data['moduloId'] = $moduloId;
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
@@ -96,7 +98,26 @@ class IndexController extends BaseController {
         ]);
     }
 
-    private function loadDataCompraCart(int $compraId): array {
+    public function clonarCompra(int $compraId) {
+
+        $respuesta = $this->loadDataCompraCart($compraId, true);
+
+        if ($respuesta['status'] !== 'success') {
+            return $this->response->setJSON([
+                        'status' => 'error',
+                        'msg' => $respuesta['msg'],
+                        'redirect' => null,
+            ]);
+        }
+
+        return $this->response->setJSON([
+                    'status' => 'success',
+                    'msg' => 'Compra clonada correctamente.',
+                    'redirect' => site_url('compras/nuevaCompra'),
+        ]);
+    }
+
+    private function loadDataCompraCart(int $compraId, bool $isClone = false): array {
 
         $compra = $this->comprasModel->getDataDetalle($compraId);
 
@@ -107,7 +128,7 @@ class IndexController extends BaseController {
             ];
         }
 
-        if ($compra->comp_estado !== 'BORRADOR') {
+        if (!$isClone && $compra->comp_estado !== 'BORRADOR') {
             return [
                 'status' => 'error',
                 'msg' => 'Solo se pueden modificar compras en BORRADOR.',
@@ -144,6 +165,8 @@ class IndexController extends BaseController {
                     'ctaContableProducto' => $detalle->compd_cta_entrada,
                     'codigoImport' => null,
                     'isNewProduct' => 0,
+                    'productoTemporal' => 0,
+                    'codigoProductoReemplazo' => null,
                 ];
 
                 $this->comprasCart->insert($item);
@@ -172,6 +195,7 @@ class IndexController extends BaseController {
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
+        $data['title'] = "Nueva Compra";
         $data['listaTiposCompra'] = $this->ccm->getData('cc_tipo_compra', ['tc_estado' => 1], 'id, tc_nombre');
         $data['listaFormasPago'] = $this->ccm->getData('cc_formas_pago', ['fp_estado' => 1], 'cod, fp_nombre');
         $data['listaFormasPagoSRI'] = $this->ccm->getData('cc_formas_pago_sri', ['fp_estado' => 1], 'codigo, fp_nombre_sri');
@@ -183,6 +207,7 @@ class IndexController extends BaseController {
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
         $data['listaRetenciones'] = $this->ccm->getData('cc_retencion_sri', ['ret_estado' => 1], 'id, ret_codigo, ret_nombre, ret_porcentaje, ret_impuesto, ret_impuesto_detalle, CONCAT_WS(" - ",ret_codigo,ret_nombre,ret_porcentaje)retencionName');
         $data['listaBancos'] = $this->ccm->getData('cc_bancos_list', ['banc_estado' => 1], 'id codigo, banc_nombre nombre, banc_tipo');
+        $data['puntoEmisionRetencion'] = $this->comprasModel->obtenerPuntoEmisionRetencionUsuario((int) $this->user->id);
 
         $bodegaMainUsuario = bodegaMain($this->user->id);
 
@@ -215,6 +240,32 @@ class IndexController extends BaseController {
                     'msg' => $mensaje,
                     'data' => $data,
         ]);
+    }
+
+    private function obtenerCodigoCuentaCompraPorProducto(object $producto, ?int $impuestoTarifaId, float $ivaPorcent): ?string {
+        if ((int) $producto->prod_isservicio === 1 && (int) $producto->fk_tipoproducto === 3) {
+            return '014';
+        }
+
+        if ((int) $producto->prod_isservicio !== 0 || (int) $producto->fk_tipoproducto !== 1) {
+            return null;
+        }
+
+        if ($ivaPorcent <= 0) {
+            return '010';
+        }
+
+        $grupo = null;
+
+        if ($impuestoTarifaId) {
+            $grupo = $this->ccm->getValueWhere('cc_impuesto_tarifa', ['id' => $impuestoTarifaId, 'fk_impuesto' => 1], 'impt_grupo');
+        }
+
+        if ($grupo === 'ESPECIAL') {
+            return '022';
+        }
+
+        return '011';
     }
 
     /**
@@ -297,18 +348,15 @@ class IndexController extends BaseController {
             'centroCosto' => $centroCostoData->id,
             'ctaContableProducto' => null,
             'codigoImport' => null,
-            'isNewProduct' => 0
+            'isNewProduct' => 0,
+            'productoTemporal' => 0,
+            'codigoProductoReemplazo' => null,
         ];
 
         if (!empty($dataProducto->fk_cuentacontablecompras)) {
             $item['ctaContableProducto'] = $dataProducto->fk_cuentacontablecompras;
         } else {
-            $codigoCuenta = null;
-            if ($dataProducto->prod_isservicio === 0 && $dataProducto->fk_tipoproducto === 1) {// SI ES UN PRODUCTO NORMAL COMPRA Y VENTA Y NO TIENE DEFINIDO CUENTA CONTABLE
-                $codigoCuenta = $ivaPorcent > 0 ? '011' : '010';
-            } else if ($dataProducto->prod_isservicio === 1 && $dataProducto->fk_tipoproducto === 3) {// SI ES UN PRODUCTO TIPO SERVICIO Y NO TIENE DEFINIDO CUENTA CONTABLE
-                $codigoCuenta = '014';
-            }
+            $codigoCuenta = $this->obtenerCodigoCuentaCompraPorProducto($dataProducto, $porcentajeSelect, $ivaPorcent);
             if ($codigoCuenta) {
                 $item['ctaContableProducto'] = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoCuenta);
             }
@@ -319,7 +367,184 @@ class IndexController extends BaseController {
         return $this->responseSetJSON('success', 'Producto agregado al carrito', $item);
     }
 
-    /**
+
+    public function importarExcel() {
+        try {
+            $file = $this->request->getFile('file');
+            $permitirDuplicados = $this->request->getPost('permitirDuplicados');
+            $centroCostoId = $this->request->getPost('centroCostoId');
+
+            if (!$file || !$file->isValid()) {
+                return $this->responseSetJSON('error', 'Debe seleccionar un archivo Excel valido.');
+            }
+
+            $centroCostoDefault = !empty($centroCostoId) ? (int) $centroCostoId : null;
+
+            $spreadsheet = IOFactory::load($file->getTempName());
+            $sheet = $spreadsheet->getActiveSheet();
+            $registros = $sheet->toArray(null, true, true, true);
+
+            $importados = 0;
+            $errores = [];
+
+            foreach ($registros as $i => $row) {
+                if ($i === 1) {
+                    continue;
+                }
+
+                $codigo = trim((string) ($row['A'] ?? ''));
+                $cantidad = (float) ($row['B'] ?? 0);
+                $precio = (float) ($row['C'] ?? 0);
+                $descuento = (float) ($row['D'] ?? 0);
+                $lote = trim((string) ($row['E'] ?? ''));
+                $fechaElab = trim((string) ($row['F'] ?? ''));
+                $fechaCaduc = trim((string) ($row['G'] ?? ''));
+
+                if ($codigo === '') {
+                    $errores[] = "Fila {$i}: el codigo esta vacio.";
+                    continue;
+                }
+
+                if ($cantidad <= 0) {
+                    $errores[] = "Fila {$i}: la cantidad debe ser mayor a cero.";
+                    continue;
+                }
+
+                if ($precio <= 0) {
+                    $errores[] = "Fila {$i}: el costo debe ser mayor a cero.";
+                    continue;
+                }
+
+                if ($descuento < 0) {
+                    $errores[] = "Fila {$i}: el descuento no puede ser negativo.";
+                    continue;
+                }
+
+                $idProd = $this->ccm->getValueWhere('cc_productos', ['prod_codigo' => $codigo, 'prod_estado' => 1], 'id');
+                if (!$idProd) {
+                    $errores[] = "Fila {$i}: el producto con codigo '{$codigo}' no existe o esta desactivado.";
+                    continue;
+                }
+
+                $dataProducto = $this->searchModel->searchProductoData($idProd);
+                if (!$dataProducto) {
+                    $errores[] = "Fila {$i}: no se pudo obtener informacion del producto '{$codigo}'.";
+                    continue;
+                }
+
+                if ((string) $dataProducto->prod_ctrllote === '1') {
+                    if ($lote === '') {
+                        $errores[] = "Fila {$i}: el producto '{$codigo}' requiere numero de lote.";
+                        continue;
+                    }
+
+                    if ($fechaElab === '' || $fechaCaduc === '') {
+                        $errores[] = "Fila {$i}: el producto '{$codigo}' requiere fecha de elaboracion y caducidad.";
+                        continue;
+                    }
+
+                    $fechaElab = date('Y-m-d', strtotime($fechaElab));
+                    $fechaCaduc = date('Y-m-d', strtotime($fechaCaduc));
+
+                    if ($fechaElab === '1970-01-01' || $fechaCaduc === '1970-01-01') {
+                        $errores[] = "Fila {$i}: formato de fecha invalido para '{$codigo}'.";
+                        continue;
+                    }
+                } else {
+                    $lote = null;
+                    $fechaElab = null;
+                    $fechaCaduc = null;
+                }
+
+                $ivaPorcent = 0;
+                $icePorcent = 0;
+                $impuestoSelect = null;
+                $codigoPorcentajeSelect = null;
+                $detallePorcentajeSelect = '';
+
+                $tarifas = $this->prodModel->getImpuestoTarifa((int) $dataProducto->id);
+                foreach ($tarifas ?: [] as $tarifa) {
+                    if ((int) $tarifa->fk_impuesto === 1) {
+                        $ivaPorcent = (float) $tarifa->impt_porcentage;
+                        $impuestoSelect = (int) $tarifa->id;
+                        $codigoPorcentajeSelect = $tarifa->impt_codigo;
+                        $detallePorcentajeSelect = $tarifa->impt_detalle;
+                    }
+
+                    if ((int) $tarifa->fk_impuesto === 2) {
+                        $icePorcent = (float) $tarifa->impt_porcentage;
+                    }
+                }
+
+                $discountValue = $descuento;
+                $discountPercent = $precio > 0 ? ($discountValue / $precio) * 100 : 0;
+
+                $item = [
+                    'id' => (int) $dataProducto->id,
+                    'qty' => $cantidad,
+                    'codigo' => $dataProducto->prod_codigo,
+                    'name' => $dataProducto->prod_nombre,
+                    'unidadMedida' => $dataProducto->um_nombre_corto,
+                    'price' => $precio,
+                    'ivaPorcent' => $ivaPorcent,
+                    'icePorcent' => $icePorcent,
+                    'impuestoSelect' => $impuestoSelect,
+                    'codigoImpuestoSelect' => $codigoPorcentajeSelect,
+                    'detalleImpuestoSelect' => $detallePorcentajeSelect,
+                    'tipoDescuento' => 'VALOR',
+                    'discountPercent' => $discountPercent,
+                    'discountValue' => $discountValue,
+                    'descuento' => $descuento,
+                    'tieneLote' => $dataProducto->prod_ctrllote,
+                    'permitirDuplicados' => $permitirDuplicados,
+                    'lote' => $lote,
+                    'fechaElaboracion' => $fechaElab,
+                    'fechaCaducidad' => $fechaCaduc,
+                    'servicio' => $dataProducto->prod_isservicio,
+                    'irbpnrUnitario' => $dataProducto->prod_tiene_irbpnr === '1' ? (float) getImpuestoIrbpnr() : 0,
+                    'centroCosto' => $centroCostoDefault,
+                    'ctaContableProducto' => $dataProducto->fk_cuentacontablecompras ?: null,
+                    'codigoImport' => null,
+                    'isNewProduct' => 0,
+                    'productoTemporal' => 0,
+                    'codigoProductoReemplazo' => null,
+                ];
+
+                if (empty($item['ctaContableProducto'])) {
+                    $codigoCuenta = $this->obtenerCodigoCuentaCompraPorProducto($dataProducto, $impuestoSelect, $ivaPorcent);
+
+                    if ($codigoCuenta) {
+                        $item['ctaContableProducto'] = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoCuenta);
+                    }
+                }
+
+                $this->comprasCart->insert($item);
+                $importados++;
+            }
+
+            if ($importados === 0) {
+                $msg = 'No se importaron productos validos.';
+                if ($errores) {
+                    $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>" . implode('<br>', $errores) . '</span>';
+                }
+                return $this->responseSetJSON('warning', $msg);
+            }
+
+            $msg = "Importacion completada: {$importados} producto(s) agregado(s).";
+            if ($errores) {
+                $msg .= "<span class='fw-semibold text-danger'><br><br><strong>Errores encontrados:</strong><br>" . implode('<br>', $errores) . '</span>';
+            }
+
+            return $this->responseSetJSON('success', $msg, [
+                        'totalImportados' => $importados,
+                        'errores' => $errores,
+            ]);
+        } catch (\Throwable $e) {
+            return $this->responseSetJSON('error', 'Error al procesar el archivo: ' . $e->getMessage());
+        }
+    }
+    
+        /**
      * Función para mostrar los detalles del carrito de compras, incluyendo los productos agregados, totales y cálculos de impuestos
      * @return JSON Respuesta con los detalles del carrito de compras, como los productos agregados, totales, impuestos y otros cálculos relacionados
      * El método obtiene el contenido actual del carrito de compras utilizando la biblioteca ComprasCartLib, calcula los totales, impuestos y otros valores relacionados, y luego devuelve una respuesta JSON con toda esta información para ser utilizada en la interfaz de usuario del módulo de compras.
@@ -329,6 +554,7 @@ class IndexController extends BaseController {
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de compras, para actualizar dinámicamente la información del carrito sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios en el carrito de compras y proporcionar una experiencia de usuario fluida y eficiente.
      * En resumen, esta función es responsable de proporcionar una visión detallada y actualizada del carrito de compras, incluyendo los productos agregados, totales, impuestos y otros cálculos relevantes, a través de una respuesta JSON que puede ser utilizada para actualizar la interfaz de usuario del módulo de compras de manera dinámica.
      */
+
     public function showDetailCart(int $key = 0) {
         $cartContent = array_values($this->comprasCart->getContent() ?? []);
 
@@ -447,8 +673,10 @@ class IndexController extends BaseController {
             'irbpnrUnitario' => $dataPost->irbpnrUnitario ?? 0,
             'centroCosto' => $dataPost->centroCosto ?? null,
             'ctaContableProducto' => $dataPost->ctaContableProducto ?? null,
-            'codigoImport' => null,
-            'isNewProduct' => 0,
+            'codigoImport' => $dataPost->codigoImport ?? null,
+            'isNewProduct' => (int) ($dataPost->isNewProduct ?? 0),
+            'productoTemporal' => (int) ($dataPost->productoTemporal ?? 0),
+            'codigoProductoReemplazo' => $dataPost->codigoProductoReemplazo ?? null,
             'rowid' => $rowId
         ];
 
@@ -553,6 +781,8 @@ class IndexController extends BaseController {
             } else {
                 $estadoAnulado = 'ANULADA_EN_ARCHIVADA';
 
+                $this->comprasFinanzasLib->validarSinPagosActivosCredito($compraId);//Valido que la compra no tenga pagos aplicados
+                $this->comprasFinanzasLib->validarRetencionAnulableCompra($compraId);//Primero valido que la retencion no este autorizada por el SRI
                 $this->comprasLib->revertirKardexCompra($compraId);
                 $this->comprasFinanzasLib->anularRetencionCompra($compraId);
                 $this->comprasFinanzasLib->anularPagosCompra($compraId);
@@ -645,8 +875,11 @@ class IndexController extends BaseController {
             foreach ($cartData->cartContent as $item) {
                 $loteId = $this->comprasLib->obtenerOCrearLote($compraId, $item);
 
-                $this->comprasLib->guardarDetalleCompra($compraId, $item, (int) $compra->compBodega, (string) $compra->compSustento, $loteId
-                );
+                $this->comprasLib->guardarDetalleCompra($compraId, $item, (int) $compra->compBodega, (string) $compra->compSustento, $loteId);
+
+                if ((int) ($item->isNewProduct ?? 0) === 1 && (int) ($item->productoTemporal ?? 0) !== 1) {
+                    $this->comprasLib->guardarProductoProveedor((int) $compra->compProveedor, $item);
+                }
 
                 if ($esArchivado) {
                     $this->comprasLib->generarKardex($compraId, $item, $loteId, $compra);
@@ -733,8 +966,11 @@ class IndexController extends BaseController {
             foreach ($cartData->cartContent as $item) {
                 $loteId = $this->comprasLib->obtenerOCrearLote($compraId, $item);
 
-                $this->comprasLib->guardarDetalleCompra($compraId, $item, (int) $compra->compBodega, (string) $compra->compSustento, $loteId
-                );
+                $this->comprasLib->guardarDetalleCompra($compraId, $item, (int) $compra->compBodega, (string) $compra->compSustento, $loteId);
+
+                if ((int) ($item->isNewProduct ?? 0) === 1 && (int) ($item->productoTemporal ?? 0) !== 1) {
+                    $this->comprasLib->guardarProductoProveedor((int) $compra->compProveedor, $item);
+                }
 
                 if ($esArchivado) {
                     $this->comprasLib->generarKardex($compraId, $item, $loteId, $compra);
@@ -847,6 +1083,13 @@ class IndexController extends BaseController {
 
         foreach ($cartData->cartContent as $item) {
             $nombreProducto = $item->name ?? 'producto';
+
+            if ((int) ($item->productoTemporal ?? 0) === 1) {
+                return [
+                    'status' => true,
+                    'msg' => "El producto {$nombreProducto} fue importado como temporal. Debe vincularlo con un producto del sistema antes de guardar.",
+                ];
+            }
 
             if ((float) ($item->qty ?? 0) <= 0) {
                 return [

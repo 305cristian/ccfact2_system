@@ -7,6 +7,8 @@
 
 namespace Modules\Compras\Libraries;
 
+use Modules\Compras\Models\ComprasModel;
+
 /**
  * Description of ComprasFinanzasLib
  *
@@ -19,11 +21,13 @@ class ComprasFinanzasLib {
 
     protected $ccm;
     protected $user;
+    protected ComprasModel $comprasModel;
     protected string $tipoTransaccionRetencion = '02';
 
     public function __construct() {
         $this->ccm = service('ccModel');
         $this->user = service('userSecion');
+        $this->comprasModel = new ComprasModel();
     }
 
     public function guardarRetencion(int $compraId, object $retencion): ?int {
@@ -37,9 +41,9 @@ class ComprasFinanzasLib {
         }
 
         try {
-            $ultimoSecuencial = $this->ccm->getData('cc_retencion', null, 'ret_secuencial', ['ret_secuencial' => 'DESC'], 1);
-
-            $secuencial = $ultimoSecuencial ? (int) $ultimoSecuencial->ret_secuencial + 1 : 1;
+            $puntoEmision = $this->validarPuntoEmisionRetencion($retencion);
+            $secuencial = (int) $puntoEmision->pv_sec_actual;
+            $numeroComprobante = str_pad((string) $secuencial, 9, '0', STR_PAD_LEFT);
 
             $totalRetenido = array_reduce($retencion->detalles,
                     static fn(float $total, object $detalle): float =>
@@ -51,10 +55,10 @@ class ComprasFinanzasLib {
                 'ret_secuencial' => $secuencial,
                 'ret_documento_id' => $compraId,
                 'ret_tipo_transaccion_cod' => $this->tipoTransaccionRetencion,
-                'ret_numero_comprobante' => $retencion->numeroComprobante,
-                'ret_numero_emision' => $retencion->numeroEmision,
-                'ret_numero_establecimiento' => $retencion->numeroEstablecimiento,
-                'ret_autorizacion_sri' => $retencion->autorizacionSri,
+                'ret_numero_comprobante' => $numeroComprobante,
+                'ret_numero_emision' => $puntoEmision->pv_emision,
+                'ret_numero_establecimiento' => $puntoEmision->pv_establecimiento,
+                'ret_autorizacion_sri' => $puntoEmision->pv_auth_sri,
                 'ret_fecha_emision' => $retencion->fechaEmision,
                 'ret_total_retenido' => round($totalRetenido, 2),
                 'ret_estado_sri' => 'PENDIENTE',
@@ -69,6 +73,7 @@ class ComprasFinanzasLib {
             }
 
             $this->ccm->actualizar('cc_compras', ['fk_retencion' => $retencionId], ['id' => $compraId]);
+            $this->ccm->actualizar('cc_puntos_venta', ['pv_sec_actual' => $secuencial + 1], ['id' => $puntoEmision->id]);
 
             return $retencionId;
         } catch (\Throwable $e) {
@@ -289,6 +294,42 @@ class ComprasFinanzasLib {
         }
     }
 
+    public function validarSinPagosActivosCredito(int $compraId): void {
+        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId], 'id, cxp_tipo_pago', null, 1);
+
+        if (!$cxp || $cxp->cxp_tipo_pago !== 'CREDITO') {
+            return;
+        }
+
+        $pagosDet = $this->ccm->getData('cc_pagos_det', ['fk_cxp' => $cxp->id], 'fk_pago');
+
+        foreach ($pagosDet as $pagoDet) {
+            $pago = $this->ccm->getData('cc_pagos', ['id' => (int) $pagoDet->fk_pago, 'pg_estado' => 'ACTIVO'], 'id, pg_numero_secuencial', null, 1);
+
+            if ($pago) {
+                throw new \RuntimeException("No se puede anular la compra porque tiene pagos activos registrados. Primero anule el pago #{$pago->pg_numero_secuencial}.");
+            }
+        }
+    }
+
+    public function validarRetencionAnulableCompra(int $compraId): void {
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, fk_retencion', null, 1);
+
+        if (!$compra || empty($compra->fk_retencion)) {
+            return;
+        }
+
+        $retencion = $this->ccm->getData( 'cc_retencion', ['id' => $compra->fk_retencion, 'ret_estado' => 1],'id, ret_numero_comprobante, ret_estado_sri', null, 1);
+
+        if (!$retencion) {
+            return;
+        }
+
+        if (in_array($retencion->ret_estado_sri, ['ENVIADO', 'AUTORIZADO'], true)) {
+            throw new \RuntimeException("No se puede anular la compra porque la retencion #{$retencion->ret_numero_comprobante} esta {$retencion->ret_estado_sri}.");
+        }
+    }
+
     public function anularPagosCompra(int $compraId): void {
         $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId], 'id', null, 1);
 
@@ -325,7 +366,7 @@ class ComprasFinanzasLib {
 
         $this->ccm->actualizar('cc_cxp_cuotas', ['cxpc_estado' => 'ANULADO'], ['fk_cxp' => $cxp->id]);
 
-        $actualizado = $this->ccm->actualizar('cc_cxp', ['cxp_estado' => 'ANULADO',  'cxp_saldo' => 0,], ['id' => $cxp->id] );
+        $actualizado = $this->ccm->actualizar('cc_cxp', ['cxp_estado' => 'ANULADO', 'cxp_saldo' => 0,], ['id' => $cxp->id]);
 
         if (!$actualizado) {
             throw new \RuntimeException('No se pudo anular la cuenta por pagar de la compra.');
@@ -358,5 +399,42 @@ class ComprasFinanzasLib {
         ];
 
         return (int) $this->ccm->guardar($formData, 'cc_retencion_det');
+    }
+
+    private function validarPuntoEmisionRetencion(object $retencion): object {
+        $establecimiento = trim((string) ($retencion->numeroEstablecimiento ?? ''));
+        $emision = trim((string) ($retencion->numeroEmision ?? ''));
+        $numeroComprobante = trim((string) ($retencion->numeroComprobante ?? ''));
+
+        if ($establecimiento === '' || $emision === '') {
+            throw new \InvalidArgumentException('Debe indicar establecimiento y punto de emisión de la retención.');
+        }
+
+        $puntoEmision = $this->comprasModel->obtenerPuntoEmisionRetencion($establecimiento, $emision);
+
+        if (!$puntoEmision) {
+            throw new \RuntimeException("No existe un punto de emisión activo para retenciones {$establecimiento}-{$emision}.");
+        }
+
+        $puedeEmitir = $this->comprasModel->usuarioPuedeEmitirEnPuntoRetencion((int) $puntoEmision->id, (int) $this->user->id);
+
+        if (!$puedeEmitir) {
+            throw new \RuntimeException('No puede emitir retenciones. Su usuario no está registrado en este punto de emisión.');
+        }
+
+        $secuencial = (int) $puntoEmision->pv_sec_actual;
+        $secuencialInicial = (int) $puntoEmision->pv_sec_inicial;
+        $secuencialFinal = (int) $puntoEmision->pv_sec_final;
+
+        if ($secuencial < $secuencialInicial || $secuencial > $secuencialFinal) {
+            throw new \RuntimeException('El secuencial actual del punto de emisión está fuera del rango autorizado.');
+        }
+
+        if ((int) $numeroComprobante !== $secuencial) {
+            $numeroEsperado = str_pad((string) $secuencial, 9, '0', STR_PAD_LEFT);
+            throw new \RuntimeException("El secuencial de retención debe ser {$numeroEsperado}.");
+        }
+
+        return $puntoEmision;
     }
 }

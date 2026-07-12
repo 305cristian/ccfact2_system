@@ -106,6 +106,23 @@ class IndexController extends \App\Controllers\BaseController {
         exit;
     }
 
+    public function downloadPlantillaExcelCompra() {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Plantilla Compra');
+        $sheet->fromArray(['Codigo', 'Cantidad', 'Costo Sin Iva', 'Descuento', 'Lote', 'Fecha Elaboracion', 'Fecha Caducidad'], null, 'A1');
+        $sheet->fromArray(['CCF-000011', '10', '8.50', '0', '566UU', '2025-08-25', '2026-08-25'], null, 'A2');
+        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="Plantilla_Compra.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
     public function downloadPlantillaExcelSalida() {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
