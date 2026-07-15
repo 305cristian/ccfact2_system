@@ -7,6 +7,8 @@
 
 namespace Modules\Transferencias\Models;
 
+use CodeIgniter\Database\BaseBuilder;
+
 /**
  * Description of TransferenciasModel
  *
@@ -133,6 +135,133 @@ class TransferenciasModel extends \CodeIgniter\Model {
             return $response->getResult();
         } else {
             return false;
+        }
+    }
+
+    public function getDashboardResumen(array $filtros): object {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("
+            COUNT(*) AS total_transferencias,
+            SUM(CASE WHEN transferencia.trb_estado = 3 THEN 1 ELSE 0 END) AS total_confirmadas,
+            SUM(CASE WHEN transferencia.trb_estado = 2 THEN 1 ELSE 0 END) AS total_por_confirmar,
+            SUM(CASE WHEN transferencia.trb_estado = 1 THEN 1 ELSE 0 END) AS total_borradores,
+            SUM(CASE WHEN transferencia.trb_estado = 0 THEN 1 ELSE 0 END) AS total_rechazadas,
+            SUM(CASE WHEN transferencia.trb_estado = -1 THEN 1 ELSE 0 END) AS total_anuladas,
+            SUM(CASE WHEN transferencia.trb_estado = 3 THEN transferencia.trb_total ELSE 0 END) AS total_valor
+        ", false);
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $transferencias = $builder->get()->getRow();
+
+        $builderItems = $this->db->table("cc_transferencia_bodega_det detalle");
+        $builderItems->select("SUM(detalle.trbd_itemcantidad) AS total_items", false);
+        $builderItems->join("cc_transferencia_bodega transferencia", "transferencia.id = detalle.fk_transferencia_bodega");
+        $this->aplicarFiltrosDashboard($builderItems, $filtros);
+        $items = $builderItems->get()->getRow();
+
+        return (object) [
+            "total_transferencias" => (int) ($transferencias->total_transferencias ?? 0),
+            "total_confirmadas" => (int) ($transferencias->total_confirmadas ?? 0),
+            "total_por_confirmar" => (int) ($transferencias->total_por_confirmar ?? 0),
+            "total_borradores" => (int) ($transferencias->total_borradores ?? 0),
+            "total_rechazadas" => (int) ($transferencias->total_rechazadas ?? 0),
+            "total_anuladas" => (int) ($transferencias->total_anuladas ?? 0),
+            "total_valor" => (float) ($transferencias->total_valor ?? 0),
+            "total_items" => (float) ($items->total_items ?? 0),
+        ];
+    }
+
+    public function getDashboardEstados(array $filtros): array {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("transferencia.trb_estado AS estado, COUNT(*) AS total");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->groupBy("transferencia.trb_estado");
+        $builder->orderBy("total", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardBodegasOrigen(array $filtros): array {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("bodega.bod_nombre AS bodega, COUNT(*) AS total, SUM(transferencia.trb_total) AS valor");
+        $builder->join("cc_bodegas bodega", "bodega.id = transferencia.fk_bodega_origen", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("transferencia.trb_estado", 3);
+        $builder->groupBy("bodega.id, bodega.bod_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardBodegasDestino(array $filtros): array {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("bodega.bod_nombre AS bodega, COUNT(*) AS total, SUM(transferencia.trb_total) AS valor");
+        $builder->join("cc_bodegas bodega", "bodega.id = transferencia.fk_bodega_destino", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("transferencia.trb_estado", 3);
+        $builder->groupBy("bodega.id, bodega.bod_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardTendenciaMensual(array $filtros): array {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("DATE_FORMAT(transferencia.trb_fecha, '%Y-%m') AS periodo, SUM(transferencia.trb_total) AS valor, COUNT(*) AS total");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("transferencia.trb_estado", 3);
+        $builder->groupBy("DATE_FORMAT(transferencia.trb_fecha, '%Y-%m')");
+        $builder->orderBy("periodo", "ASC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardUsuariosConfirmacion(array $filtros): array {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("CONCAT(usuario.emp_nombre, ' ', usuario.emp_apellido) AS usuario, COUNT(*) AS total, SUM(transferencia.trb_total) AS valor");
+        $builder->join("cc_empleados usuario", "usuario.id = transferencia.fk_user_confirma", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("transferencia.trb_estado", 3);
+        $builder->groupBy("usuario.id, usuario.emp_nombre, usuario.emp_apellido");
+        $builder->orderBy("total", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardRutas(array $filtros): array {
+
+        $builder = $this->db->table("cc_transferencia_bodega transferencia");
+        $builder->select("CONCAT(origen.bod_nombre, ' -> ', destino.bod_nombre) AS ruta, COUNT(*) AS total, SUM(transferencia.trb_total) AS valor");
+        $builder->join("cc_bodegas origen", "origen.id = transferencia.fk_bodega_origen", "left");
+        $builder->join("cc_bodegas destino", "destino.id = transferencia.fk_bodega_destino", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("transferencia.trb_estado", 3);
+        $builder->groupBy("transferencia.fk_bodega_origen, transferencia.fk_bodega_destino, origen.bod_nombre, destino.bod_nombre");
+        $builder->orderBy("valor", "DESC");
+        $builder->limit(8);
+        return $builder->get()->getResult();
+    }
+
+    private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+
+        if (!empty($filtros["fechaDesde"])) {
+            $builder->where("transferencia.trb_fecha >=", $filtros["fechaDesde"]);
+        }
+
+        if (!empty($filtros["fechaHasta"])) {
+            $builder->where("transferencia.trb_fecha <=", $filtros["fechaHasta"]);
+        }
+
+        if (!empty($filtros["bodegaOrigenId"])) {
+            $builder->where("transferencia.fk_bodega_origen", $filtros["bodegaOrigenId"]);
+        }
+
+        if (!empty($filtros["bodegaDestinoId"])) {
+            $builder->where("transferencia.fk_bodega_destino", $filtros["bodegaDestinoId"]);
+        }
+
+        if (!empty($filtros["usuarioConfirmarId"])) {
+            $builder->where("transferencia.fk_user_confirma", $filtros["usuarioConfirmarId"]);
         }
     }
 }

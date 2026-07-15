@@ -77,7 +77,7 @@ class IndexController extends \App\Controllers\BaseController {
 
     /**
      * @param int $transferenciaId Identificador único del documento
-    */
+     */
     public function indexEdit(int $transferenciaId) {
         $view = $this->parametrosIndex($transferenciaId);
         return view($this->dirTemplate . '\dashboard', $view);
@@ -90,7 +90,7 @@ class IndexController extends \App\Controllers\BaseController {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
-
+        $data['title'] = "Transferencias";
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
 
@@ -114,7 +114,7 @@ class IndexController extends \App\Controllers\BaseController {
      * @param string $status Estado de la respuesta (success, warning, error)
      * @param string $mensaje Mensaje descriptivo sobre el resultado de la operación
      * @param mixed|null $data Datos adicionales relacionados con la respuesta (opcional)
-    */
+     */
     public function responseSetJSON(string $status, string $mensaje, mixed $data = null) {
         return $this->response->setJSON([
                     'status' => $status,
@@ -248,13 +248,12 @@ class IndexController extends \App\Controllers\BaseController {
 
         return $this->responseSetJSON('success', 'Producto actualizado');
     }
-    
 
     /**
      * Mostrar detalle del cart de transferencias
      * Si se envía el parámetro $key con valor 1, la función devuelve un objeto con los datos del cart en lugar de una respuesta JSON. Esto es útil para reutilizar la lógica de obtención de datos del cart en otras funciones dentro del controlador, como al guardar la transferencia, sin necesidad de realizar una llamada AJAX adicional. 
      * @param int $key Parámetro opcional para determinar el formato de la respuesta (0 para JSON, 1 para objeto)   
-    */
+     */
     public function showDetailCart(int $key = 0) {
 
         $cartContent = $this->transferenciaCart->getContent();
@@ -475,11 +474,10 @@ class IndexController extends \App\Controllers\BaseController {
         }
     }
 
-
     /**
      * @param int $transferenciaId Identificador único de la transferencia a cargar en el cart para edición
      * Esta función se encarga de cargar los productos de una transferencia existente en el carrito de transferencias, permitiendo así la edición de la transferencia. Se realiza una validación para asegurar que la transferencia esté en estado borrador o rechazada antes de cargar los productos, ya que solo en
-    */
+     */
     public function loadTransferenciaEdit(int $transferenciaId) {
         $respuesta = $this->loadDataTransferenciaCart($transferenciaId);
 
@@ -490,12 +488,11 @@ class IndexController extends \App\Controllers\BaseController {
         ]);
     }
 
-
     /**
      * @param int $transferenciaId Identificador único de la transferencia a cargar en el cart para clonación
      * Esta función se encarga de cargar los productos de una transferencia existente en el carrito de transferencias para crear una nueva transferencia basada en la existente. A diferencia de la función de edición, esta función no realiza la validación del estado de la transferencia, permitiendo cargar los productos independientemente del estado en que se encuentre la transferencia original. Esto es útil para casos donde se desea replicar una transferencia anterior sin importar su estado, facilitando la creación de transferencias similares de manera rápida.    
      * @param bool $isClone Parámetro que indica si la carga es para clonación (true) o edición (false), afectando las validaciones de estado de la transferencia. En clonación se omiten las validaciones de estado, mientras que en edición se requiere que la transferencia esté en estado borrador o rechazada. 
-    */
+     */
     public function loadDataTransferenciaCart(int $transferenciaId, bool $isClone = false) {
         $this->transferenciaCart->destroy();
 
@@ -570,7 +567,7 @@ class IndexController extends \App\Controllers\BaseController {
     /**
      * @param object $data Objeto que contiene los datos de la transferencia a validar
      * Esta función se encarga de validar los campos necesarios para registrar o actualizar una transferencia. Se verifica que los campos obligatorios estén presentes y que la bodega de origen y destino no sean
-    */
+     */
     public function validarCampos(object $data) {
         $campos = [
             'trbFecha' => 'Debe seleccionar una fecha',
@@ -600,12 +597,11 @@ class IndexController extends \App\Controllers\BaseController {
         return ['status' => false];
     }
 
-
     /**
      * @param int $transferenciaId Identificador único de la transferencia a clonar en el cart
      * Esta función se encarga de cargar los productos de una transferencia existente en el carrito de transferencias para crear una nueva transferencia basada en la existente. A diferencia de la función de edición, esta función no realiza la validación del estado de la transferencia, permitiendo cargar los productos independientemente del estado en que se encuentre la transferencia original. Esto es útil para casos donde se desea replicar una transferencia anterior sin importar su estado, facilitando la creación de transferencias similares de manera rápida.
      * @return JSON Respuesta con el estado de la operación y la URL de redirección a la página de creación de transferencia con los datos cargados en el cart. El estado será 'success' si la carga se realizó correctamente, o 'error' si ocurrió algún problema durante la carga de los datos al cart. La URL de redirección llevará al usuario a la página de
-    */
+     */
     public function clonarTransferencia(int $transferenciaId) {
         $respuesta = $this->loadDataTransferenciaCart($transferenciaId, true);
 
@@ -665,7 +661,7 @@ class IndexController extends \App\Controllers\BaseController {
      * 5. Actualizar el estado de la transferencia a "CONFIRMADA", registrando la fecha de confirmación y el usuario que realizó la confirmación para mantener un registro histórico de las acciones realizadas sobre la transferencia. 
      * En caso de que la transferencia no esté en el estado correcto, no existan productos en el detalle, o ocurra algún error durante el proceso de confirmación, se devolverá una respuesta JSON con el estado correspondiente (warning o error) y un mensaje descriptivo del problema. Si la confirmación se realiza exitosamente, se devolverá una respuesta JSON con el estado "success" y un mensaje indicando que la transferencia ha sido confirmada correctamente, junto con la actualización de los movimientos de inventario en el kardex.   
      * 
-    */
+     */
     public function confirmarTransferencia(int $transferenciaId) {
         $this->user->validateSession();
 
@@ -773,7 +769,7 @@ class IndexController extends \App\Controllers\BaseController {
      * @param int $bodegaId Identificador único de la bodega a seleccionar para la transferencia
      * Esta función se encarga de cambiar la bodega seleccionada en la sesión para la transferencia de productos. Al recibir el identificador de la bodega, se actualiza la variable de sesión 'bodegaIdTrb' con el nuevo valor, lo que permite que las operaciones posteriores relacionadas con la transferencia utilicen la bodega seleccionada. La función devuelve una respuesta JSON indicando el estado de la operación, un mensaje de confirmación y el identificador de la bodega seleccionada. Esto es útil para mantener la bodega seleccionada de manera persistente durante el proceso de creación
      * o edición de una transferencia, asegurando que las acciones realizadas se asocien correctamente con la bodega elegida por el usuario.
-    */
+     */
     public function changeBodega(int $bodegaId) {
         $this->session->set('bodegaIdTrb', $bodegaId);
         return $this->response->setJSON([
@@ -908,7 +904,7 @@ class IndexController extends \App\Controllers\BaseController {
     /**
      * @param string $rowId Identificador único del producto en el carrito de transferencias a eliminar
      * Esta función se encarga de eliminar un producto específico del carrito de transferencias utilizando su identificador único (rowId). Al recibir el rowId, se llama al método removeItem del carrito de transferencias para eliminar el producto correspondiente. Esto permite a los usuarios gestionar los productos incluidos en
-    */
+     */
     public function deleteProduct(string $rowId) {
         $this->transferenciaCart->removeItem($rowId);
     }
@@ -920,7 +916,7 @@ class IndexController extends \App\Controllers\BaseController {
     /**
      * @param int $bodegaId Identificador único de la bodega de destino seleccionada para la transferencia
      * Esta función se encarga de cargar los usuarios asociados a la bodega de destino seleccionada para la transferencia de productos. Al recibir el identificador de la bodega, se consulta el modelo de usuarios por bodega para obtener la lista de usuarios vinculados a esa bodega. La función devuelve una respuesta JSON con el estado de la operación, un mensaje descriptivo y los datos de
-    */
+     */
     public function loadUsersConfirm(int $bodegaId) {
         $response = $this->uersBodModel->getUsuariosByBodega($bodegaId);
         return $this->response->setJSON([

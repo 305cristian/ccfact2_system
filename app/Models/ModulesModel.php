@@ -18,39 +18,63 @@ class ModulesModel extends \CodeIgniter\Model {
 
     public function getModulosUser($idUser) {
 
-        $builder = $this->db->table('cc_roles_modulos tb1');
-        $builder->select('tb3.*, tb4.emp_apellido,tb4.emp_nombre');		
-        $builder->join('cc_roles tb2 ', 'tb2.id = tb1.fk_rol');
-        $builder->join('cc_modulos tb3 ', 'tb3.id = tb1.fk_modulo');
-        $builder->join('cc_empleados tb4 ', 'tb4.fk_rol = tb2.id');
-        $builder->where(['tb4.id' => $idUser->id, 'tb3.md_tipo' => 'modulo', 'tb3.md_estado' => 1]);
-        $builder->orderBy('tb3.md_orden', 'asc');
+        if ($idUser->root) {
+
+            $builder = $this->db->table('cc_modulos');
+            $builder->select("*, CASE
+                                    WHEN EXISTS (
+                                        SELECT 1
+                                        FROM cc_modulos sm
+                                        WHERE sm.md_padre = cc_modulos.id
+                                        AND sm.md_tipo = 'submodulo'
+                                        AND sm.md_estado = 1
+                                    )
+                                    THEN 1
+                                    ELSE 0
+                                END AS tiene_submodulos
+                            ", false);
+            $builder->where(['md_estado' => 1, 'md_tipo' => 'modulo']);
+            $builder->orderBy('md_orden', 'ASC');
+        } else {
+
+            $builder = $this->db->table('cc_roles_modulos tb1');
+            $builder->select("tb3.*,
+                                tb4.emp_apellido,
+                                tb4.emp_nombre,
+                                CASE
+                                    WHEN EXISTS (
+                                        SELECT 1
+                                        FROM cc_modulos sm
+                                        WHERE sm.md_padre = tb3.id
+                                        AND sm.md_tipo = 'submodulo'
+                                        AND sm.md_estado = 1
+                                    )
+                                    THEN 1
+                                    ELSE 0
+                                END AS tiene_submodulos
+                            ", false);
+            $builder->join('cc_roles tb2', 'tb2.id = tb1.fk_rol');
+            $builder->join('cc_modulos tb3', 'tb3.id = tb1.fk_modulo');
+            $builder->join('cc_empleados tb4', 'tb4.fk_rol = tb2.id');
+
+            $builder->where(['tb4.id' => $idUser->id, 'tb3.md_tipo' => 'modulo', 'tb3.md_estado' => 1]);
+
+            $builder->orderBy('tb3.md_orden', 'ASC');
+        }
+
         $respuesta = $builder->get();
 
-        if ($idUser->root) {
-            $builder = $this->db->table('cc_modulos');
-            $builder->select('*');
-            $builder->where(['md_estado' => 1, 'md_tipo' => 'modulo']);
-            $builder->orderBy('md_orden', 'asc');
-            $respuesta = $builder->get();
-        }
-        if ($respuesta->getNumRows() > 0) {
-            return $respuesta->getResult();
-        } else {
-            return false;
-        }
-
-
+        return $respuesta->getNumRows() > 0 ? $respuesta->getResult() : false;
     }
 
     public function getSubModulosUser($idMod, $idUser) {
 
         $builder = $this->db->table('cc_roles_modulos tb1');
-        $builder->select('tb3.*, tb4.emp_apellido,tb4.emp_nombre');		
+        $builder->select('tb3.*, tb4.emp_apellido,tb4.emp_nombre');
         $builder->join('cc_roles tb2 ', 'tb2.id = tb1.fk_rol');
         $builder->join('cc_modulos tb3 ', 'tb3.id = tb1.fk_modulo');
         $builder->join('cc_empleados tb4 ', 'tb4.fk_rol = tb2.id');
-        $builder->where(['tb4.id' => $idUser->id, 'tb3.md_tipo' => 'submodulo', 'tb3.md_estado' => 1,'tb3.md_padre' => $idMod]);
+        $builder->where(['tb4.id' => $idUser->id, 'tb3.md_tipo' => 'submodulo', 'tb3.md_estado' => 1, 'tb3.md_padre' => $idMod]);
         $builder->orderBy('tb3.md_orden', 'asc');
         $respuesta = $builder->get();
 
@@ -69,5 +93,4 @@ class ModulesModel extends \CodeIgniter\Model {
         }
 //      
     }
-
 }

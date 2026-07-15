@@ -16,6 +16,8 @@
 
 namespace Modules\AjustesSalida\Models;
 
+use CodeIgniter\Database\BaseBuilder;
+
 class SalidasModel extends \CodeIgniter\Model {
 
     public function searchAjustes($filtros) {
@@ -111,6 +113,127 @@ class SalidasModel extends \CodeIgniter\Model {
             return $ajuste;
         } else {
             return false;
+        }
+    }
+
+    public function getDashboardResumen(array $filtros): object {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("
+            COUNT(*) AS total_ajustes,
+            SUM(CASE WHEN ajuste.ajes_estado = 2 THEN 1 ELSE 0 END) AS total_archivados,
+            SUM(CASE WHEN ajuste.ajes_estado = 1 THEN 1 ELSE 0 END) AS total_borradores,
+            SUM(CASE WHEN ajuste.ajes_estado = -1 THEN 1 ELSE 0 END) AS total_anulados,
+            SUM(CASE WHEN ajuste.ajes_estado = 2 THEN ajuste.ajes_total ELSE 0 END) AS total_valor
+        ", false);
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $ajustes = $builder->get()->getRow();
+
+        $builderItems = $this->db->table("cc_ajuste_salida_det detalle");
+        $builderItems->select("SUM(detalle.ajsd_itemcantidad) AS total_items", false);
+        $builderItems->join("cc_ajuste_salida ajuste", "ajuste.id = detalle.fk_ajuste_salida");
+        $this->aplicarFiltrosDashboard($builderItems, $filtros);
+        $items = $builderItems->get()->getRow();
+
+        return (object) [
+            "total_ajustes" => (int) ($ajustes->total_ajustes ?? 0),
+            "total_archivados" => (int) ($ajustes->total_archivados ?? 0),
+            "total_borradores" => (int) ($ajustes->total_borradores ?? 0),
+            "total_anulados" => (int) ($ajustes->total_anulados ?? 0),
+            "total_valor" => (float) ($ajustes->total_valor ?? 0),
+            "total_items" => (float) ($items->total_items ?? 0),
+        ];
+    }
+
+    public function getDashboardEstados(array $filtros): array {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("ajuste.ajes_estado AS estado, COUNT(*) AS total");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->groupBy("ajuste.ajes_estado");
+        $builder->orderBy("total", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardMotivos(array $filtros): array {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("motivo.mot_nombre AS motivo, COUNT(*) AS total, SUM(ajuste.ajes_total) AS valor");
+        $builder->join("cc_motivos_ajuste motivo", "motivo.id = ajuste.fk_motivo_ajuste", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("ajuste.ajes_estado", 2);
+        $builder->groupBy("motivo.id, motivo.mot_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardBodegas(array $filtros): array {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("bodega.bod_nombre AS bodega, COUNT(*) AS total, SUM(ajuste.ajes_total) AS valor");
+        $builder->join("cc_bodegas bodega", "bodega.id = ajuste.fk_bodega", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("ajuste.ajes_estado", 2);
+        $builder->groupBy("bodega.id, bodega.bod_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardTendenciaMensual(array $filtros): array {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("DATE_FORMAT(ajuste.ajes_fecha, '%Y-%m') AS periodo, SUM(ajuste.ajes_total) AS valor, COUNT(*) AS total");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("ajuste.ajes_estado", 2);
+        $builder->groupBy("DATE_FORMAT(ajuste.ajes_fecha, '%Y-%m')");
+        $builder->orderBy("periodo", "ASC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardCentrosCosto(array $filtros): array {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("centro.cc_nombre AS centro_costo, COUNT(*) AS total, SUM(ajuste.ajes_total) AS valor");
+        $builder->join("cc_centroscosto centro", "centro.id = ajuste.fk_centro_costo", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("ajuste.ajes_estado", 2);
+        $builder->groupBy("centro.id, centro.cc_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardServicios(array $filtros): array {
+
+        $builder = $this->db->table("cc_ajuste_salida ajuste");
+        $builder->select("servicio.serv_nombre AS servicio, COUNT(*) AS total, SUM(ajuste.ajes_total) AS valor");
+        $builder->join("cc_servicios servicio", "servicio.id = ajuste.fk_servicio", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("ajuste.ajes_estado", 2);
+        $builder->groupBy("servicio.id, servicio.serv_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+
+        if (!empty($filtros["fechaDesde"])) {
+            $builder->where("ajuste.ajes_fecha >=", $filtros["fechaDesde"]);
+        }
+
+        if (!empty($filtros["fechaHasta"])) {
+            $builder->where("ajuste.ajes_fecha <=", $filtros["fechaHasta"]);
+        }
+
+        if (!empty($filtros["bodegaId"])) {
+            $builder->where("ajuste.fk_bodega", $filtros["bodegaId"]);
+        }
+
+        if (!empty($filtros["motivoId"])) {
+            $builder->where("ajuste.fk_motivo_ajuste", $filtros["motivoId"]);
+        }
+
+        if (!empty($filtros["centroCostoId"])) {
+            $builder->where("ajuste.fk_centro_costo", $filtros["centroCostoId"]);
         }
     }
 }

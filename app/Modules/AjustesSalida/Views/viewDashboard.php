@@ -5,8 +5,8 @@
  *
 /**
  * @author CRISTIAN R. PAZ
- * @date 3 may 2026
- * @time 4:08:27 p.m.
+ * @date 15 jul 2026
+ * @time 2:32:54 p.m.
  */       
  
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -54,7 +54,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     <div class="card card-system card-outline">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="card-title text-system">
-                <i class="fas fa-chart-line me-2"></i> Dashboard de Compras
+                <i class="fas fa-chart-line me-2"></i> Dashboard de Ajustes de Salida
             </h5>
             <small class="text-muted">
                 {{ fechaDesde }} a {{ fechaHasta }}
@@ -66,38 +66,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <div class="col-md-3 form-group-custom">
                     <div class="input-group">
                         <span class="input-group-text bg-cris-system">
-                            <i class="fas fa-calendar me-2"></i> F. emision
+                            <i class="fas fa-calendar me-2"></i> Fecha
                         </span>
                         <input
                             ref="dateRangeDashboard"
                             v-model="filtros.fechas"
                             type="text"
                             class="form-control"
-                            placeholder="Rango de emision">
+                            placeholder="Rango de fechas">
                     </div>
                 </div>
 
-                <div class="col-md-3 form-group-custom">
-                    <div class="d-flex align-items-center border rounded overflow-visible">
-                        <span class="input-group-text bg-cris-system">
-                            <i class="fas fa-user-tie me-2"></i> Proveedor
-                        </span>
-                        <vue-select
-                            class="flex-grow-1"
-                            :options="listaProveedores"
-                            label="prov_razon_social"
-                            v-model="filtros.proveedorId"
-                            :reduce="proveedor => proveedor.id"
-                            @search="searchProveedor"
-                            placeholder="Todos">
-                            <template #no-options>
-                                Digite para buscar un proveedor
-                            </template>
-                        </vue-select>
-                    </div>
-                </div>
-
-                <div class="col-md-3 form-group-custom">
+                <div class="col-md-2 form-group-custom">
                     <div class="d-flex align-items-center border rounded overflow-visible">
                         <span class="input-group-text bg-cris-system">
                             <i class="fas fa-warehouse me-2"></i> Bodega
@@ -113,10 +93,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
                 </div>
 
-                <div class="col-md-3 form-group-custom">
+                <div class="col-md-2 form-group-custom">
                     <div class="d-flex align-items-center border rounded overflow-visible">
                         <span class="input-group-text bg-cris-system">
-                            <i class="fas fa-project-diagram me-2"></i> Centro de costo
+                            <i class="fas fa-tag me-2"></i> Motivo
+                        </span>
+                        <vue-select
+                            class="flex-grow-1"
+                            :options="listaMotivos"
+                            label="motivo"
+                            v-model="filtros.motivoId"
+                            :reduce="motivo => motivo.id"
+                            placeholder="Todos">
+                        </vue-select>
+                    </div>
+                </div>
+
+                <div class="col-md-2 form-group-custom">
+                    <div class="d-flex align-items-center border rounded overflow-visible">
+                        <span class="input-group-text bg-cris-system">
+                            <i class="fas fa-project-diagram me-2"></i> Centro costo
                         </span>
                         <vue-select
                             class="flex-grow-1"
@@ -125,28 +121,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             v-model="filtros.centroCostoId"
                             :reduce="centro => centro.id"
                             placeholder="Todos">
-                        </vue-select>
-                    </div>
-                </div>
-
-                <div class="col-md-4 form-group-custom">
-                    <div class="d-flex align-items-center border rounded overflow-visible">
-                        <span class="input-group-text bg-cris-system">
-                            <i class="fas fa-file-invoice me-2"></i> Tipo comprobante
-                        </span>
-                        <vue-select
-                            class="flex-grow-1"
-                            :options="listaTiposComprobantes"
-                            label="comp_nombre"
-                            v-model="filtros.tipoComprobante"
-                            :reduce="comprobante => comprobante.comp_codigo"
-                            placeholder="Todos">
-                            <template #option="comprobante">
-                                {{ comprobante.comp_codigo }} - {{ comprobante.comp_nombre }}
-                            </template>
-                            <template #selected-option="comprobante">
-                                {{ comprobante.comp_codigo }} - {{ comprobante.comp_nombre }}
-                            </template>
                         </vue-select>
                     </div>
                 </div>
@@ -160,10 +134,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <i class="fas fa-search me-1"></i> Filtrar Datos
                     </button>
 
-
                     <button
                         type="button"
-                        class="btn btn-secondary"
+                        class="btn btn-secondary "
                         :disabled="loading"
                         @click="limpiarFiltros">
                         <i class="fas fa-eraser me-1"></i> Limpiar
@@ -189,19 +162,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <div class="row g-3 mb-3">
                 <div class="col-xl-4">
                     <div class="dashboard-box">
-                        <div id="chartEstadosCompras" class="dashboard-chart"></div>
+                        <div id="chartEstadosSalidas" class="dashboard-chart"></div>
                     </div>
                 </div>
 
                 <div class="col-xl-4">
                     <div class="dashboard-box">
-                        <div id="chartComprobantesCompras" class="dashboard-chart"></div>
+                        <div id="chartMotivosSalidas" class="dashboard-chart"></div>
                     </div>
                 </div>
 
                 <div class="col-xl-4">
                     <div class="dashboard-box">
-                        <div id="chartProveedoresCompras" class="dashboard-chart"></div>
+                        <div id="chartBodegasSalidas" class="dashboard-chart"></div>
                     </div>
                 </div>
             </div>
@@ -209,13 +182,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <div class="row g-3">
                 <div class="col-xl-8">
                     <div class="dashboard-box">
-                        <div id="chartTendenciaCompras" class="dashboard-chart dashboard-chart-lg"></div>
+                        <div id="chartTendenciaSalidas" class="dashboard-chart"></div>
                     </div>
                 </div>
 
                 <div class="col-xl-4">
+                    <div class="dashboard-box mb-3">
+                        <div id="chartCentrosCostoSalidas" class="dashboard-chart"></div>
+                    </div>
                     <div class="dashboard-box">
-                        <div id="chartBodegasCompras" class="dashboard-chart dashboard-chart-lg"></div>
+                        <div id="chartServiciosSalidas" class="dashboard-chart"></div>
                     </div>
                 </div>
             </div>
@@ -228,19 +204,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var fechaHastaDashboard = <?= json_encode($fechaHastaDashboard ?? date('Y-m-d')) ?>;
     var dashboardResumen = <?= json_encode($dashboardResumen ?? (object) []) ?>;
     var dashboardEstados = <?= json_encode($dashboardEstados ?? []) ?>;
-    var dashboardComprobantes = <?= json_encode($dashboardComprobantes ?? []) ?>;
-    var dashboardTopProveedores = <?= json_encode($dashboardTopProveedores ?? []) ?>;
-    var dashboardTendenciaMensual = <?= json_encode($dashboardTendenciaMensual ?? []) ?>;
+    var dashboardMotivos = <?= json_encode($dashboardMotivos ?? []) ?>;
     var dashboardBodegas = <?= json_encode($dashboardBodegas ?? []) ?>;
+    var dashboardTendenciaMensual = <?= json_encode($dashboardTendenciaMensual ?? []) ?>;
+    var dashboardCentrosCosto = <?= json_encode($dashboardCentrosCosto ?? []) ?>;
+    var dashboardServicios = <?= json_encode($dashboardServicios ?? []) ?>;
     var listaBodegas = <?= json_encode($listaBodegas ?? []) ?>;
+    var listaMotivos = <?= json_encode($listaMotivos ?? []) ?>;
     var listaCentroCostos = <?= json_encode($listaCentroCostos ?? []) ?>;
-    var listaTiposComprobantes = <?= json_encode($listaTiposComprobantes ?? []) ?>;
+    var dashboardColors = ['#7fa685', '#5f8fb8', '#d6a94f', '#c96f5f', '#8c7bb8', '#5ea89a'];
 
-    if (window.appComprasDashboard) {
-        window.appComprasDashboard.unmount();
+    if (window.appDashboardAjustesSalida) {
+        window.appDashboardAjustesSalida.unmount();
     }
 
-    window.appComprasDashboard = Vue.createApp({
+    window.appDashboardAjustesSalida = Vue.createApp({
         components: {
             "vue-select": window['vue-select']
         },
@@ -252,28 +230,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 fechaHasta: fechaHastaDashboard,
                 filtros: {
                     fechas: `${fechaDesdeDashboard} a ${fechaHastaDashboard}`,
-                    proveedorId: null,
                     bodegaId: null,
-                    centroCostoId: null,
-                    tipoComprobante: null
+                    motivoId: null,
+                    centroCostoId: null
                 },
                 resumen: dashboardResumen,
                 estados: dashboardEstados,
-                comprobantes: dashboardComprobantes,
-                proveedores: dashboardTopProveedores,
-                tendenciaMensual: dashboardTendenciaMensual,
+                motivos: dashboardMotivos,
                 bodegas: dashboardBodegas,
+                tendenciaMensual: dashboardTendenciaMensual,
+                centrosCosto: dashboardCentrosCosto,
+                servicios: dashboardServicios,
                 listaBodegas: listaBodegas,
+                listaMotivos: listaMotivos,
                 listaCentroCostos: listaCentroCostos,
-                listaTiposComprobantes: listaTiposComprobantes,
-                listaProveedores: [],
-                searchTimeout: null,
                 charts: {
                     estados: null,
-                    comprobantes: null,
-                    proveedores: null,
+                    motivos: null,
+                    bodegas: null,
                     tendencia: null,
-                    bodegas: null
+                    centrosCosto: null,
+                    servicios: null
                 }
             };
         },
@@ -281,12 +258,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         computed: {
             cardsResumen() {
                 return [
-                    {label: 'Documentos', icon: 'fas fa-file-invoice', value: Number(this.resumen.total_documentos || 0)},
-                    {label: 'Archivadas', icon: 'fas fa-check', value: Number(this.resumen.total_archivadas || 0)},
+                    {label: 'Ajustes', icon: 'fas fa-file-invoice', value: Number(this.resumen.total_ajustes || 0)},
+                    {label: 'Archivados', icon: 'fas fa-check', value: Number(this.resumen.total_archivados || 0)},
                     {label: 'Borradores', icon: 'fas fa-edit', value: Number(this.resumen.total_borradores || 0)},
-                    {label: 'Total compras', icon: 'fas fa-dollar-sign', value: this.formatToUSD(this.resumen.total_compras || 0)},
-                    {label: 'IVA compras', icon: 'fas fa-percentage', value: this.formatToUSD(this.resumen.total_iva || 0)},
-                    {label: 'CxP pendiente', icon: 'fas fa-hand-holding-usd', value: this.formatToUSD(this.resumen.saldo_cxp || 0)}
+                    {label: 'Anulados', icon: 'fas fa-ban', value: Number(this.resumen.total_anulados || 0)},
+                    {label: 'Valor archivado', icon: 'fas fa-dollar-sign', value: this.formatToUSD(this.resumen.total_valor || 0)},
+                    {label: 'Items', icon: 'fas fa-boxes', value: Number(this.resumen.total_items || 0).toFixed(2)}
                 ];
             }
         },
@@ -320,15 +297,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 const datos = {
                     fechaDesde: fechas.fechaDesde,
                     fechaHasta: fechas.fechaHasta,
-                    proveedorId: this.filtros.proveedorId,
                     bodegaId: this.filtros.bodegaId,
-                    centroCostoId: this.filtros.centroCostoId,
-                    tipoComprobante: this.filtros.tipoComprobante
+                    motivoId: this.filtros.motivoId,
+                    centroCostoId: this.filtros.centroCostoId
                 };
 
                 try {
                     this.loading = true;
-                    const {data} = await axios.post(this.url + '/compras/getDataDashboard', datos);
+                    const {data} = await axios.post(this.url + '/ajustessalida/getDataDashboard', datos);
 
                     if (data.status !== 'success') {
                         sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo cargar el dashboard.');
@@ -339,10 +315,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.fechaHasta = datos.fechaHasta;
                     this.resumen = data.data.resumen || {};
                     this.estados = data.data.estados || [];
-                    this.comprobantes = data.data.comprobantes || [];
-                    this.proveedores = data.data.proveedores || [];
-                    this.tendenciaMensual = data.data.tendenciaMensual || [];
+                    this.motivos = data.data.motivos || [];
                     this.bodegas = data.data.bodegas || [];
+                    this.tendenciaMensual = data.data.tendenciaMensual || [];
+                    this.centrosCosto = data.data.centrosCosto || [];
+                    this.servicios = data.data.servicios || [];
 
                     await Vue.nextTick();
                     this.renderCharts();
@@ -356,37 +333,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             limpiarFiltros() {
                 this.filtros = {
                     fechas: `${fechaDesdeDashboard} a ${fechaHastaDashboard}`,
-                    proveedorId: null,
                     bodegaId: null,
-                    centroCostoId: null,
-                    tipoComprobante: null
+                    motivoId: null,
+                    centroCostoId: null
                 };
-                this.listaProveedores = [];
                 this.$refs.dateRangeDashboard._flatpickr.setDate([fechaDesdeDashboard, fechaHastaDashboard], false);
                 this.cargarDashboard();
-            },
-
-            searchProveedor(search) {
-                clearTimeout(this.searchTimeout);
-
-                if (!search || search.trim().length < 2) {
-                    if (!this.filtros.proveedorId) {
-                        this.listaProveedores = [];
-                    }
-                    return;
-                }
-
-                this.searchTimeout = setTimeout(async () => {
-                    try {
-                        const datos = {
-                            dataSerach: search.trim()
-                        };
-                        const {data} = await axios.post(this.url + '/comun/proveedores/searchProveedor', datos);
-                        this.listaProveedores = data || [];
-                    } catch (e) {
-                        this.listaProveedores = [];
-                    }
-                }, 400);
             },
 
             renderCharts() {
@@ -401,28 +353,28 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 });
 
-                this.charts.estados = Highcharts.chart('chartEstadosCompras', {
+                this.charts.estados = Highcharts.chart('chartEstadosSalidas', {
                     chart: {type: 'pie'},
-                    title: {text: 'Compras por estado'},
-                    tooltip: {pointFormat: '<b>{point.y}</b> documentos'},
+                    title: {text: 'Ajustes por estado'},
+                    tooltip: {pointFormat: '<b>{point.y}</b> ajustes'},
                     series: [{
                             name: 'Estados',
                             colorByPoint: true,
                             data: this.estados.map(item => ({
-                                    name: item.estado || 'SIN ESTADO',
+                                    name: this.labelEstado(item.estado),
                                     y: Number(item.total || 0)
                                 }))
                         }]
                 });
 
-                this.charts.comprobantes = Highcharts.chart('chartComprobantesCompras', {
-                    colors: ['#7fa685', '#5f8fb8', '#d6a94f', '#c96f5f', '#8c7bb8', '#5ea89a'],
+                this.charts.motivos = Highcharts.chart('chartMotivosSalidas', {
+                    colors: dashboardColors,
                     chart: {type: 'column'},
-                    title: {text: 'Compras por comprobante'},
+                    title: {text: 'Salidas por motivo'},
                     xAxis: {
-                        categories: this.comprobantes.map(item => `${item.codigo} - ${item.nombre}`)
+                        categories: this.motivos.map(item => item.motivo || 'SIN MOTIVO')
                     },
-                    yAxis: {title: {text: 'Valor comprado'}},
+                    yAxis: {title: {text: 'Valor de salida'}},
                     tooltip: {valuePrefix: '$'},
                     plotOptions: {
                         column: {
@@ -430,19 +382,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         }
                     },
                     series: [{
-                        name: 'Total',
-                        data: this.comprobantes.map(item => Number(item.valor || 0))
-                    }]
+                            name: 'Total',
+                            data: this.motivos.map(item => Number(item.valor || 0))
+                        }]
                 });
 
-                this.charts.proveedores = Highcharts.chart('chartProveedoresCompras', {
-                    colors: ['#7fa685', '#5f8fb8', '#d6a94f', '#c96f5f', '#8c7bb8', '#5ea89a'],
+                this.charts.bodegas = Highcharts.chart('chartBodegasSalidas', {
+                    colors: dashboardColors,
                     chart: {type: 'bar'},
-                    title: {text: 'Top proveedores'},
+                    title: {text: 'Salidas por bodega'},
                     xAxis: {
-                        categories: this.proveedores.map(item => item.proveedor || 'SIN PROVEEDOR')
+                        categories: this.bodegas.map(item => item.bodega || 'SIN BODEGA')
                     },
-                    yAxis: {title: {text: 'Valor comprado'}},
+                    yAxis: {title: {text: 'Valor de salida'}},
                     tooltip: {valuePrefix: '$'},
                     plotOptions: {
                         bar: {
@@ -450,18 +402,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         }
                     },
                     series: [{
-                        name: 'Total',
-                        data: this.proveedores.map(item => Number(item.valor || 0))
-                    }]
+                            name: 'Total',
+                            data: this.bodegas.map(item => Number(item.valor || 0))
+                        }]
                 });
 
-                this.charts.tendencia = Highcharts.chart('chartTendenciaCompras', {
+                this.charts.tendencia = Highcharts.chart('chartTendenciaSalidas', {
                     chart: {type: 'areaspline'},
-                    title: {text: 'Tendencia mensual de compras'},
+                    title: {text: 'Tendencia mensual de salidas'},
                     xAxis: {
                         categories: this.tendenciaMensual.map(item => item.periodo)
                     },
-                    yAxis: {title: {text: 'Valor comprado'}},
+                    yAxis: {title: {text: 'Valor de salida'}},
                     tooltip: {
                         shared: true,
                         valuePrefix: '$'
@@ -472,19 +424,39 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         }
                     },
                     series: [{
-                            name: 'Compras',
+                            name: 'Salidas',
                             data: this.tendenciaMensual.map(item => Number(item.valor || 0))
                         }]
                 });
 
-                this.charts.bodegas = Highcharts.chart('chartBodegasCompras', {
-                    colors: ['#7fa685', '#5f8fb8', '#d6a94f', '#c96f5f', '#8c7bb8', '#5ea89a'],
-                    chart: {type: 'column'},
-                    title: {text: 'Compras por bodega'},
+                this.charts.centrosCosto = Highcharts.chart('chartCentrosCostoSalidas', {
+                    colors: dashboardColors,
+                    chart: {type: 'bar'},
+                    title: {text: 'Salidas por centro de costo'},
                     xAxis: {
-                        categories: this.bodegas.map(item => item.bodega || 'SIN BODEGA')
+                        categories: this.centrosCosto.map(item => item.centro_costo || 'SIN CENTRO')
                     },
-                    yAxis: {title: {text: 'Valor comprado'}},
+                    yAxis: {title: {text: 'Valor de salida'}},
+                    tooltip: {valuePrefix: '$'},
+                    plotOptions: {
+                        bar: {
+                            colorByPoint: true
+                        }
+                    },
+                    series: [{
+                            name: 'Total',
+                            data: this.centrosCosto.map(item => Number(item.valor || 0))
+                        }]
+                });
+
+                this.charts.servicios = Highcharts.chart('chartServiciosSalidas', {
+                    colors: dashboardColors,
+                    chart: {type: 'column'},
+                    title: {text: 'Salidas por servicio'},
+                    xAxis: {
+                        categories: this.servicios.map(item => item.servicio || 'SIN SERVICIO')
+                    },
+                    yAxis: {title: {text: 'Valor de salida'}},
                     tooltip: {valuePrefix: '$'},
                     plotOptions: {
                         column: {
@@ -492,51 +464,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         }
                     },
                     series: [{
-                        name: 'Total',
-                        data: this.bodegas.map(item => Number(item.valor || 0))
+                            name: 'Total',
+                            data: this.servicios.map(item => Number(item.valor || 0))
                         }]
                 });
             },
 
-            numeroComprobante(compra) {
-                return [
-                    compra.comp_numero_establecimiento,
-                    compra.comp_numero_emision,
-                    compra.comp_numero_comprobante
-                ].filter(Boolean).join('-');
-            },
-
-            badgeEstado(estado) {
-                const mapa = {
-                    BORRADOR: 'bg-warning',
-                    ARCHIVADO: 'bg-success',
-                    ANULADA: 'bg-danger',
-                    ANULADA_EN_PENDIENTE: 'bg-secondary',
-                    ANULADA_EN_ARCHIVADA: 'bg-dark'
-                };
-                return mapa[estado] || 'bg-secondary';
-            },
-
             labelEstado(estado) {
                 const mapa = {
-                    BORRADOR: 'BORRADOR',
-                    ARCHIVADO: 'ARCHIVADA',
-                    ANULADA: 'ANULADA',
-                    ANULADA_EN_PENDIENTE: 'ANULADA EN BORRADOR',
-                    ANULADA_EN_ARCHIVADA: 'ANULADA ARCHIVADA'
+                    2: 'ARCHIVADO',
+                    1: 'BORRADOR',
+                    '-1': 'ANULADO'
                 };
                 return mapa[estado] || estado;
             },
 
             formatToUSD(amount) {
                 return formatToUSD(amount);
-            },
-
-            zFill(value, size) {
-                return zFill(value, size);
             }
         }
     });
 
-    window.appComprasDashboard.mount('#app');
+    window.appDashboardAjustesSalida.mount('#app');
 </script>

@@ -21,8 +21,8 @@
             <!--COMPRAS-->
             <a href="#" class="nav-link sidebarMenuColor"><i class="nav-icon fad fa-shopping-cart me-3 sidebarColorIcon"></i><p>COMPRAS<i class="fas fa-angle-left right text-white"></i></p></a>
             <ul class="nav nav-treeview">
-                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/compras/dashboard/<?= isset($moduloId) ?>' }">
-                    <a @click.prevent="navigate('<?= site_url() ?>/compras/dashboard/<?= isset($moduloId) ?>')" class="nav-link" style="cursor: pointer">
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/compras/dashboard' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/compras/dashboard')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-dashboard nav-icon sidebarColorIcon"></i>
                         <p> Dashboard</p>
                     </a>
@@ -46,7 +46,7 @@
         <li class="nav-header">MÓDULOS</li>
         <?php foreach ($listaModulos as $mod) { ?> 
             <li class="nav-item sidebarSubMenuColor">
-                <a href="<?= site_url() . $mod->md_url ?>/<?= $mod->id ?> " class="nav-link">
+                <a href="<?= site_url() . $mod->md_url . ($mod->tiene_submodulos ? '/' . $mod->id : '') ?>" class="nav-link">
                     <i class="nav-icon <?= $mod->md_icon ?> sidebarColorIcon"></i>
                     <p><?= $mod->md_nombre ?></p>
                 </a>

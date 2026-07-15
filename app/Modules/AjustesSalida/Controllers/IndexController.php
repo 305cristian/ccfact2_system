@@ -89,7 +89,7 @@ class IndexController extends \App\Controllers\BaseController {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
-
+        $data['title'] = "Salidas";
         // Para salidas no usamos sustento ni proveedor (normalmente)
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo !=' => 'AJUSTES'], 'id, mot_nombre, CONCAT(mot_nombre, " ( ", mot_tipo," )") motivo');
@@ -698,12 +698,11 @@ class IndexController extends \App\Controllers\BaseController {
         return ['status' => false];
     }
 
-
     /**
      * Función para anular un ajuste de salida, validando la sesión del usuario, los datos de entrada, y realizando las operaciones necesarias para cambiar el estado del ajuste a anulado, registrar el motivo de anulación, y manejar cualquier impacto relacionado con el stock o las reservas asociadas al ajuste de salida. La función anularAjuste procesa los datos enviados a través de una solicitud POST, validando que el ID del ajuste y el motivo de anulación estén presentes y sean válidos. Si la validación es exitosa, la función procede a iniciar una transacción en la base de datos, y utiliza el método anularAjuste de la biblioteca SalidasLib para realizar las operaciones necesarias para anular el ajuste de salida. Si ocurre algún error durante el proceso de anulación, se realiza un rollback de la transacción y se devuelve una respuesta JSON con un mensaje de error. Si la anulación es exitosa, se realiza un commit de la transacción, se registra un log de éxito, y se devuelve una respuesta JSON indicando que el ajuste de salida ha sido anulado correctamente. Esta función es esencial para garantizar que los ajustes de salida puedan ser anulados de manera segura y controlada, manteniendo la integridad de los datos relacionados con los ajustes de salida, el stock, y las reservas, y proporcionando una experiencia de usuario adecuada durante el proceso de anulación de ajustes de salida.    
      * @return \CodeIgniter\HTTP\Response Respuesta JSON que indica el resultado de la operación de anulación del ajuste de salida, incluyendo el estado, un mensaje descriptivo, y cualquier dato adicional relevante relacionado con la anulación del ajuste de salida.
      * @throws \Exception En caso de que ocurra un error durante el proceso de anulación del ajuste de salida, como errores en la validación de los datos de entrada, problemas al realizar la transacción en la base de datos, o errores inesperados durante el proceso de anulación. Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de ajustes de salida, para permitir a los usuarios anular un ajuste existente sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios realizados en el ajuste de salida y proporcionar una experiencia de usuario fluida y eficiente durante el proceso de anulación de ajustes de salida. Además, esta función asume que existen otras funciones y métodos auxiliares, como anularAjuste, que es responsable de realizar las operaciones específicas para anular el ajuste de salida, y que debe ser implementado correctamente para garantizar el correcto funcionamiento de la función anularAjuste y la integridad de los datos relacionados con los ajustes de salida, el stock, y las reservas.
-    */
+     */
     public function anularAjuste() {
         $this->user->validateSession();
 
@@ -745,7 +744,7 @@ class IndexController extends \App\Controllers\BaseController {
     /**
      * Función para clonar un ajuste de salida existente, cargando los datos del ajuste original en el carrito de ajustes de salida para permitir a los usuarios crear un nuevo ajuste basado en la información del ajuste original. La función clonarAjuste acepta un parámetro $ajusteId que corresponde al identificador del ajuste de salida que se desea clonar, y utiliza el método loadDataAjusteCart para cargar los datos del ajuste original en el carrito de ajustes de salida. Si la carga de datos es exitosa, se devuelve una respuesta JSON indicando el éxito de la operación y proporcionando una URL de redirección para crear un nuevo ajuste de salida con los datos clonados. Esta función es esencial para facilitar a los usuarios la creación de nuevos ajustes de salida basados en ajustes existentes, ahorrando tiempo y esfuerzo al evitar la necesidad de ingresar manualmente la misma información para ajustes similares, y proporcionando una experiencia de usuario eficiente y conveniente en el proceso de gestión de ajustes de salida. 
      * @param int $ajusteId El identificador del ajuste de salida que se desea clonar, utilizado para cargar los datos del ajuste original en el carrito de ajustes de salida.
-    */
+     */
     public function clonarAjuste(int $ajusteId) {
         $respuesta = $this->loadDataAjusteCart($ajusteId, true);
 
@@ -755,11 +754,10 @@ class IndexController extends \App\Controllers\BaseController {
         ]);
     }
 
-
     /**
      * Función para importar productos a un ajuste de salida desde un archivo Excel, procesando el archivo cargado por el usuario, validando los datos de cada fila, y agregando los productos válidos al carrito de ajustes de salida. La función importarExcel maneja la carga del archivo Excel, utilizando la biblioteca PhpSpreadsheet para leer el contenido del archivo y convertirlo en un array de registros. Luego, itera sobre cada fila del archivo (omitiendo la cabecera) y valida los datos de cada producto, incluyendo el código, la cantidad, y el lote (si aplica). Si los datos son válidos, se obtiene la información del producto desde la base de datos, se valida el stock disponible considerando las reservas, y se agrega el producto al carrito de ajustes de salida con la información correspondiente. Si algún registro contiene errores o no cumple con las validaciones, se acumulan los mensajes de error para informar al usuario sobre los problemas encontrados en el proceso de importación. Esta función es esencial para facilitar a los usuarios la incorporación masiva de productos a un ajuste de salida mediante un archivo Excel, ahorrando tiempo y esfuerzo al evitar la necesidad de ingresar manualmente cada producto, y proporcionando una experiencia de usuario eficiente y conveniente durante el proceso de gestión de ajustes de salida.   
      * 
-    */
+     */
     public function importarExcel() {
         try {
             $file = $this->request->getFile('file');

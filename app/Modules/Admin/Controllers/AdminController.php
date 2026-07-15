@@ -22,7 +22,7 @@ class AdminController extends \App\Controllers\BaseController {
         $this->dirViewModule = 'Modules\Admin\Views';
     }
 
-    public function index() {
+    public function index($id = null) {
 
         $this->user->validateSession();
 

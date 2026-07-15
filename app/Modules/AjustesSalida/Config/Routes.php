@@ -13,7 +13,6 @@
  * @date 27 nov 2025
  * @time 10:19:26 a.m.
  */
-
 //TODO:TODA LA CONFIGURACION INICIAL PÁRA QUE ARRANQUE EL SISTEMA ESTA EN EL ARCHIVO Routes.php en la carpeta Config del sistema
 //$routes->setDefaultNamespace('\Modules\Login\Controllers'); ruta inicial
 //$routes->setDefaultController('IndexController'); metodo inicial
@@ -26,6 +25,9 @@ if (!isset($routes)) {
 }
 
 $routes->group('ajustessalida', ['namespace' => '\Modules\AjustesSalida\Controllers'], function ($subroutes) {
+
+    $subroutes->get('dashboard', 'DashboardController::index');
+    $subroutes->post('getDataDashboard', 'DashboardController::getDataDashboard');
 
     $subroutes->get('nuevoAjuste', 'IndexController::index');
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
@@ -48,7 +50,6 @@ $routes->group('ajustessalida', ['namespace' => '\Modules\AjustesSalida\Controll
     $subroutes->get('getDataDetalle/(:num)', 'GestionController::getDataDetalle/$1');
     $subroutes->get('generarPDF/(:num)', 'GestionController::generarPDF/$1');
     $subroutes->post('sendEmailReport', 'GestionController::sendEmailReport');
-
 });
 
 $routes->group('comun', ['namespace' => '\Modules\Comun\Controllers'], function ($subroutes) {

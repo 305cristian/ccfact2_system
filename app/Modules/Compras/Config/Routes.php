@@ -9,7 +9,6 @@
  * Description of Routes
  *
  */
- 
 /**
  * @author CRISTIAN R. PAZ
  * @date 3 may 2026
@@ -29,7 +28,9 @@ if (!isset($routes)) {
 
 $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], function ($subroutes) {
 
-    $subroutes->get('dashboard/(:num)', 'IndexController::index/$1');
+    $subroutes->get('dashboard', 'DashboardController::index');
+
+    $subroutes->post('getDataDashboard', 'DashboardController::getDataDashboard');
     $subroutes->get('nuevaCompra', 'IndexController::nuevaCompra');
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
     $subroutes->post('updateProduct', 'IndexController::updateProduct');

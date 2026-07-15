@@ -174,6 +174,127 @@ class ComprasModel extends Model {
         }
     }
 
+    public function getDashboardResumen(array $filtros): object {
+
+        $builder = $this->db->table("cc_compras compra");
+        $builder->select("
+            COUNT(*) AS total_documentos,
+            SUM(CASE WHEN compra.comp_estado = 'ARCHIVADO' THEN 1 ELSE 0 END) AS total_archivadas,
+            SUM(CASE WHEN compra.comp_estado = 'BORRADOR' THEN 1 ELSE 0 END) AS total_borradores,
+            SUM(CASE WHEN compra.comp_estado IN ('ANULADA', 'ANULADA_EN_PENDIENTE', 'ANULADA_EN_ARCHIVADA') THEN 1 ELSE 0 END) AS total_anuladas,
+            SUM(CASE WHEN compra.comp_estado = 'ARCHIVADO' THEN compra.comp_total ELSE 0 END) AS total_compras,
+            SUM(CASE WHEN compra.comp_estado = 'ARCHIVADO' THEN compra.comp_totaliva ELSE 0 END) AS total_iva
+        ", false);
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $compras = $builder->get()->getRow();
+
+        $builderCxp = $this->db->table("cc_cxp cxp");
+        $builderCxp->select("SUM(cxp_saldo) AS saldo_pendiente", false);
+        $builderCxp->whereIn("cxp_estado", ["PENDIENTE", "PARCIAL"]);
+
+        if (!empty($filtros['proveedorId']) || !empty($filtros['bodegaId']) || !empty($filtros['centroCostoId']) || !empty($filtros['tipoComprobante']) || !empty($filtros['fechaDesde']) || !empty($filtros['fechaHasta'])) {
+            $builderCxp->join("cc_compras compra", "compra.id = cxp.fk_compra");
+            $this->aplicarFiltrosDashboard($builderCxp, $filtros);
+        }
+
+        $cxp = $builderCxp->get()->getRow();
+
+        return (object) [
+            'total_documentos' => (int) ($compras->total_documentos ?? 0),
+            'total_archivadas' => (int) ($compras->total_archivadas ?? 0),
+            'total_borradores' => (int) ($compras->total_borradores ?? 0),
+            'total_anuladas' => (int) ($compras->total_anuladas ?? 0),
+            'total_compras' => (float) ($compras->total_compras ?? 0),
+            'total_iva' => (float) ($compras->total_iva ?? 0),
+            'saldo_cxp' => (float) ($cxp->saldo_pendiente ?? 0),
+        ];
+    }
+
+    public function getDashboardEstados(array $filtros): array {
+
+        $builder = $this->db->table("cc_compras compra");
+        $builder->select("compra.comp_estado AS estado, COUNT(*) AS total");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->groupBy("compra.comp_estado");
+        $builder->orderBy("total", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardComprobantes(array $filtros): array {
+
+        $builder = $this->db->table("cc_compras compra");
+        $builder->select("compra.comp_tipo_comprobante_cod AS codigo, tipo.comp_nombre AS nombre, COUNT(*) AS total, SUM(compra.comp_total) AS valor");
+        $builder->join("cc_tipos_comprobante tipo", "tipo.comp_codigo = compra.comp_tipo_comprobante_cod", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("compra.comp_estado", "ARCHIVADO");
+        $builder->groupBy("compra.comp_tipo_comprobante_cod, tipo.comp_nombre");
+        $builder->orderBy("total", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardTopProveedores(array $filtros): array {
+
+        $builder = $this->db->table("cc_compras compra");
+        $builder->select("proveedor.prov_razon_social AS proveedor, COUNT(*) AS total, SUM(compra.comp_total) AS valor");
+        $builder->join("cc_proveedores proveedor", "proveedor.id = compra.fk_proveedor");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("compra.comp_estado", "ARCHIVADO");
+        $builder->groupBy("proveedor.id, proveedor.prov_razon_social");
+        $builder->orderBy("valor", "DESC");
+        $builder->limit(5);
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardTendenciaMensual(array $filtros): array {
+
+        $builder = $this->db->table("cc_compras compra");
+        $builder->select("DATE_FORMAT(compra.comp_fecha_emision, '%Y-%m') AS periodo, SUM(compra.comp_total) AS valor, COUNT(*) AS total");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("compra.comp_estado", "ARCHIVADO");
+        $builder->groupBy("DATE_FORMAT(compra.comp_fecha_emision, '%Y-%m')");
+        $builder->orderBy("periodo", "ASC");
+        return $builder->get()->getResult();
+    }
+
+    public function getDashboardBodegas(array $filtros): array {
+
+        $builder = $this->db->table("cc_compras compra");
+        $builder->select("bodega.bod_nombre AS bodega, SUM(compra.comp_total) AS valor, COUNT(*) AS total");
+        $builder->join("cc_bodegas bodega", "bodega.id = compra.fk_bodega", "left");
+        $this->aplicarFiltrosDashboard($builder, $filtros);
+        $builder->where("compra.comp_estado", "ARCHIVADO");
+        $builder->groupBy("bodega.id, bodega.bod_nombre");
+        $builder->orderBy("valor", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+
+        if (!empty($filtros['fechaDesde'])) {
+            $builder->where("compra.comp_fecha_emision >=", $filtros['fechaDesde']);
+        }
+
+        if (!empty($filtros['fechaHasta'])) {
+            $builder->where("compra.comp_fecha_emision <=", $filtros['fechaHasta']);
+        }
+
+        if (!empty($filtros['proveedorId'])) {
+            $builder->where("compra.fk_proveedor", $filtros['proveedorId']);
+        }
+
+        if (!empty($filtros['bodegaId'])) {
+            $builder->where("compra.fk_bodega", $filtros['bodegaId']);
+        }
+
+        if (!empty($filtros['centroCostoId'])) {
+            $builder->where("compra.fk_centro_costo", $filtros['centroCostoId']);
+        }
+
+        if (!empty($filtros['tipoComprobante'])) {
+            $builder->where("compra.comp_tipo_comprobante_cod", $filtros['tipoComprobante']);
+        }
+    }
+
     public function getDetalleCentrosCostos(int $compraId): array {
         $builder = $this->db->table("cc_compras_det detalle");
         $builder->select("detalle.id, detalle.compd_cantidad, detalle.compd_centro_costo, producto.prod_codigo, producto.prod_nombre");

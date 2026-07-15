@@ -166,6 +166,12 @@
 
     <!-- para exportacion excel-->
     <script src="<?php echo base_url(); ?>/resources/plugins/excel/xlsx.full.min.js"></script>
+    
+    <!-- para gráficos estadísticos-->
+    <script src="<?php echo base_url(); ?>/resources/plugins/higchartjs/highcharts.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/higchartjs/exporting.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/higchartjs/export-data.js"></script>
+    <script src="<?php echo base_url(); ?>/resources/plugins/higchartjs/accessibility.js"></script>
 
     <!-- para rango de fechas-->
     <script src="<?php echo base_url(); ?>/resources/plugins/Flatpickr/js/flatpickr.js"></script>

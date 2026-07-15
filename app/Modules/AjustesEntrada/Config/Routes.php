@@ -27,6 +27,9 @@ if (!isset($routes)) {
 
 $routes->group('ajustesentrada', ['namespace' => '\Modules\AjustesEntrada\Controllers'], function ($subroutes) {
 
+    $subroutes->get('dashboard', 'DashboardController::index');
+    $subroutes->post('getDataDashboard', 'DashboardController::getDataDashboard');
+
     $subroutes->get('nuevoAjuste', 'IndexController::index');
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
     $subroutes->post('updateProduct', 'IndexController::updateProduct');

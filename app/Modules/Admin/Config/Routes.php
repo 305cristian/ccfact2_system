@@ -12,7 +12,7 @@ if (!isset($routes)) {
     $routes = \Config\Services::routes(true);
 }
 
-$routes->get('admin/(:num)', '\Modules\Admin\Controllers\AdminController::index/$1');
+$routes->get('admin', '\Modules\Admin\Controllers\AdminController::index');
 
 $routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function ($subroutes) {
 

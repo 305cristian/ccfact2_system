@@ -23,6 +23,7 @@ if (!isset($routes)) {
     $routes = \Config\Services::routes(true);
 }
 
+$routes->get('inventarios', '\Modules\Inventarios\Controllers\indexController::index');
 $routes->get('inventarios/(:num)', '\Modules\Inventarios\Controllers\indexController::index/$1');
 
 $routes->group('inventarios', ['namespace' => '\Modules\Inventarios\Controllers'], function ($subroutes) {

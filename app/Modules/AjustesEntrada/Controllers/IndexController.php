@@ -68,7 +68,7 @@ class IndexController extends \App\Controllers\BaseController {
         $this->user->validateSession();
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
-
+        $data['title']="Entradas";
         $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo !=' => "DESPACHOS"], 'id, mot_nombre');

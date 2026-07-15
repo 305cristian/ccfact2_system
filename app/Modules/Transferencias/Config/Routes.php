@@ -27,7 +27,10 @@ if (!isset($routes)) {
 
 
 $routes->group('transferencias', ['namespace' => '\Modules\Transferencias\Controllers'], function ($subroutes) {
-
+    
+     $subroutes->get('dashboard', 'DashboardController::index');
+    $subroutes->post('getDataDashboard', 'DashboardController::getDataDashboard');
+    
     $subroutes->get('nuevaTransferencia', 'IndexController::index');
     $subroutes->post('insertProduct', 'IndexController::insertProduct');
     $subroutes->post('updateProduct', 'IndexController::updateProduct');
