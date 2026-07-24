@@ -30,6 +30,9 @@ $routes->group('biocomedor', ['namespace' => '\Modules\BioComedor\Controllers'],
     $subroutes->get('dashboard', 'DashboardController::index');
     $subroutes->get('reportes', 'DashboardController::reportes');
     $subroutes->post('reportes/getReportes', 'DashboardController::getReportes');
+    $subroutes->get('terminal', 'TerminalController::index');
+    $subroutes->get('terminal/getServicioActual', 'TerminalController::getServicioActual');
+    $subroutes->post('terminal/registrarMarcacion', 'TerminalController::registrarMarcacion');
     $subroutes->get('comedores', 'ComedoresController::index');
     $subroutes->get('comedores/getComedores', 'ComedoresController::getComedores');
     $subroutes->post('comedores/saveComedor', 'ComedoresController::saveComedor');

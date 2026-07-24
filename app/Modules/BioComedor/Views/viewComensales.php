@@ -13,6 +13,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to c
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
 
+<style>
+    .bio-comensal-foto {
+        align-items: center;
+        background: #edf4ef;
+        border: 1px solid #d8e2dc;
+        border-radius: 6px;
+        display: flex;
+        height: 90px;
+        justify-content: center;
+        overflow: hidden;
+        width: 90px;
+    }
+
+    .bio-comensal-foto img {
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+    }
+</style>
+
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
@@ -29,6 +49,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <thead class="bg-system text-white">
                         <tr>
                             <td>ID</td>
+                            <td>FOTO</td>
                             <td>CODIGO</td>
                             <td>CEDULA</td>
                             <td>NOMBRES</td>
@@ -46,6 +67,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <tbody>
                         <tr v-for="comensal of listaComensales" :key="comensal.id">
                             <td>{{ zfill(comensal.id) }}</td>
+                            <td>
+                                <img v-if="comensal.comens_foto" :src="urlAssets + '/uploads/img/bio_comensales/' + comensal.comens_foto" class="rounded" style="width: 42px; height: 42px; object-fit: cover;" />
+                                <span v-else class="badge bg-secondary">SIN FOTO</span>
+                            </td>
                             <td>{{ comensal.comens_codigo }}</td>
                             <td>{{ comensal.comens_cedula }}</td>
                             <td>{{ comensal.comens_nombres }}</td>
@@ -209,6 +234,22 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                         <option value="0">INACTIVO</option>
                                     </select>
                                 </div>
+
+                                <div class="col-md-8 mb-3">
+                                    <label for="comensFoto" class="col-form-label col-form-label-sm"><i class="fal fa-image"></i> Foto</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bio-comensal-foto">
+                                            <img v-if="comensFotoPreview" :src="comensFotoPreview" />
+                                            <i v-else class="fas fa-user text-muted fa-2x"></i>
+                                        </div>
+
+                                        <div class="flex-grow-1">
+                                            <input ref="comensFotoInput" @change="onFotoComensalChange" type="file" class="form-control" id="comensFoto" accept="image/jpeg,image/png,image/webp" />
+                                            <small class="text-muted">La imagen se guardara con el numero de cedula del comensal.</small>
+                                            <div v-html="formValidacion.comensFoto" class="text-danger"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -249,12 +290,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         data() {
             return {
                 url: siteUrl,
+                urlAssets: baseUrl,
                 admin: admin,
                 estadoSave: true,
                 loadingList: false,
                 loadingSave: false,
                 idEdit: '',
                 newComensal: this.emptyComensal(),
+                comensFotoFile: null,
+                comensFotoPreview: '',
                 listaComensales: [],
                 listaContratistas: listaContratistas,
                 listaProyectos: listaProyectos,
@@ -320,14 +364,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     comensCedula: comensal.comens_cedula,
                     comensNombres: comensal.comens_nombres,
                     comensApellidos: comensal.comens_apellidos,
-                    comensIdentificadorBiometrico: comensal.comens_identificador_biometrico,
-                    comensUidRfid: comensal.comens_uid_rfid,
+                    comensIdentificadorBiometrico: comensal.comens_identificador_biometrico ? comensal.comens_identificador_biometrico : '',
+                    comensUidRfid: comensal.comens_uid_rfid ? comensal.comens_uid_rfid : '',
                     fkDepartamento: comensal.fk_departamento ? comensal.fk_departamento : '',
                     fkArea: comensal.fk_area ? comensal.fk_area : '',
                     fkContratista: comensal.fk_contratista ? comensal.fk_contratista : '',
                     fkProyecto: comensal.fk_proyecto ? comensal.fk_proyecto : '',
                     comensEstado: comensal.comens_estado,
                 };
+                this.comensFotoFile = null;
+                this.comensFotoPreview = comensal.comens_foto ? this.urlAssets + '/uploads/img/bio_comensales/' + comensal.comens_foto : '';
                 this.idEdit = comensal.id;
                 this.formValidacion = [];
             },
@@ -350,6 +396,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.loadingSave = true;
                 let datos = this.formData(this.newComensal);
                 let url = this.url + '/biocomedor/comensales/saveComensal';
+
+                if (this.comensFotoFile) {
+                    datos.append('comensFoto', this.comensFotoFile);
+                }
 
                 if (this.idEdit !== '') {
                     datos.append('idComensal', this.idEdit);
@@ -381,9 +431,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             clear() {
                 this.newComensal = this.emptyComensal();
+                this.comensFotoFile = null;
+                this.comensFotoPreview = '';
                 this.estadoSave = true;
                 this.idEdit = '';
                 this.formValidacion = [];
+                if (this.$refs.comensFotoInput) {
+                    this.$refs.comensFotoInput.value = '';
+                }
+            },
+            onFotoComensalChange(event) {
+                let file = event.target.files[0] || null;
+                this.comensFotoFile = file;
+                this.comensFotoPreview = file ? URL.createObjectURL(file) : '';
             },
             async getCodigoComensal() {
                 try {

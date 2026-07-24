@@ -87,6 +87,15 @@ class ComensalesController extends BaseController {
             return $this->response->setJSON($duplicado);
         }
 
+        $fotoComensal = $this->procesarFotoComensal($dataComensal['comens_cedula']);
+        if (($fotoComensal['error'] ?? null) !== null) {
+            return $this->response->setJSON($fotoComensal['error']);
+        }
+
+        if (!empty($fotoComensal['nombre'])) {
+            $dataComensal['comens_foto'] = $fotoComensal['nombre'];
+        }
+
         $comensalId = $this->ccm->guardar($dataComensal, 'cc_bio_comensales');
         $this->logs->logSuccess('SE HA CREADO UN COMENSAL CON EL ID ' . $comensalId);
 
@@ -116,6 +125,21 @@ class ComensalesController extends BaseController {
         $duplicado = $this->validarDuplicadosComensal($dataComensal, (int) $idComensal);
         if ($duplicado !== null) {
             return $this->response->setJSON($duplicado);
+        }
+
+        $dataComensalActual = $this->ccm->getData('cc_bio_comensales', ['id' => $idComensal], 'id, comens_foto', null, 1);
+        $fotoComensal = $this->procesarFotoComensal($dataComensal['comens_cedula'], $dataComensalActual->comens_foto ?? null);
+        if (($fotoComensal['error'] ?? null) !== null) {
+            return $this->response->setJSON($fotoComensal['error']);
+        }
+
+        if (!empty($fotoComensal['nombre'])) {
+            $dataComensal['comens_foto'] = $fotoComensal['nombre'];
+        } else if (!empty($dataComensalActual->comens_foto)) {
+            $fotoRenombrada = $this->renombrarFotoComensal($dataComensalActual->comens_foto, $dataComensal['comens_cedula']);
+            if ($fotoRenombrada !== null) {
+                $dataComensal['comens_foto'] = $fotoRenombrada;
+            }
         }
 
         $this->ccm->actualizar('cc_bio_comensales', $dataComensal, ['id' => $idComensal]);
@@ -213,21 +237,122 @@ class ComensalesController extends BaseController {
         $comensCedula = preg_replace('/\D+/', '', trim((string) $this->request->getPost('comensCedula')));
         $comensNombres = trim((string) $this->request->getPost('comensNombres'));
         $comensApellidos = trim((string) $this->request->getPost('comensApellidos'));
-        $comensIdentificadorBiometrico = trim((string) $this->request->getPost('comensIdentificadorBiometrico'));
-        $comensUidRfid = trim((string) $this->request->getPost('comensUidRfid'));
+        $comensIdentificadorBiometrico = $this->normalizarValorOpcional($this->request->getPost('comensIdentificadorBiometrico'));
+        $comensUidRfid = $this->normalizarValorOpcional($this->request->getPost('comensUidRfid'));
 
         return [
             'comens_codigo' => $comensCodigo !== '' ? mb_strtoupper($comensCodigo, 'UTF-8') : null,
             'comens_cedula' => $comensCedula,
             'comens_nombres' => mb_strtoupper($comensNombres, 'UTF-8'),
             'comens_apellidos' => mb_strtoupper($comensApellidos, 'UTF-8'),
-            'comens_identificador_biometrico' => $comensIdentificadorBiometrico !== '' ? mb_strtoupper($comensIdentificadorBiometrico, 'UTF-8') : null,
-            'comens_uid_rfid' => $comensUidRfid !== '' ? mb_strtoupper($comensUidRfid, 'UTF-8') : null,
+            'comens_identificador_biometrico' => $comensIdentificadorBiometrico !== null ? mb_strtoupper($comensIdentificadorBiometrico, 'UTF-8') : null,
+            'comens_uid_rfid' => $comensUidRfid !== null ? mb_strtoupper($comensUidRfid, 'UTF-8') : null,
             'fk_area' => $this->request->getPost('fkArea'),
             'fk_contratista' => $this->request->getPost('fkContratista'),
             'fk_proyecto' => $this->request->getPost('fkProyecto'),
             'comens_estado' => $this->request->getPost('comensEstado') ?? 1,
         ];
+    }
+
+    private function normalizarValorOpcional(mixed $valorPost): ?string {
+
+        $valor = trim((string) $valorPost);
+        if ($valor === '' || mb_strtoupper($valor, 'UTF-8') === 'NULL') {
+            return null;
+        }
+
+        return $valor;
+    }
+
+    private function procesarFotoComensal(string $cedula, ?string $fotoActual = null): array {
+
+        $file = $this->request->getFile('comensFoto');
+        if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            return ['nombre' => null, 'error' => null];
+        }
+
+        if (!$file->isValid()) {
+            return [
+                'nombre' => null,
+                'error' => [
+                    'status' => 'error',
+                    'msg' => 'No se pudo cargar la foto del comensal.',
+                ],
+            ];
+        }
+
+        $extension = strtolower($file->getClientExtension());
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
+
+        if (!in_array($extension, $extensionesPermitidas, true)) {
+            return [
+                'nombre' => null,
+                'error' => [
+                    'status' => 'vacio',
+                    'msg' => [
+                        'comensFoto' => 'La foto debe ser una imagen JPG, PNG o WEBP.',
+                    ],
+                ],
+            ];
+        }
+
+        $nombreFoto = $cedula . '.' . $extension;
+        $rutaUpload = FCPATH . 'uploads/img/bio_comensales';
+
+        if (!is_dir($rutaUpload)) {
+            mkdir($rutaUpload, 0775, true);
+        }
+
+        if (file_exists($rutaUpload . DIRECTORY_SEPARATOR . $nombreFoto)) {
+            unlink($rutaUpload . DIRECTORY_SEPARATOR . $nombreFoto);
+        }
+
+        $file->move($rutaUpload, $nombreFoto);
+        $this->eliminarFotoAnterior($rutaUpload, $fotoActual, $nombreFoto);
+
+        return ['nombre' => $nombreFoto, 'error' => null];
+    }
+
+    private function renombrarFotoComensal(string $fotoActual, string $cedula): ?string {
+
+        $rutaUpload = FCPATH . 'uploads/img/bio_comensales';
+        $rutaActual = $rutaUpload . DIRECTORY_SEPARATOR . $fotoActual;
+
+        if (!file_exists($rutaActual)) {
+            return null;
+        }
+
+        $extension = pathinfo($fotoActual, PATHINFO_EXTENSION);
+        if ($extension === '') {
+            return null;
+        }
+
+        $nombreFoto = $cedula . '.' . strtolower($extension);
+        $rutaNueva = $rutaUpload . DIRECTORY_SEPARATOR . $nombreFoto;
+
+        if ($fotoActual === $nombreFoto) {
+            return $fotoActual;
+        }
+
+        if (file_exists($rutaNueva)) {
+            unlink($rutaNueva);
+        }
+
+        rename($rutaActual, $rutaNueva);
+
+        return $nombreFoto;
+    }
+
+    private function eliminarFotoAnterior(string $rutaUpload, ?string $fotoActual, string $nombreFoto): void {
+
+        if (empty($fotoActual) || $fotoActual === $nombreFoto) {
+            return;
+        }
+
+        $rutaFotoActual = $rutaUpload . DIRECTORY_SEPARATOR . $fotoActual;
+        if (file_exists($rutaFotoActual)) {
+            unlink($rutaFotoActual);
+        }
     }
 
 }

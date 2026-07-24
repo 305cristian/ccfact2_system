@@ -170,6 +170,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <div class="bio-report-box">
+                            <h6 class="fw-bold text-system mb-2"><i class="fas fa-chart-line"></i> Tendencia por fecha</h6>
+                            <div id="chartReporteTendencia" style="height: 320px;"></div>
+                        </div>
+                    </div>
+
                     <div class="col-xl-6">
                         <div class="bio-report-box">
                             <h6 class="fw-bold text-system mb-2"><i class="fas fa-chart-column"></i> Consumos por servicio</h6>
@@ -210,7 +217,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <thead class="bg-system text-white">
                             <tr>
                                 <td>ID</td>
-                                <td>FECHA/HORA</td>
+                                <td>FECHA</td>
+                                <td>HORA</td>
                                 <td>COMENSAL</td>
                                 <td>COMEDOR</td>
                                 <td>SERVICIO</td>
@@ -224,7 +232,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <tbody>
                             <tr v-for="marcacion of detalle" :key="marcacion.id">
                                 <td>{{ zfill(marcacion.id) }}</td>
-                                <td>{{ marcacion.marc_fecha_hora }}</td>
+                                <td>{{ marcacion.marc_fecha }}</td>
+                                <td>{{ marcacion.marc_hora }}</td>
                                 <td>{{ marcacion.comens_codigo }} - {{ marcacion.comens_nombres }} {{ marcacion.comens_apellidos }}</td>
                                 <td>{{ marcacion.com_nombre }}</td>
                                 <td>{{ marcacion.serv_nombre }}</td>
@@ -278,6 +287,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 porComedor: [],
                 porContratista: [],
                 porProyecto: [],
+                porFecha: [],
                 detalle: [],
             };
         },
@@ -323,6 +333,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.porComedor = data.porComedor || [];
                     this.porContratista = data.porContratista || [];
                     this.porProyecto = data.porProyecto || [];
+                    this.porFecha = data.porFecha || [];
 
                     if ($.fn.DataTable.isDataTable('#tblReporteMarcaciones')) {
                         $('#tblReporteMarcaciones').DataTable().destroy();
@@ -372,10 +383,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return;
                 }
 
+                this.renderLineChart('chartReporteTendencia', this.porFecha);
                 this.renderColumnChart('chartReporteServicios', this.porServicio, 'Consumos');
                 this.renderColumnChart('chartReporteComedores', this.porComedor, 'Consumos');
                 this.renderBarChart('chartReporteContratistas', this.porContratista.slice(0, 8), 'Consumos');
                 this.renderBarChart('chartReporteProyectos', this.porProyecto.slice(0, 8), 'Consumos');
+            },
+            renderLineChart(container, rows) {
+                Highcharts.chart(container, {
+                    chart: {type: 'spline'},
+                    title: {text: ''},
+                    xAxis: {categories: rows.map(row => row.fecha || '-')},
+                    yAxis: {title: {text: 'Cantidad'}},
+                    tooltip: {shared: true},
+                    series: [
+                        {name: 'Marcaciones', data: rows.map(row => Number(row.marcaciones || 0))},
+                        {name: 'Consumos', data: rows.map(row => Number(row.consumos || 0))},
+                        {name: 'Retrasos', data: rows.map(row => Number(row.retrasos || 0))}
+                    ],
+                    credits: {enabled: false}
+                });
             },
             renderColumnChart(container, rows, title) {
                 Highcharts.chart(container, {

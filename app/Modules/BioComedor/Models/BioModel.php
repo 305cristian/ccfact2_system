@@ -29,6 +29,18 @@ class BioModel extends Model {
         return $builder->get()->getResult();
     }
 
+    public function getListaEquiposActivos(): array {
+
+        $builder = $this->db->table("cc_bio_equipos tb1");
+        $builder->select("tb1.id, tb1.fk_comedor, tb1.eq_codigo, tb1.eq_nombre, tb2.com_codigo, tb2.com_nombre");
+        $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where("tb1.eq_estado", 1);
+        $builder->where("tb2.com_estado", 1);
+        $builder->orderBy("tb2.com_nombre", "ASC");
+        $builder->orderBy("tb1.eq_nombre", "ASC");
+        return $builder->get()->getResult();
+    }
+
     public function getListaComensales(): array {
 
         $builder = $this->db->table("cc_bio_comensales tb1");
@@ -161,10 +173,14 @@ class BioModel extends Model {
         $builder->select("
             tb1.*,
             tb2.cont_nombre,
-            tb3.proy_nombre
+            tb3.proy_nombre,
+            tb4.area_nombre,
+            tb5.dep_nombre
         ");
         $builder->join("cc_bio_contratistas tb2", "tb2.id = tb1.fk_contratista");
         $builder->join("cc_bio_proyectos tb3", "tb3.id = tb1.fk_proyecto");
+        $builder->join("cc_bio_areas tb4", "tb4.id = tb1.fk_area", "left");
+        $builder->join("cc_bio_departamentos tb5", "tb5.id = tb4.fk_departamento", "left");
 
         if ($tipoIdentificacion === 'RFID') {
             $builder->where("tb1.comens_uid_rfid", $identificador);
@@ -177,6 +193,28 @@ class BioModel extends Model {
         return $builder->get()->getRow();
     }
 
+    public function getComensalPorIdentificadorAutomatico(string $identificador): ?object {
+
+        $builder = $this->db->table("cc_bio_comensales tb1");
+        $builder->select("
+            tb1.*,
+            tb2.cont_nombre,
+            tb3.proy_nombre,
+            tb4.area_nombre,
+            tb5.dep_nombre
+        ");
+        $builder->join("cc_bio_contratistas tb2", "tb2.id = tb1.fk_contratista");
+        $builder->join("cc_bio_proyectos tb3", "tb3.id = tb1.fk_proyecto");
+        $builder->join("cc_bio_areas tb4", "tb4.id = tb1.fk_area", "left");
+        $builder->join("cc_bio_departamentos tb5", "tb5.id = tb4.fk_departamento", "left");
+        $builder->groupStart();
+        $builder->where("tb1.comens_codigo", $identificador);
+        $builder->orWhere("tb1.comens_uid_rfid", $identificador);
+        $builder->orWhere("tb1.comens_identificador_biometrico", $identificador);
+        $builder->groupEnd();
+        return $builder->get()->getRow();
+    }
+
     public function getEquipoActivo(int $equipoId, int $comedorId): ?object {
 
         $builder = $this->db->table("cc_bio_equipos tb1");
@@ -185,6 +223,19 @@ class BioModel extends Model {
         $builder->where([
             "tb1.id" => $equipoId,
             "tb1.fk_comedor" => $comedorId,
+            "tb1.eq_estado" => 1,
+            "tb2.com_estado" => 1,
+        ]);
+        return $builder->get()->getRow();
+    }
+
+    public function getEquipoActivoPorId(int $equipoId): ?object {
+
+        $builder = $this->db->table("cc_bio_equipos tb1");
+        $builder->select("tb1.*, tb2.com_codigo, tb2.com_nombre");
+        $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where([
+            "tb1.id" => $equipoId,
             "tb1.eq_estado" => 1,
             "tb2.com_estado" => 1,
         ]);
@@ -334,6 +385,20 @@ class BioModel extends Model {
         ");
         $builder->groupBy("tb7.id, tb7.proy_nombre");
         $builder->orderBy("consumos", "DESC");
+        return $builder->get()->getResult();
+    }
+
+    public function getReportePorFecha(array $filtros = []): array {
+
+        $builder = $this->baseQueryReporteMarcaciones($filtros);
+        $builder->select("
+            tb1.marc_fecha AS fecha,
+            COUNT(tb1.id) AS marcaciones,
+            SUM(CASE WHEN tb1.marc_estado = 'VALIDA' AND tb1.marc_genera_consumo = 1 THEN 1 ELSE 0 END) AS consumos,
+            SUM(CASE WHEN tb1.marc_estado = 'VALIDA' AND tb1.marc_es_retraso = 1 THEN 1 ELSE 0 END) AS retrasos
+        ");
+        $builder->groupBy("tb1.marc_fecha");
+        $builder->orderBy("tb1.marc_fecha", "ASC");
         return $builder->get()->getResult();
     }
 

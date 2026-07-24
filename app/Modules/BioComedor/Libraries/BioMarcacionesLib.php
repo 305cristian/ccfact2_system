@@ -45,12 +45,13 @@ class BioMarcacionesLib {
         $origen = trim((string) ($dataMarcacion->marcOrigen ?? 'MANUAL'));
         $fechaHora = $fecha . ' ' . $hora;
 
-        $equipo = $this->bioModel->getEquipoActivo($equipoId, $comedorId);
+        $equipo = $comedorId > 0 ? $this->bioModel->getEquipoActivo($equipoId, $comedorId) : $this->bioModel->getEquipoActivoPorId($equipoId);
         if (!$equipo) {
-            return $this->responseArray('warning', 'El equipo no pertenece al comedor seleccionado o esta inactivo.');
+            return $this->responseArray('warning', 'El equipo de marcacion no existe o esta inactivo.');
         }
 
-        $comensal = $this->bioModel->getComensalPorIdentificador($tipoIdentificacion, $identificador);
+        $comedorId = (int) $equipo->fk_comedor;
+        $comensal = $tipoIdentificacion === 'AUTO' ? $this->bioModel->getComensalPorIdentificadorAutomatico($identificador) : $this->bioModel->getComensalPorIdentificador($tipoIdentificacion, $identificador);
         if (!$comensal || (int) $comensal->comens_estado !== 1) {
             return $this->responseArray('warning', 'No se encontro un comensal activo con el identificador ingresado.');
         }
@@ -62,7 +63,7 @@ class BioMarcacionesLib {
 
         $permiteMultiple = (string) getSettings("PERMITIR_MULTIPLE_CONSUMO_SERVICIO");
 //        $permiteMultiple = (string) ($this->ccm->getValue('cc_settings', 'PERMITIR_MULTIPLE_CONSUMO_SERVICIO', 'st_value', 'st_nombre') ?? '0');
-        $toleranciaMinutos = (int) getSession("TOLERANCIA_MARCACION_MINUTOS");
+        $toleranciaMinutos = (int) getSettings("TOLERANCIA_MARCACION_MINUTOS");
 //        $toleranciaMinutos = (int) ($this->ccm->getValue('cc_settings', 'TOLERANCIA_MARCACION_MINUTOS', 'st_value', 'st_nombre') ?? 5);
         $fechaHoraDesde = date('Y-m-d H:i:s', strtotime($fechaHora . ' -' . $toleranciaMinutos . ' minutes'));
         $fechaHoraHasta = date('Y-m-d H:i:s', strtotime($fechaHora . ' +' . $toleranciaMinutos . ' minutes'));
@@ -113,6 +114,12 @@ class BioMarcacionesLib {
                 'estado' => $estado,
                 'retraso' => $esRetraso,
                 'comensal' => trim($comensal->comens_nombres . ' ' . $comensal->comens_apellidos),
+                'codigoComensal' => $comensal->comens_codigo,
+                'contratista' => $comensal->cont_nombre,
+                'proyecto' => $comensal->proy_nombre,
+                'departamento' => $comensal->dep_nombre ?? '',
+                'area' => $comensal->area_nombre ?? '',
+                'foto' => !empty($comensal->comens_foto) ? base_url('uploads/img/bio_comensales/' . $comensal->comens_foto) : '',
                 'servicio' => $horario->serv_nombre,
                 'comedor' => $equipo->com_nombre,
                 'equipo' => $equipo->eq_nombre,

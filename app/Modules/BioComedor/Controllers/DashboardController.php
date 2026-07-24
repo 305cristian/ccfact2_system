@@ -84,6 +84,7 @@ class DashboardController extends BaseController {
                         'porComedor' => $this->bioModel->getReportePorComedor($filtros),
                         'porContratista' => $this->bioModel->getReportePorContratista($filtros),
                         'porProyecto' => $this->bioModel->getReportePorProyecto($filtros),
+                        'porFecha' => $this->bioModel->getReportePorFecha($filtros),
                         'detalle' => $this->bioModel->getListaMarcaciones($filtros),
                     ],
         ]);

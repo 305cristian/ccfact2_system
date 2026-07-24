@@ -38,6 +38,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </a>
                 </li>
 
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/biocomedor/terminal' }">
+                    <a href="<?= site_url() ?>/biocomedor/terminal" target="_blank" class="nav-link" style="cursor: pointer">
+                        <i class="far fa-tv nav-icon sidebarColorIcon"></i>
+                        <p> Terminal</p>
+                    </a>
+                </li>
+
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/biocomedor/comedores' }">
                     <a @click.prevent="navigate('<?= site_url() ?>/biocomedor/comedores')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-building nav-icon sidebarColorIcon"></i>
