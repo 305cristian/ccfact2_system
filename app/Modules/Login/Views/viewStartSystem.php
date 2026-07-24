@@ -42,8 +42,7 @@ $backgroundColor = ['bg-mod-gradient-primary', 'bg-mod-gradient-info', 'bg-mod-g
             <?php foreach ($listaModulos as $i => $mod) { ?>
                 <div class="col-xl-3 col-md-6 col-lg-12">
                     <a href="<?= site_url() . $mod->md_url . ($mod->tiene_submodulos ? '/' . $mod->id : '') ?>" style="text-decoration: none">
-                        <div class="info-box <?= $backgroundColor[$i] ?> ">
-
+                        <div class="info-box <?= $backgroundColor[$i % count($backgroundColor)] ?>">
                             <span class="info-box-icon push-bottom"><i class="<?= $mod->md_icon ?>"></i></span>
                             <div class="info-box-content">
                                 <span class="info-box-text">Módulo</span>

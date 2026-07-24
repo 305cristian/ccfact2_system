@@ -771,7 +771,8 @@
                 }
             },
             generarNotaCredito(compra) {
-                sweet_msg_dialog('info', `La generación de nota de crédito para la compra #${this.zFill(compra.comp_secuencial, 5)} se implementará en el siguiente paso.`);
+                window.location.href = `${this.url}/notacredito/nuevaNdc/${compra.id}`;
+                return;
             },
             edicionRapidaCompra(compra) {
                 this.compraEdicionRapida = compra;

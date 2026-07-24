@@ -23,13 +23,11 @@ class DashboardController extends BaseController{
     //put your code here
     
     protected string $dirViewModule;
-    protected $gm;
     protected ComprasModel $comprasModel;
     
     public function __construct() {
         
         $this->dirViewModule = 'Modules\Compras\Views';
-        $this->gm = new CcModel();
         $this->comprasModel = new ComprasModel();
     }
 
