@@ -55,6 +55,7 @@ class NotaCreditoModel extends Model{
         $builder->join("cc_sustentos sustento", "sustento.sus_codigo = compra.cod_sustento", "left");
         $builder->join("cc_tipo_compra tipoCompra", "tipoCompra.id = compra.fk_tipo_compra", "left");
         $builder->where("compra.id", $compraId);
+        $builder->where("compra.fk_proyecto", getProyectoId());
         $builder->where("compra.comp_estado", "ARCHIVADO");
         $builder->whereIn("compra.comp_tipo_comprobante_cod", ["01", "02", "03"]);
 
@@ -78,9 +79,10 @@ class NotaCreditoModel extends Model{
         $builderDetalle->join("cc_impuesto_tarifa tarifa", "tarifa.id = detalle.fk_impuesto_tarifa", "left");
         $builderDetalle->join("cc_cuenta_contabledet cuenta", "cuenta.ctad_codigo = detalle.compd_cta_entrada", "left");
         $builderDetalle->join("cc_lotes lote", "lote.id = detalle.fk_lote", "left");
-        $builderDetalle->join("cc_compras_det ndcDetalle", "ndcDetalle.fk_compra_det_relacionada = detalle.id AND ndcDetalle.compd_estado = 1", "left");
-        $builderDetalle->join("cc_compras ndc", "ndc.id = ndcDetalle.fk_compra AND ndc.fk_compra_relacionada = detalle.fk_compra", "left");
+        $builderDetalle->join("cc_compras_det ndcDetalle", "ndcDetalle.fk_compra_det_relacionada = detalle.id AND ndcDetalle.fk_proyecto = " . (int) getProyectoId() . " AND ndcDetalle.compd_estado = 1", "left");
+        $builderDetalle->join("cc_compras ndc", "ndc.id = ndcDetalle.fk_compra AND ndc.fk_proyecto = " . (int) getProyectoId() . " AND ndc.fk_compra_relacionada = detalle.fk_compra", "left");
         $builderDetalle->where("detalle.fk_compra", $compraId);
+        $builderDetalle->where("detalle.fk_proyecto", getProyectoId());
         $builderDetalle->where("detalle.compd_estado", 1);
         $builderDetalle->groupBy("detalle.id");
         $builderDetalle->orderBy("detalle.id", "ASC");

@@ -44,7 +44,7 @@ class ComedoresController extends BaseController {
     public function getComedores() {
 
         $this->user->validateSession();
-        $response = $this->ccm->getData('cc_bio_comedores');
+        $response = $this->ccm->getData('cc_bio_comedores', ['fk_proyecto_sistema' => getProyectoId()]);
 
         return $this->response->setJSON($response ?: false);
     }
@@ -75,7 +75,7 @@ class ComedoresController extends BaseController {
         }
 
         $codigoNormalizado = mb_strtoupper($comCodigo, 'UTF-8');
-        $existeCodigo = $this->ccm->getData('cc_bio_comedores', ['com_codigo' => $codigoNormalizado], 'id', null, 1);
+        $existeCodigo = $this->ccm->getData('cc_bio_comedores', ['com_codigo' => $codigoNormalizado, 'fk_proyecto_sistema' => getProyectoId()], 'id', null, 1);
 
         if ($existeCodigo) {
             return $this->response->setJSON([
@@ -85,6 +85,7 @@ class ComedoresController extends BaseController {
         }
 
         $datos = [
+            'fk_proyecto_sistema' => getProyectoId(),
             'com_codigo' => $codigoNormalizado,
             'com_nombre' => mb_strtoupper($comNombre, 'UTF-8'),
             'com_ubicacion' => $comUbicacion !== '' ? mb_strtoupper($comUbicacion, 'UTF-8') : null,
@@ -128,7 +129,7 @@ class ComedoresController extends BaseController {
         }
 
         $codigoNormalizado = mb_strtoupper($comCodigo, 'UTF-8');
-        $existeCodigo = $this->ccm->getData('cc_bio_comedores', ['com_codigo' => $codigoNormalizado], 'id, com_codigo', null, 1);
+        $existeCodigo = $this->ccm->getData('cc_bio_comedores', ['com_codigo' => $codigoNormalizado, 'fk_proyecto_sistema' => getProyectoId()], 'id, com_codigo', null, 1);
 
         if ($existeCodigo && (int) $existeCodigo->id !== (int) $idComedor) {
             return $this->response->setJSON([
@@ -138,6 +139,7 @@ class ComedoresController extends BaseController {
         }
 
         $datos = [
+            'fk_proyecto_sistema' => getProyectoId(),
             'com_codigo' => $codigoNormalizado,
             'com_nombre' => mb_strtoupper($comNombre, 'UTF-8'),
             'com_ubicacion' => $comUbicacion !== '' ? mb_strtoupper($comUbicacion, 'UTF-8') : null,
@@ -145,7 +147,7 @@ class ComedoresController extends BaseController {
             'com_estado' => $comEstado,
         ];
 
-        $this->ccm->actualizar('cc_bio_comedores', $datos, ['id' => $idComedor]);
+        $this->ccm->actualizar('cc_bio_comedores', $datos, ['id' => $idComedor, 'fk_proyecto_sistema' => getProyectoId()]);
 
         return $this->response->setJSON([
                     'status' => 'success',

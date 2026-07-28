@@ -16,10 +16,12 @@
 namespace Modules\Login\Controllers;
 
 use Modules\Comun\Libraries\Ip;
+use Modules\Login\Models\LoginModel;
 
 class WelcomeController extends \App\Controllers\BaseController {
 
     protected $ip;
+    protected LoginModel $loginModel;
     protected $dirTemplate;
     protected $viewRutaModule;
 
@@ -30,6 +32,7 @@ class WelcomeController extends \App\Controllers\BaseController {
         $this->ip = new Ip();
 
         //MODELOS
+        $this->loginModel = new LoginModel();
         //RUTAS
         $this->dirTemplate = '\Modules\Comun\Views\template';
         $this->viewRutaModule = '\Modules\Login\Views';
@@ -38,9 +41,21 @@ class WelcomeController extends \App\Controllers\BaseController {
     public function index() {
         $request = service('request');
         $this->user->validateSession();
-        $this->registerSessionDb();
+        
+        if (empty($this->session->get('login_registrado'))) {
+            $this->registerSessionDb();
+            $this->session->set('login_registrado', 1);
+        }
+        
         $send['title'] = 'CCFACT';
-//      $send['sidebar']= view($this->dirTemplate.'\sidebar');
+
+        $data['seleccionarProyecto'] = empty($this->session->get('fk_proyecto'));
+        $data['listaProyectosEmpleado'] = [];
+        
+        if ($data['seleccionarProyecto']) {
+            $data['listaProyectosEmpleado'] = $this->loginModel->getProyectosEmpleado((int) $this->user->id);
+        }
+        
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['otrosListaModulos'] = $this->ccm->getData('cc_modulos', ['md_estado' => 0, 'md_tipo' => 'modulo']);
 
@@ -49,6 +64,39 @@ class WelcomeController extends \App\Controllers\BaseController {
         $send['ccm'] = $this->ccm;
         $send['pathname'] = $request->getUri()->getPath();
         return view($this->dirTemplate . '\dashboard', $send);
+    }
+
+    public function seleccionarProyecto() {
+
+        $this->user->validateSession();
+
+        $proyectoId = (int) $this->request->getPost('fk_proyecto');
+
+        if ($proyectoId <= 0) {
+            $this->session->set('message', 'Debe seleccionar un proyecto.');
+            return redirect('welcome');
+        }
+
+        $proyecto = $this->loginModel->getProyectoEmpleado((int) $this->user->id, $proyectoId);
+
+        if (!$proyecto) {
+            $this->session->set('message', 'No tiene permisos para acceder al proyecto seleccionado.');
+            return redirect('welcome');
+        }
+
+        $this->session->set([
+            'fk_proyecto' => (int) $proyecto->id,
+            'proy_codigo' => $proyecto->proy_codigo,
+            'proy_nombre' => $proyecto->proy_nombre,
+        ]);
+
+        $redirectUrl = trim((string) $this->request->getPost('redirectUrl'));
+
+        if ($redirectUrl !== '' && str_starts_with($redirectUrl, site_url())) {
+            return redirect()->to($redirectUrl);
+        }
+
+        return redirect('welcome');
     }
 
     public function registerSessionDb() {

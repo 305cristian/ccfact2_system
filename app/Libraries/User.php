@@ -34,6 +34,9 @@ class User extends BaseController {
     public $bodega_main;
     public $foto;
     public $cargo_empleado;
+    public $fk_proyecto;
+    public $proy_codigo;
+    public $proy_nombre;
     protected $ci;
     public $rol;
 
@@ -77,6 +80,15 @@ class User extends BaseController {
         if (!empty($this->session->get('cargo_empleado'))) {
             $this->cargo_empleado = $this->session->get('cargo_empleado');
         }
+        if (!empty($this->session->get('fk_proyecto'))) {
+            $this->fk_proyecto = $this->session->get('fk_proyecto');
+        }
+        if (!empty($this->session->get('proy_codigo'))) {
+            $this->proy_codigo = $this->session->get('proy_codigo');
+        }
+        if (!empty($this->session->get('proy_nombre'))) {
+            $this->proy_nombre = $this->session->get('proy_nombre');
+        }
     }
 
     public function validatePermisos($persmiso, $user) {
@@ -94,6 +106,23 @@ class User extends BaseController {
             $this->session->set('message', '!Atencion, su sesión ha caducado');
             echo '<script>window.location.replace("' . site_url() . '") </script>';
             die();
-            }
+        }
+
+        if (empty($this->fk_proyecto) && !$this->esRutaPermitidaSinProyecto()) {
+            echo '<script>window.location.replace("' . site_url('welcome') . '") </script>';
+            die();
         }
     }
+
+    private function esRutaPermitidaSinProyecto(): bool {
+
+        $pathMain = trim(service('request')->getUri()->getPath(), '/');
+        $path = str_replace('index.php/', '', $pathMain);
+
+        if ($path === '' || $path === 'index/login') {
+            return true;
+        }
+
+        return str_starts_with($path, 'welcome');
+    }
+}

@@ -33,6 +33,7 @@ class EmployeeController extends \App\Controllers\BaseController {
         $data['listaCargos'] = $this->ccm->getData('cc_cargo', ['carg_estado' => 1]);
         $data['listaDepartamentos'] = $this->ccm->getData('cc_departamento', ['dep_estado' => 1]);
         $data['listaRoles'] = $this->ccm->getData('cc_roles', ['rol_estado' => 1]);
+        $data['listaProyectos'] = $this->ccm->getData('cc_proyectos', ['proy_estado' => 1], 'id, proy_codigo, proy_nombre');
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $mod);
         $send['view'] = view($this->dirViewModule . '\employee\viewEmployee', $data);
         if ($this->request->isAJAX()) {
@@ -63,6 +64,16 @@ class EmployeeController extends \App\Controllers\BaseController {
         }
     }
 
+    public function getProyectos() {
+        $data = json_decode(file_get_contents('php://input'));
+        $response = $this->empModel->getProyectosEmpleado($data->idEmp);
+        if ($response) {
+            return $this->response->setJSON($response);
+        } else {
+            return $this->response->setJSON(false);
+        }
+    }
+
     public function saveEmpleado() {
 
         $nombres = $this->request->getPost('nombres');
@@ -79,6 +90,7 @@ class EmployeeController extends \App\Controllers\BaseController {
         $bodegaMain = $this->request->getPost('bodegaMain');
         $estado = $this->request->getPost('estado');
         $bodegas = $this->request->getPost('bodegas');
+        $proyectos = $this->request->getPost('proyectos');
 
         $this->db->transBegin();
 
@@ -93,6 +105,7 @@ class EmployeeController extends \App\Controllers\BaseController {
             'rol' => ['label' => 'Rol', 'rules' => 'trim|required'],
             'bodegaMain' => ['label' => 'Bodega Principal', 'rules' => 'trim|required'],
             'bodegas' => ['label' => 'Bodega (Debe seleccionar al menos una bodega)', 'rules' => 'trim|required'],
+            'proyectos' => ['label' => 'Proyecto (Debe seleccionar al menos un proyecto)', 'rules' => 'trim|required'],
         ]);
         if ($this->validation->withRequest($this->request)->run()) {
 
@@ -132,6 +145,19 @@ class EmployeeController extends \App\Controllers\BaseController {
                     $this->ccm->guardar($datos, 'cc_empleado_bodegas');
                 }
             }
+
+            if ($proyectos) {
+                $listaProyectos = explode(',', $proyectos);
+                foreach ($listaProyectos as $proyectoId) {
+                    $datos = [
+                        'fk_empleado' => $idEmp,
+                        'fk_proyecto' => $proyectoId,
+                        'estado' => 1,
+                    ];
+                    $this->ccm->guardar($datos, 'cc_empleado_proyecto');
+                }
+            }
+
             if ($this->db->transStatus() === false) {
                 // generate an error... or use the log_message() function to log your error
                 $this->db->transRollback();
@@ -156,6 +182,7 @@ class EmployeeController extends \App\Controllers\BaseController {
                 'rol' => $this->validation->getError('rol'),
                 'bodegaMain' => $this->validation->getError('bodegaMain'),
                 'bodegas' => $this->validation->getError('bodegas'),
+                'proyectos' => $this->validation->getError('proyectos'),
             ];
         }
         return $this->response->setJson($response);
@@ -179,6 +206,7 @@ class EmployeeController extends \App\Controllers\BaseController {
         $bodegaMain = $this->request->getPost('bodegaMain');
         $estado = $this->request->getPost('estado');
         $bodegas = $this->request->getPost('bodegas');
+        $proyectos = $this->request->getPost('proyectos');
 
         $this->db->transBegin();
 
@@ -192,6 +220,7 @@ class EmployeeController extends \App\Controllers\BaseController {
             'rol' => ['label' => 'Rol', 'rules' => 'trim|required'],
             'bodegaMain' => ['label' => 'Bodega Principal', 'rules' => 'trim|required'],
             'bodegas' => ['label' => 'Bodega (Debe seleccionar al menos una bodega)', 'rules' => 'trim|required'],
+            'proyectos' => ['label' => 'Proyecto (Debe seleccionar al menos un proyecto)', 'rules' => 'trim|required'],
         ]);
         if ($this->validation->withRequest($this->request)->run()) {
 
@@ -230,6 +259,20 @@ class EmployeeController extends \App\Controllers\BaseController {
                     $this->ccm->guardar($datos, 'cc_empleado_bodegas');
                 }
             }
+
+            if ($proyectos) {
+                $listaProyectos = explode(',', $proyectos);
+                $this->ccm->eliminar('cc_empleado_proyecto', ['fk_empleado' => $idEmp]);
+                foreach ($listaProyectos as $proyectoId) {
+                    $datos = [
+                        'fk_empleado' => $idEmp,
+                        'fk_proyecto' => $proyectoId,
+                        'estado' => 1,
+                    ];
+                    $this->ccm->guardar($datos, 'cc_empleado_proyecto');
+                }
+            }
+
             if ($this->db->transStatus() === false) {
                 // generate an error... or use the log_message() function to log your error
                 $this->db->transRollback();
@@ -252,6 +295,7 @@ class EmployeeController extends \App\Controllers\BaseController {
                 'rol' => $this->validation->getError('rol'),
                 'bodegaMain' => $this->validation->getError('bodegaMain'),
                 'bodegas' => $this->validation->getError('bodegas'),
+                'proyectos' => $this->validation->getError('proyectos'),
             ];
         }
         return $this->response->setJson($response);

@@ -47,7 +47,7 @@ class SalidasAsientosLib {
      * La función generarAsiento es responsable de crear un asiento contable para un ajuste de salida específico, validando el estado del ajuste, verificando la existencia de un asiento previo, y luego generando los detalles del
     */
     public function generarAsiento(int $ajusteId) {
-        $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
+        $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
         if (!$ajuste) {
             throw new \Exception('Ajuste de salida no encontrado');
         }
@@ -55,10 +55,7 @@ class SalidasAsientosLib {
             throw new \Exception('Solo se puede generar asiento contable para ajustes aprobados');
         }
 
-        $asientoExiste = $this->ccm->getData('cc_asiento_contable', [
-            'ac_codigo_transaccion' => $this->tipotransaccionCod,
-            'ac_documento_id' => $ajusteId
-                ], 'id');
+        $asientoExiste = $this->ccm->getData('cc_asiento_contable', [ 'ac_codigo_transaccion' => $this->tipotransaccionCod, 'ac_documento_id' => $ajusteId, 'fk_proyecto' => getProyectoId(),'ac_estado' => 1 ], 'id');
         if (!empty($asientoExiste)) {
             throw new \Exception('Ya existe asiento contable para este ajuste de salida');
         }

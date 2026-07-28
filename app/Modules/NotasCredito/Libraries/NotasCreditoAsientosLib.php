@@ -33,7 +33,7 @@ class NotasCreditoAsientosLib {
 
     public function generarAsientoNotaCredito(int $notaCreditoId): int {
 
-        $notaCredito = $this->ccm->getData('cc_compras', ['id' => $notaCreditoId], '*', null, 1);
+        $notaCredito = $this->ccm->getData('cc_compras', ['id' => $notaCreditoId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$notaCredito) {
             throw new \RuntimeException('No se encontro la nota de credito registrada.');
@@ -52,6 +52,7 @@ class NotasCreditoAsientosLib {
                 [
                     'ac_codigo_transaccion' => $this->tipoTransaccionNotaCredito,
                     'ac_documento_id' => $notaCreditoId,
+                    'fk_proyecto' => getProyectoId(),
                     'ac_estado' => 1,
                 ],
                 'id',
@@ -63,7 +64,7 @@ class NotasCreditoAsientosLib {
             throw new \RuntimeException('La nota de credito ya tiene un asiento contable registrado.');
         }
 
-        $detalles = $this->ccm->getData('cc_compras_det', ['fk_compra' => $notaCreditoId, 'compd_estado' => 1], '*');
+        $detalles = $this->ccm->getData('cc_compras_det', ['fk_compra' => $notaCreditoId, 'fk_proyecto' => getProyectoId(), 'compd_estado' => 1], '*');
 
         if (empty($detalles)) {
             throw new \RuntimeException('La nota de credito no tiene detalles para generar el asiento.');
@@ -81,7 +82,7 @@ class NotasCreditoAsientosLib {
                 $notaCredito->comp_fecha_emision
         );
 
-        $this->guardarDebitoCuentaPorPagarNdc($asientoId, $notaCredito);
+        $this->guardarDebitoDestinoFinancieroNdc($asientoId, $notaCredito);
         $this->guardarCreditosItemsNdc($asientoId, $notaCredito, $detalles);
         $this->guardarCreditosIvaNdc($asientoId, $notaCredito);
 
@@ -94,7 +95,7 @@ class NotasCreditoAsientosLib {
 
     public function anularAsientoNotaCredito(int $notaCreditoId): void {
 
-        $asiento = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccionNotaCredito,'ac_documento_id' => $notaCreditoId, 'ac_estado' => 1, ],'id', null, 1 );
+        $asiento = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccionNotaCredito,'ac_documento_id' => $notaCreditoId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1, ],'id', null, 1 );
 
         if (!$asiento) {
             return;
@@ -105,6 +106,46 @@ class NotasCreditoAsientosLib {
         if (!$anulado) {
             throw new \RuntimeException('No se pudo anular el asiento contable de la nota de credito.');
         }
+    }
+
+    private function guardarDebitoDestinoFinancieroNdc(int $asientoId, object $notaCredito): void {
+
+        $anticipo = $this->ccm->getData('cc_anticipo_proveedor', ['fk_ndc' => (int) $notaCredito->id, 'fk_proyecto' => getProyectoId()], 'id, antp_estado', null, 1);
+
+        if ($anticipo && $anticipo->antp_estado !== 'ANULADO') {
+            $this->guardarDebitoAnticipoProveedorNdc($asientoId, $notaCredito);
+            return;
+        }
+
+        $this->guardarDebitoCuentaPorPagarNdc($asientoId, $notaCredito);
+    }
+
+    private function guardarDebitoAnticipoProveedorNdc(int $asientoId, object $notaCredito): void {
+
+        $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable('024');
+
+        if (!$cuenta) {
+            throw new \RuntimeException('No esta configurada la cuenta contable 024 para anticipos a proveedores.');
+        }
+
+        $valor = round((float) $notaCredito->comp_total, 4);
+
+        if ($valor <= 0) {
+            throw new \RuntimeException('El valor de la nota de credito debe ser mayor a cero para generar el asiento.');
+        }
+
+        $this->asientoLib->guardarDetalleAsiento(
+                $asientoId,
+                $cuenta,
+                $valor,
+                'DEBE',
+                $this->tipoTransaccionNotaCredito,
+                (int) $notaCredito->id,
+                'Anticipo a proveedor por NDC',
+                null,
+                null,
+                $notaCredito->fk_centro_costo
+        );
     }
 
     private function guardarDebitoCuentaPorPagarNdc(int $asientoId, object $notaCredito): void {
@@ -217,6 +258,7 @@ class NotasCreditoAsientosLib {
                 'cc_compras_bases_impuesto',
                 [
                     'fk_compra' => (int) $notaCredito->id,
+                    'fk_proyecto' => getProyectoId(),
                     'tipo_impuesto' => 'IVA',
                     'estado' => 1,
                 ],

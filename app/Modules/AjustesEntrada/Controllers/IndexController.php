@@ -83,7 +83,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['dataProveedor'] = null;
 
         if (!empty($justeId)) {
-            $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_entrada', ['id' => $justeId], '*', null, 1);
+            $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_entrada', ['id' => $justeId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
             $data['dataProveedor'] = $this->searchModel->searchProveedorById($data['dataAjuste']->fk_proveedor);
         }
 
@@ -346,7 +346,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         $ajusteId = $dataPostAjuste->ajusteId;
 
-        $estadoAjuste = (int) $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId], 'ajen_estado');
+        $estadoAjuste = (int) $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], 'ajen_estado');
 
         if ($estadoAjuste === 2) {
             return $this->responseSetJSON("warning", "Este ajuste ya ha sido aprobado previamente, Imposible actualizarlo");
@@ -425,7 +425,7 @@ class IndexController extends \App\Controllers\BaseController {
             }
 
             //SI TODO MARCHO BIEN REALIZO EL COMMIT
-            $secuencail = $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId], 'ajen_secuencial');
+            $secuencail = $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], 'ajen_secuencial');
             $this->db->transCommit();
             $this->ajenCart->destroy();
             $this->logs->logSuccess('Ajuste Actualizado exitosamente ID: ' . $ajusteId);
@@ -542,7 +542,7 @@ class IndexController extends \App\Controllers\BaseController {
             }
 
             //SI TODO MARCHO BIEN REALIZO EL COMMIT
-            $secuencail = $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId], 'ajen_secuencial');
+            $secuencail = $this->ccm->getValueWhere('cc_ajuste_entrada', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], 'ajen_secuencial');
             $this->db->transCommit();
             $this->ajenCart->destroy();
             $this->logs->logSuccess('Ajuste registrado exitosamente ID: ' . $ajusteId);

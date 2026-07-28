@@ -37,6 +37,60 @@ $backgroundColor = ['bg-mod-gradient-primary', 'bg-mod-gradient-info', 'bg-mod-g
 </style>
 <div class="container-fluid">
 
+    <?php if (!empty($seleccionarProyecto)) { ?>
+        <div class="row justify-content-center">
+            <div class="col-xl-5 col-lg-7 col-md-9">
+                <div class="card border-success shadow-sm mt-4">
+                    <div class="card-header bg-success text-white fw-bold">
+                        <i class="fas fa-project-diagram"></i> Seleccionar Proyecto
+                    </div>
+                    <div class="card-body">
+                        <?php
+                        $this->session = Config\Services::session();
+                        $message = $this->session->get('message');
+                        if (!empty($message)) {
+                            $this->session->remove('message');
+                            ?>
+                            <div class="alert alert-warning"><?= $message ?></div>
+                        <?php } ?>
+
+                        <?php if (!empty($listaProyectosEmpleado)) { ?>
+                            <form action="<?= site_url('welcome/seleccionarProyecto') ?>" method="post">
+                                <label class="fw-bold mb-2">Proyecto de trabajo</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-success text-white">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                    <select name="fk_proyecto" class="form-select" required>
+                                        <option value="">Seleccione un proyecto</option>
+                                        <?php foreach ($listaProyectosEmpleado as $proyecto) { ?>
+                                            <option value="<?= $proyecto->id ?>">
+                                                <?= $proyecto->proy_codigo ?> - <?= $proyecto->proy_nombre ?>
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-check"></i> Continuar
+                                    </button>
+                                </div>
+                            </form>
+                        <?php } else { ?>
+                            <div class="alert alert-danger mb-3">
+                                No tiene proyectos activos asignados. Pongase en contacto con el administrador del sistema.
+                            </div>
+                        <?php } ?>
+
+                        <div class="text-end mt-3">
+                            <a href="<?= site_url('welcome/closeSession') ?>" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php } else { ?>
+
     <div class="row">
         <?php if (!empty($listaModulos)) { ?>
             <?php foreach ($listaModulos as $i => $mod) { ?>
@@ -68,6 +122,6 @@ $backgroundColor = ['bg-mod-gradient-primary', 'bg-mod-gradient-info', 'bg-mod-g
             </div>
         <?php } ?>
     </div>
+    <?php } ?>
 
 </div>
-

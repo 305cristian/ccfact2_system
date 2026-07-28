@@ -24,6 +24,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <thead class="bg-system text-white">
                         <tr>
                             <td>ID</td>
+                            <td>PROYECTO</td>
                             <td>COMPROBANTE</td>
                             <td>P. ESTABLECIMIENTO</td>
                             <td>P. EMISIÓN</td>
@@ -42,6 +43,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <tbody>
                         <tr v-for="lpv of listaPuntoVenta">
                             <td>{{zfill(lpv.id)}}</td>
+                            <td>{{lpv.proy_codigo}} - {{lpv.proy_nombre}}</td>
                             <td>{{lpv.comp_nombre}}</td>
                             <td>{{lpv.pv_establecimiento}}</td>
                             <td>{{lpv.pv_emision}}</td>
@@ -83,6 +85,27 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <div class="modal-body">
                             <div class="row col-md-12">
                                 <input type="hidden" v-model="idEdit">
+                                <div class="mb-3">
+                                    <label for="pvProyecto" class="col-form-label col-form-label-sm"><i class="fal fa-project-diagram"></i> Proyecto</label>
+                                    <vue-select
+                                        class="border rounded"
+                                        :options="listaProyectos"
+                                        label="proy_nombre"
+                                        :reduce="proyecto => proyecto.id"
+                                        v-model="newPV.pvProyecto"
+                                        placeholder="Seleccione un proyecto">
+                                        <template #option="{ proy_codigo, proy_nombre }">
+                                            <span class="badge bg-primary me-2">{{ proy_codigo }}</span>
+                                            <span>{{ proy_nombre }}</span>
+                                        </template>
+                                        <template #selected-option="{ proy_codigo, proy_nombre }">
+                                            <span class="badge bg-primary me-2">{{ proy_codigo }}</span>
+                                            <span>{{ proy_nombre }}</span>
+                                        </template>
+                                    </vue-select>
+                                    <div v-html="formValidacion.pvProyecto" class="text-danger"></div>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="pvComprobante" class="col-form-label col-form-label-sm"><i class="fal fa-clipboard-list"></i> Comprobante</label>
                                     <vue-select
@@ -249,6 +272,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaComprobantes =<?php echo json_encode($listaComprobantes); ?>;
     var listaBodegas =<?php echo json_encode($listaBodegas); ?>;
     var listaEmpleados =<?php echo json_encode($listaEmpleados); ?>;
+    var listaProyectos =<?php echo json_encode($listaProyectos ?? []); ?>;
+    var proyectoActualId = <?= json_encode((int) ($proyectoActualId ?? 0)); ?>;
 
     if (window.appPuntoVenta) {
         window.appPuntoVenta.unmount();
@@ -273,6 +298,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //TODO: V-MODELS
                 idEdit: '',
                 newPV: {
+                    pvProyecto: proyectoActualId,
                     pvEstablecimiento: '',
                     pvEmision: '',
                     pvComprobante: '',
@@ -292,6 +318,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaComprobantes: listaComprobantes,
                 listaBodegas: listaBodegas,
                 listaEmpleados: listaEmpleados,
+                listaProyectos: listaProyectos,
                 formValidacion: []
             };
         },
@@ -333,6 +360,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             loadPuntoVenta(pv) {
                 this.newPV = {
+                    pvProyecto: pv.fk_proyecto,
                     pvComprobante: pv.fk_comprobante,
                     pvEstablecimiento: pv.pv_establecimiento,
                     pvEmision: pv.pv_emision,
@@ -394,6 +422,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             clear() {
                 this.newPV = {
+                    pvProyecto: proyectoActualId,
                     pvEstablecimiento: '',
                     pvEmision: '',
                     pvComprobante: '',

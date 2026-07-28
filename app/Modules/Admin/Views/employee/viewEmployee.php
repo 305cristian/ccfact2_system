@@ -260,6 +260,31 @@
 
                             </div>
                         </div>
+
+                        <div class="mt-3 p-3 border rounded bg-light">
+                            <label class="col-form-label col-form-label-sm fw-bold pt-0"><i class="fal fa-building"></i> Proyectos asignados</label>
+                            <vue-select
+                                class="border rounded bg-white"
+                                v-model="proyectos"
+                                :options="listaProyectos"
+                                label="proy_nombre"
+                                :multiple="true"
+                                :close-on-select="false"
+                                placeholder="Buscar y agregar proyectos"
+                                >
+                                <template #option="{ proy_codigo, proy_nombre }">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-primary me-2">{{ proy_codigo }}</span>
+                                        <span>{{ proy_nombre }}</span>
+                                    </div>
+                                </template>
+                                <template #selected-option="{ proy_codigo, proy_nombre }">
+                                    <span>{{ proy_codigo }} - {{ proy_nombre }}</span>
+                                </template>
+                            </vue-select>
+                            <small class="text-muted">El empleado podra cambiar solo entre los proyectos asignados aqui.</small>
+                            <div v-html="formValidacion.proyectos" class="text-danger"></div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button v-if="estadoSave" class="btn btn-primary" @click="saveEmpleado()"><i class="fas fa-save"></i> Crear</button>
@@ -285,6 +310,7 @@
     var listaCargos =<?php echo json_encode($listaCargos) ?>;
     var listaDepartamentos =<?php echo json_encode($listaDepartamentos) ?>;
     var listaRoles =<?php echo json_encode($listaRoles) ?>;
+    var listaProyectos =<?php echo json_encode($listaProyectos) ?>;
 
     if (window.appUsers) {
         window.appUsers.unmount();
@@ -293,7 +319,8 @@
     window.appUsers = Vue.createApp({
 
         components: {
-            'vue-multiselect': window['vue-multiselect'].Multiselect
+            'vue-multiselect': window['vue-multiselect'].Multiselect,
+            'vue-select':  window['vue-select']
         },
         data() {
             return {
@@ -310,6 +337,7 @@
 
                 //TODO: V-MODELS
                 bodegas: '',
+                proyectos: '',
                 newEmpleado: {
                     dni: '',
                     nombres: '',
@@ -333,6 +361,7 @@
                 listaCargos: listaCargos,
                 listaDepartamentos: listaDepartamentos,
                 listaRoles: listaRoles,
+                listaProyectos: listaProyectos,
 
                 //TODO: VALIDACIONES
                 formValidacion: [],
@@ -423,6 +452,13 @@
                         datos.append('bodegas', "");
                     }
 
+                    if (this.proyectos) {
+                        let proyectos_id = this.proyectos.map(data => data.id);
+                        datos.append('proyectos', proyectos_id);
+                    } else {
+                        datos.append('proyectos', "");
+                    }
+
                     let response = await axios.post(this.url + '/admin/employee/saveEmpleado', datos);
 
                     if (response.data.status === 'success') {
@@ -456,6 +492,13 @@
                         datos.append('bodegas', bodegas_id);
                     } else {
                         datos.append('bodegas', "");
+                    }
+
+                    if (this.proyectos) {
+                        let proyectos_id = this.proyectos.map(data => data.id);
+                        datos.append('proyectos', proyectos_id);
+                    } else {
+                        datos.append('proyectos', "");
                     }
 
 
@@ -510,6 +553,14 @@
                 let response = await axios.post(this.url + '/admin/employee/getBodegas', datos);
                 if (response.data) {
                     this.bodegas = response.data;
+                } else {
+                    this.bodegas = '';
+                }
+                response = await axios.post(this.url + '/admin/employee/getProyectos', datos);
+                if (response.data) {
+                    this.proyectos = response.data;
+                } else {
+                    this.proyectos = '';
                 }
                 Swal.close();
             },
@@ -530,6 +581,7 @@
                     estado: '1'
                 };
                 this.bodegas = '';
+                this.proyectos = '';
                 this.formValidacion = [];
                 $('#selectBodMain').selectpicker('val', '');
                 $('#selectCargo').selectpicker('val', '');

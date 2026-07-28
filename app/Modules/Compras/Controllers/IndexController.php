@@ -220,7 +220,7 @@ class IndexController extends BaseController {
         $data['dataProveedor'] = null;
 
         if (!empty($compraId)) {
-            $data['dataCompra'] = $this->ccm->getData('cc_compras', ['id' => $compraId], '*', null, 1);
+            $data['dataCompra'] = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
             $data['dataProveedor'] = $this->searchModel->searchProveedorById($data['dataCompra']->fk_proveedor);
         }
 
@@ -770,7 +770,7 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('warning', 'Debe especificar el motivo de la anulación.');
         }
 
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_secuencial, comp_estado', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_secuencial, comp_estado', null, 1);
 
         if (!$compra) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -848,13 +848,13 @@ class IndexController extends BaseController {
         }
 
         $cartData = $this->showDetailCart(1);
-        $validacion = $this->validarCamposCompra($dataPostCompra, $cartData);
+        $validacion = $this->validarCamposCompra($dataPostCompra, $cartData, $compraId);
 
         if ($validacion['status']) {
             return $this->responseSetJSON('warning', $validacion['msg']);
         }
 
-        $compraActual = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_secuencial, comp_estado', null, 1);
+        $compraActual = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_secuencial, comp_estado', null, 1);
 
         if (!$compraActual) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -883,9 +883,9 @@ class IndexController extends BaseController {
                 throw new \RuntimeException('No se pudo actualizar la cabecera de la compra.');
             }
 
-            $this->ccm->eliminar('cc_compras_det', ['fk_compra' => $compraId]);
+            $this->ccm->eliminar('cc_compras_det', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId()]);
 
-            $this->ccm->eliminar('cc_compras_bases_impuesto', ['fk_compra' => $compraId]);
+            $this->ccm->eliminar('cc_compras_bases_impuesto', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId()]);
 
             foreach ($cartData->cartContent as $item) {
                 $loteId = $this->comprasLib->obtenerOCrearLote($compraId, $item);
@@ -1017,7 +1017,7 @@ class IndexController extends BaseController {
                 $this->actualizarSecuencialLiquidacionCompra($compra);
             }
 
-            $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId], 'comp_secuencial');
+            $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'comp_secuencial');
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
@@ -1038,7 +1038,7 @@ class IndexController extends BaseController {
         }
     }
 
-    private function validarCamposCompra(object $dataPostCompra, object $cartData): array {
+    private function validarCamposCompra(object $dataPostCompra, object $cartData, ?int $compraIdExcluir = null): array {
         if (empty($dataPostCompra->compra)) {
             return [
                 'status' => true,
@@ -1084,6 +1084,24 @@ class IndexController extends BaseController {
             return [
                 'status' => true,
                 'msg' => 'El tipo de comprobante seleccionado no esta permitido para este proceso de compra.',
+            ];
+        }
+
+        $numeroComprobante = str_pad(trim((string) $compra->compNumeroComprobante), 9, '0', STR_PAD_LEFT);
+        $compraDuplicada = $this->comprasModel->getCompraDuplicadaProveedor(
+                (int) $compra->compProveedor,
+                (string) $compra->compTipoComprobante,
+                trim((string) $compra->compNumeroEstablecimiento),
+                trim((string) $compra->compNumeroEmision),
+                $numeroComprobante,
+                $compraIdExcluir
+        );
+
+        if ($compraDuplicada) {
+            $proyectoDuplicado = trim((string) ($compraDuplicada->proy_codigo ?? '') . ' - ' . (string) ($compraDuplicada->proy_nombre ?? ''));
+            return [
+                'status' => true,
+                'msg' => 'Ya existe una compra registrada para este proveedor con el mismo tipo y numero de comprobante.<br> Compra #' . str_pad((string) $compraDuplicada->comp_secuencial, 5, '0', STR_PAD_LEFT) . ' (' . $compraDuplicada->comp_estado . ') en el proyecto ' . $proyectoDuplicado . '.',
             ];
         }
 
@@ -1190,7 +1208,7 @@ class IndexController extends BaseController {
             throw new \RuntimeException('Los datos del comprobante no coinciden con el punto de emisión asignado para liquidación de compra.');
         }
 
-        $this->ccm->actualizar('cc_puntos_venta', ['pv_sec_actual' => $secuencialActual + 1], ['id' => $puntoEmision->id]);
+        $this->ccm->actualizar('cc_puntos_venta', ['pv_sec_actual' => $secuencialActual + 1], ['id' => $puntoEmision->id, 'fk_proyecto' => getProyectoId()]);
     }
 
     /**

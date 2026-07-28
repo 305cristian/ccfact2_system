@@ -96,15 +96,16 @@ class EntradasModel extends \CodeIgniter\Model {
         $builder->join('cc_proveedores tb3', 'tb3.id =tb1.fk_proveedor');
         $builder->join('cc_empleados tb4', 'tb4.id =tb1.fk_user_id');
         $builder->join('cc_centroscosto tb5', 'tb5.id =tb1.fk_centro_costo');
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         // Mapeo de filtros a columnas de BD
         $camposBD = [
-            'ajenSecuencial' => 'ajen_secuencial',
-            'ajenBodega' => 'fk_bodega',
-            'ajenMotivo' => 'fk_motivo_ajuste',
-            'ajenCentrocosto' => 'fk_centro_costo',
-            'ajenEstado' => 'ajen_estado',
-            'ajenTipo' => 'ajen_tipo'
+            'ajenSecuencial' => 'tb1.ajen_secuencial',
+            'ajenBodega' => 'tb1.fk_bodega',
+            'ajenMotivo' => 'tb1.fk_motivo_ajuste',
+            'ajenCentrocosto' => 'tb1.fk_centro_costo',
+            'ajenEstado' => 'tb1.ajen_estado',
+            'ajenTipo' => 'tb1.ajen_tipo'
         ];
 
         // Aplicar filtros dinámicamente
@@ -119,12 +120,12 @@ class EntradasModel extends \CodeIgniter\Model {
             $rangoFechas = explode(' a ', $filtros['ajenFechas']);
             $fDesde = trim($rangoFechas[0]);
             $fHasta = isset($rangoFechas[1]) ? trim($rangoFechas[1]) : trim($rangoFechas[0]);
-            $builder->where(['ajen_fecha <=' => $fHasta, 'ajen_fecha >= ' => $fDesde]);
+            $builder->where(['tb1.ajen_fecha <=' => $fHasta, 'tb1.ajen_fecha >= ' => $fDesde]);
         }
 
 
-        $builder->orderBy('ajen_fecha', 'ASC');
-        $builder->orderBy('ajen_secuencial', 'ASC');
+        $builder->orderBy('tb1.ajen_fecha', 'ASC');
+        $builder->orderBy('tb1.ajen_secuencial', 'ASC');
 
         $response = $builder->get();
 
@@ -150,6 +151,7 @@ class EntradasModel extends \CodeIgniter\Model {
         $builder->join('cc_centroscosto tb5', 'tb5.id = tb1.fk_centro_costo');
         $builder->join('cc_motivos_ajuste tb6', 'tb6.id = tb1.fk_motivo_ajuste');
         $builder->where('tb1.id', $idAjuste);
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         $ajuste = $builder->get()->getRow();
 
@@ -263,6 +265,7 @@ class EntradasModel extends \CodeIgniter\Model {
     }
 
     private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+        $builder->where("ajuste.fk_proyecto", getProyectoId());
 
         if (!empty($filtros["fechaDesde"])) {
             $builder->where("ajuste.ajen_fecha >=", $filtros["fechaDesde"]);

@@ -42,8 +42,8 @@ class MarcacionesController extends BaseController {
         $data['title'] = "Marcaciones";
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['user'] = $this->user;
-        $data['listaComedores'] = $this->ccm->getData('cc_bio_comedores', ['com_estado' => 1], 'id, com_codigo, com_nombre');
-        $data['listaEquipos'] = $this->ccm->getData('cc_bio_equipos', ['eq_estado' => 1], 'id, fk_comedor, eq_codigo, eq_nombre');
+        $data['listaComedores'] = $this->ccm->getData('cc_bio_comedores', ['com_estado' => 1, 'fk_proyecto_sistema' => getProyectoId()], 'id, com_codigo, com_nombre');
+        $data['listaEquipos'] = $this->bioModel->getListaEquiposActivos();
         $data['listaServicios'] = $this->ccm->getData('cc_bio_servicios', ['serv_estado' => 1], 'id, serv_codigo, serv_nombre');
 
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
@@ -112,7 +112,7 @@ class MarcacionesController extends BaseController {
         }
 
         $idMarcacion = (int) $this->request->getPost('idMarcacion');
-        $marcacionActual = $this->ccm->getData('cc_bio_marcaciones', ['id' => $idMarcacion], '*', null, 1);
+        $marcacionActual = $this->ccm->getData('cc_bio_marcaciones', ['id' => $idMarcacion, 'fk_proyecto_sistema' => getProyectoId()], '*', null, 1);
 
         if (!$marcacionActual) {
             return $this->responseSetJSON('warning', 'No se encontro la marcacion que intenta corregir.');
@@ -154,7 +154,7 @@ class MarcacionesController extends BaseController {
             'marc_observacion' => $observacionAnterior !== '' ? $observacionAnterior . "\n" . $observacionCorreccion : $observacionCorreccion,
         ];
 
-        $this->ccm->actualizar('cc_bio_marcaciones', $dataMarcacion, ['id' => $idMarcacion]);
+        $this->ccm->actualizar('cc_bio_marcaciones', $dataMarcacion, ['id' => $idMarcacion, 'fk_proyecto_sistema' => getProyectoId()]);
         $this->logs->logSuccess('SE HA CORREGIDO LA MARCACION BIO COMEDOR CON EL ID ' . $idMarcacion);
 
         return $this->responseSetJSON('success', 'Marcacion corregida exitosamente.');
@@ -180,7 +180,7 @@ class MarcacionesController extends BaseController {
 
         $idMarcacion = (int) $this->request->getPost('idMarcacion');
         $motivo = trim((string) $this->request->getPost('motivoAnulacion'));
-        $marcacionActual = $this->ccm->getData('cc_bio_marcaciones', ['id' => $idMarcacion], '*', null, 1);
+        $marcacionActual = $this->ccm->getData('cc_bio_marcaciones', ['id' => $idMarcacion, 'fk_proyecto_sistema' => getProyectoId()], '*', null, 1);
 
         if (!$marcacionActual) {
             return $this->responseSetJSON('warning', 'No se encontro la marcacion que intenta anular.');
@@ -197,7 +197,7 @@ class MarcacionesController extends BaseController {
             'marc_estado' => 'ANULADA',
             'marc_genera_consumo' => 0,
             'marc_observacion' => $observacionAnterior !== '' ? $observacionAnterior . "\n" . $observacionAnulacion : $observacionAnulacion,
-                ], ['id' => $idMarcacion]);
+                ], ['id' => $idMarcacion, 'fk_proyecto_sistema' => getProyectoId()]);
 
         $this->logs->logSuccess('SE HA ANULADO LA MARCACION BIO COMEDOR CON EL ID ' . $idMarcacion);
 

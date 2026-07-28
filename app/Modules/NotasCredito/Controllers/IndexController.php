@@ -5,7 +5,9 @@ namespace Modules\NotasCredito\Controllers;
 use App\Controllers\BaseController;
 use App\Models\CcModel;
 use Modules\NotasCredito\Libraries\NotaCreditoLib;
+use Modules\NotasCredito\Libraries\NotasCreditoAnticipoProveedorLib;
 use Modules\NotasCredito\Libraries\NotasCreditoAsientosLib;
+use Modules\NotasCredito\Libraries\NotasCreditoCxpLib;
 use Modules\NotasCredito\Models\NotaCreditoModel;
 
 /*
@@ -28,6 +30,8 @@ class IndexController extends BaseController {
     protected string $dirViewModule;
     protected NotaCreditoModel $notaCreditoModel;
     protected NotaCreditoLib $notaCreditoLib;
+    protected NotasCreditoCxpLib $notasCreditoCxpLib;
+    protected NotasCreditoAnticipoProveedorLib $notasCreditoAnticipoProveedorLib;
     protected NotasCreditoAsientosLib $notasCreditoAsientosLib;
 
     public function __construct() {
@@ -35,6 +39,8 @@ class IndexController extends BaseController {
         $this->gm = new CcModel();
         $this->notaCreditoModel = new NotaCreditoModel();
         $this->notaCreditoLib = new NotaCreditoLib();
+        $this->notasCreditoCxpLib = new NotasCreditoCxpLib();
+        $this->notasCreditoAnticipoProveedorLib = new NotasCreditoAnticipoProveedorLib();
         $this->notasCreditoAsientosLib = new NotasCreditoAsientosLib();
     }
 
@@ -82,10 +88,6 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('warning', $validacion['msg']);
         }
 
-        if ($dataPostNotaCredito->compra->destinoFinanciero === 'ANTICIPO_PROVEEDOR') {
-            return $this->responseSetJSON('warning', 'El flujo de anticipo a proveedor queda pendiente hasta crear sus tablas.');
-        }
-
         if (!getPeriodoContable(date('Y-m-d'))) {
             return $this->responseSetJSON('error', '<h5>Revise el periodo de cierre</h5><h6>No se encontro un periodo contable habil para la fecha de emision.</h6>');
         }
@@ -105,11 +107,16 @@ class IndexController extends BaseController {
             $this->notaCreditoLib->guardarBasesImpuesto($compraId, $dataPostNotaCredito->basesImpuestos ?? []);
 
             if ($dataPostNotaCredito->compra->destinoFinanciero === 'CXP') {
-                $this->notaCreditoLib->aplicarNotaCreditoCuentaPorPagar($compraId, $dataPostNotaCredito);
-                $this->notasCreditoAsientosLib->generarAsientoNotaCredito($compraId);
+                $this->notasCreditoCxpLib->aplicarNotaCreditoCuentaPorPagar($compraId, $dataPostNotaCredito);
             }
+            
+            if ($dataPostNotaCredito->compra->destinoFinanciero === 'ANTICIPO_PROVEEDOR') {
+                $this->notasCreditoAnticipoProveedorLib->guardarAnticipoProveedorNotaCredito($compraId, $dataPostNotaCredito);
+            }
+            
+            $this->notasCreditoAsientosLib->generarAsientoNotaCredito($compraId);
 
-            $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId], 'comp_secuencial');
+            $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'comp_secuencial');
 
             if ($this->db->transStatus() === false) {
                 $this->db->transRollback();
@@ -149,7 +156,7 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('warning', 'Debe especificar el motivo de la anulacion.');
         }
 
-        $notaCredito = $this->ccm->getData('cc_compras', ['id' => $notaCreditoId], 'id, comp_secuencial, comp_estado, comp_tipo_comprobante_cod, comp_tipo_nota_credito', null, 1);
+        $notaCredito = $this->ccm->getData('cc_compras', ['id' => $notaCreditoId, 'fk_proyecto' => getProyectoId()], 'id, comp_secuencial, comp_estado, comp_tipo_comprobante_cod, comp_tipo_nota_credito', null, 1);
 
         if (!$notaCredito) {
             return $this->responseSetJSON('warning', 'La nota de credito no se encuentra registrada.');
@@ -170,7 +177,8 @@ class IndexController extends BaseController {
         $this->db->transBegin();
 
         try {
-            $this->notaCreditoLib->anularAplicacionCuentaPorPagarNotaCredito($notaCreditoId);
+            $this->notasCreditoCxpLib->anularAplicacionCuentaPorPagarNotaCredito($notaCreditoId);
+            $this->notasCreditoAnticipoProveedorLib->anularAnticipoProveedorNotaCredito($notaCreditoId, $motivoAnulacion);
             
             if ($notaCredito->comp_tipo_nota_credito === 'DEVOLUCION') {
                 $this->notaCreditoLib->revertirKardexNotaCredito($notaCreditoId);
@@ -242,6 +250,10 @@ class IndexController extends BaseController {
 
         if (!in_array($compra->destinoFinanciero, ['CXP', 'ANTICIPO_PROVEEDOR'], true)) {
             return ['status' => true, 'msg' => 'El destino financiero de la nota de credito no es valido.'];
+        }
+        
+        if ($compra->destinoFinanciero === 'ANTICIPO_PROVEEDOR' && empty(getProyectoId())) {
+            return ['status' => true, 'msg' => 'Debe seleccionar el proyecto de trabajo para generar el anticipo a proveedor.'];
         }
 
         foreach ($dataPostNotaCredito->detalle as $item) {

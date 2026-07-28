@@ -52,9 +52,10 @@ class SalidasLib {
     public function saveAjuste(object $cartData, object $dataPostAjuste): int|false {
         $esBorrador = ($dataPostAjuste->ajesEstado == 1);
 
-        $secuencial = $this->ccm->getData('cc_ajuste_salida', null, 'ajes_secuencial', ['ajes_secuencial' => 'DESC'], 1);
+        $secuencial = $this->ccm->getData('cc_ajuste_salida', ['fk_proyecto' => getProyectoId()], 'ajes_secuencial', ['ajes_secuencial' => 'DESC'], 1);
 
         $datos = [
+            'fk_proyecto' => getProyectoId(),
             'ajes_secuencial' => (isset($secuencial) ? $secuencial->ajes_secuencial + 1 : 1),
             'ajes_fecha' => $dataPostAjuste->ajesFecha,
             'ajes_observaciones' => $dataPostAjuste->ajesObservaciones,
@@ -152,7 +153,7 @@ class SalidasLib {
             'fk_servicio' => $dataPostAjuste->ajesServicio,
         ];
 
-        return $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
+        return $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()]);
     }
 
     
@@ -425,7 +426,7 @@ class SalidasLib {
     */
     public function anularAjuste(int $ajusteId, string $motivo): array {
         // ️Obtener el ajuste
-        $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
+        $ajuste = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$ajuste) {
             return ['status' => 'error', 'msg' => 'No se encontró el ajuste especificado'];
@@ -449,7 +450,7 @@ class SalidasLib {
                 'fk_user_anulacion' => $this->user->id
             ];
 
-            $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
+            $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()]);
 
             return [
                 'status' => 'success',
@@ -515,10 +516,10 @@ class SalidasLib {
                 'ajes_motivo_anulacion' => $motivo ?? 'Anulación manual'
             ];
 
-            $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId]);
+            $this->ccm->actualizar('cc_ajuste_salida', $datos, ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()]);
 
             //Anular asiento contable
-            $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_documento_id' => $ajusteId, 'ac_codigo_transaccion' => '38', 'ac_estado' => 1], 'id');
+            $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_documento_id' => $ajusteId, 'ac_codigo_transaccion' => '38', 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1], 'id');
 
             if ($asientoId) {
                 $datos = [
@@ -528,7 +529,7 @@ class SalidasLib {
                     'ac_motivo_anulacion' =>
                     "Asiento anulado automáticamente por anulación del ajuste de salida #{$ajuste->ajes_secuencial}"
                 ];
-                $this->ccm->actualizar('cc_asiento_contable', $datos, ['id' => $asientoId]);
+                $this->ccm->actualizar('cc_asiento_contable', $datos, ['id' => $asientoId, 'fk_proyecto' => getProyectoId()]);
             }
             return [
                 'status' => 'success',

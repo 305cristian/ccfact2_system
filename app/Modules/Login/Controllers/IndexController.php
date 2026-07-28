@@ -48,6 +48,7 @@ class IndexController extends \App\Controllers\BaseController {
             $validation = $this->checkCredencialesDb($username, $pass);
             if ($validation['request']['msg'] == 'success') {
                 $this->session->start();
+                $this->seleccionarProyectoAutomatico();
 
                 return redirect('welcome');
             } else if ($validation['request']['msg'] == 'fail') {
@@ -104,4 +105,26 @@ class IndexController extends \App\Controllers\BaseController {
         }
         return $msg;
     }
+
+    private function seleccionarProyectoAutomatico(): void {
+
+        $empleadoId = (int) $this->session->get('id');
+
+        if ($empleadoId <= 0) {
+            return;
+        }
+
+        $proyectos = $this->lModel->getProyectosEmpleado($empleadoId);
+
+        if (count($proyectos) !== 1) {
+            return;
+        }
+
+        $this->session->set([
+            'fk_proyecto' => (int) $proyectos[0]->id,
+            'proy_codigo' => $proyectos[0]->proy_codigo,
+            'proy_nombre' => $proyectos[0]->proy_nombre,
+        ]);
+    }
+
 }

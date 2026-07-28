@@ -44,7 +44,7 @@ class ComprasLib {
 
         $aplicaRetencion = $esArchivado && $retencion && !empty($retencion->aplica) && empty($retencion->noSujeto);
 
-        $ultimo = $this->ccm->getData('cc_compras', null, 'comp_secuencial', ['comp_secuencial' => 'DESC'], 1);
+        $ultimo = $this->ccm->getData('cc_compras', ['fk_proyecto' => getProyectoId()], 'comp_secuencial', ['comp_secuencial' => 'DESC'], 1);
 
         $secuencial = $ultimo ? (int) $ultimo->comp_secuencial + 1 : 1;
 
@@ -99,6 +99,7 @@ class ComprasLib {
             'comp_observacion' => $compra->compObservaciones ?? null,
             'tipo_costo' => $compra->compTipoCosto,
             'comp_pago_residente' => $dataPostCompra->ats->residente ?? null,
+            'fk_proyecto' => getProyectoId(),
             'comp_fecha_archivada' => $esArchivado ? date('Y-m-d H:i:s') : null,
             'comp_total_excento_impuestos' => $cartData->tarifExcentoNeto,
             'comp_total_no_objeto_impuestos' => $cartData->tarifNoObjetoNeto,
@@ -115,10 +116,11 @@ class ComprasLib {
         $retencion = $dataPostCompra->retencion ?? null;
 
         $aplicaRetencion = $esArchivado && $retencion && !empty($retencion->aplica) && empty($retencion->noSujeto);
+        $numeroComprobante = str_pad(trim((string) $compra->compNumeroComprobante), 9, '0', STR_PAD_LEFT);
 
         $datos = [
             'fk_proveedor' => $compra->compProveedor,
-            'comp_numero_comprobante' => $compra->compNumeroComprobante,
+            'comp_numero_comprobante' => $numeroComprobante,
             'comp_numero_establecimiento' => $compra->compNumeroEstablecimiento,
             'comp_numero_emision' => $compra->compNumeroEmision,
             'comp_autorizacion_sri' => $compra->compAutSRI,
@@ -167,10 +169,11 @@ class ComprasLib {
             'comp_observacion' => $compra->compObservaciones ?? null,
             'tipo_costo' => $compra->compTipoCosto,
             'comp_pago_residente' => $dataPostCompra->ats->residente ?? null,
+            'fk_proyecto' => getProyectoId(),
             'comp_fecha_archivada' => $esArchivado ? date('Y-m-d H:i:s') : null,
         ];
 
-        return (bool) $this->ccm->actualizar('cc_compras', $datos, ['id' => $compraId, 'comp_estado' => 'BORRADOR',]);
+        return (bool) $this->ccm->actualizar('cc_compras', $datos, ['id' => $compraId, 'fk_proyecto' => getProyectoId(), 'comp_estado' => 'BORRADOR',]);
     }
 
     public function anularCompraBorrador(int $compraId, string $motivoAnulacion): bool {
@@ -181,7 +184,7 @@ class ComprasLib {
             'fk_user_anulacion' => $this->user->id,
         ];
 
-        return (bool) $this->ccm->actualizar('cc_compras', $datos, ['id' => $compraId, 'comp_estado' => 'BORRADOR']);
+        return (bool) $this->ccm->actualizar('cc_compras', $datos, ['id' => $compraId, 'fk_proyecto' => getProyectoId(), 'comp_estado' => 'BORRADOR']);
     }
 
     public function anularCompraArchivada(int $compraId, string $motivoAnulacion): bool {
@@ -192,7 +195,7 @@ class ComprasLib {
             'fk_user_anulacion' => $this->user->id,
         ];
 
-        return (bool) $this->ccm->actualizar('cc_compras', $datos, ['id' => $compraId, 'comp_estado' => 'ARCHIVADO']);
+        return (bool) $this->ccm->actualizar('cc_compras', $datos, ['id' => $compraId, 'fk_proyecto' => getProyectoId(), 'comp_estado' => 'ARCHIVADO']);
     }
 
     public function obtenerOCrearLote(int $compraId, object $item): ?int {
@@ -227,6 +230,7 @@ class ComprasLib {
 
         $datos = [
             'fk_compra' => $compraId,
+            'fk_proyecto' => getProyectoId(),
             'fk_producto' => $item->id,
             'fk_bodega' => $bodegaId,
             'compd_cantidad' => $item->qty,
@@ -314,6 +318,7 @@ class ComprasLib {
 
             $formData = [
                 'fk_compra' => $compraId,
+                'fk_proyecto' => getProyectoId(),
                 'fk_impuesto_tarifa' => (int) $tarifaId,
                 'imp_codigo' => $base->codigo,
                 'imp_detalle' => $base->detalle,
@@ -351,6 +356,7 @@ class ComprasLib {
 
             $formData = [
                 'fk_compra' => $compraId,
+                'fk_proyecto' => getProyectoId(),
                 'fk_forma_pago_ats' => $codigo,
             ];
 
@@ -385,19 +391,19 @@ class ComprasLib {
     }
 
     public function revertirKardexCompra(int $compraId): void {
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_estado', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_estado', null, 1);
 
         if (!$compra || $compra->comp_estado !== 'ARCHIVADO') {
             throw new \RuntimeException('Solo una compra archivada puede revertir kardex.');
         }
 
-        $kardexAnulacion = $this->ccm->getData('cc_kardex', ['kar_documento_id' => $compraId, 'kar_codigo_transaccion' => '09',], 'id', null, 1);
+        $kardexAnulacion = $this->ccm->getData('cc_kardex', ['kar_documento_id' => $compraId, 'kar_codigo_transaccion' => '09'], 'id', null, 1);
 
         if ($kardexAnulacion) {
             throw new \RuntimeException('La compra ya tiene kardex de anulacion registrado.');
         }
 
-        $detalle = $this->ccm->getData('cc_compras_det', ['fk_compra' => $compraId, 'compd_estado' => 1], '*');
+        $detalle = $this->ccm->getData('cc_compras_det', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId(), 'compd_estado' => 1], '*');
 
         if (!$detalle) {
             throw new \RuntimeException('La compra no tiene detalle para revertir kardex.');

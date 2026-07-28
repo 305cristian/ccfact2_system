@@ -52,4 +52,21 @@ class EmployeeModel extends \CodeIgniter\Model {
             return false;
         }
     }
+
+    public function getProyectosEmpleado($idEmp) {
+
+        $builder = $this->db->table('cc_empleado_proyecto tb1');
+        $builder->select('tb2.id, tb2.proy_codigo, tb2.proy_nombre');
+        $builder->join('cc_proyectos tb2', 'tb2.id = tb1.fk_proyecto');
+        $builder->where('tb1.fk_empleado', $idEmp);
+        $builder->where('tb1.estado', 1);
+        $builder->where('tb2.proy_estado', 1);
+        $response = $builder->get();
+
+        if ($response->getNumRows() > 0) {
+            return $response->getResult();
+        } else {
+            return false;
+        }
+    }
 }

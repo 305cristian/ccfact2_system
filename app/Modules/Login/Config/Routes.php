@@ -12,4 +12,4 @@
 $routes->post('index/login', '\Modules\Login\Controllers\IndexController::login');
 $routes->get('/welcome/closeSession', '\Modules\Login\Controllers\WelcomeController::closeSession');
 $routes->get('welcome', '\Modules\Login\Controllers\WelcomeController::index');
-
+$routes->post('welcome/seleccionarProyecto', '\Modules\Login\Controllers\WelcomeController::seleccionarProyecto');

@@ -18,6 +18,10 @@
         $apellidos = $this->session->get('apellidos');
         $fotoUser = $this->session->get('foto');
         $userId = $this->session->get('id');
+        $proyectoId = getProyectoId();
+        $proyectoCodigo = getProyectoCodigo();
+        $proyectoNombre = getProyectoNombre();
+        $listaProyectosHeader = getProyectosEmpleadoSistema((int) $userId);
 
         $foto = $fotoUser;
         if (empty($fotoUser)) {
@@ -73,6 +77,69 @@
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/cclibrary.css">
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModules.css">
     <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/sidebar.css">
+    <style>
+        .project-switcher {
+            min-height: 34px;
+            border: 1px solid rgba(255, 255, 255, .38);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .14);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+            backdrop-filter: blur(4px);
+        }
+
+        .project-switcher-icon {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 7px;
+            color: #ffffff;
+            background: rgba(0, 0, 0, .16);
+        }
+
+        .project-switcher-label {
+            color: rgba(255, 255, 255, .72);
+            font-size: 10px;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+
+        .project-switcher-select {
+            width: 215px;
+            max-width: 28vw;
+            height: 24px;
+            padding: 0 24px 0 0;
+            border: 0;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            background-color: transparent;
+            box-shadow: none;
+            cursor: pointer;
+        }
+
+        .project-switcher-select:focus {
+            color: #ffffff;
+            background-color: transparent;
+            box-shadow: none;
+        }
+
+        .project-switcher-select option {
+            color: #1f2937;
+        }
+
+        .project-switcher-badge {
+            max-width: 240px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
 
 
     <!--LIBRERIAS DE CODIGO JS-->
@@ -212,6 +279,33 @@
 
                 <div  class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav ml-auto mt-2 mt-lg-0 ">
+
+                        <?php if (!empty($proyectoId)) { ?>
+                            <li class="nav-item active d-flex align-items-center me-3">
+                                <form action="<?= site_url('welcome/seleccionarProyecto') ?>" method="post" class="project-switcher d-flex align-items-center gap-2 px-2 py-1 m-0">
+                                    <input type="hidden" name="redirectUrl" value="<?= current_url() ?>">
+                                    <span class="project-switcher-icon">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                    <span class="d-flex flex-column">
+                                        <span class="project-switcher-label">Proyecto actual</span>
+                                    <?php if (count($listaProyectosHeader) > 1) { ?>
+                                        <select name="fk_proyecto" class="form-select form-select-sm project-switcher-select" onchange="this.form.submit()">
+                                            <?php foreach ($listaProyectosHeader as $proyecto) { ?>
+                                                <option class="text-dark" value="<?= $proyecto->id ?>" <?= (int) $proyecto->id === (int) $proyectoId ? 'selected' : '' ?>>
+                                                    <?= $proyecto->proy_codigo ?> - <?= $proyecto->proy_nombre ?>
+                                                </option>
+                                            <?php } ?>
+                                        </select>
+                                    <?php } else { ?>
+                                        <span class="project-switcher-badge">
+                                            <?= $proyectoCodigo ?> - <?= $proyectoNombre ?>
+                                        </span>
+                                    <?php } ?>
+                                    </span>
+                                </form>
+                            </li>
+                        <?php } ?>
 
                         <li class="nav-item active">
                             <a class="nav-link text-white" href="" data-bs-target="#modalSoporte" data-bs-toggle="modal"><span><i class="fas fa-user-doctor-message qx"></i></span> Soporte</a>

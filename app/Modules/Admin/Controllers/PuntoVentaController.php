@@ -37,6 +37,8 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $dataview['listaComprobantes'] = $this->ccm->getData('cc_tipos_comprobante');
         $dataview['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1]);
         $dataview['listaEmpleados'] = $this->ccm->getData('cc_empleados', ['emp_estado' => 1], 'CONCAT(emp_nombre," ",emp_apellido) empleado ,id');
+        $dataview['listaProyectos'] = $this->ccm->getData('cc_proyectos', ['proy_estado' => 1], 'id, proy_codigo, proy_nombre', ['proy_nombre' => 'ASC']);
+        $dataview['proyectoActualId'] = getProyectoId();
         $send['view'] = view($this->dirViewModule . '\puntosventa\viewPuntosVenta', $dataview);
         if ($this->request->isAJAX()) {
             return $this->response->setJSON($send);
@@ -76,11 +78,13 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $pvBodega = $this->request->getPost('pvBodega');
         $pvEstado = $this->request->getPost('pvEstado');
         $pvEmpleado = $this->request->getPost('pvEmpleado');
+        $pvProyecto = $this->request->getPost('pvProyecto') ?: getProyectoId();
 
         $this->db->transBegin();
 
         $this->validation->setRules([
             'pvComprobante' => ['label' => 'Comprobante Punto Venta', 'rules' => 'trim|required'],
+            'pvProyecto' => ['label' => 'Proyecto', 'rules' => 'trim|required'],
             'pvEstablecimiento' => ['label' => 'Punto Establecimiento', 'rules' => 'trim|required'],
             'pvEmision' => ['label' => 'Punto Emision', 'rules' => 'trim|required'],
             'pvAuthSri' => ['label' => 'Autorización SRI', 'rules' => 'trim|required'],
@@ -99,6 +103,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 $response['status'] = 'vacio';
                 $response['msg'] = [
                     'pvComprobante' => '',
+                    'pvProyecto' => '',
                     'pvEstablecimiento' => '',
                     'pvEmision' => '',
                     'pvAuthSri' => '',
@@ -119,6 +124,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
 //            }
 
             $datos = [
+                'fk_proyecto' => $pvProyecto,
                 'fk_comprobante' => $pvComprobante,
                 'pv_establecimiento' => $pvEstablecimiento,
                 'pv_emision' => $pvEmision,
@@ -160,6 +166,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
             $response['status'] = 'vacio';
             $response['msg'] = [
                 'pvComprobante' => $this->validation->getError('pvComprobante'),
+                'pvProyecto' => $this->validation->getError('pvProyecto'),
                 'pvEstablecimiento' => $this->validation->getError('pvEstablecimiento'),
                 'pvEmision' => $this->validation->getError('pvEmision'),
                 'pvAuthSri' => $this->validation->getError('pvAuthSri'),
@@ -186,6 +193,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
         $pvBodega = $this->request->getPost('pvBodega');
         $pvEstado = $this->request->getPost('pvEstado');
         $pvEmpleado = $this->request->getPost('pvEmpleado');
+        $pvProyecto = $this->request->getPost('pvProyecto') ?: getProyectoId();
 
         $idPv = $this->request->getPost('idPV');
 
@@ -193,6 +201,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
 
         $this->validation->setRules([
             'pvComprobante' => ['label' => 'Comprobante Punto Venta', 'rules' => 'trim|required'],
+            'pvProyecto' => ['label' => 'Proyecto', 'rules' => 'trim|required'],
             'pvEstablecimiento' => ['label' => 'Punto Establecimiento', 'rules' => 'trim|required'],
             'pvEmision' => ['label' => 'Punto Emision', 'rules' => 'trim|required'],
             'pvAuthSri' => ['label' => 'Autorización SRI', 'rules' => 'trim|required'],
@@ -211,6 +220,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 $response['status'] = 'vacio';
                 $response['msg'] = [
                     'pvComprobante' => '',
+                    'pvProyecto' => '',
                     'pvEstablecimiento' => '',
                     'pvEmision' => '',
                     'pvAuthSri' => '',
@@ -231,6 +241,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
 //            }
 
             $datos = [
+                'fk_proyecto' => $pvProyecto,
                 'fk_comprobante' => $pvComprobante,
                 'pv_establecimiento' => $pvEstablecimiento,
                 'pv_emision' => $pvEmision,
@@ -245,7 +256,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                 'pv_fecha_creacionpunto' => date('Y-m-d'),
             ];
 
-            $this->ccm->actualizar('cc_puntos_venta', $datos, ['id' => $idPv]);
+            $this->ccm->actualizar('cc_puntos_venta', $datos, ['id' => $idPv, 'fk_proyecto' => getProyectoId()]);
 
             if (!empty($pvEmpleado)) {
                 $empleados = explode(',', $pvEmpleado);
@@ -273,6 +284,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
             $response['status'] = 'vacio';
             $response['msg'] = [
                 'pvComprobante' => $this->validation->getError('pvComprobante'),
+                'pvProyecto' => $this->validation->getError('pvProyecto'),
                 'pvEstablecimiento' => $this->validation->getError('pvEstablecimiento'),
                 'pvEmision' => $this->validation->getError('pvEmision'),
                 'pvAuthSri' => $this->validation->getError('pvAuthSri'),

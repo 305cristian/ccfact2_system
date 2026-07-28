@@ -37,7 +37,7 @@ class EquiposController extends BaseController {
         $data['title'] = "Equipos";
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['user'] = $this->user;
-        $data['listaComedores'] = $this->ccm->getData('cc_bio_comedores', ['com_estado' => 1], 'id, com_codigo, com_nombre');
+        $data['listaComedores'] = $this->ccm->getData('cc_bio_comedores', ['com_estado' => 1, 'fk_proyecto_sistema' => getProyectoId()], 'id, com_codigo, com_nombre');
 
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
         $send['view'] = view($this->dirViewModule . '\viewEquipos', $data);
@@ -75,7 +75,16 @@ class EquiposController extends BaseController {
             ]);
         }
 
-        $existeCodigo = $this->ccm->getData('cc_bio_equipos', ['eq_codigo' => $dataEquipo['eq_codigo']], 'id', null, 1);
+        $comedor = $this->ccm->getData('cc_bio_comedores', ['id' => $dataEquipo['fk_comedor'], 'fk_proyecto_sistema' => getProyectoId(), 'com_estado' => 1], 'id', null, 1);
+
+        if (!$comedor) {
+            return $this->response->setJSON([
+                        'status' => 'existe',
+                        'msg' => '<h5>El comedor seleccionado no pertenece al proyecto actual o se encuentra inactivo</h5>',
+            ]);
+        }
+
+        $existeCodigo = $this->bioModel->getEquipoPorCodigoProyecto($dataEquipo['eq_codigo']);
 
         if ($existeCodigo) {
             return $this->response->setJSON([
@@ -117,7 +126,25 @@ class EquiposController extends BaseController {
             ]);
         }
 
-        $existeCodigo = $this->ccm->getData('cc_bio_equipos', ['eq_codigo' => $dataEquipo['eq_codigo']], 'id, eq_codigo', null, 1);
+        $comedor = $this->ccm->getData('cc_bio_comedores', ['id' => $dataEquipo['fk_comedor'], 'fk_proyecto_sistema' => getProyectoId(), 'com_estado' => 1], 'id', null, 1);
+
+        if (!$comedor) {
+            return $this->response->setJSON([
+                        'status' => 'existe',
+                        'msg' => '<h5>El comedor seleccionado no pertenece al proyecto actual o se encuentra inactivo</h5>',
+            ]);
+        }
+
+        $equipoProyecto = $this->bioModel->getEquipoPorIdProyecto((int) $idEquipo);
+
+        if (!$equipoProyecto) {
+            return $this->response->setJSON([
+                        'status' => 'existe',
+                        'msg' => '<h5>No se encontro el equipo que intenta actualizar en el proyecto actual</h5>',
+            ]);
+        }
+
+        $existeCodigo = $this->bioModel->getEquipoPorCodigoProyecto($dataEquipo['eq_codigo']);
 
         if ($existeCodigo && (int) $existeCodigo->id !== (int) $idEquipo) {
             return $this->response->setJSON([

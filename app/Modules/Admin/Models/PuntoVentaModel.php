@@ -19,9 +19,11 @@ class PuntoVentaModel extends \CodeIgniter\Model {
 
     function getPuntosVenta() {
         $builder = $this->db->table('cc_puntos_venta tb1');
-        $builder->select('tb1.*, tb2.bod_nombre, tb3.comp_nombre ');
+        $builder->select('tb1.*, tb2.bod_nombre, tb3.comp_nombre, tb4.proy_codigo, tb4.proy_nombre');
         $builder->join('cc_bodegas tb2', 'tb2.id = tb1.pv_fk_bodega');
         $builder->join('cc_tipos_comprobante tb3', 'tb3.comp_codigo = tb1.fk_comprobante');
+        $builder->join('cc_proyectos tb4', 'tb4.id = tb1.fk_proyecto');
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         $response = $builder->get();
 

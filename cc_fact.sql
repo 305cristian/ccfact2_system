@@ -11,7 +11,7 @@
  Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 27/07/2026 18:37:35
+ Date: 28/07/2026 16:08:32
 */
 
 SET NAMES utf8mb4;
@@ -391,7 +391,7 @@ CREATE TABLE `cc_ajuste_salida`  (
   CONSTRAINT `cc_ajuste_salida_ibfk_4` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_ibfk_5` FOREIGN KEY (`fk_centro_costo`) REFERENCES `cc_centroscosto` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_ibfk_6` FOREIGN KEY (`fk_user_id_aprueba`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_ajuste_salida_ibfk_7` FOREIGN KEY (`fk_servicio`) REFERENCES `cc_servicios` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cc_ajuste_salida_ibfk_7` FOREIGN KEY (`fk_servicio`) REFERENCES `cc_bio_servicios` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_ajuste_salida_ibfk_8` FOREIGN KEY (`fk_cliente`) REFERENCES `cc_clientes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 50 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
@@ -536,12 +536,111 @@ INSERT INTO `cc_anillo` VALUES (3, 'ANILLO 3', 'AQUI VAN TODOS LOS SECTORES DEL 
 INSERT INTO `cc_anillo` VALUES (4, 'ANILLO 4', 'AQUI VAN TODOS LOS SECTORES DEL ANILLOS 4', 1);
 
 -- ----------------------------
+-- Table structure for cc_anticipo_proveedor
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_anticipo_proveedor`;
+CREATE TABLE `cc_anticipo_proveedor`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID del anticipo a proveedor',
+  `antp_secuencial` int(0) NOT NULL COMMENT 'Secuencial interno del anticipo',
+  `fk_proveedor` int(0) NOT NULL COMMENT 'Proveedor dueño del anticipo',
+  `fk_proyecto` int(0) NOT NULL COMMENT 'Proyecto/empresa al que pertenece el anticipo',
+  `antp_tipo` enum('NDC_COMPRA','PAGO_DIRECTO','AJUSTE') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Origen del anticipo: NDC, pago directo o ajuste',
+  `fk_ndc` int(0) NULL DEFAULT NULL COMMENT 'FK a cc_compras cuando el anticipo nace de una nota de credito de compra',
+  `antp_valor` decimal(15, 6) NOT NULL COMMENT 'Valor original del anticipo',
+  `antp_saldo` decimal(15, 6) NOT NULL COMMENT 'Saldo disponible del anticipo',
+  `antp_fecha` date NOT NULL COMMENT 'Fecha del anticipo',
+  `antp_hora` time(0) NOT NULL COMMENT 'Hora del anticipo',
+  `antp_detalle` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Detalle u observacion del anticipo',
+  `antp_estado` enum('ACTIVO','APLICADO_PARCIAL','APLICADO_TOTAL','ANULADO') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'ACTIVO' COMMENT 'Estado del anticipo',
+  `fk_user` int(0) NULL DEFAULT NULL COMMENT 'Usuario que registra',
+  `fk_user_anula` int(0) NULL DEFAULT NULL COMMENT 'Usuario que anula',
+  `antp_fecha_anulacion` datetime(0) NULL DEFAULT NULL COMMENT 'Fecha/hora de anulacion',
+  `antp_motivo_anulacion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Motivo de anulacion',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_antp_proveedor`(`fk_proveedor`) USING BTREE,
+  INDEX `idx_antp_proyecto`(`fk_proyecto`) USING BTREE,
+  INDEX `idx_antp_ndc`(`fk_ndc`) USING BTREE,
+  INDEX `idx_antp_estado`(`antp_estado`) USING BTREE,
+  INDEX `idx_antp_tipo`(`antp_tipo`) USING BTREE,
+  CONSTRAINT `fk_antp_ndc` FOREIGN KEY (`fk_ndc`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_antp_proveedor` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cc_anticipo_proveedor_ibfk_1` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Anticipos registrados a favor de proveedores' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_anticipo_proveedor
+-- ----------------------------
+INSERT INTO `cc_anticipo_proveedor` VALUES (1, 1, 4, 1, 'NDC_COMPRA', 26, 45.000000, 45.000000, '2026-07-28', '12:20:25', 'Anticipo generado por NDC #26', 'ACTIVO', 1, NULL, NULL, NULL, '2026-07-28 12:20:25', '2026-07-28 12:20:25');
+
+-- ----------------------------
+-- Table structure for cc_anticipo_proveedor_aplicacion
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_anticipo_proveedor_aplicacion`;
+CREATE TABLE `cc_anticipo_proveedor_aplicacion`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID de aplicacion de anticipo',
+  `fk_anticipo` int(0) NOT NULL COMMENT 'FK al anticipo proveedor',
+  `fk_cxp` int(0) NOT NULL COMMENT 'FK a cuenta por pagar donde se aplica',
+  `fk_cuota` int(0) NULL DEFAULT NULL COMMENT 'FK a cuota de CxP si aplica por cuota',
+  `fk_proyecto` int(0) NOT NULL COMMENT 'Proyecto/empresa de la aplicacion',
+  `apli_valor` decimal(15, 6) NOT NULL COMMENT 'Valor aplicado del anticipo',
+  `apli_fecha` date NOT NULL COMMENT 'Fecha de aplicacion',
+  `apli_hora` time(0) NOT NULL COMMENT 'Hora de aplicacion',
+  `apli_estado` enum('ACTIVO','ANULADO') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'ACTIVO' COMMENT 'Estado de la aplicacion',
+  `fk_user` int(0) NULL DEFAULT NULL COMMENT 'Usuario que aplica',
+  `fk_user_anula` int(0) NULL DEFAULT NULL COMMENT 'Usuario que anula',
+  `apli_fecha_anulacion` datetime(0) NULL DEFAULT NULL COMMENT 'Fecha/hora de anulacion',
+  `apli_motivo_anulacion` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Motivo de anulacion',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_apli_anticipo`(`fk_anticipo`) USING BTREE,
+  INDEX `idx_apli_cxp`(`fk_cxp`) USING BTREE,
+  INDEX `idx_apli_cuota`(`fk_cuota`) USING BTREE,
+  INDEX `idx_apli_proyecto`(`fk_proyecto`) USING BTREE,
+  INDEX `idx_apli_estado`(`apli_estado`) USING BTREE,
+  CONSTRAINT `fk_apli_anticipo` FOREIGN KEY (`fk_anticipo`) REFERENCES `cc_anticipo_proveedor` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_apli_cuota` FOREIGN KEY (`fk_cuota`) REFERENCES `cc_cxp_cuotas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_apli_cxp` FOREIGN KEY (`fk_cxp`) REFERENCES `cc_cxp` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cc_anticipo_proveedor_aplicacion_ibfk_1` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Aplicaciones de anticipos de proveedor contra cuentas por pagar' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_anticipo_proveedor_aplicacion
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for cc_anticipo_proveedor_saldos
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_anticipo_proveedor_saldos`;
+CREATE TABLE `cc_anticipo_proveedor_saldos`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID del saldo acumulado',
+  `fk_proveedor` int(0) NOT NULL COMMENT 'Proveedor',
+  `fk_proyecto` int(0) NOT NULL COMMENT 'Proyecto/empresa',
+  `saldo` decimal(15, 6) NOT NULL DEFAULT 0.000000 COMMENT 'Saldo acumulado disponible del proveedor en el proyecto',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `idx_saldo_proveedor_proyecto`(`fk_proveedor`, `fk_proyecto`) USING BTREE,
+  INDEX `fk_proyecto`(`fk_proyecto`) USING BTREE,
+  CONSTRAINT `fk_antps_proveedor` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `cc_anticipo_proveedor_saldos_ibfk_1` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Saldos acumulados de anticipos por proveedor y proyecto' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_anticipo_proveedor_saldos
+-- ----------------------------
+INSERT INTO `cc_anticipo_proveedor_saldos` VALUES (1, 4, 1, 45.000000, '2026-07-28 12:20:25', '2026-07-28 12:20:25');
+
+-- ----------------------------
 -- Table structure for cc_asiento_contable
 -- ----------------------------
 DROP TABLE IF EXISTS `cc_asiento_contable`;
 CREATE TABLE `cc_asiento_contable`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_periodo` int(0) NOT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del asiento contable',
   `ac_num_asiento` int(0) NOT NULL,
   `ac_anio` int(0) NULL DEFAULT NULL,
   `fk_mes` int(0) NULL DEFAULT NULL,
@@ -564,145 +663,155 @@ CREATE TABLE `cc_asiento_contable`  (
   INDEX `fk_mes`(`fk_mes`) USING BTREE,
   INDEX `fk_periodo`(`fk_periodo`) USING BTREE,
   INDEX `fk_user_id_anulacion`(`fk_user_id_anulacion`) USING BTREE,
+  INDEX `idx_asiento_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_asiento_contable_ibfk_1` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_ibfk_2` FOREIGN KEY (`ac_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_ibfk_3` FOREIGN KEY (`fk_mes`) REFERENCES `cc_mes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_ibfk_4` FOREIGN KEY (`fk_periodo`) REFERENCES `cc_periodos_contables` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_asiento_contable_ibfk_5` FOREIGN KEY (`fk_user_id_anulacion`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_asiento_contable_ibfk_5` FOREIGN KEY (`fk_user_id_anulacion`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_asiento_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 173 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_asiento_contable
 -- ----------------------------
-INSERT INTO `cc_asiento_contable` VALUES (15, 1, 1, 2025, 10, '2025-10-19', '22:02:39', 1, 1, '39', 77, 'AJUSTE DE ENTRADA - TEST', 1, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (16, 1, 2, 2025, 10, '2025-10-19', '22:15:25', 1, 1, '39', 78, 'AJUSTE DE ENTRADA - segunda prueba', 2, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (17, 1, 3, 2025, 10, '2025-10-19', '22:26:34', 1, 1, '39', 81, 'AJUSTE DE ENTRADA - testeando ando ', 3, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (43, 1, 4, 2025, 10, '2025-10-20', '15:49:11', 1, 1, '39', 109, 'AJUSTE DE ENTRADA - fwefwef', 4, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (44, 1, 5, 2025, 10, '2025-10-20', '16:08:27', 1, 1, '39', 110, 'AJUSTE DE ENTRADA - ingreso en impresora', 5, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (46, 1, 6, 2025, 10, '2025-10-20', '16:09:22', 1, 1, '39', 112, 'AJUSTE DE ENTRADA - ingreso de arroz', 6, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (47, 1, 7, 2025, 10, '2025-10-22', '21:33:33', 1, 1, '39', 114, 'AJUSTE DE ENTRADA - ORDEN TESTEO', 7, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (48, 1, 8, 2025, 10, '2025-10-22', '21:43:47', 1, 1, '39', 115, 'AJUSTE DE ENTRADA - ajuste de azucar', 8, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (49, 1, 9, 2025, 10, '2025-10-24', '18:07:45', 1, 1, '39', 116, 'AJUSTE DE ENTRADA - dddfdfd', 9, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (50, 1, 10, 2025, 10, '2025-10-31', '21:59:23', 1, 1, '39', 117, 'AJUSTE DE ENTRADA - testeando ando', 10, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (51, 2, 1, 2025, 11, '2025-11-01', '20:37:08', 1, 1, '39', 130, 'AJUSTE DE ENTRADA - testeanfo el pendientes y archivado', 11, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (52, 2, 2, 2025, 11, '2025-11-01', '20:40:01', 1, 1, '39', 131, 'AJUSTE DE ENTRADA - TESTER', 12, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (53, 2, 3, 2025, 11, '2025-11-04', '20:18:00', -1, 1, '39', 140, 'AJUSTE DE ENTRADA - entrada registrada', 13, '2025-11-04 20:20:50', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #21', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (54, 2, 4, 2025, 11, '2025-11-04', '20:39:39', 1, 1, '39', 141, 'AJUSTE DE ENTRADA - TEST', 14, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (55, 2, 5, 2025, 11, '2025-11-04', '20:44:26', -1, 1, '39', 142, 'AJUSTE DE ENTRADA - tester', 15, '2025-11-04 21:00:34', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #23', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (56, 2, 6, 2025, 11, '2025-11-04', '20:49:05', 1, 1, '39', 143, 'AJUSTE DE ENTRADA - TESTEANDO ANDO ', 16, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (57, 2, 7, 2025, 11, '2025-11-04', '20:59:17', 1, 1, '39', 144, 'AJUSTE DE ENTRADA - TESTEANDO OTRA VEZ', 17, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (58, 2, 8, 2025, 11, '2025-11-04', '21:11:57', 1, 1, '39', 146, 'AJUSTE DE ENTRADA - GERGEWR', 18, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (59, 2, 9, 2025, 11, '2025-11-04', '21:12:58', 1, 1, '39', 148, 'AJUSTE DE ENTRADA - BRBRG', 19, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (60, 2, 10, 2025, 11, '2025-11-04', '01:16:23', 1, 1, '39', 149, 'AJUSTE DE ENTRADA - testeando desde excel', 20, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (61, 2, 11, 2025, 11, '2025-11-04', '01:39:48', 1, 1, '39', 150, 'AJUSTE DE ENTRADA - testeando ando en pendiente', 21, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (62, 2, 12, 2025, 11, '2025-11-05', '19:37:27', 1, 1, '39', 152, 'AJUSTE DE ENTRADA - test', 22, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (63, 2, 13, 2025, 11, '2025-11-05', '20:08:00', 1, 1, '39', 154, 'AJUSTE DE ENTRADA - testeando ando ', 23, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (64, 2, 14, 2025, 11, '2025-11-05', '20:12:25', 1, 1, '39', 156, 'AJUSTE DE ENTRADA - fwef', 24, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (65, 2, 15, 2025, 11, '2025-11-05', '21:45:25', 1, 1, '39', 157, 'AJUSTE DE ENTRADA - VDSFGVSVSBSDBF', 25, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (66, 2, 16, 2025, 11, '2025-11-07', '16:37:41', 1, 1, '39', 158, 'AJUSTE DE ENTRADA - SIN OBSERVACIONES', 26, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (67, 2, 17, 2025, 11, '2025-11-07', '17:16:06', 1, 1, '39', 162, 'AJUSTE DE ENTRADA - DOCUMENTO CLONADO', 27, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (68, 2, 18, 2025, 11, '2025-11-25', '23:12:39', -1, 1, '39', 182, 'AJUSTE DE ENTRADA - dscsdv', 28, '2025-11-25 23:54:13', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #38', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (69, 2, 19, 2025, 11, '2025-11-25', '01:12:21', 1, 1, '39', 194, 'AJUSTE DE ENTRADA - CARGANDI UN AJUSTE INICIAL', 29, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (70, 2, 20, 2025, 11, '2025-11-25', '01:18:09', 1, 1, '39', 195, 'AJUSTE DE ENTRADA - vsdv', 30, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (71, 2, 21, 2025, 11, '2025-11-26', '14:49:36', 1, 1, '39', 196, 'AJUSTE DE ENTRADA - dcds', 31, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (72, 2, 22, 2025, 11, '2025-11-26', '14:56:53', 1, 1, '39', 197, 'AJUSTE DE ENTRADA - gedrgerg', 32, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (73, 2, 23, 2025, 11, '2025-11-27', '20:51:44', 1, 1, '39', 198, 'AJUSTE DE ENTRADA - fwfw', 33, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (74, 2, 24, 2025, 11, '2025-11-27', '20:52:47', 1, 1, '39', 199, 'AJUSTE DE ENTRADA - ', 34, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (76, 2, 25, 2025, 11, '2025-11-27', '20:55:12', 1, 1, '39', 200, 'AJUSTE DE ENTRADA - test', 35, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (77, 2, 26, 2025, 11, '2025-11-27', '21:03:24', 1, 1, '39', 203, 'AJUSTE DE ENTRADA - dvv', 36, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (78, 2, 27, 2025, 11, '2025-11-27', '21:05:23', 1, 1, '39', 201, 'AJUSTE DE ENTRADA - rgegeg', 37, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (79, 2, 28, 2025, 11, '2025-11-29', '17:06:21', 1, 1, '39', 204, 'AJUSTE DE ENTRADA - ', 38, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (82, 2, 29, 2025, 11, '2025-11-29', '20:11:23', 1, 1, '38', 3, 'AJUSTE DE SALIDA - ', 39, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (83, 2, 30, 2025, 11, '2025-11-30', '20:10:15', 1, 1, '38', 9, 'AJUSTE DE SALIDA - TESTEANDO ANDO', 40, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (84, 2, 31, 2025, 11, '2025-11-30', '20:13:15', 1, 1, '38', 11, 'AJUSTE DE SALIDA - testeando ando ', 41, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (85, 2, 32, 2025, 11, '2025-11-30', '20:21:46', 1, 1, '38', 20, 'AJUSTE DE SALIDA - ', 42, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (86, 2, 33, 2025, 11, '2025-11-30', '20:28:10', 1, 1, '38', 22, 'AJUSTE DE SALIDA - ', 43, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (87, 2, 34, 2025, 11, '2025-11-30', '20:33:20', 1, 1, '38', 21, 'AJUSTE DE SALIDA - ', 44, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (88, 2, 35, 2025, 11, '2025-11-30', '20:34:19', 1, 1, '38', 17, 'AJUSTE DE SALIDA - ', 45, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (89, 2, 36, 2025, 11, '2025-11-30', '20:35:07', 1, 1, '38', 15, 'AJUSTE DE SALIDA - ', 46, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (90, 2, 37, 2025, 11, '2025-11-30', '20:35:58', 1, 1, '38', 13, 'AJUSTE DE SALIDA - testeo 2', 47, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (91, 3, 1, 2025, 12, '2025-12-01', '20:08:50', 1, 1, '39', 205, 'AJUSTE DE ENTRADA - ', 48, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (92, 3, 2, 2025, 12, '2025-12-01', '20:22:52', 1, 1, '39', 206, 'AJUSTE DE ENTRADA - ', 49, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (93, 3, 3, 2025, 12, '2025-12-01', '20:23:50', 1, 1, '39', 207, 'AJUSTE DE ENTRADA - ', 50, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (94, 3, 4, 2025, 12, '2025-12-01', '20:24:58', -1, 1, '39', 208, 'AJUSTE DE ENTRADA - ', 51, '2025-12-01 20:50:05', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #51', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (95, 3, 5, 2025, 12, '2025-12-01', '20:36:29', -1, 1, '39', 210, 'AJUSTE DE ENTRADA - ', 52, '2025-12-01 21:09:38', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #52', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (96, 3, 6, 2025, 12, '2025-12-01', '21:23:13', -1, 1, '39', 211, 'AJUSTE DE ENTRADA - ', 53, '2025-12-01 21:42:57', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #53', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (97, 3, 7, 2025, 12, '2025-12-02', '19:00:51', 1, 1, '38', 23, 'AJUSTE DE SALIDA - ', 54, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (98, 3, 8, 2025, 12, '2025-12-02', '19:06:48', 1, 1, '38', 24, 'AJUSTE DE SALIDA - ', 55, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (99, 3, 9, 2025, 12, '2025-12-03', '15:14:31', -1, 1, '38', 26, 'AJUSTE DE SALIDA - ', 56, '2025-12-03 15:36:53', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #13', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (100, 3, 10, 2025, 12, '2025-12-03', '15:47:03', -1, 1, '38', 27, 'AJUSTE DE SALIDA - fwfw', 57, '2025-12-03 16:38:41', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #14', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (101, 3, 11, 2025, 12, '2025-12-03', '16:44:35', -1, 1, '38', 28, 'AJUSTE DE SALIDA - gfegerg', 58, '2025-12-03 16:45:42', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #15', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (102, 3, 12, 2025, 12, '2025-12-03', '16:49:09', -1, 1, '38', 29, 'AJUSTE DE SALIDA - ggergewr', 59, '2025-12-03 16:49:46', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #16', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (103, 3, 13, 2025, 12, '2025-12-03', '16:51:13', 1, 1, '38', 30, 'AJUSTE DE SALIDA - gewgewg', 60, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (104, 3, 14, 2025, 12, '2025-12-04', '14:50:15', 1, 1, '38', 32, 'AJUSTE DE SALIDA - TESTEANDO DESDE FILE', 61, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (105, 3, 15, 2025, 12, '2025-12-09', '01:53:01', 1, 1, '39', 212, 'AJUSTE DE ENTRADA - ', 62, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (106, 3, 16, 2025, 12, '2025-12-19', '17:20:30', 1, 1, '38', 33, 'AJUSTE DE SALIDA - ', 63, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (107, 3, 17, 2025, 12, '2025-12-19', '17:22:16', 1, 1, '39', 214, 'AJUSTE DE ENTRADA - TEST', 64, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (108, 4, 1, 2026, 1, '2026-01-02', '01:46:46', -1, 1, '38', 34, 'AJUSTE DE SALIDA - testeando ', 65, '2026-01-03 01:47:11', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #20', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (109, 4, 2, 2026, 1, '2026-01-02', '01:52:42', 1, 1, '38', 35, 'AJUSTE DE SALIDA - ', 66, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (110, 4, 3, 2026, 1, '2026-01-03', '03:32:53', 1, 1, '39', 215, 'AJUSTE DE ENTRADA - TESTEANDO ENTRADA', 67, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (111, 4, 4, 2026, 1, '2026-01-26', '21:10:55', 1, 1, '39', 217, 'AJUSTE DE ENTRADA - TEST', 68, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (112, 5, 1, 2026, 2, '2026-02-28', '15:47:22', 1, 1, '39', 218, 'AJUSTE DE ENTRADA - TEST INGRESO', 69, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (113, 6, 1, 2026, 3, '2026-03-05', '14:55:50', 1, 1, '39', 219, 'AJUSTE DE ENTRADA - ', 70, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (114, 6, 2, 2026, 3, '2026-03-07', '22:47:22', 1, 1, '39', 220, 'AJUSTE DE ENTRADA - test', 71, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (115, 6, 3, 2026, 3, '2026-03-22', '16:59:34', 1, 1, '39', 221, 'AJUSTE DE ENTRADA - ', 72, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (116, 6, 4, 2026, 3, '2026-03-22', '17:00:22', -1, 1, '38', 38, 'AJUSTE DE SALIDA - EWFWEFWE', 73, '2026-03-22 17:00:51', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #24', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (117, 6, 5, 2026, 3, '2026-03-22', '17:02:11', 1, 1, '38', 39, 'AJUSTE DE SALIDA - ', 74, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (118, 6, 6, 2026, 3, '2026-03-22', '17:05:13', 1, 1, '38', 40, 'AJUSTE DE SALIDA - ', 75, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (119, 6, 7, 2026, 3, '2026-03-22', '17:30:24', 1, 1, '39', 222, 'AJUSTE DE ENTRADA - ', 76, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
-INSERT INTO `cc_asiento_contable` VALUES (120, 6, 8, 2026, 3, '2026-03-23', '21:49:09', 1, 1, '39', 224, 'AJUSTE DE ENTRADA - wefefwef', 77, NULL, NULL, NULL, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
-INSERT INTO `cc_asiento_contable` VALUES (121, 6, 9, 2026, 3, '2026-03-24', '14:40:29', 1, 1, '39', 225, 'AJUSTE DE ENTRADA - ', 78, NULL, NULL, NULL, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
-INSERT INTO `cc_asiento_contable` VALUES (122, 6, 10, 2026, 3, '2026-03-24', '14:51:12', 1, 1, '39', 226, 'AJUSTE DE ENTRADA - ', 79, NULL, NULL, NULL, '2026-03-24 09:51:12', '2026-03-24 09:51:12');
-INSERT INTO `cc_asiento_contable` VALUES (123, 6, 11, 2026, 3, '2026-03-24', '14:52:24', 1, 1, '38', 41, 'AJUSTE DE SALIDA - ', 80, NULL, NULL, NULL, '2026-03-24 09:52:24', '2026-03-24 09:52:24');
-INSERT INTO `cc_asiento_contable` VALUES (124, 6, 12, 2026, 3, '2026-03-24', '14:53:05', 1, 1, '38', 42, 'AJUSTE DE SALIDA - TGRGRTG', 81, NULL, NULL, NULL, '2026-03-24 09:53:05', '2026-03-24 09:53:05');
-INSERT INTO `cc_asiento_contable` VALUES (125, 6, 13, 2026, 3, '2026-03-24', '14:56:36', 1, 1, '39', 227, 'AJUSTE DE ENTRADA - ', 82, NULL, NULL, NULL, '2026-03-24 09:56:36', '2026-03-24 09:56:36');
-INSERT INTO `cc_asiento_contable` VALUES (126, 6, 14, 2026, 3, '2026-03-24', '14:59:04', 1, 1, '38', 43, 'AJUSTE DE SALIDA - ', 83, NULL, NULL, NULL, '2026-03-24 09:59:04', '2026-03-24 09:59:04');
-INSERT INTO `cc_asiento_contable` VALUES (127, 6, 15, 2026, 3, '2026-03-24', '15:17:18', 1, 1, '39', 228, 'AJUSTE DE ENTRADA - testeando ', 84, NULL, NULL, NULL, '2026-03-24 10:17:18', '2026-03-24 10:17:18');
-INSERT INTO `cc_asiento_contable` VALUES (128, 6, 16, 2026, 3, '2026-03-24', '15:18:33', 1, 1, '38', 44, 'AJUSTE DE SALIDA - ', 85, NULL, NULL, NULL, '2026-03-24 10:18:33', '2026-03-24 10:18:33');
-INSERT INTO `cc_asiento_contable` VALUES (129, 6, 17, 2026, 3, '2026-03-24', '16:45:08', 1, 1, '39', 229, 'AJUSTE DE ENTRADA - ', 86, NULL, NULL, NULL, '2026-03-24 11:45:08', '2026-03-24 11:45:08');
-INSERT INTO `cc_asiento_contable` VALUES (130, 6, 18, 2026, 3, '2026-03-24', '16:47:55', 1, 1, '39', 230, 'AJUSTE DE ENTRADA - erf', 87, NULL, NULL, NULL, '2026-03-24 11:47:55', '2026-03-24 11:47:55');
-INSERT INTO `cc_asiento_contable` VALUES (131, 6, 19, 2026, 3, '2026-03-24', '19:40:32', 1, 1, '39', 232, 'AJUSTE DE ENTRADA - ', 88, NULL, NULL, NULL, '2026-03-24 14:40:32', '2026-03-24 14:40:32');
-INSERT INTO `cc_asiento_contable` VALUES (132, 6, 20, 2026, 3, '2026-03-24', '19:46:58', 1, 1, '39', 233, 'AJUSTE DE ENTRADA - ', 89, NULL, NULL, NULL, '2026-03-24 14:46:58', '2026-03-24 14:46:58');
-INSERT INTO `cc_asiento_contable` VALUES (133, 6, 21, 2026, 3, '2026-03-24', '19:48:50', 1, 1, '39', 234, 'AJUSTE DE ENTRADA - wffwe', 90, NULL, NULL, NULL, '2026-03-24 14:48:50', '2026-03-24 14:48:50');
-INSERT INTO `cc_asiento_contable` VALUES (134, 6, 22, 2026, 3, '2026-03-24', '19:52:23', 1, 1, '39', 235, 'AJUSTE DE ENTRADA - ', 91, NULL, NULL, NULL, '2026-03-24 14:52:23', '2026-03-24 14:52:23');
-INSERT INTO `cc_asiento_contable` VALUES (135, 6, 23, 2026, 3, '2026-03-24', '19:53:37', 1, 1, '39', 236, 'AJUSTE DE ENTRADA - fwefwe', 92, NULL, NULL, NULL, '2026-03-24 14:53:37', '2026-03-24 14:53:37');
-INSERT INTO `cc_asiento_contable` VALUES (136, 6, 24, 2026, 3, '2026-03-24', '19:54:40', 1, 1, '39', 237, 'AJUSTE DE ENTRADA - ', 93, NULL, NULL, NULL, '2026-03-24 14:54:40', '2026-03-24 14:54:40');
-INSERT INTO `cc_asiento_contable` VALUES (137, 6, 25, 2026, 3, '2026-03-24', '20:33:11', 1, 1, '39', 238, 'AJUSTE DE ENTRADA - ', 94, NULL, NULL, NULL, '2026-03-24 15:33:11', '2026-03-24 15:33:11');
-INSERT INTO `cc_asiento_contable` VALUES (138, 6, 26, 2026, 3, '2026-03-24', '20:33:58', 1, 1, '39', 239, 'AJUSTE DE ENTRADA - ', 95, NULL, NULL, NULL, '2026-03-24 15:33:58', '2026-03-24 15:33:58');
-INSERT INTO `cc_asiento_contable` VALUES (139, 6, 27, 2026, 3, '2026-03-24', '20:34:51', -1, 1, '39', 240, 'AJUSTE DE ENTRADA - 34T34', 96, '2026-03-24 21:34:15', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #78', '2026-03-24 15:34:51', '2026-03-24 16:34:15');
-INSERT INTO `cc_asiento_contable` VALUES (140, 6, 28, 2026, 3, '2026-03-24', '20:36:03', -1, 1, '39', 241, 'AJUSTE DE ENTRADA - ', 97, '2026-03-24 21:44:59', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #79', '2026-03-24 15:36:03', '2026-03-24 16:44:59');
-INSERT INTO `cc_asiento_contable` VALUES (141, 6, 29, 2026, 3, '2026-03-24', '20:41:12', 1, 1, '38', 45, 'AJUSTE DE SALIDA - dsdfbs', 98, NULL, NULL, NULL, '2026-03-24 15:41:12', '2026-03-24 15:41:12');
-INSERT INTO `cc_asiento_contable` VALUES (142, 6, 30, 2026, 3, '2026-03-24', '20:42:21', 1, 1, '38', 46, 'AJUSTE DE SALIDA - waefewfq', 99, NULL, NULL, NULL, '2026-03-24 15:42:21', '2026-03-24 15:42:21');
-INSERT INTO `cc_asiento_contable` VALUES (143, 7, 1, 2026, 4, '2026-04-23', '21:57:23', 1, 1, '39', 242, 'AJUSTE DE ENTRADA - NADA', 100, NULL, NULL, NULL, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
-INSERT INTO `cc_asiento_contable` VALUES (144, 8, 1, 2026, 5, '2026-05-01', '17:54:58', 1, 1, '39', 244, 'AJUSTE DE ENTRADA - entrada de cemento', 101, NULL, NULL, NULL, '2026-05-01 12:54:58', '2026-05-01 12:54:58');
-INSERT INTO `cc_asiento_contable` VALUES (145, 8, 2, 2026, 5, '2026-05-01', '18:10:10', 1, 1, '38', 47, 'AJUSTE DE SALIDA - ', 102, NULL, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
-INSERT INTO `cc_asiento_contable` VALUES (146, 8, 3, 2026, 5, '2026-05-01', '18:18:25', 1, 1, '39', 246, 'AJUSTE DE ENTRADA - wefwe', 103, NULL, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
-INSERT INTO `cc_asiento_contable` VALUES (147, 8, 4, 2026, 5, '2026-05-20', '18:50:16', 1, 1, '38', 48, 'AJUSTE DE SALIDA - ', 104, NULL, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
-INSERT INTO `cc_asiento_contable` VALUES (148, 9, 1, 2026, 6, '2026-06-22', '16:33:37', -1, 1, '39', 247, 'AJUSTE DE ENTRADA - TESTEANDO ANDO', 105, '2026-06-22 16:44:40', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #83', '2026-06-22 11:33:37', '2026-06-22 11:44:40');
-INSERT INTO `cc_asiento_contable` VALUES (149, 9, 2, 2026, 6, '2026-06-22', '16:44:20', 1, 1, '39', 248, 'AJUSTE DE ENTRADA - trester', 106, NULL, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
-INSERT INTO `cc_asiento_contable` VALUES (150, 9, 3, 2026, 6, '2026-06-22', '17:41:09', 1, 1, '39', 249, 'AJUSTE DE ENTRADA - ', 107, NULL, NULL, NULL, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
-INSERT INTO `cc_asiento_contable` VALUES (151, 9, 4, 2026, 6, '2026-06-22', '17:53:52', -1, 1, '38', 49, 'AJUSTE DE SALIDA - wefwef', 108, '2026-06-22 18:22:33', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #35', '2026-06-22 12:53:52', '2026-06-22 13:22:33');
-INSERT INTO `cc_asiento_contable` VALUES (152, 9, 5, 2026, 6, '2026-06-22', '17:55:43', 1, 1, '38', 50, 'AJUSTE DE SALIDA - holas', 109, NULL, NULL, NULL, '2026-06-22 12:55:43', '2026-06-22 12:55:43');
-INSERT INTO `cc_asiento_contable` VALUES (154, 10, 1, 2026, 7, '2026-07-06', '20:37:32', 1, 1, '02', 1, 'COMPRA NRO. 001-002-123', 110, NULL, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable` VALUES (155, 10, 2, 2026, 7, '2026-07-06', '20:43:28', -1, 1, '02', 2, 'COMPRA NRO. 001-002-652', 111, '2026-07-06 21:54:28', NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
-INSERT INTO `cc_asiento_contable` VALUES (156, 10, 3, 2026, 7, '2026-07-10', '14:16:58', 1, 1, '02', 3, 'COMPRA NRO. 001-002-578', 112, NULL, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable` VALUES (157, 10, 4, 2026, 7, '2026-07-10', '15:05:14', 1, 1, '02', 4, 'COMPRA NRO. 001-002-544', 113, NULL, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable` VALUES (158, 10, 5, 2026, 7, '2026-07-10', '15:26:56', 1, 1, '02', 5, 'COMPRA NRO. 001-002-589', 114, NULL, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable` VALUES (159, 10, 6, 2026, 7, '2026-07-10', '15:59:09', 1, 1, '02', 6, 'COMPRA NRO. 001-002-875', 115, NULL, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable` VALUES (160, 10, 7, 2026, 7, '2026-07-10', '16:10:01', 1, 1, '02', 7, 'COMPRA NRO. 001-002-145', 116, NULL, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable` VALUES (161, 10, 8, 2026, 7, '2026-07-10', '16:11:55', -1, 1, '02', 8, 'COMPRA NRO. 001-002-879', 117, '2026-07-10 16:14:30', NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
-INSERT INTO `cc_asiento_contable` VALUES (162, 10, 9, 2026, 7, '2026-07-10', '16:13:38', 1, 1, '02', 9, 'COMPRA NRO. 001-002-569', 118, NULL, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_asiento_contable` VALUES (163, 10, 10, 2026, 6, '2026-06-15', '04:22:54', 1, 1, '02', 12, 'COMPRA NRO. 001-100-000000458', 119, NULL, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_asiento_contable` VALUES (164, 10, 11, 2026, 7, '2026-07-12', '15:31:46', 1, 1, '02', 13, 'COMPRA NRO. 001-002-789', 120, NULL, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable` VALUES (165, 10, 12, 2026, 7, '2026-07-12', '15:33:43', 1, 1, '02', 14, 'COMPRA NRO. 001-002-742', 121, NULL, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_asiento_contable` VALUES (166, 10, 13, 2026, 7, '2026-07-12', '15:35:59', 1, 1, '02', 15, 'COMPRA NRO. 001-002-000000215', 122, NULL, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 16:44:39');
-INSERT INTO `cc_asiento_contable` VALUES (167, 10, 14, 2026, 7, '2026-07-12', '15:48:44', 1, 8, '02', 16, 'COMPRA NRO. 001-002-000000518', 123, NULL, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:41:30');
-INSERT INTO `cc_asiento_contable` VALUES (168, 10, 15, 2026, 7, '2026-07-12', '18:28:04', 1, 1, '02', 17, 'COMPRA NRO. 001-002-000000857', 124, NULL, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 16:32:04');
-INSERT INTO `cc_asiento_contable` VALUES (169, 10, 16, 2026, 7, '2026-07-12', '21:34:47', 1, 1, '02', 18, 'COMPRA NRO. 001-002-000000458', 125, NULL, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:41:05');
-INSERT INTO `cc_asiento_contable` VALUES (170, 10, 17, 2026, 7, '2026-07-12', '21:42:16', -1, 1, '02', 19, 'COMPRA NRO. 001-002-000000236', 126, '2026-07-12 21:57:33', NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
-INSERT INTO `cc_asiento_contable` VALUES (171, 10, 18, 2026, 7, '2026-07-12', '21:53:29', 1, 1, '02', 20, 'COMPRA NRO. 001-002-000000859', 127, NULL, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable` VALUES (172, 10, 19, 2026, 7, '2026-07-27', '17:52:44', 1, 1, '02', 22, 'COMPRA NRO. 001-002-000000747', 128, NULL, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
-INSERT INTO `cc_asiento_contable` VALUES (173, 10, 20, 2026, 7, '2026-07-27', '18:08:16', 1, 1, '11', 23, 'NOTA CREDITO COMPRA NRO. 001-002-000000456', 129, NULL, NULL, NULL, '2026-07-27 18:08:16', '2026-07-27 18:08:16');
+INSERT INTO `cc_asiento_contable` VALUES (15, 1, 1, 1, 2025, 10, '2025-10-19', '22:02:39', 1, 1, '39', 77, 'AJUSTE DE ENTRADA - TEST', 1, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (16, 1, 1, 2, 2025, 10, '2025-10-19', '22:15:25', 1, 1, '39', 78, 'AJUSTE DE ENTRADA - segunda prueba', 2, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (17, 1, 1, 3, 2025, 10, '2025-10-19', '22:26:34', 1, 1, '39', 81, 'AJUSTE DE ENTRADA - testeando ando ', 3, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (43, 1, 1, 4, 2025, 10, '2025-10-20', '15:49:11', 1, 1, '39', 109, 'AJUSTE DE ENTRADA - fwefwef', 4, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (44, 1, 1, 5, 2025, 10, '2025-10-20', '16:08:27', 1, 1, '39', 110, 'AJUSTE DE ENTRADA - ingreso en impresora', 5, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (46, 1, 1, 6, 2025, 10, '2025-10-20', '16:09:22', 1, 1, '39', 112, 'AJUSTE DE ENTRADA - ingreso de arroz', 6, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (47, 1, 1, 7, 2025, 10, '2025-10-22', '21:33:33', 1, 1, '39', 114, 'AJUSTE DE ENTRADA - ORDEN TESTEO', 7, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (48, 1, 1, 8, 2025, 10, '2025-10-22', '21:43:47', 1, 1, '39', 115, 'AJUSTE DE ENTRADA - ajuste de azucar', 8, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (49, 1, 1, 9, 2025, 10, '2025-10-24', '18:07:45', 1, 1, '39', 116, 'AJUSTE DE ENTRADA - dddfdfd', 9, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (50, 1, 1, 10, 2025, 10, '2025-10-31', '21:59:23', 1, 1, '39', 117, 'AJUSTE DE ENTRADA - testeando ando', 10, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (51, 2, 1, 1, 2025, 11, '2025-11-01', '20:37:08', 1, 1, '39', 130, 'AJUSTE DE ENTRADA - testeanfo el pendientes y archivado', 11, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (52, 2, 1, 2, 2025, 11, '2025-11-01', '20:40:01', 1, 1, '39', 131, 'AJUSTE DE ENTRADA - TESTER', 12, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (53, 2, 1, 3, 2025, 11, '2025-11-04', '20:18:00', -1, 1, '39', 140, 'AJUSTE DE ENTRADA - entrada registrada', 13, '2025-11-04 20:20:50', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #21', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (54, 2, 1, 4, 2025, 11, '2025-11-04', '20:39:39', 1, 1, '39', 141, 'AJUSTE DE ENTRADA - TEST', 14, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (55, 2, 1, 5, 2025, 11, '2025-11-04', '20:44:26', -1, 1, '39', 142, 'AJUSTE DE ENTRADA - tester', 15, '2025-11-04 21:00:34', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #23', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (56, 2, 1, 6, 2025, 11, '2025-11-04', '20:49:05', 1, 1, '39', 143, 'AJUSTE DE ENTRADA - TESTEANDO ANDO ', 16, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (57, 2, 1, 7, 2025, 11, '2025-11-04', '20:59:17', 1, 1, '39', 144, 'AJUSTE DE ENTRADA - TESTEANDO OTRA VEZ', 17, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (58, 2, 1, 8, 2025, 11, '2025-11-04', '21:11:57', 1, 1, '39', 146, 'AJUSTE DE ENTRADA - GERGEWR', 18, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (59, 2, 1, 9, 2025, 11, '2025-11-04', '21:12:58', 1, 1, '39', 148, 'AJUSTE DE ENTRADA - BRBRG', 19, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (60, 2, 1, 10, 2025, 11, '2025-11-04', '01:16:23', 1, 1, '39', 149, 'AJUSTE DE ENTRADA - testeando desde excel', 20, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (61, 2, 1, 11, 2025, 11, '2025-11-04', '01:39:48', 1, 1, '39', 150, 'AJUSTE DE ENTRADA - testeando ando en pendiente', 21, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (62, 2, 1, 12, 2025, 11, '2025-11-05', '19:37:27', 1, 1, '39', 152, 'AJUSTE DE ENTRADA - test', 22, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (63, 2, 1, 13, 2025, 11, '2025-11-05', '20:08:00', 1, 1, '39', 154, 'AJUSTE DE ENTRADA - testeando ando ', 23, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (64, 2, 1, 14, 2025, 11, '2025-11-05', '20:12:25', 1, 1, '39', 156, 'AJUSTE DE ENTRADA - fwef', 24, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (65, 2, 1, 15, 2025, 11, '2025-11-05', '21:45:25', 1, 1, '39', 157, 'AJUSTE DE ENTRADA - VDSFGVSVSBSDBF', 25, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (66, 2, 1, 16, 2025, 11, '2025-11-07', '16:37:41', 1, 1, '39', 158, 'AJUSTE DE ENTRADA - SIN OBSERVACIONES', 26, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (67, 2, 1, 17, 2025, 11, '2025-11-07', '17:16:06', 1, 1, '39', 162, 'AJUSTE DE ENTRADA - DOCUMENTO CLONADO', 27, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (68, 2, 1, 18, 2025, 11, '2025-11-25', '23:12:39', -1, 1, '39', 182, 'AJUSTE DE ENTRADA - dscsdv', 28, '2025-11-25 23:54:13', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #38', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (69, 2, 1, 19, 2025, 11, '2025-11-25', '01:12:21', 1, 1, '39', 194, 'AJUSTE DE ENTRADA - CARGANDI UN AJUSTE INICIAL', 29, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (70, 2, 1, 20, 2025, 11, '2025-11-25', '01:18:09', 1, 1, '39', 195, 'AJUSTE DE ENTRADA - vsdv', 30, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (71, 2, 1, 21, 2025, 11, '2025-11-26', '14:49:36', 1, 1, '39', 196, 'AJUSTE DE ENTRADA - dcds', 31, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (72, 2, 1, 22, 2025, 11, '2025-11-26', '14:56:53', 1, 1, '39', 197, 'AJUSTE DE ENTRADA - gedrgerg', 32, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (73, 2, 1, 23, 2025, 11, '2025-11-27', '20:51:44', 1, 1, '39', 198, 'AJUSTE DE ENTRADA - fwfw', 33, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (74, 2, 1, 24, 2025, 11, '2025-11-27', '20:52:47', 1, 1, '39', 199, 'AJUSTE DE ENTRADA - ', 34, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (76, 2, 1, 25, 2025, 11, '2025-11-27', '20:55:12', 1, 1, '39', 200, 'AJUSTE DE ENTRADA - test', 35, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (77, 2, 1, 26, 2025, 11, '2025-11-27', '21:03:24', 1, 1, '39', 203, 'AJUSTE DE ENTRADA - dvv', 36, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (78, 2, 1, 27, 2025, 11, '2025-11-27', '21:05:23', 1, 1, '39', 201, 'AJUSTE DE ENTRADA - rgegeg', 37, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (79, 2, 1, 28, 2025, 11, '2025-11-29', '17:06:21', 1, 1, '39', 204, 'AJUSTE DE ENTRADA - ', 38, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (82, 2, 1, 29, 2025, 11, '2025-11-29', '20:11:23', 1, 1, '38', 3, 'AJUSTE DE SALIDA - ', 39, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (83, 2, 1, 30, 2025, 11, '2025-11-30', '20:10:15', 1, 1, '38', 9, 'AJUSTE DE SALIDA - TESTEANDO ANDO', 40, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (84, 2, 1, 31, 2025, 11, '2025-11-30', '20:13:15', 1, 1, '38', 11, 'AJUSTE DE SALIDA - testeando ando ', 41, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (85, 2, 1, 32, 2025, 11, '2025-11-30', '20:21:46', 1, 1, '38', 20, 'AJUSTE DE SALIDA - ', 42, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (86, 2, 1, 33, 2025, 11, '2025-11-30', '20:28:10', 1, 1, '38', 22, 'AJUSTE DE SALIDA - ', 43, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (87, 2, 1, 34, 2025, 11, '2025-11-30', '20:33:20', 1, 1, '38', 21, 'AJUSTE DE SALIDA - ', 44, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (88, 2, 1, 35, 2025, 11, '2025-11-30', '20:34:19', 1, 1, '38', 17, 'AJUSTE DE SALIDA - ', 45, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (89, 2, 1, 36, 2025, 11, '2025-11-30', '20:35:07', 1, 1, '38', 15, 'AJUSTE DE SALIDA - ', 46, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (90, 2, 1, 37, 2025, 11, '2025-11-30', '20:35:58', 1, 1, '38', 13, 'AJUSTE DE SALIDA - testeo 2', 47, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (91, 3, 1, 1, 2025, 12, '2025-12-01', '20:08:50', 1, 1, '39', 205, 'AJUSTE DE ENTRADA - ', 48, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (92, 3, 1, 2, 2025, 12, '2025-12-01', '20:22:52', 1, 1, '39', 206, 'AJUSTE DE ENTRADA - ', 49, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (93, 3, 1, 3, 2025, 12, '2025-12-01', '20:23:50', 1, 1, '39', 207, 'AJUSTE DE ENTRADA - ', 50, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (94, 3, 1, 4, 2025, 12, '2025-12-01', '20:24:58', -1, 1, '39', 208, 'AJUSTE DE ENTRADA - ', 51, '2025-12-01 20:50:05', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #51', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (95, 3, 1, 5, 2025, 12, '2025-12-01', '20:36:29', -1, 1, '39', 210, 'AJUSTE DE ENTRADA - ', 52, '2025-12-01 21:09:38', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #52', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (96, 3, 1, 6, 2025, 12, '2025-12-01', '21:23:13', -1, 1, '39', 211, 'AJUSTE DE ENTRADA - ', 53, '2025-12-01 21:42:57', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #53', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (97, 3, 1, 7, 2025, 12, '2025-12-02', '19:00:51', 1, 1, '38', 23, 'AJUSTE DE SALIDA - ', 54, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (98, 3, 1, 8, 2025, 12, '2025-12-02', '19:06:48', 1, 1, '38', 24, 'AJUSTE DE SALIDA - ', 55, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (99, 3, 1, 9, 2025, 12, '2025-12-03', '15:14:31', -1, 1, '38', 26, 'AJUSTE DE SALIDA - ', 56, '2025-12-03 15:36:53', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #13', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (100, 3, 1, 10, 2025, 12, '2025-12-03', '15:47:03', -1, 1, '38', 27, 'AJUSTE DE SALIDA - fwfw', 57, '2025-12-03 16:38:41', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #14', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (101, 3, 1, 11, 2025, 12, '2025-12-03', '16:44:35', -1, 1, '38', 28, 'AJUSTE DE SALIDA - gfegerg', 58, '2025-12-03 16:45:42', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #15', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (102, 3, 1, 12, 2025, 12, '2025-12-03', '16:49:09', -1, 1, '38', 29, 'AJUSTE DE SALIDA - ggergewr', 59, '2025-12-03 16:49:46', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #16', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (103, 3, 1, 13, 2025, 12, '2025-12-03', '16:51:13', 1, 1, '38', 30, 'AJUSTE DE SALIDA - gewgewg', 60, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (104, 3, 1, 14, 2025, 12, '2025-12-04', '14:50:15', 1, 1, '38', 32, 'AJUSTE DE SALIDA - TESTEANDO DESDE FILE', 61, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (105, 3, 1, 15, 2025, 12, '2025-12-09', '01:53:01', 1, 1, '39', 212, 'AJUSTE DE ENTRADA - ', 62, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (106, 3, 1, 16, 2025, 12, '2025-12-19', '17:20:30', 1, 1, '38', 33, 'AJUSTE DE SALIDA - ', 63, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (107, 3, 1, 17, 2025, 12, '2025-12-19', '17:22:16', 1, 1, '39', 214, 'AJUSTE DE ENTRADA - TEST', 64, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (108, 4, 1, 1, 2026, 1, '2026-01-02', '01:46:46', -1, 1, '38', 34, 'AJUSTE DE SALIDA - testeando ', 65, '2026-01-03 01:47:11', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #20', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (109, 4, 1, 2, 2026, 1, '2026-01-02', '01:52:42', 1, 1, '38', 35, 'AJUSTE DE SALIDA - ', 66, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (110, 4, 1, 3, 2026, 1, '2026-01-03', '03:32:53', 1, 1, '39', 215, 'AJUSTE DE ENTRADA - TESTEANDO ENTRADA', 67, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (111, 4, 1, 4, 2026, 1, '2026-01-26', '21:10:55', 1, 1, '39', 217, 'AJUSTE DE ENTRADA - TEST', 68, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (112, 5, 1, 1, 2026, 2, '2026-02-28', '15:47:22', 1, 1, '39', 218, 'AJUSTE DE ENTRADA - TEST INGRESO', 69, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (113, 6, 1, 1, 2026, 3, '2026-03-05', '14:55:50', 1, 1, '39', 219, 'AJUSTE DE ENTRADA - ', 70, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (114, 6, 1, 2, 2026, 3, '2026-03-07', '22:47:22', 1, 1, '39', 220, 'AJUSTE DE ENTRADA - test', 71, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (115, 6, 1, 3, 2026, 3, '2026-03-22', '16:59:34', 1, 1, '39', 221, 'AJUSTE DE ENTRADA - ', 72, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (116, 6, 1, 4, 2026, 3, '2026-03-22', '17:00:22', -1, 1, '38', 38, 'AJUSTE DE SALIDA - EWFWEFWE', 73, '2026-03-22 17:00:51', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #24', '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (117, 6, 1, 5, 2026, 3, '2026-03-22', '17:02:11', 1, 1, '38', 39, 'AJUSTE DE SALIDA - ', 74, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (118, 6, 1, 6, 2026, 3, '2026-03-22', '17:05:13', 1, 1, '38', 40, 'AJUSTE DE SALIDA - ', 75, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (119, 6, 1, 7, 2026, 3, '2026-03-22', '17:30:24', 1, 1, '39', 222, 'AJUSTE DE ENTRADA - ', 76, NULL, NULL, NULL, '2026-03-22 12:32:53', '2026-03-22 12:33:16');
+INSERT INTO `cc_asiento_contable` VALUES (120, 6, 1, 8, 2026, 3, '2026-03-23', '21:49:09', 1, 1, '39', 224, 'AJUSTE DE ENTRADA - wefefwef', 77, NULL, NULL, NULL, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
+INSERT INTO `cc_asiento_contable` VALUES (121, 6, 1, 9, 2026, 3, '2026-03-24', '14:40:29', 1, 1, '39', 225, 'AJUSTE DE ENTRADA - ', 78, NULL, NULL, NULL, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
+INSERT INTO `cc_asiento_contable` VALUES (122, 6, 1, 10, 2026, 3, '2026-03-24', '14:51:12', 1, 1, '39', 226, 'AJUSTE DE ENTRADA - ', 79, NULL, NULL, NULL, '2026-03-24 09:51:12', '2026-03-24 09:51:12');
+INSERT INTO `cc_asiento_contable` VALUES (123, 6, 1, 11, 2026, 3, '2026-03-24', '14:52:24', 1, 1, '38', 41, 'AJUSTE DE SALIDA - ', 80, NULL, NULL, NULL, '2026-03-24 09:52:24', '2026-03-24 09:52:24');
+INSERT INTO `cc_asiento_contable` VALUES (124, 6, 1, 12, 2026, 3, '2026-03-24', '14:53:05', 1, 1, '38', 42, 'AJUSTE DE SALIDA - TGRGRTG', 81, NULL, NULL, NULL, '2026-03-24 09:53:05', '2026-03-24 09:53:05');
+INSERT INTO `cc_asiento_contable` VALUES (125, 6, 1, 13, 2026, 3, '2026-03-24', '14:56:36', 1, 1, '39', 227, 'AJUSTE DE ENTRADA - ', 82, NULL, NULL, NULL, '2026-03-24 09:56:36', '2026-03-24 09:56:36');
+INSERT INTO `cc_asiento_contable` VALUES (126, 6, 1, 14, 2026, 3, '2026-03-24', '14:59:04', 1, 1, '38', 43, 'AJUSTE DE SALIDA - ', 83, NULL, NULL, NULL, '2026-03-24 09:59:04', '2026-03-24 09:59:04');
+INSERT INTO `cc_asiento_contable` VALUES (127, 6, 1, 15, 2026, 3, '2026-03-24', '15:17:18', 1, 1, '39', 228, 'AJUSTE DE ENTRADA - testeando ', 84, NULL, NULL, NULL, '2026-03-24 10:17:18', '2026-03-24 10:17:18');
+INSERT INTO `cc_asiento_contable` VALUES (128, 6, 1, 16, 2026, 3, '2026-03-24', '15:18:33', 1, 1, '38', 44, 'AJUSTE DE SALIDA - ', 85, NULL, NULL, NULL, '2026-03-24 10:18:33', '2026-03-24 10:18:33');
+INSERT INTO `cc_asiento_contable` VALUES (129, 6, 1, 17, 2026, 3, '2026-03-24', '16:45:08', 1, 1, '39', 229, 'AJUSTE DE ENTRADA - ', 86, NULL, NULL, NULL, '2026-03-24 11:45:08', '2026-03-24 11:45:08');
+INSERT INTO `cc_asiento_contable` VALUES (130, 6, 1, 18, 2026, 3, '2026-03-24', '16:47:55', 1, 1, '39', 230, 'AJUSTE DE ENTRADA - erf', 87, NULL, NULL, NULL, '2026-03-24 11:47:55', '2026-03-24 11:47:55');
+INSERT INTO `cc_asiento_contable` VALUES (131, 6, 1, 19, 2026, 3, '2026-03-24', '19:40:32', 1, 1, '39', 232, 'AJUSTE DE ENTRADA - ', 88, NULL, NULL, NULL, '2026-03-24 14:40:32', '2026-03-24 14:40:32');
+INSERT INTO `cc_asiento_contable` VALUES (132, 6, 1, 20, 2026, 3, '2026-03-24', '19:46:58', 1, 1, '39', 233, 'AJUSTE DE ENTRADA - ', 89, NULL, NULL, NULL, '2026-03-24 14:46:58', '2026-03-24 14:46:58');
+INSERT INTO `cc_asiento_contable` VALUES (133, 6, 1, 21, 2026, 3, '2026-03-24', '19:48:50', 1, 1, '39', 234, 'AJUSTE DE ENTRADA - wffwe', 90, NULL, NULL, NULL, '2026-03-24 14:48:50', '2026-03-24 14:48:50');
+INSERT INTO `cc_asiento_contable` VALUES (134, 6, 1, 22, 2026, 3, '2026-03-24', '19:52:23', 1, 1, '39', 235, 'AJUSTE DE ENTRADA - ', 91, NULL, NULL, NULL, '2026-03-24 14:52:23', '2026-03-24 14:52:23');
+INSERT INTO `cc_asiento_contable` VALUES (135, 6, 1, 23, 2026, 3, '2026-03-24', '19:53:37', 1, 1, '39', 236, 'AJUSTE DE ENTRADA - fwefwe', 92, NULL, NULL, NULL, '2026-03-24 14:53:37', '2026-03-24 14:53:37');
+INSERT INTO `cc_asiento_contable` VALUES (136, 6, 1, 24, 2026, 3, '2026-03-24', '19:54:40', 1, 1, '39', 237, 'AJUSTE DE ENTRADA - ', 93, NULL, NULL, NULL, '2026-03-24 14:54:40', '2026-03-24 14:54:40');
+INSERT INTO `cc_asiento_contable` VALUES (137, 6, 1, 25, 2026, 3, '2026-03-24', '20:33:11', 1, 1, '39', 238, 'AJUSTE DE ENTRADA - ', 94, NULL, NULL, NULL, '2026-03-24 15:33:11', '2026-03-24 15:33:11');
+INSERT INTO `cc_asiento_contable` VALUES (138, 6, 1, 26, 2026, 3, '2026-03-24', '20:33:58', 1, 1, '39', 239, 'AJUSTE DE ENTRADA - ', 95, NULL, NULL, NULL, '2026-03-24 15:33:58', '2026-03-24 15:33:58');
+INSERT INTO `cc_asiento_contable` VALUES (139, 6, 1, 27, 2026, 3, '2026-03-24', '20:34:51', -1, 1, '39', 240, 'AJUSTE DE ENTRADA - 34T34', 96, '2026-03-24 21:34:15', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #78', '2026-03-24 15:34:51', '2026-03-24 16:34:15');
+INSERT INTO `cc_asiento_contable` VALUES (140, 6, 1, 28, 2026, 3, '2026-03-24', '20:36:03', -1, 1, '39', 241, 'AJUSTE DE ENTRADA - ', 97, '2026-03-24 21:44:59', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #79', '2026-03-24 15:36:03', '2026-03-24 16:44:59');
+INSERT INTO `cc_asiento_contable` VALUES (141, 6, 1, 29, 2026, 3, '2026-03-24', '20:41:12', 1, 1, '38', 45, 'AJUSTE DE SALIDA - dsdfbs', 98, NULL, NULL, NULL, '2026-03-24 15:41:12', '2026-03-24 15:41:12');
+INSERT INTO `cc_asiento_contable` VALUES (142, 6, 1, 30, 2026, 3, '2026-03-24', '20:42:21', 1, 1, '38', 46, 'AJUSTE DE SALIDA - waefewfq', 99, NULL, NULL, NULL, '2026-03-24 15:42:21', '2026-03-24 15:42:21');
+INSERT INTO `cc_asiento_contable` VALUES (143, 7, 1, 1, 2026, 4, '2026-04-23', '21:57:23', 1, 1, '39', 242, 'AJUSTE DE ENTRADA - NADA', 100, NULL, NULL, NULL, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
+INSERT INTO `cc_asiento_contable` VALUES (144, 8, 1, 1, 2026, 5, '2026-05-01', '17:54:58', 1, 1, '39', 244, 'AJUSTE DE ENTRADA - entrada de cemento', 101, NULL, NULL, NULL, '2026-05-01 12:54:58', '2026-05-01 12:54:58');
+INSERT INTO `cc_asiento_contable` VALUES (145, 8, 1, 2, 2026, 5, '2026-05-01', '18:10:10', 1, 1, '38', 47, 'AJUSTE DE SALIDA - ', 102, NULL, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
+INSERT INTO `cc_asiento_contable` VALUES (146, 8, 1, 3, 2026, 5, '2026-05-01', '18:18:25', 1, 1, '39', 246, 'AJUSTE DE ENTRADA - wefwe', 103, NULL, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
+INSERT INTO `cc_asiento_contable` VALUES (147, 8, 1, 4, 2026, 5, '2026-05-20', '18:50:16', 1, 1, '38', 48, 'AJUSTE DE SALIDA - ', 104, NULL, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
+INSERT INTO `cc_asiento_contable` VALUES (148, 9, 1, 1, 2026, 6, '2026-06-22', '16:33:37', -1, 1, '39', 247, 'AJUSTE DE ENTRADA - TESTEANDO ANDO', 105, '2026-06-22 16:44:40', 1, 'Asiento anulado automáticamente por anulación del ajuste de entrada #83', '2026-06-22 11:33:37', '2026-06-22 11:44:40');
+INSERT INTO `cc_asiento_contable` VALUES (149, 9, 1, 2, 2026, 6, '2026-06-22', '16:44:20', 1, 1, '39', 248, 'AJUSTE DE ENTRADA - trester', 106, NULL, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
+INSERT INTO `cc_asiento_contable` VALUES (150, 9, 1, 3, 2026, 6, '2026-06-22', '17:41:09', 1, 1, '39', 249, 'AJUSTE DE ENTRADA - ', 107, NULL, NULL, NULL, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
+INSERT INTO `cc_asiento_contable` VALUES (151, 9, 1, 4, 2026, 6, '2026-06-22', '17:53:52', -1, 1, '38', 49, 'AJUSTE DE SALIDA - wefwef', 108, '2026-06-22 18:22:33', 1, 'Asiento anulado automáticamente por anulación del ajuste de salida #35', '2026-06-22 12:53:52', '2026-06-22 13:22:33');
+INSERT INTO `cc_asiento_contable` VALUES (152, 9, 1, 5, 2026, 6, '2026-06-22', '17:55:43', 1, 1, '38', 50, 'AJUSTE DE SALIDA - holas', 109, NULL, NULL, NULL, '2026-06-22 12:55:43', '2026-06-22 12:55:43');
+INSERT INTO `cc_asiento_contable` VALUES (154, 10, 1, 1, 2026, 7, '2026-07-06', '20:37:32', 1, 1, '02', 1, 'COMPRA NRO. 001-002-123', 110, NULL, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable` VALUES (155, 10, 1, 2, 2026, 7, '2026-07-06', '20:43:28', -1, 1, '02', 2, 'COMPRA NRO. 001-002-652', 111, '2026-07-06 21:54:28', NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
+INSERT INTO `cc_asiento_contable` VALUES (156, 10, 1, 3, 2026, 7, '2026-07-10', '14:16:58', 1, 1, '02', 3, 'COMPRA NRO. 001-002-578', 112, NULL, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable` VALUES (157, 10, 1, 4, 2026, 7, '2026-07-10', '15:05:14', 1, 1, '02', 4, 'COMPRA NRO. 001-002-544', 113, NULL, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable` VALUES (158, 10, 1, 5, 2026, 7, '2026-07-10', '15:26:56', 1, 1, '02', 5, 'COMPRA NRO. 001-002-589', 114, NULL, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable` VALUES (159, 10, 1, 6, 2026, 7, '2026-07-10', '15:59:09', 1, 1, '02', 6, 'COMPRA NRO. 001-002-875', 115, NULL, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable` VALUES (160, 10, 1, 7, 2026, 7, '2026-07-10', '16:10:01', 1, 1, '02', 7, 'COMPRA NRO. 001-002-145', 116, NULL, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable` VALUES (161, 10, 1, 8, 2026, 7, '2026-07-10', '16:11:55', -1, 1, '02', 8, 'COMPRA NRO. 001-002-879', 117, '2026-07-10 16:14:30', NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
+INSERT INTO `cc_asiento_contable` VALUES (162, 10, 1, 9, 2026, 7, '2026-07-10', '16:13:38', 1, 1, '02', 9, 'COMPRA NRO. 001-002-569', 118, NULL, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_asiento_contable` VALUES (163, 10, 1, 10, 2026, 6, '2026-06-15', '04:22:54', 1, 1, '02', 12, 'COMPRA NRO. 001-100-000000458', 119, NULL, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_asiento_contable` VALUES (164, 10, 1, 11, 2026, 7, '2026-07-12', '15:31:46', 1, 1, '02', 13, 'COMPRA NRO. 001-002-789', 120, NULL, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable` VALUES (165, 10, 1, 12, 2026, 7, '2026-07-12', '15:33:43', 1, 1, '02', 14, 'COMPRA NRO. 001-002-742', 121, NULL, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_asiento_contable` VALUES (166, 10, 1, 13, 2026, 7, '2026-07-12', '15:35:59', 1, 1, '02', 15, 'COMPRA NRO. 001-002-000000215', 122, NULL, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 16:44:39');
+INSERT INTO `cc_asiento_contable` VALUES (167, 10, 1, 14, 2026, 7, '2026-07-12', '15:48:44', 1, 8, '02', 16, 'COMPRA NRO. 001-002-000000518', 123, NULL, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:41:30');
+INSERT INTO `cc_asiento_contable` VALUES (168, 10, 1, 15, 2026, 7, '2026-07-12', '18:28:04', 1, 1, '02', 17, 'COMPRA NRO. 001-002-000000857', 124, NULL, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 16:32:04');
+INSERT INTO `cc_asiento_contable` VALUES (169, 10, 1, 16, 2026, 7, '2026-07-12', '21:34:47', 1, 1, '02', 18, 'COMPRA NRO. 001-002-000000458', 125, NULL, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:41:05');
+INSERT INTO `cc_asiento_contable` VALUES (170, 10, 1, 17, 2026, 7, '2026-07-12', '21:42:16', -1, 1, '02', 19, 'COMPRA NRO. 001-002-000000236', 126, '2026-07-12 21:57:33', NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
+INSERT INTO `cc_asiento_contable` VALUES (171, 10, 1, 18, 2026, 7, '2026-07-12', '21:53:29', 1, 1, '02', 20, 'COMPRA NRO. 001-002-000000859', 127, NULL, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable` VALUES (172, 10, 1, 19, 2026, 7, '2026-07-27', '17:52:44', 1, 1, '02', 22, 'COMPRA NRO. 001-002-000000747', 128, NULL, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_asiento_contable` VALUES (173, 10, 1, 20, 2026, 7, '2026-07-27', '18:08:16', 1, 1, '11', 23, 'NOTA CREDITO COMPRA NRO. 001-002-000000456', 129, NULL, NULL, NULL, '2026-07-27 18:08:16', '2026-07-27 18:08:16');
+INSERT INTO `cc_asiento_contable` VALUES (174, 10, 1, 21, 2026, 7, '2026-07-27', '18:44:23', 1, 1, '02', 24, 'COMPRA NRO. 001-002-000005637', 130, NULL, NULL, NULL, '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_asiento_contable` VALUES (175, 10, 1, 22, 2026, 7, '2026-07-27', '18:45:20', -1, 1, '11', 25, 'NOTA CREDITO COMPRA NRO. 001-002-000000456', 131, '2026-07-27 19:11:05', NULL, NULL, '2026-07-27 18:45:20', '2026-07-27 19:11:05');
+INSERT INTO `cc_asiento_contable` VALUES (176, 10, 1, 23, 2026, 7, '2026-07-28', '12:20:25', 1, 1, '11', 26, 'NOTA CREDITO COMPRA NRO. 001-002-000000471', 132, NULL, NULL, NULL, '2026-07-28 12:20:25', '2026-07-28 12:20:25');
+INSERT INTO `cc_asiento_contable` VALUES (177, 10, 1, 24, 2026, 7, '2026-07-28', '13:53:26', 1, 1, '02', 27, 'COMPRA NRO. 001-002-000000585', 133, NULL, NULL, NULL, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_asiento_contable` VALUES (178, 10, 2, 1, 2026, 7, '2026-07-28', '14:00:03', 1, 1, '02', 28, 'COMPRA NRO. 001-002-000000585', 1, NULL, NULL, NULL, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_asiento_contable` VALUES (179, 10, 2, 2, 2026, 7, '2026-07-28', '14:02:03', 1, 1, '02', 29, 'COMPRA NRO. 001-002-000000585', 2, NULL, NULL, NULL, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_asiento_contable` VALUES (180, 10, 2, 3, 2026, 7, '2026-07-28', '14:12:45', 1, 1, '02', 30, 'COMPRA NRO. 001-002-000000586', 3, NULL, NULL, NULL, '2026-07-28 14:12:45', '2026-07-28 14:12:45');
+INSERT INTO `cc_asiento_contable` VALUES (181, 10, 2, 4, 2026, 7, '2026-07-28', '14:13:57', 1, 1, '11', 31, 'NOTA CREDITO COMPRA NRO. 001-002-000000498', 4, NULL, NULL, NULL, '2026-07-28 14:13:57', '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_asiento_contable_det
@@ -711,6 +820,7 @@ DROP TABLE IF EXISTS `cc_asiento_contable_det`;
 CREATE TABLE `cc_asiento_contable_det`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_asiento_contable` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del detalle de asiento',
   `codigo_cuenta_contable` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   `acd_tipo` enum('DEBE','HABER') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `acd_valor` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
@@ -728,341 +838,365 @@ CREATE TABLE `cc_asiento_contable_det`  (
   INDEX `codigo_cuenta_contable`(`codigo_cuenta_contable`) USING BTREE,
   INDEX `astcd_codigo_transaccion`(`acd_codigo_transaccion`) USING BTREE,
   INDEX `fk_centro_costos`(`fk_centro_costos`) USING BTREE,
+  INDEX `idx_asiento_det_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_asiento_contable_det_ibfk_1` FOREIGN KEY (`fk_asiento_contable`) REFERENCES `cc_asiento_contable` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_det_ibfk_2` FOREIGN KEY (`codigo_cuenta_contable`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_asiento_contable_det_ibfk_3` FOREIGN KEY (`acd_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_asiento_contable_det_ibfk_4` FOREIGN KEY (`fk_centro_costos`) REFERENCES `cc_centroscosto` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_asiento_contable_det_ibfk_4` FOREIGN KEY (`fk_centro_costos`) REFERENCES `cc_centroscosto` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_asiento_det_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 404 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_asiento_contable_det
 -- ----------------------------
-INSERT INTO `cc_asiento_contable_det` VALUES (34, 15, '1.01.04.01.01', 'DEBE', '45.0000', '39', 77, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (35, 15, '1.01.04.01.02', 'DEBE', '32.2', '39', 77, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (36, 15, '1.01.04.02', 'HABER', '77.2', '39', 77, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (37, 16, '1.01.04.01.01', 'DEBE', '90.0000', '39', 78, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-19 17:15:25', '2025-10-19 17:15:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (38, 16, '1.01.04.01.02', 'DEBE', '32.2', '39', 78, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-19 17:15:25', '2025-10-19 17:15:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (39, 16, '1.01.04.02', 'HABER', '122.2', '39', 78, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-19 17:15:25', '2025-10-19 17:15:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (40, 17, '1.01.04.01.01', 'DEBE', '45.0000', '39', 81, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-19 17:26:34', '2025-10-19 17:26:34');
-INSERT INTO `cc_asiento_contable_det` VALUES (41, 17, '1.01.04.02', 'HABER', '45', '39', 81, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-19 17:26:34', '2025-10-19 17:26:34');
-INSERT INTO `cc_asiento_contable_det` VALUES (82, 43, '1.01.04.01.01', 'DEBE', '45.0000', '39', 109, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-20 10:49:11', '2025-10-20 10:49:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (83, 43, '1.01.04.01.02', 'DEBE', '805', '39', 109, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-20 10:49:11', '2025-10-20 10:49:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (84, 43, '1.01.04.02', 'HABER', '850', '39', 109, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-20 10:49:11', '2025-10-20 10:49:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (85, 44, '1.01.04.01.02', 'DEBE', '402.5', '39', 110, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-20 11:08:27', '2025-10-20 11:08:27');
-INSERT INTO `cc_asiento_contable_det` VALUES (86, 44, '1.01.04.02', 'HABER', '402.5', '39', 110, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-20 11:08:27', '2025-10-20 11:08:27');
-INSERT INTO `cc_asiento_contable_det` VALUES (87, 46, '1.01.04.01.01', 'DEBE', '90.0000', '39', 112, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-20 11:09:22', '2025-10-20 11:09:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (88, 46, '1.01.04.02', 'HABER', '90', '39', 112, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-20 11:09:22', '2025-10-20 11:09:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (89, 47, '1.01.04.01.01', 'DEBE', '45.0000', '39', 114, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-22 16:33:33', '2025-10-22 16:33:33');
-INSERT INTO `cc_asiento_contable_det` VALUES (90, 47, '1.01.04.02', 'HABER', '45', '39', 114, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-22 16:33:33', '2025-10-22 16:33:33');
-INSERT INTO `cc_asiento_contable_det` VALUES (91, 48, '1.01.04.01.02', 'DEBE', '48.3', '39', 115, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-22 16:43:47', '2025-10-22 16:43:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (92, 48, '1.01.04.02', 'HABER', '48.3', '39', 115, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-22 16:43:47', '2025-10-22 16:43:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (93, 49, '1.01.04.01.02', 'DEBE', '805', '39', 116, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-24 13:07:45', '2025-10-24 13:07:45');
-INSERT INTO `cc_asiento_contable_det` VALUES (94, 49, '1.01.04.02', 'HABER', '805', '39', 116, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-24 13:07:45', '2025-10-24 13:07:45');
-INSERT INTO `cc_asiento_contable_det` VALUES (95, 50, '1.01.04.01.01', 'DEBE', '180.0000', '39', 117, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-31 16:59:23', '2025-10-31 16:59:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (96, 50, '1.01.04.01.02', 'DEBE', '80.5', '39', 117, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-31 16:59:23', '2025-10-31 16:59:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (97, 50, '1.01.04.02', 'HABER', '260.5', '39', 117, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-31 16:59:23', '2025-10-31 16:59:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (98, 51, '1.01.04.01.01', 'DEBE', '92.0000', '39', 130, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-01 15:37:08', '2025-11-01 15:37:08');
-INSERT INTO `cc_asiento_contable_det` VALUES (99, 51, '1.01.04.01.02', 'DEBE', '16.1', '39', 130, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-01 15:37:08', '2025-11-01 15:37:08');
-INSERT INTO `cc_asiento_contable_det` VALUES (100, 51, '1.01.04.02', 'HABER', '108.1', '39', 130, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-01 15:37:08', '2025-11-01 15:37:08');
-INSERT INTO `cc_asiento_contable_det` VALUES (101, 52, '1.01.04.01.02', 'DEBE', '32.2', '39', 131, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-01 15:40:01', '2025-11-01 15:40:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (102, 52, '1.01.04.02', 'HABER', '32.2', '39', 131, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-01 15:40:01', '2025-11-01 15:40:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (103, 53, '1.01.04.01.01', 'DEBE', '45.0000', '39', 140, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:18:00', '2025-11-04 15:18:00');
-INSERT INTO `cc_asiento_contable_det` VALUES (104, 53, '1.01.04.01.02', 'DEBE', '64.4', '39', 140, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-04 15:18:00', '2025-11-04 15:18:00');
-INSERT INTO `cc_asiento_contable_det` VALUES (105, 53, '1.01.04.02', 'HABER', '109.4', '39', 140, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:18:00', '2025-11-04 15:18:00');
-INSERT INTO `cc_asiento_contable_det` VALUES (106, 54, '1.01.04.01.01', 'DEBE', '47.5000', '39', 141, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (107, 54, '1.01.04.02', 'HABER', '47.5', '39', 141, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (108, 55, '1.01.04.01.01', 'DEBE', '90.0000', '39', 142, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:44:26', '2025-11-04 15:44:26');
-INSERT INTO `cc_asiento_contable_det` VALUES (109, 55, '1.01.04.02', 'HABER', '90', '39', 142, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:44:26', '2025-11-04 15:44:26');
-INSERT INTO `cc_asiento_contable_det` VALUES (110, 56, '1.01.04.01.01', 'DEBE', '260.0000', '39', 143, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:49:05', '2025-11-04 15:49:05');
-INSERT INTO `cc_asiento_contable_det` VALUES (111, 56, '1.01.04.02', 'HABER', '260', '39', 143, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:49:05', '2025-11-04 15:49:05');
-INSERT INTO `cc_asiento_contable_det` VALUES (112, 57, '1.01.04.01.01', 'DEBE', '225.0000', '39', 144, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:59:17', '2025-11-04 15:59:17');
-INSERT INTO `cc_asiento_contable_det` VALUES (113, 57, '1.01.04.02', 'HABER', '225', '39', 144, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:59:17', '2025-11-04 15:59:17');
-INSERT INTO `cc_asiento_contable_det` VALUES (114, 58, '1.01.04.01.01', 'DEBE', '90.0000', '39', 146, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 16:11:57', '2025-11-04 16:11:57');
-INSERT INTO `cc_asiento_contable_det` VALUES (115, 58, '1.01.04.02', 'HABER', '90', '39', 146, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 16:11:57', '2025-11-04 16:11:57');
-INSERT INTO `cc_asiento_contable_det` VALUES (116, 59, '1.01.04.01.01', 'DEBE', '45.0000', '39', 148, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 16:12:58', '2025-11-04 16:12:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (117, 59, '1.01.04.02', 'HABER', '45', '39', 148, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 16:12:58', '2025-11-04 16:12:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (118, 60, '1.01.04.01.01', 'DEBE', '90.0000', '39', 149, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 20:16:23', '2025-11-04 20:16:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (119, 60, '1.01.04.01.02', 'DEBE', '161', '39', 149, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-04 20:16:23', '2025-11-04 20:16:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (120, 60, '1.01.04.02', 'HABER', '251', '39', 149, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 20:16:23', '2025-11-04 20:16:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (121, 61, '1.01.04.01.01', 'DEBE', '90.0000', '39', 150, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 20:39:48', '2025-11-04 20:39:48');
-INSERT INTO `cc_asiento_contable_det` VALUES (122, 61, '1.01.04.01.02', 'DEBE', '161', '39', 150, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-04 20:39:48', '2025-11-04 20:39:48');
-INSERT INTO `cc_asiento_contable_det` VALUES (123, 61, '1.01.04.02', 'HABER', '251', '39', 150, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 20:39:48', '2025-11-04 20:39:48');
-INSERT INTO `cc_asiento_contable_det` VALUES (124, 62, '1.01.04.01.01', 'DEBE', '90.0000', '39', 152, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 14:37:27', '2025-11-05 14:37:27');
-INSERT INTO `cc_asiento_contable_det` VALUES (125, 62, '1.01.04.01.02', 'DEBE', '161', '39', 152, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-05 14:37:27', '2025-11-05 14:37:27');
-INSERT INTO `cc_asiento_contable_det` VALUES (126, 62, '1.01.04.02', 'HABER', '251', '39', 152, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 14:37:27', '2025-11-05 14:37:27');
-INSERT INTO `cc_asiento_contable_det` VALUES (127, 63, '1.01.04.01.01', 'DEBE', '76.7000', '39', 154, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 15:08:00', '2025-11-05 15:08:00');
-INSERT INTO `cc_asiento_contable_det` VALUES (128, 63, '1.01.04.02', 'HABER', '76.7', '39', 154, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 15:08:00', '2025-11-05 15:08:00');
-INSERT INTO `cc_asiento_contable_det` VALUES (129, 64, '1.01.04.01.01', 'DEBE', '90.0000', '39', 156, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 15:12:25', '2025-11-05 15:12:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (130, 64, '1.01.04.02', 'HABER', '90', '39', 156, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 15:12:25', '2025-11-05 15:12:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (131, 65, '1.01.04.01.01', 'DEBE', '45.0000', '39', 157, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 16:45:25', '2025-11-05 16:45:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (132, 65, '1.01.04.02', 'HABER', '45', '39', 157, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 16:45:25', '2025-11-05 16:45:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (133, 66, '1.01.04.01.01', 'DEBE', '215.0000', '39', 158, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-07 11:37:41', '2025-11-07 11:37:41');
-INSERT INTO `cc_asiento_contable_det` VALUES (134, 66, '1.01.04.02', 'HABER', '215', '39', 158, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-07 11:37:41', '2025-11-07 11:37:41');
-INSERT INTO `cc_asiento_contable_det` VALUES (135, 67, '1.01.04.01.01', 'DEBE', '330.0000', '39', 162, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-07 12:16:06', '2025-11-07 12:16:06');
-INSERT INTO `cc_asiento_contable_det` VALUES (136, 67, '1.01.04.02', 'HABER', '330', '39', 162, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-07 12:16:06', '2025-11-07 12:16:06');
-INSERT INTO `cc_asiento_contable_det` VALUES (137, 68, '1.01.04.01.01', 'DEBE', '90.0000', '39', 182, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-25 18:12:39', '2025-11-25 18:12:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (138, 68, '1.01.04.02', 'HABER', '90', '39', 182, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-25 18:12:39', '2025-11-25 18:12:39');
-INSERT INTO `cc_asiento_contable_det` VALUES (139, 69, '1.01.04.01.01', 'DEBE', '122.8000', '39', 194, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-25 20:12:21', '2025-11-25 20:12:21');
-INSERT INTO `cc_asiento_contable_det` VALUES (140, 69, '1.01.04.02', 'HABER', '122.8', '39', 194, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-25 20:12:21', '2025-11-25 20:12:21');
-INSERT INTO `cc_asiento_contable_det` VALUES (141, 70, '1.01.04.01.01', 'DEBE', '122.8000', '39', 195, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-25 20:18:09', '2025-11-25 20:18:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (142, 70, '1.01.04.02', 'HABER', '122.8', '39', 195, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-25 20:18:09', '2025-11-25 20:18:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (143, 71, '1.01.04.01.01', 'DEBE', '12.0500', '39', 196, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-26 09:49:36', '2025-11-26 09:49:36');
-INSERT INTO `cc_asiento_contable_det` VALUES (144, 71, '1.01.04.02', 'HABER', '12.05', '39', 196, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-26 09:49:36', '2025-11-26 09:49:36');
-INSERT INTO `cc_asiento_contable_det` VALUES (145, 72, '1.01.04.01.01', 'DEBE', '12.0500', '39', 197, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-26 09:56:53', '2025-11-26 09:56:53');
-INSERT INTO `cc_asiento_contable_det` VALUES (146, 72, '1.01.04.02', 'HABER', '12.05', '39', 197, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-26 09:56:53', '2025-11-26 09:56:53');
-INSERT INTO `cc_asiento_contable_det` VALUES (147, 73, '1.01.04.01.01', 'DEBE', '12.0500', '39', 198, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 15:51:44', '2025-11-27 15:51:44');
-INSERT INTO `cc_asiento_contable_det` VALUES (148, 73, '1.01.04.02', 'HABER', '12.05', '39', 198, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 15:51:44', '2025-11-27 15:51:44');
-INSERT INTO `cc_asiento_contable_det` VALUES (149, 74, '1.01.04.01.01', 'DEBE', '12.0500', '39', 199, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 15:52:47', '2025-11-27 15:52:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (150, 74, '1.01.04.02', 'HABER', '12.05', '39', 199, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 15:52:47', '2025-11-27 15:52:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (151, 76, '1.01.04.01.01', 'DEBE', '23.0000', '39', 200, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 15:55:12', '2025-11-27 15:55:12');
-INSERT INTO `cc_asiento_contable_det` VALUES (152, 76, '1.01.04.02', 'HABER', '23', '39', 200, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 15:55:12', '2025-11-27 15:55:12');
-INSERT INTO `cc_asiento_contable_det` VALUES (153, 77, '1.01.04.01.01', 'DEBE', '2.6000', '39', 203, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 16:03:24', '2025-11-27 16:03:24');
-INSERT INTO `cc_asiento_contable_det` VALUES (154, 77, '1.01.04.02', 'HABER', '2.6', '39', 203, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 16:03:24', '2025-11-27 16:03:24');
-INSERT INTO `cc_asiento_contable_det` VALUES (155, 78, '1.01.04.01.01', 'DEBE', '26.0000', '39', 201, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 16:05:23', '2025-11-27 16:05:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (156, 78, '1.01.04.02', 'HABER', '26', '39', 201, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 16:05:23', '2025-11-27 16:05:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (157, 79, '1.01.04.01.01', 'DEBE', '3.4500', '39', 204, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-29 12:06:21', '2025-11-29 12:06:21');
-INSERT INTO `cc_asiento_contable_det` VALUES (158, 79, '1.01.04.02', 'HABER', '3.45', '39', 204, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-29 12:06:21', '2025-11-29 12:06:21');
-INSERT INTO `cc_asiento_contable_det` VALUES (160, 82, '1.01.04.02', 'DEBE', '156.85', '38', 3, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-29 15:11:23', '2025-11-29 15:11:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (161, 82, '1.01.04.01.01', 'HABER', '156.8500', '38', 3, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-29 15:11:23', '2025-11-29 15:11:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (162, 83, '1.01.04.02', 'DEBE', '160.3', '38', 9, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:10:15', '2025-11-30 15:10:15');
-INSERT INTO `cc_asiento_contable_det` VALUES (163, 83, '1.01.04.01.01', 'HABER', '160.3000', '38', 9, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:10:15', '2025-11-30 15:10:15');
-INSERT INTO `cc_asiento_contable_det` VALUES (164, 84, '1.01.04.02', 'DEBE', '48.45', '38', 11, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:13:15', '2025-11-30 15:13:15');
-INSERT INTO `cc_asiento_contable_det` VALUES (165, 84, '1.01.04.01.01', 'HABER', '48.4500', '38', 11, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:13:15', '2025-11-30 15:13:15');
-INSERT INTO `cc_asiento_contable_det` VALUES (166, 85, '1.01.04.02', 'DEBE', '48.45', '38', 20, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:21:46', '2025-11-30 15:21:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (167, 85, '1.01.04.01.01', 'HABER', '48.4500', '38', 20, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:21:46', '2025-11-30 15:21:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (168, 86, '1.01.04.02', 'DEBE', '4.95', '38', 22, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:28:10', '2025-11-30 15:28:10');
-INSERT INTO `cc_asiento_contable_det` VALUES (169, 86, '1.01.04.01.01', 'HABER', '4.9500', '38', 22, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:28:10', '2025-11-30 15:28:10');
-INSERT INTO `cc_asiento_contable_det` VALUES (170, 87, '1.01.04.02', 'DEBE', '6.45', '38', 21, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:33:20', '2025-11-30 15:33:20');
-INSERT INTO `cc_asiento_contable_det` VALUES (171, 87, '1.01.04.01.01', 'HABER', '6.4500', '38', 21, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:33:20', '2025-11-30 15:33:20');
-INSERT INTO `cc_asiento_contable_det` VALUES (172, 88, '1.01.04.02', 'DEBE', '48.45', '38', 17, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:34:19', '2025-11-30 15:34:19');
-INSERT INTO `cc_asiento_contable_det` VALUES (173, 88, '1.01.04.01.01', 'HABER', '48.4500', '38', 17, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:34:19', '2025-11-30 15:34:19');
-INSERT INTO `cc_asiento_contable_det` VALUES (174, 89, '1.01.04.02', 'DEBE', '45', '38', 15, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:35:07', '2025-11-30 15:35:07');
-INSERT INTO `cc_asiento_contable_det` VALUES (175, 89, '1.01.04.01.01', 'HABER', '45.0000', '38', 15, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:35:07', '2025-11-30 15:35:07');
-INSERT INTO `cc_asiento_contable_det` VALUES (176, 90, '1.01.04.02', 'DEBE', '48.45', '38', 13, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:35:58', '2025-11-30 15:35:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (177, 90, '1.01.04.01.01', 'HABER', '48.4500', '38', 13, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:35:58', '2025-11-30 15:35:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (178, 91, '1.01.04.01.01', 'DEBE', '410.4000', '39', 205, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:08:50', '2025-12-01 15:08:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (179, 91, '1.01.04.02', 'HABER', '410.4', '39', 205, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:08:50', '2025-12-01 15:08:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (180, 92, '1.01.04.01.01', 'DEBE', '141.0000', '39', 206, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:22:52', '2025-12-01 15:22:52');
-INSERT INTO `cc_asiento_contable_det` VALUES (181, 92, '1.01.04.02', 'HABER', '141', '39', 206, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:22:52', '2025-12-01 15:22:52');
-INSERT INTO `cc_asiento_contable_det` VALUES (182, 93, '1.01.04.01.01', 'DEBE', '1880.0000', '39', 207, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:23:50', '2025-12-01 15:23:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (183, 93, '1.01.04.02', 'HABER', '1880', '39', 207, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:23:50', '2025-12-01 15:23:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (184, 94, '1.01.04.01.01', 'DEBE', '495.0000', '39', 208, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:24:58', '2025-12-01 15:24:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (185, 94, '1.01.04.02', 'HABER', '495', '39', 208, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:24:58', '2025-12-01 15:24:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (186, 95, '1.01.04.01.01', 'DEBE', '35.0000', '39', 210, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:36:29', '2025-12-01 15:36:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (187, 95, '1.01.04.02', 'HABER', '35', '39', 210, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:36:29', '2025-12-01 15:36:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (188, 96, '1.01.04.01.01', 'DEBE', '36.0000', '39', 211, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 16:23:13', '2025-12-01 16:23:13');
-INSERT INTO `cc_asiento_contable_det` VALUES (189, 96, '1.01.04.02', 'HABER', '36', '39', 211, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 16:23:13', '2025-12-01 16:23:13');
-INSERT INTO `cc_asiento_contable_det` VALUES (190, 97, '1.01.04.02', 'DEBE', '6.9', '38', 23, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-02 14:00:51', '2025-12-02 14:00:51');
-INSERT INTO `cc_asiento_contable_det` VALUES (191, 97, '1.01.04.01.01', 'HABER', '6.9000', '38', 23, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-02 14:00:51', '2025-12-02 14:00:51');
-INSERT INTO `cc_asiento_contable_det` VALUES (192, 98, '1.01.04.02', 'DEBE', '14.85', '38', 24, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-02 14:06:48', '2025-12-02 14:06:48');
-INSERT INTO `cc_asiento_contable_det` VALUES (193, 98, '1.01.04.01.01', 'HABER', '14.8500', '38', 24, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-02 14:06:48', '2025-12-02 14:06:48');
-INSERT INTO `cc_asiento_contable_det` VALUES (194, 99, '1.01.04.02', 'DEBE', '11.85', '38', 26, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 10:14:31', '2025-12-03 10:14:31');
-INSERT INTO `cc_asiento_contable_det` VALUES (195, 99, '1.01.04.01.01', 'HABER', '11.8500', '38', 26, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 10:14:31', '2025-12-03 10:14:31');
-INSERT INTO `cc_asiento_contable_det` VALUES (196, 100, '1.01.04.02', 'DEBE', '5', '38', 27, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 10:47:03', '2025-12-03 10:47:03');
-INSERT INTO `cc_asiento_contable_det` VALUES (197, 100, '1.01.04.01.01', 'HABER', '5.0000', '38', 27, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 10:47:03', '2025-12-03 10:47:03');
-INSERT INTO `cc_asiento_contable_det` VALUES (198, 101, '1.01.04.02', 'DEBE', '5.95', '38', 28, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 11:44:35', '2025-12-03 11:44:35');
-INSERT INTO `cc_asiento_contable_det` VALUES (199, 101, '1.01.04.01.01', 'HABER', '5.9500', '38', 28, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 11:44:35', '2025-12-03 11:44:35');
-INSERT INTO `cc_asiento_contable_det` VALUES (200, 102, '1.01.04.02', 'DEBE', '5.95', '38', 29, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 11:49:09', '2025-12-03 11:49:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (201, 102, '1.01.04.01.01', 'HABER', '5.9500', '38', 29, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 11:49:09', '2025-12-03 11:49:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (202, 103, '1.01.04.02', 'DEBE', '8.45', '38', 30, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 11:51:13', '2025-12-03 11:51:13');
-INSERT INTO `cc_asiento_contable_det` VALUES (203, 103, '1.01.04.01.01', 'HABER', '8.4500', '38', 30, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 11:51:13', '2025-12-03 11:51:13');
-INSERT INTO `cc_asiento_contable_det` VALUES (204, 104, '1.01.04.02', 'DEBE', '14.4', '38', 32, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-04 09:50:15', '2025-12-04 09:50:15');
-INSERT INTO `cc_asiento_contable_det` VALUES (205, 104, '1.01.04.01.01', 'HABER', '14.4000', '38', 32, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-04 09:50:15', '2025-12-04 09:50:15');
-INSERT INTO `cc_asiento_contable_det` VALUES (206, 105, '1.01.04.01.02', 'DEBE', '32.2', '39', 212, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-12-09 20:53:01', '2025-12-09 20:53:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (207, 105, '1.01.04.02', 'HABER', '32.2', '39', 212, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-09 20:53:02', '2025-12-09 20:53:02');
-INSERT INTO `cc_asiento_contable_det` VALUES (208, 106, '1.01.04.02', 'DEBE', '1.5', '38', 33, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-19 12:20:30', '2025-12-19 12:20:30');
-INSERT INTO `cc_asiento_contable_det` VALUES (209, 106, '1.01.04.01.01', 'HABER', '1.5000', '38', 33, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-19 12:20:30', '2025-12-19 12:20:30');
-INSERT INTO `cc_asiento_contable_det` VALUES (210, 107, '1.01.04.01.01', 'DEBE', '15.0000', '39', 214, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-19 12:22:16', '2025-12-19 12:22:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (211, 107, '1.01.04.02', 'HABER', '15', '39', 214, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-19 12:22:16', '2025-12-19 12:22:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (212, 108, '1.01.04.02', 'DEBE', '10.304', '38', 34, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-02 20:46:46', '2026-01-02 20:46:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (213, 108, '1.01.04.01.01', 'HABER', '10.3040', '38', 34, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-02 20:46:46', '2026-01-02 20:46:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (214, 109, '1.01.04.02', 'DEBE', '4.6', '38', 35, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-02 20:52:42', '2026-01-02 20:52:42');
-INSERT INTO `cc_asiento_contable_det` VALUES (215, 109, '1.01.04.01.01', 'HABER', '4.6000', '38', 35, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-02 20:52:42', '2026-01-02 20:52:42');
-INSERT INTO `cc_asiento_contable_det` VALUES (216, 110, '1.01.04.01.01', 'DEBE', '49.6800', '39', 215, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-03 22:32:53', '2026-01-03 22:32:53');
-INSERT INTO `cc_asiento_contable_det` VALUES (217, 110, '1.01.04.02', 'HABER', '49.68', '39', 215, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-03 22:32:53', '2026-01-03 22:32:53');
-INSERT INTO `cc_asiento_contable_det` VALUES (218, 111, '1.01.04.01.01', 'DEBE', '3.2000', '39', 217, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-26 16:10:55', '2026-01-26 16:10:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (219, 111, '1.01.04.01.02', 'DEBE', '862.5', '39', 217, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-01-26 16:10:55', '2026-01-26 16:10:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (220, 111, '1.01.04.02', 'HABER', '865.7', '39', 217, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-26 16:10:55', '2026-01-26 16:10:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (221, 112, '1.01.04.01.01', 'DEBE', '450.0000', '39', 218, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-02-28 10:47:22', '2026-02-28 10:47:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (222, 112, '1.01.04.02', 'HABER', '450', '39', 218, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-02-28 10:47:22', '2026-02-28 10:47:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (223, 113, '1.01.04.01.01', 'DEBE', '1515.9395', '39', 219, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (224, 113, '1.01.04.02', 'HABER', '1515.9395', '39', 219, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (225, 114, '1.01.04.01.02', 'DEBE', '601.25', '39', 220, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-03-07 17:47:22', '2026-03-07 17:47:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (226, 114, '1.01.04.02', 'HABER', '601.25', '39', 220, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-07 17:47:22', '2026-03-07 17:47:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (227, 115, '1.01.04.01.01', 'DEBE', '269.9048', '39', 221, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 11:59:34', '2026-03-22 11:59:34');
-INSERT INTO `cc_asiento_contable_det` VALUES (228, 115, '1.01.04.02', 'HABER', '269.9048', '39', 221, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 11:59:34', '2026-03-22 11:59:34');
-INSERT INTO `cc_asiento_contable_det` VALUES (229, 116, '1.01.04.02', 'DEBE', '134.9524', '38', 38, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:00:22', '2026-03-22 12:00:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (230, 116, '1.01.04.01.01', 'HABER', '134.9524', '38', 38, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:00:22', '2026-03-22 12:00:22');
-INSERT INTO `cc_asiento_contable_det` VALUES (231, 117, '1.01.04.02', 'DEBE', '269.9048', '38', 39, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:02:11', '2026-03-22 12:02:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (232, 117, '1.01.04.01.01', 'HABER', '269.9048', '38', 39, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:02:11', '2026-03-22 12:02:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (233, 118, '1.01.04.02', 'DEBE', '134.9524', '38', 40, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:05:13', '2026-03-22 12:05:13');
-INSERT INTO `cc_asiento_contable_det` VALUES (234, 118, '1.01.04.01.01', 'HABER', '134.9524', '38', 40, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:05:13', '2026-03-22 12:05:13');
-INSERT INTO `cc_asiento_contable_det` VALUES (235, 119, '1.01.04.01.01', 'DEBE', '139.7721', '39', 222, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:30:24', '2026-03-22 12:30:24');
-INSERT INTO `cc_asiento_contable_det` VALUES (236, 119, '1.01.04.02', 'HABER', '139.7721', '39', 222, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:30:24', '2026-03-22 12:30:24');
-INSERT INTO `cc_asiento_contable_det` VALUES (237, 120, '1.01.04.01.01', 'DEBE', '94.0000', '39', 224, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (238, 120, '1.01.04.02', 'HABER', '94', '39', 224, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (239, 121, '1.01.04.01.01', 'DEBE', '48.0000', '39', 225, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (240, 121, '1.01.04.02', 'HABER', '48', '39', 225, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (241, 122, '1.01.04.01.01', 'DEBE', '350.0000', '39', 226, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:51:12', '2026-03-24 09:51:12');
-INSERT INTO `cc_asiento_contable_det` VALUES (242, 122, '1.01.04.02', 'HABER', '350', '39', 226, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:51:12', '2026-03-24 09:51:12');
-INSERT INTO `cc_asiento_contable_det` VALUES (243, 123, '1.01.04.02', 'DEBE', '17.5', '38', 41, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:52:24', '2026-03-24 09:52:24');
-INSERT INTO `cc_asiento_contable_det` VALUES (244, 123, '1.01.04.01.01', 'HABER', '17.5000', '38', 41, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:52:24', '2026-03-24 09:52:24');
-INSERT INTO `cc_asiento_contable_det` VALUES (245, 124, '1.01.04.02', 'DEBE', '24.5', '38', 42, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:53:05', '2026-03-24 09:53:05');
-INSERT INTO `cc_asiento_contable_det` VALUES (246, 124, '1.01.04.01.01', 'HABER', '24.5000', '38', 42, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:53:05', '2026-03-24 09:53:05');
-INSERT INTO `cc_asiento_contable_det` VALUES (247, 125, '1.01.04.01.01', 'DEBE', '80.0000', '39', 227, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:56:36', '2026-03-24 09:56:36');
-INSERT INTO `cc_asiento_contable_det` VALUES (248, 125, '1.01.04.02', 'HABER', '80', '39', 227, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:56:36', '2026-03-24 09:56:36');
-INSERT INTO `cc_asiento_contable_det` VALUES (249, 126, '1.01.04.02', 'DEBE', '25.1482', '38', 43, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:59:04', '2026-03-24 09:59:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (250, 126, '1.01.04.01.01', 'HABER', '25.1482', '38', 43, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:59:04', '2026-03-24 09:59:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (251, 127, '1.01.04.01.01', 'DEBE', '40.5000', '39', 228, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 10:17:18', '2026-03-24 10:17:18');
-INSERT INTO `cc_asiento_contable_det` VALUES (252, 127, '1.01.04.02', 'HABER', '40.5', '39', 228, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 10:17:18', '2026-03-24 10:17:18');
-INSERT INTO `cc_asiento_contable_det` VALUES (253, 128, '1.01.04.02', 'DEBE', '18.169', '38', 44, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 10:18:33', '2026-03-24 10:18:33');
-INSERT INTO `cc_asiento_contable_det` VALUES (254, 128, '1.01.04.01.01', 'HABER', '18.1690', '38', 44, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 10:18:33', '2026-03-24 10:18:33');
-INSERT INTO `cc_asiento_contable_det` VALUES (255, 129, '1.01.04.01.01', 'DEBE', '40.5000', '39', 229, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 11:45:08', '2026-03-24 11:45:08');
-INSERT INTO `cc_asiento_contable_det` VALUES (256, 129, '1.01.04.02', 'HABER', '40.5', '39', 229, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 11:45:08', '2026-03-24 11:45:08');
-INSERT INTO `cc_asiento_contable_det` VALUES (257, 130, '1.01.04.01.01', 'DEBE', '20.2500', '39', 230, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 11:47:55', '2026-03-24 11:47:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (258, 130, '1.01.04.02', 'HABER', '20.25', '39', 230, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 11:47:55', '2026-03-24 11:47:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (259, 131, '1.01.04.01.01', 'DEBE', '7.2676', '39', 232, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:40:32', '2026-03-24 14:40:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (260, 131, '1.01.04.02', 'HABER', '7.2676', '39', 232, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:40:32', '2026-03-24 14:40:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (261, 132, '1.01.04.01.01', 'DEBE', '36.3380', '39', 233, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:46:58', '2026-03-24 14:46:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (262, 132, '1.01.04.02', 'HABER', '36.338', '39', 233, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:46:58', '2026-03-24 14:46:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (263, 133, '1.01.04.01.01', 'DEBE', '3.6338', '39', 234, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:48:50', '2026-03-24 14:48:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (264, 133, '1.01.04.02', 'HABER', '3.6338', '39', 234, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:48:50', '2026-03-24 14:48:50');
-INSERT INTO `cc_asiento_contable_det` VALUES (265, 134, '1.01.04.01.01', 'DEBE', '18.1690', '39', 235, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:52:23', '2026-03-24 14:52:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (266, 134, '1.01.04.02', 'HABER', '18.169', '39', 235, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:52:23', '2026-03-24 14:52:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (267, 135, '1.01.04.01.01', 'DEBE', '4.0500', '39', 236, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:53:37', '2026-03-24 14:53:37');
-INSERT INTO `cc_asiento_contable_det` VALUES (268, 135, '1.01.04.02', 'HABER', '4.05', '39', 236, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:53:37', '2026-03-24 14:53:37');
-INSERT INTO `cc_asiento_contable_det` VALUES (269, 136, '1.01.04.01.01', 'DEBE', '9.6426', '39', 237, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:54:40', '2026-03-24 14:54:40');
-INSERT INTO `cc_asiento_contable_det` VALUES (270, 136, '1.01.04.02', 'HABER', '9.6426', '39', 237, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:54:40', '2026-03-24 14:54:40');
-INSERT INTO `cc_asiento_contable_det` VALUES (271, 137, '1.01.04.01.01', 'DEBE', '180.0000', '39', 238, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:33:11', '2026-03-24 15:33:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (272, 137, '1.01.04.02', 'HABER', '180', '39', 238, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:33:11', '2026-03-24 15:33:11');
-INSERT INTO `cc_asiento_contable_det` VALUES (273, 138, '1.01.04.01.01', 'DEBE', '28.8000', '39', 239, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:33:58', '2026-03-24 15:33:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (274, 138, '1.01.04.02', 'HABER', '28.8', '39', 239, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:33:58', '2026-03-24 15:33:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (275, 139, '1.01.04.01.01', 'DEBE', '18.0000', '39', 240, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:34:51', '2026-03-24 15:34:51');
-INSERT INTO `cc_asiento_contable_det` VALUES (276, 139, '1.01.04.02', 'HABER', '18', '39', 240, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:34:51', '2026-03-24 15:34:51');
-INSERT INTO `cc_asiento_contable_det` VALUES (277, 140, '1.01.04.01.01', 'DEBE', '38.0000', '39', 241, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:36:03', '2026-03-24 15:36:03');
-INSERT INTO `cc_asiento_contable_det` VALUES (278, 140, '1.01.04.02', 'HABER', '38', '39', 241, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:36:03', '2026-03-24 15:36:03');
-INSERT INTO `cc_asiento_contable_det` VALUES (279, 141, '1.01.04.02', 'DEBE', '18.137', '38', 45, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:41:12', '2026-03-24 15:41:12');
-INSERT INTO `cc_asiento_contable_det` VALUES (280, 141, '1.01.04.01.01', 'HABER', '18.1370', '38', 45, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:41:12', '2026-03-24 15:41:12');
-INSERT INTO `cc_asiento_contable_det` VALUES (281, 142, '1.01.04.02', 'DEBE', '10.8822', '38', 46, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:42:21', '2026-03-24 15:42:21');
-INSERT INTO `cc_asiento_contable_det` VALUES (282, 142, '1.01.04.01.01', 'HABER', '10.8822', '38', 46, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:42:21', '2026-03-24 15:42:21');
-INSERT INTO `cc_asiento_contable_det` VALUES (283, 143, '1.01.04.01.01', 'DEBE', '38.7000', '39', 242, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (284, 143, '1.01.04.02', 'HABER', '38.7', '39', 242, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
-INSERT INTO `cc_asiento_contable_det` VALUES (285, 144, '1.01.04.01.02', 'DEBE', '89.25', '39', 244, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-05-01 12:54:58', '2026-05-01 12:54:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (286, 144, '1.01.04.02', 'HABER', '89.25', '39', 244, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 12:54:58', '2026-05-01 12:54:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (287, 145, '1.01.04.02', 'DEBE', '8.925', '38', 47, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
-INSERT INTO `cc_asiento_contable_det` VALUES (288, 145, '1.01.04.01.02', 'HABER', '8.925', '38', 47, 'Ajuste Salida - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
-INSERT INTO `cc_asiento_contable_det` VALUES (289, 146, '1.01.04.01.01', 'DEBE', '45.0000', '39', 246, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (290, 146, '1.01.04.02', 'HABER', '45', '39', 246, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
-INSERT INTO `cc_asiento_contable_det` VALUES (291, 147, '1.01.04.02', 'DEBE', '135', '38', 48, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (292, 147, '1.01.04.01.01', 'HABER', '135.0000', '38', 48, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (293, 148, '1.01.04.01.01', 'DEBE', '225.0000', '39', 247, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 11:33:37', '2026-06-22 11:33:37');
-INSERT INTO `cc_asiento_contable_det` VALUES (294, 148, '1.01.04.02', 'HABER', '225', '39', 247, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 11:33:37', '2026-06-22 11:33:37');
-INSERT INTO `cc_asiento_contable_det` VALUES (295, 149, '1.01.04.01.01', 'DEBE', '180.0000', '39', 248, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
-INSERT INTO `cc_asiento_contable_det` VALUES (296, 149, '1.01.04.02', 'HABER', '180', '39', 248, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
-INSERT INTO `cc_asiento_contable_det` VALUES (297, 150, '1.01.04.01.01', 'DEBE', '90.0000', '39', 249, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (298, 150, '1.01.04.02', 'HABER', '90', '39', 249, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (299, 151, '1.01.04.02', 'DEBE', '45', '38', 49, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 12:53:52', '2026-06-22 12:53:52');
-INSERT INTO `cc_asiento_contable_det` VALUES (300, 151, '1.01.04.01.01', 'HABER', '45.0000', '38', 49, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 12:53:52', '2026-06-22 12:53:52');
-INSERT INTO `cc_asiento_contable_det` VALUES (301, 152, '1.01.04.02', 'DEBE', '135', '38', 50, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 12:55:43', '2026-06-22 12:55:43');
-INSERT INTO `cc_asiento_contable_det` VALUES (302, 152, '1.01.04.01.01', 'HABER', '135.0000', '38', 50, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 12:55:43', '2026-06-22 12:55:43');
-INSERT INTO `cc_asiento_contable_det` VALUES (308, 154, '1.01.04.01.02', 'DEBE', '42', '02', 1, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (309, 154, '1.01.04.01.01', 'DEBE', '95', '02', 1, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (310, 154, '1.01.06.01.02', 'DEBE', '6.3', '02', 1, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (311, 154, '2.01.07.01.18', 'HABER', '0.63', '02', 1, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (312, 154, '2.01.07.01.14', 'HABER', '2.4', '02', 1, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (313, 154, '2.01.01.01.01', 'HABER', '140.27', '02', 1, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_asiento_contable_det` VALUES (314, 155, '1.01.04.01.01', 'DEBE', '1.5', '02', 2, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 15:43:28');
-INSERT INTO `cc_asiento_contable_det` VALUES (315, 155, '2.01.07.01.14', 'HABER', '0.03', '02', 2, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 15:43:28');
-INSERT INTO `cc_asiento_contable_det` VALUES (316, 155, '2.01.01.01.01', 'HABER', '1.47', '02', 2, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 15:43:28');
-INSERT INTO `cc_asiento_contable_det` VALUES (317, 156, '1.01.04.01.02', 'DEBE', '14', '02', 3, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (318, 156, '1.01.04.01.01', 'DEBE', '9', '02', 3, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (319, 156, '1.01.06.01.03', 'DEBE', '0.425', '02', 3, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (320, 156, '1.01.06.01.02', 'DEBE', '2.1', '02', 3, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (321, 156, '2.01.07.01.05', 'HABER', '0.76', '02', 3, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (322, 156, '2.01.07.01.14', 'HABER', '0.4', '02', 3, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (323, 156, '2.01.01.01.01', 'HABER', '24.365', '02', 3, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_asiento_contable_det` VALUES (324, 157, '1.01.04.01.03', 'DEBE', '9', '02', 4, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (325, 157, '1.01.04.01.02', 'DEBE', '14', '02', 4, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (326, 157, '1.01.04.01.01', 'DEBE', '0.5', '02', 4, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (327, 157, '1.01.06.01.02', 'DEBE', '2.1', '02', 4, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (328, 157, '1.01.06.01.03', 'DEBE', '0.45', '02', 4, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (329, 157, '2.01.07.01.05', 'HABER', '0.77', '02', 4, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (330, 157, '2.01.07.01.14', 'HABER', '0.41', '02', 4, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (331, 157, '2.01.01.01.01', 'HABER', '24.87', '02', 4, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_asiento_contable_det` VALUES (332, 158, '1.01.04.01.01', 'DEBE', '90.5', '02', 5, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable_det` VALUES (333, 158, '1.01.04.01.02', 'DEBE', '14', '02', 5, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable_det` VALUES (334, 158, '1.01.06.01.02', 'DEBE', '2.1', '02', 5, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable_det` VALUES (335, 158, '2.01.07.01.05', 'HABER', '0.63', '02', 5, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable_det` VALUES (336, 158, '2.01.07.01.14', 'HABER', '1.83', '02', 5, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable_det` VALUES (337, 158, '2.01.01.01.01', 'HABER', '104.14', '02', 5, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_asiento_contable_det` VALUES (338, 159, '1.01.04.01.02', 'DEBE', '14', '02', 6, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (339, 159, '1.01.04.01.03', 'DEBE', '16.8', '02', 6, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (340, 159, '1.01.06.01.03', 'DEBE', '0.84', '02', 6, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (341, 159, '1.01.06.01.02', 'DEBE', '2.1', '02', 6, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (342, 159, '2.01.07.01.05', 'HABER', '0.88', '02', 6, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (343, 159, '2.01.07.01.14', 'HABER', '0.54', '02', 6, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (344, 159, '2.01.01.01.01', 'HABER', '32.32', '02', 6, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_asiento_contable_det` VALUES (345, 160, '1.01.04.01.03', 'DEBE', '48.6', '02', 7, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (346, 160, '1.01.04.01.01', 'DEBE', '0.6', '02', 7, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (347, 160, '1.01.04.01.02', 'DEBE', '30.4', '02', 7, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (348, 160, '1.01.06.01.02', 'DEBE', '4.56', '02', 7, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (349, 160, '1.01.06.01.03', 'DEBE', '2.43', '02', 7, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (350, 160, '2.01.07.01.05', 'HABER', '2.1', '02', 7, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (351, 160, '2.01.07.01.14', 'HABER', '1.39', '02', 7, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (352, 160, '2.01.01.01.01', 'HABER', '83.1', '02', 7, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_asiento_contable_det` VALUES (353, 161, '1.01.04.01.03', 'DEBE', '16.2', '02', 8, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (354, 161, '1.01.06.01.03', 'DEBE', '0.81', '02', 8, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (355, 161, '2.01.07.01.05', 'HABER', '0.24', '02', 8, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (356, 161, '2.01.07.01.14', 'HABER', '0.28', '02', 8, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (357, 161, '2.01.01.01.01', 'HABER', '16.49', '02', 8, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
-INSERT INTO `cc_asiento_contable_det` VALUES (358, 162, '1.01.04.01.03', 'DEBE', '85', '02', 9, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_asiento_contable_det` VALUES (359, 162, '1.01.06.01.03', 'DEBE', '4.25', '02', 9, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_asiento_contable_det` VALUES (360, 162, '2.01.07.01.05', 'HABER', '1.27', '02', 9, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_asiento_contable_det` VALUES (361, 162, '2.01.07.01.14', 'HABER', '1.49', '02', 9, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_asiento_contable_det` VALUES (362, 162, '2.01.01.01.01', 'HABER', '86.49', '02', 9, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_asiento_contable_det` VALUES (363, 163, '1.01.04.01.01', 'DEBE', '207.9', '02', 12, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_asiento_contable_det` VALUES (364, 163, '2.01.07.01.14', 'HABER', '3.64', '02', 12, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_asiento_contable_det` VALUES (365, 163, '2.01.01.01.01', 'HABER', '204.26', '02', 12, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_asiento_contable_det` VALUES (366, 164, '1.01.04.01.02', 'DEBE', '15.2', '02', 13, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (367, 164, '1.01.04.01.01', 'DEBE', '1.05', '02', 13, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (368, 164, '1.01.06.01.02', 'DEBE', '2.28', '02', 13, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (369, 164, '2.01.07.01.05', 'HABER', '0.68', '02', 13, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (370, 164, '2.01.07.01.14', 'HABER', '0.28', '02', 13, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (371, 164, '2.01.01.01.01', 'HABER', '17.57', '02', 13, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_asiento_contable_det` VALUES (372, 165, '1.01.04.01.01', 'DEBE', '1.05', '02', 14, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_asiento_contable_det` VALUES (373, 165, '2.01.07.01.14', 'HABER', '0.02', '02', 14, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_asiento_contable_det` VALUES (374, 165, '2.01.01.01.01', 'HABER', '1.03', '02', 14, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_asiento_contable_det` VALUES (375, 166, '1.01.04.01.02', 'DEBE', '30.4', '02', 15, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_asiento_contable_det` VALUES (376, 166, '1.01.06.01.02', 'DEBE', '4.56', '02', 15, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_asiento_contable_det` VALUES (377, 166, '2.01.07.01.05', 'HABER', '1.37', '02', 15, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_asiento_contable_det` VALUES (378, 166, '2.01.07.01.14', 'HABER', '0.53', '02', 15, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_asiento_contable_det` VALUES (379, 166, '2.01.01.01.01', 'HABER', '33.06', '02', 15, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_asiento_contable_det` VALUES (380, 167, '1.01.04.01.01', 'DEBE', '1.05', '02', 16, 'Compra - bienes y servicios', 2, 1, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
-INSERT INTO `cc_asiento_contable_det` VALUES (381, 167, '2.01.07.01.14', 'HABER', '0.02', '02', 16, 'Retenciones de la compra', 2, 1, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
-INSERT INTO `cc_asiento_contable_det` VALUES (382, 167, '2.01.01.01.01', 'HABER', '1.03', '02', 16, 'Cuenta por pagar proveedor', 2, 1, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
-INSERT INTO `cc_asiento_contable_det` VALUES (383, 168, '1.01.04.01.02', 'DEBE', '15.2', '02', 17, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (384, 168, '1.01.04.01.01', 'DEBE', '91.05', '02', 17, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (385, 168, '1.01.06.01.02', 'DEBE', '2.28', '02', 17, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (386, 168, '2.01.07.01.05', 'HABER', '0.68', '02', 17, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (387, 168, '2.01.07.01.14', 'HABER', '1.86', '02', 17, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (388, 168, '2.01.01.01.01', 'HABER', '105.99', '02', 17, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_asiento_contable_det` VALUES (389, 169, '1.01.04.01.01', 'DEBE', '2.1', '02', 18, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (390, 169, '2.01.07.01.14', 'HABER', '0.04', '02', 18, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (391, 169, '2.01.01.01.01', 'HABER', '2.06', '02', 18, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
-INSERT INTO `cc_asiento_contable_det` VALUES (392, 170, '1.01.04.01.01', 'DEBE', '10.5', '02', 19, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:42:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (393, 170, '2.01.07.01.14', 'HABER', '0.18', '02', 19, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:42:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (394, 170, '2.01.01.01.01', 'HABER', '10.32', '02', 19, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:42:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (395, 171, '1.01.04.01.01', 'DEBE', '45', '02', 20, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (396, 171, '1.01.04.01.02', 'DEBE', '30.4', '02', 20, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (397, 171, '1.01.06.01.02', 'DEBE', '4.56', '02', 20, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (398, 171, '2.01.07.01.05', 'HABER', '1.37', '02', 20, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (399, 171, '2.01.07.01.14', 'HABER', '1.32', '02', 20, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (400, 171, '2.01.01.01.01', 'HABER', '77.27', '02', 20, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_asiento_contable_det` VALUES (401, 172, '1.01.04.01.01', 'DEBE', '100.5', '02', 22, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
-INSERT INTO `cc_asiento_contable_det` VALUES (402, 172, '2.01.07.01.14', 'HABER', '1.76', '02', 22, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
-INSERT INTO `cc_asiento_contable_det` VALUES (403, 172, '2.01.01.01.01', 'HABER', '98.74', '02', 22, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
-INSERT INTO `cc_asiento_contable_det` VALUES (404, 173, '2.01.01.01.01', 'DEBE', '45', '11', 23, 'Disminucion de cuenta por pagar por NDC', 1, 1, NULL, NULL, '2026-07-27 18:08:16', '2026-07-27 18:08:16');
-INSERT INTO `cc_asiento_contable_det` VALUES (405, 173, '1.01.04.01.01', 'HABER', '45', '11', 23, 'Nota de credito - bienes, servicios o descuentos', 1, 1, NULL, NULL, '2026-07-27 18:08:16', '2026-07-27 18:08:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (34, 15, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 77, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (35, 15, 1, '1.01.04.01.02', 'DEBE', '32.2', '39', 77, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (36, 15, 1, '1.01.04.02', 'HABER', '77.2', '39', 77, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (37, 16, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 78, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-19 17:15:25', '2025-10-19 17:15:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (38, 16, 1, '1.01.04.01.02', 'DEBE', '32.2', '39', 78, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-19 17:15:25', '2025-10-19 17:15:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (39, 16, 1, '1.01.04.02', 'HABER', '122.2', '39', 78, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-19 17:15:25', '2025-10-19 17:15:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (40, 17, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 81, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-19 17:26:34', '2025-10-19 17:26:34');
+INSERT INTO `cc_asiento_contable_det` VALUES (41, 17, 1, '1.01.04.02', 'HABER', '45', '39', 81, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-19 17:26:34', '2025-10-19 17:26:34');
+INSERT INTO `cc_asiento_contable_det` VALUES (82, 43, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 109, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-20 10:49:11', '2025-10-20 10:49:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (83, 43, 1, '1.01.04.01.02', 'DEBE', '805', '39', 109, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-20 10:49:11', '2025-10-20 10:49:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (84, 43, 1, '1.01.04.02', 'HABER', '850', '39', 109, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-20 10:49:11', '2025-10-20 10:49:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (85, 44, 1, '1.01.04.01.02', 'DEBE', '402.5', '39', 110, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-20 11:08:27', '2025-10-20 11:08:27');
+INSERT INTO `cc_asiento_contable_det` VALUES (86, 44, 1, '1.01.04.02', 'HABER', '402.5', '39', 110, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-20 11:08:27', '2025-10-20 11:08:27');
+INSERT INTO `cc_asiento_contable_det` VALUES (87, 46, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 112, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-20 11:09:22', '2025-10-20 11:09:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (88, 46, 1, '1.01.04.02', 'HABER', '90', '39', 112, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-20 11:09:22', '2025-10-20 11:09:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (89, 47, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 114, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-22 16:33:33', '2025-10-22 16:33:33');
+INSERT INTO `cc_asiento_contable_det` VALUES (90, 47, 1, '1.01.04.02', 'HABER', '45', '39', 114, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-22 16:33:33', '2025-10-22 16:33:33');
+INSERT INTO `cc_asiento_contable_det` VALUES (91, 48, 1, '1.01.04.01.02', 'DEBE', '48.3', '39', 115, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-22 16:43:47', '2025-10-22 16:43:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (92, 48, 1, '1.01.04.02', 'HABER', '48.3', '39', 115, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-22 16:43:47', '2025-10-22 16:43:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (93, 49, 1, '1.01.04.01.02', 'DEBE', '805', '39', 116, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-24 13:07:45', '2025-10-24 13:07:45');
+INSERT INTO `cc_asiento_contable_det` VALUES (94, 49, 1, '1.01.04.02', 'HABER', '805', '39', 116, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-24 13:07:45', '2025-10-24 13:07:45');
+INSERT INTO `cc_asiento_contable_det` VALUES (95, 50, 1, '1.01.04.01.01', 'DEBE', '180.0000', '39', 117, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-10-31 16:59:23', '2025-10-31 16:59:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (96, 50, 1, '1.01.04.01.02', 'DEBE', '80.5', '39', 117, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-10-31 16:59:23', '2025-10-31 16:59:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (97, 50, 1, '1.01.04.02', 'HABER', '260.5', '39', 117, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-10-31 16:59:23', '2025-10-31 16:59:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (98, 51, 1, '1.01.04.01.01', 'DEBE', '92.0000', '39', 130, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-01 15:37:08', '2025-11-01 15:37:08');
+INSERT INTO `cc_asiento_contable_det` VALUES (99, 51, 1, '1.01.04.01.02', 'DEBE', '16.1', '39', 130, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-01 15:37:08', '2025-11-01 15:37:08');
+INSERT INTO `cc_asiento_contable_det` VALUES (100, 51, 1, '1.01.04.02', 'HABER', '108.1', '39', 130, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-01 15:37:08', '2025-11-01 15:37:08');
+INSERT INTO `cc_asiento_contable_det` VALUES (101, 52, 1, '1.01.04.01.02', 'DEBE', '32.2', '39', 131, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-01 15:40:01', '2025-11-01 15:40:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (102, 52, 1, '1.01.04.02', 'HABER', '32.2', '39', 131, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-01 15:40:01', '2025-11-01 15:40:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (103, 53, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 140, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:18:00', '2025-11-04 15:18:00');
+INSERT INTO `cc_asiento_contable_det` VALUES (104, 53, 1, '1.01.04.01.02', 'DEBE', '64.4', '39', 140, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-04 15:18:00', '2025-11-04 15:18:00');
+INSERT INTO `cc_asiento_contable_det` VALUES (105, 53, 1, '1.01.04.02', 'HABER', '109.4', '39', 140, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:18:00', '2025-11-04 15:18:00');
+INSERT INTO `cc_asiento_contable_det` VALUES (106, 54, 1, '1.01.04.01.01', 'DEBE', '47.5000', '39', 141, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (107, 54, 1, '1.01.04.02', 'HABER', '47.5', '39', 141, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (108, 55, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 142, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:44:26', '2025-11-04 15:44:26');
+INSERT INTO `cc_asiento_contable_det` VALUES (109, 55, 1, '1.01.04.02', 'HABER', '90', '39', 142, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:44:26', '2025-11-04 15:44:26');
+INSERT INTO `cc_asiento_contable_det` VALUES (110, 56, 1, '1.01.04.01.01', 'DEBE', '260.0000', '39', 143, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:49:05', '2025-11-04 15:49:05');
+INSERT INTO `cc_asiento_contable_det` VALUES (111, 56, 1, '1.01.04.02', 'HABER', '260', '39', 143, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:49:05', '2025-11-04 15:49:05');
+INSERT INTO `cc_asiento_contable_det` VALUES (112, 57, 1, '1.01.04.01.01', 'DEBE', '225.0000', '39', 144, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 15:59:17', '2025-11-04 15:59:17');
+INSERT INTO `cc_asiento_contable_det` VALUES (113, 57, 1, '1.01.04.02', 'HABER', '225', '39', 144, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 15:59:17', '2025-11-04 15:59:17');
+INSERT INTO `cc_asiento_contable_det` VALUES (114, 58, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 146, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 16:11:57', '2025-11-04 16:11:57');
+INSERT INTO `cc_asiento_contable_det` VALUES (115, 58, 1, '1.01.04.02', 'HABER', '90', '39', 146, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 16:11:57', '2025-11-04 16:11:57');
+INSERT INTO `cc_asiento_contable_det` VALUES (116, 59, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 148, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 16:12:58', '2025-11-04 16:12:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (117, 59, 1, '1.01.04.02', 'HABER', '45', '39', 148, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 16:12:58', '2025-11-04 16:12:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (118, 60, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 149, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 20:16:23', '2025-11-04 20:16:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (119, 60, 1, '1.01.04.01.02', 'DEBE', '161', '39', 149, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-04 20:16:23', '2025-11-04 20:16:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (120, 60, 1, '1.01.04.02', 'HABER', '251', '39', 149, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 20:16:23', '2025-11-04 20:16:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (121, 61, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 150, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-04 20:39:48', '2025-11-04 20:39:48');
+INSERT INTO `cc_asiento_contable_det` VALUES (122, 61, 1, '1.01.04.01.02', 'DEBE', '161', '39', 150, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-04 20:39:48', '2025-11-04 20:39:48');
+INSERT INTO `cc_asiento_contable_det` VALUES (123, 61, 1, '1.01.04.02', 'HABER', '251', '39', 150, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-04 20:39:48', '2025-11-04 20:39:48');
+INSERT INTO `cc_asiento_contable_det` VALUES (124, 62, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 152, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 14:37:27', '2025-11-05 14:37:27');
+INSERT INTO `cc_asiento_contable_det` VALUES (125, 62, 1, '1.01.04.01.02', 'DEBE', '161', '39', 152, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-11-05 14:37:27', '2025-11-05 14:37:27');
+INSERT INTO `cc_asiento_contable_det` VALUES (126, 62, 1, '1.01.04.02', 'HABER', '251', '39', 152, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 14:37:27', '2025-11-05 14:37:27');
+INSERT INTO `cc_asiento_contable_det` VALUES (127, 63, 1, '1.01.04.01.01', 'DEBE', '76.7000', '39', 154, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 15:08:00', '2025-11-05 15:08:00');
+INSERT INTO `cc_asiento_contable_det` VALUES (128, 63, 1, '1.01.04.02', 'HABER', '76.7', '39', 154, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 15:08:00', '2025-11-05 15:08:00');
+INSERT INTO `cc_asiento_contable_det` VALUES (129, 64, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 156, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 15:12:25', '2025-11-05 15:12:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (130, 64, 1, '1.01.04.02', 'HABER', '90', '39', 156, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 15:12:25', '2025-11-05 15:12:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (131, 65, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 157, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-05 16:45:25', '2025-11-05 16:45:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (132, 65, 1, '1.01.04.02', 'HABER', '45', '39', 157, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-05 16:45:25', '2025-11-05 16:45:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (133, 66, 1, '1.01.04.01.01', 'DEBE', '215.0000', '39', 158, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-07 11:37:41', '2025-11-07 11:37:41');
+INSERT INTO `cc_asiento_contable_det` VALUES (134, 66, 1, '1.01.04.02', 'HABER', '215', '39', 158, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-07 11:37:41', '2025-11-07 11:37:41');
+INSERT INTO `cc_asiento_contable_det` VALUES (135, 67, 1, '1.01.04.01.01', 'DEBE', '330.0000', '39', 162, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-07 12:16:06', '2025-11-07 12:16:06');
+INSERT INTO `cc_asiento_contable_det` VALUES (136, 67, 1, '1.01.04.02', 'HABER', '330', '39', 162, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-07 12:16:06', '2025-11-07 12:16:06');
+INSERT INTO `cc_asiento_contable_det` VALUES (137, 68, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 182, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-25 18:12:39', '2025-11-25 18:12:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (138, 68, 1, '1.01.04.02', 'HABER', '90', '39', 182, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-25 18:12:39', '2025-11-25 18:12:39');
+INSERT INTO `cc_asiento_contable_det` VALUES (139, 69, 1, '1.01.04.01.01', 'DEBE', '122.8000', '39', 194, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-25 20:12:21', '2025-11-25 20:12:21');
+INSERT INTO `cc_asiento_contable_det` VALUES (140, 69, 1, '1.01.04.02', 'HABER', '122.8', '39', 194, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-25 20:12:21', '2025-11-25 20:12:21');
+INSERT INTO `cc_asiento_contable_det` VALUES (141, 70, 1, '1.01.04.01.01', 'DEBE', '122.8000', '39', 195, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-25 20:18:09', '2025-11-25 20:18:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (142, 70, 1, '1.01.04.02', 'HABER', '122.8', '39', 195, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-25 20:18:09', '2025-11-25 20:18:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (143, 71, 1, '1.01.04.01.01', 'DEBE', '12.0500', '39', 196, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-26 09:49:36', '2025-11-26 09:49:36');
+INSERT INTO `cc_asiento_contable_det` VALUES (144, 71, 1, '1.01.04.02', 'HABER', '12.05', '39', 196, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-26 09:49:36', '2025-11-26 09:49:36');
+INSERT INTO `cc_asiento_contable_det` VALUES (145, 72, 1, '1.01.04.01.01', 'DEBE', '12.0500', '39', 197, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-26 09:56:53', '2025-11-26 09:56:53');
+INSERT INTO `cc_asiento_contable_det` VALUES (146, 72, 1, '1.01.04.02', 'HABER', '12.05', '39', 197, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-26 09:56:53', '2025-11-26 09:56:53');
+INSERT INTO `cc_asiento_contable_det` VALUES (147, 73, 1, '1.01.04.01.01', 'DEBE', '12.0500', '39', 198, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 15:51:44', '2025-11-27 15:51:44');
+INSERT INTO `cc_asiento_contable_det` VALUES (148, 73, 1, '1.01.04.02', 'HABER', '12.05', '39', 198, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 15:51:44', '2025-11-27 15:51:44');
+INSERT INTO `cc_asiento_contable_det` VALUES (149, 74, 1, '1.01.04.01.01', 'DEBE', '12.0500', '39', 199, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 15:52:47', '2025-11-27 15:52:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (150, 74, 1, '1.01.04.02', 'HABER', '12.05', '39', 199, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 15:52:47', '2025-11-27 15:52:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (151, 76, 1, '1.01.04.01.01', 'DEBE', '23.0000', '39', 200, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 15:55:12', '2025-11-27 15:55:12');
+INSERT INTO `cc_asiento_contable_det` VALUES (152, 76, 1, '1.01.04.02', 'HABER', '23', '39', 200, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 15:55:12', '2025-11-27 15:55:12');
+INSERT INTO `cc_asiento_contable_det` VALUES (153, 77, 1, '1.01.04.01.01', 'DEBE', '2.6000', '39', 203, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 16:03:24', '2025-11-27 16:03:24');
+INSERT INTO `cc_asiento_contable_det` VALUES (154, 77, 1, '1.01.04.02', 'HABER', '2.6', '39', 203, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 16:03:24', '2025-11-27 16:03:24');
+INSERT INTO `cc_asiento_contable_det` VALUES (155, 78, 1, '1.01.04.01.01', 'DEBE', '26.0000', '39', 201, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-27 16:05:23', '2025-11-27 16:05:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (156, 78, 1, '1.01.04.02', 'HABER', '26', '39', 201, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-27 16:05:23', '2025-11-27 16:05:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (157, 79, 1, '1.01.04.01.01', 'DEBE', '3.4500', '39', 204, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-29 12:06:21', '2025-11-29 12:06:21');
+INSERT INTO `cc_asiento_contable_det` VALUES (158, 79, 1, '1.01.04.02', 'HABER', '3.45', '39', 204, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-29 12:06:21', '2025-11-29 12:06:21');
+INSERT INTO `cc_asiento_contable_det` VALUES (160, 82, 1, '1.01.04.02', 'DEBE', '156.85', '38', 3, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-29 15:11:23', '2025-11-29 15:11:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (161, 82, 1, '1.01.04.01.01', 'HABER', '156.8500', '38', 3, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-29 15:11:23', '2025-11-29 15:11:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (162, 83, 1, '1.01.04.02', 'DEBE', '160.3', '38', 9, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:10:15', '2025-11-30 15:10:15');
+INSERT INTO `cc_asiento_contable_det` VALUES (163, 83, 1, '1.01.04.01.01', 'HABER', '160.3000', '38', 9, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:10:15', '2025-11-30 15:10:15');
+INSERT INTO `cc_asiento_contable_det` VALUES (164, 84, 1, '1.01.04.02', 'DEBE', '48.45', '38', 11, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:13:15', '2025-11-30 15:13:15');
+INSERT INTO `cc_asiento_contable_det` VALUES (165, 84, 1, '1.01.04.01.01', 'HABER', '48.4500', '38', 11, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:13:15', '2025-11-30 15:13:15');
+INSERT INTO `cc_asiento_contable_det` VALUES (166, 85, 1, '1.01.04.02', 'DEBE', '48.45', '38', 20, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:21:46', '2025-11-30 15:21:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (167, 85, 1, '1.01.04.01.01', 'HABER', '48.4500', '38', 20, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:21:46', '2025-11-30 15:21:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (168, 86, 1, '1.01.04.02', 'DEBE', '4.95', '38', 22, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:28:10', '2025-11-30 15:28:10');
+INSERT INTO `cc_asiento_contable_det` VALUES (169, 86, 1, '1.01.04.01.01', 'HABER', '4.9500', '38', 22, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:28:10', '2025-11-30 15:28:10');
+INSERT INTO `cc_asiento_contable_det` VALUES (170, 87, 1, '1.01.04.02', 'DEBE', '6.45', '38', 21, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:33:20', '2025-11-30 15:33:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (171, 87, 1, '1.01.04.01.01', 'HABER', '6.4500', '38', 21, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:33:20', '2025-11-30 15:33:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (172, 88, 1, '1.01.04.02', 'DEBE', '48.45', '38', 17, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:34:19', '2025-11-30 15:34:19');
+INSERT INTO `cc_asiento_contable_det` VALUES (173, 88, 1, '1.01.04.01.01', 'HABER', '48.4500', '38', 17, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:34:19', '2025-11-30 15:34:19');
+INSERT INTO `cc_asiento_contable_det` VALUES (174, 89, 1, '1.01.04.02', 'DEBE', '45', '38', 15, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:35:07', '2025-11-30 15:35:07');
+INSERT INTO `cc_asiento_contable_det` VALUES (175, 89, 1, '1.01.04.01.01', 'HABER', '45.0000', '38', 15, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:35:07', '2025-11-30 15:35:07');
+INSERT INTO `cc_asiento_contable_det` VALUES (176, 90, 1, '1.01.04.02', 'DEBE', '48.45', '38', 13, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-11-30 15:35:58', '2025-11-30 15:35:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (177, 90, 1, '1.01.04.01.01', 'HABER', '48.4500', '38', 13, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-11-30 15:35:58', '2025-11-30 15:35:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (178, 91, 1, '1.01.04.01.01', 'DEBE', '410.4000', '39', 205, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:08:50', '2025-12-01 15:08:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (179, 91, 1, '1.01.04.02', 'HABER', '410.4', '39', 205, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:08:50', '2025-12-01 15:08:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (180, 92, 1, '1.01.04.01.01', 'DEBE', '141.0000', '39', 206, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:22:52', '2025-12-01 15:22:52');
+INSERT INTO `cc_asiento_contable_det` VALUES (181, 92, 1, '1.01.04.02', 'HABER', '141', '39', 206, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:22:52', '2025-12-01 15:22:52');
+INSERT INTO `cc_asiento_contable_det` VALUES (182, 93, 1, '1.01.04.01.01', 'DEBE', '1880.0000', '39', 207, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:23:50', '2025-12-01 15:23:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (183, 93, 1, '1.01.04.02', 'HABER', '1880', '39', 207, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:23:50', '2025-12-01 15:23:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (184, 94, 1, '1.01.04.01.01', 'DEBE', '495.0000', '39', 208, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:24:58', '2025-12-01 15:24:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (185, 94, 1, '1.01.04.02', 'HABER', '495', '39', 208, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:24:58', '2025-12-01 15:24:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (186, 95, 1, '1.01.04.01.01', 'DEBE', '35.0000', '39', 210, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 15:36:29', '2025-12-01 15:36:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (187, 95, 1, '1.01.04.02', 'HABER', '35', '39', 210, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 15:36:29', '2025-12-01 15:36:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (188, 96, 1, '1.01.04.01.01', 'DEBE', '36.0000', '39', 211, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-01 16:23:13', '2025-12-01 16:23:13');
+INSERT INTO `cc_asiento_contable_det` VALUES (189, 96, 1, '1.01.04.02', 'HABER', '36', '39', 211, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-01 16:23:13', '2025-12-01 16:23:13');
+INSERT INTO `cc_asiento_contable_det` VALUES (190, 97, 1, '1.01.04.02', 'DEBE', '6.9', '38', 23, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-02 14:00:51', '2025-12-02 14:00:51');
+INSERT INTO `cc_asiento_contable_det` VALUES (191, 97, 1, '1.01.04.01.01', 'HABER', '6.9000', '38', 23, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-02 14:00:51', '2025-12-02 14:00:51');
+INSERT INTO `cc_asiento_contable_det` VALUES (192, 98, 1, '1.01.04.02', 'DEBE', '14.85', '38', 24, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-02 14:06:48', '2025-12-02 14:06:48');
+INSERT INTO `cc_asiento_contable_det` VALUES (193, 98, 1, '1.01.04.01.01', 'HABER', '14.8500', '38', 24, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-02 14:06:48', '2025-12-02 14:06:48');
+INSERT INTO `cc_asiento_contable_det` VALUES (194, 99, 1, '1.01.04.02', 'DEBE', '11.85', '38', 26, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 10:14:31', '2025-12-03 10:14:31');
+INSERT INTO `cc_asiento_contable_det` VALUES (195, 99, 1, '1.01.04.01.01', 'HABER', '11.8500', '38', 26, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 10:14:31', '2025-12-03 10:14:31');
+INSERT INTO `cc_asiento_contable_det` VALUES (196, 100, 1, '1.01.04.02', 'DEBE', '5', '38', 27, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 10:47:03', '2025-12-03 10:47:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (197, 100, 1, '1.01.04.01.01', 'HABER', '5.0000', '38', 27, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 10:47:03', '2025-12-03 10:47:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (198, 101, 1, '1.01.04.02', 'DEBE', '5.95', '38', 28, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 11:44:35', '2025-12-03 11:44:35');
+INSERT INTO `cc_asiento_contable_det` VALUES (199, 101, 1, '1.01.04.01.01', 'HABER', '5.9500', '38', 28, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 11:44:35', '2025-12-03 11:44:35');
+INSERT INTO `cc_asiento_contable_det` VALUES (200, 102, 1, '1.01.04.02', 'DEBE', '5.95', '38', 29, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 11:49:09', '2025-12-03 11:49:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (201, 102, 1, '1.01.04.01.01', 'HABER', '5.9500', '38', 29, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 11:49:09', '2025-12-03 11:49:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (202, 103, 1, '1.01.04.02', 'DEBE', '8.45', '38', 30, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-03 11:51:13', '2025-12-03 11:51:13');
+INSERT INTO `cc_asiento_contable_det` VALUES (203, 103, 1, '1.01.04.01.01', 'HABER', '8.4500', '38', 30, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-03 11:51:13', '2025-12-03 11:51:13');
+INSERT INTO `cc_asiento_contable_det` VALUES (204, 104, 1, '1.01.04.02', 'DEBE', '14.4', '38', 32, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-04 09:50:15', '2025-12-04 09:50:15');
+INSERT INTO `cc_asiento_contable_det` VALUES (205, 104, 1, '1.01.04.01.01', 'HABER', '14.4000', '38', 32, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-04 09:50:15', '2025-12-04 09:50:15');
+INSERT INTO `cc_asiento_contable_det` VALUES (206, 105, 1, '1.01.04.01.02', 'DEBE', '32.2', '39', 212, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2025-12-09 20:53:01', '2025-12-09 20:53:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (207, 105, 1, '1.01.04.02', 'HABER', '32.2', '39', 212, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-09 20:53:02', '2025-12-09 20:53:02');
+INSERT INTO `cc_asiento_contable_det` VALUES (208, 106, 1, '1.01.04.02', 'DEBE', '1.5', '38', 33, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-19 12:20:30', '2025-12-19 12:20:30');
+INSERT INTO `cc_asiento_contable_det` VALUES (209, 106, 1, '1.01.04.01.01', 'HABER', '1.5000', '38', 33, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-19 12:20:30', '2025-12-19 12:20:30');
+INSERT INTO `cc_asiento_contable_det` VALUES (210, 107, 1, '1.01.04.01.01', 'DEBE', '15.0000', '39', 214, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2025-12-19 12:22:16', '2025-12-19 12:22:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (211, 107, 1, '1.01.04.02', 'HABER', '15', '39', 214, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2025-12-19 12:22:16', '2025-12-19 12:22:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (212, 108, 1, '1.01.04.02', 'DEBE', '10.304', '38', 34, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-02 20:46:46', '2026-01-02 20:46:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (213, 108, 1, '1.01.04.01.01', 'HABER', '10.3040', '38', 34, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-02 20:46:46', '2026-01-02 20:46:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (214, 109, 1, '1.01.04.02', 'DEBE', '4.6', '38', 35, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-02 20:52:42', '2026-01-02 20:52:42');
+INSERT INTO `cc_asiento_contable_det` VALUES (215, 109, 1, '1.01.04.01.01', 'HABER', '4.6000', '38', 35, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-02 20:52:42', '2026-01-02 20:52:42');
+INSERT INTO `cc_asiento_contable_det` VALUES (216, 110, 1, '1.01.04.01.01', 'DEBE', '49.6800', '39', 215, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-03 22:32:53', '2026-01-03 22:32:53');
+INSERT INTO `cc_asiento_contable_det` VALUES (217, 110, 1, '1.01.04.02', 'HABER', '49.68', '39', 215, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-03 22:32:53', '2026-01-03 22:32:53');
+INSERT INTO `cc_asiento_contable_det` VALUES (218, 111, 1, '1.01.04.01.01', 'DEBE', '3.2000', '39', 217, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-01-26 16:10:55', '2026-01-26 16:10:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (219, 111, 1, '1.01.04.01.02', 'DEBE', '862.5', '39', 217, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-01-26 16:10:55', '2026-01-26 16:10:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (220, 111, 1, '1.01.04.02', 'HABER', '865.7', '39', 217, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-01-26 16:10:55', '2026-01-26 16:10:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (221, 112, 1, '1.01.04.01.01', 'DEBE', '450.0000', '39', 218, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-02-28 10:47:22', '2026-02-28 10:47:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (222, 112, 1, '1.01.04.02', 'HABER', '450', '39', 218, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-02-28 10:47:22', '2026-02-28 10:47:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (223, 113, 1, '1.01.04.01.01', 'DEBE', '1515.9395', '39', 219, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (224, 113, 1, '1.01.04.02', 'HABER', '1515.9395', '39', 219, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (225, 114, 1, '1.01.04.01.02', 'DEBE', '601.25', '39', 220, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-03-07 17:47:22', '2026-03-07 17:47:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (226, 114, 1, '1.01.04.02', 'HABER', '601.25', '39', 220, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-07 17:47:22', '2026-03-07 17:47:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (227, 115, 1, '1.01.04.01.01', 'DEBE', '269.9048', '39', 221, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 11:59:34', '2026-03-22 11:59:34');
+INSERT INTO `cc_asiento_contable_det` VALUES (228, 115, 1, '1.01.04.02', 'HABER', '269.9048', '39', 221, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 11:59:34', '2026-03-22 11:59:34');
+INSERT INTO `cc_asiento_contable_det` VALUES (229, 116, 1, '1.01.04.02', 'DEBE', '134.9524', '38', 38, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:00:22', '2026-03-22 12:00:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (230, 116, 1, '1.01.04.01.01', 'HABER', '134.9524', '38', 38, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:00:22', '2026-03-22 12:00:22');
+INSERT INTO `cc_asiento_contable_det` VALUES (231, 117, 1, '1.01.04.02', 'DEBE', '269.9048', '38', 39, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:02:11', '2026-03-22 12:02:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (232, 117, 1, '1.01.04.01.01', 'HABER', '269.9048', '38', 39, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:02:11', '2026-03-22 12:02:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (233, 118, 1, '1.01.04.02', 'DEBE', '134.9524', '38', 40, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:05:13', '2026-03-22 12:05:13');
+INSERT INTO `cc_asiento_contable_det` VALUES (234, 118, 1, '1.01.04.01.01', 'HABER', '134.9524', '38', 40, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:05:13', '2026-03-22 12:05:13');
+INSERT INTO `cc_asiento_contable_det` VALUES (235, 119, 1, '1.01.04.01.01', 'DEBE', '139.7721', '39', 222, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-22 12:30:24', '2026-03-22 12:30:24');
+INSERT INTO `cc_asiento_contable_det` VALUES (236, 119, 1, '1.01.04.02', 'HABER', '139.7721', '39', 222, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-22 12:30:24', '2026-03-22 12:30:24');
+INSERT INTO `cc_asiento_contable_det` VALUES (237, 120, 1, '1.01.04.01.01', 'DEBE', '94.0000', '39', 224, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (238, 120, 1, '1.01.04.02', 'HABER', '94', '39', 224, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (239, 121, 1, '1.01.04.01.01', 'DEBE', '48.0000', '39', 225, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (240, 121, 1, '1.01.04.02', 'HABER', '48', '39', 225, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (241, 122, 1, '1.01.04.01.01', 'DEBE', '350.0000', '39', 226, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:51:12', '2026-03-24 09:51:12');
+INSERT INTO `cc_asiento_contable_det` VALUES (242, 122, 1, '1.01.04.02', 'HABER', '350', '39', 226, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:51:12', '2026-03-24 09:51:12');
+INSERT INTO `cc_asiento_contable_det` VALUES (243, 123, 1, '1.01.04.02', 'DEBE', '17.5', '38', 41, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:52:24', '2026-03-24 09:52:24');
+INSERT INTO `cc_asiento_contable_det` VALUES (244, 123, 1, '1.01.04.01.01', 'HABER', '17.5000', '38', 41, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:52:24', '2026-03-24 09:52:24');
+INSERT INTO `cc_asiento_contable_det` VALUES (245, 124, 1, '1.01.04.02', 'DEBE', '24.5', '38', 42, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:53:05', '2026-03-24 09:53:05');
+INSERT INTO `cc_asiento_contable_det` VALUES (246, 124, 1, '1.01.04.01.01', 'HABER', '24.5000', '38', 42, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:53:05', '2026-03-24 09:53:05');
+INSERT INTO `cc_asiento_contable_det` VALUES (247, 125, 1, '1.01.04.01.01', 'DEBE', '80.0000', '39', 227, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:56:36', '2026-03-24 09:56:36');
+INSERT INTO `cc_asiento_contable_det` VALUES (248, 125, 1, '1.01.04.02', 'HABER', '80', '39', 227, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:56:36', '2026-03-24 09:56:36');
+INSERT INTO `cc_asiento_contable_det` VALUES (249, 126, 1, '1.01.04.02', 'DEBE', '25.1482', '38', 43, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 09:59:04', '2026-03-24 09:59:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (250, 126, 1, '1.01.04.01.01', 'HABER', '25.1482', '38', 43, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 09:59:04', '2026-03-24 09:59:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (251, 127, 1, '1.01.04.01.01', 'DEBE', '40.5000', '39', 228, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 10:17:18', '2026-03-24 10:17:18');
+INSERT INTO `cc_asiento_contable_det` VALUES (252, 127, 1, '1.01.04.02', 'HABER', '40.5', '39', 228, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 10:17:18', '2026-03-24 10:17:18');
+INSERT INTO `cc_asiento_contable_det` VALUES (253, 128, 1, '1.01.04.02', 'DEBE', '18.169', '38', 44, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 10:18:33', '2026-03-24 10:18:33');
+INSERT INTO `cc_asiento_contable_det` VALUES (254, 128, 1, '1.01.04.01.01', 'HABER', '18.1690', '38', 44, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 10:18:33', '2026-03-24 10:18:33');
+INSERT INTO `cc_asiento_contable_det` VALUES (255, 129, 1, '1.01.04.01.01', 'DEBE', '40.5000', '39', 229, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 11:45:08', '2026-03-24 11:45:08');
+INSERT INTO `cc_asiento_contable_det` VALUES (256, 129, 1, '1.01.04.02', 'HABER', '40.5', '39', 229, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 11:45:08', '2026-03-24 11:45:08');
+INSERT INTO `cc_asiento_contable_det` VALUES (257, 130, 1, '1.01.04.01.01', 'DEBE', '20.2500', '39', 230, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 11:47:55', '2026-03-24 11:47:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (258, 130, 1, '1.01.04.02', 'HABER', '20.25', '39', 230, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 11:47:55', '2026-03-24 11:47:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (259, 131, 1, '1.01.04.01.01', 'DEBE', '7.2676', '39', 232, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:40:32', '2026-03-24 14:40:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (260, 131, 1, '1.01.04.02', 'HABER', '7.2676', '39', 232, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:40:32', '2026-03-24 14:40:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (261, 132, 1, '1.01.04.01.01', 'DEBE', '36.3380', '39', 233, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:46:58', '2026-03-24 14:46:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (262, 132, 1, '1.01.04.02', 'HABER', '36.338', '39', 233, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:46:58', '2026-03-24 14:46:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (263, 133, 1, '1.01.04.01.01', 'DEBE', '3.6338', '39', 234, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:48:50', '2026-03-24 14:48:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (264, 133, 1, '1.01.04.02', 'HABER', '3.6338', '39', 234, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:48:50', '2026-03-24 14:48:50');
+INSERT INTO `cc_asiento_contable_det` VALUES (265, 134, 1, '1.01.04.01.01', 'DEBE', '18.1690', '39', 235, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:52:23', '2026-03-24 14:52:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (266, 134, 1, '1.01.04.02', 'HABER', '18.169', '39', 235, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:52:23', '2026-03-24 14:52:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (267, 135, 1, '1.01.04.01.01', 'DEBE', '4.0500', '39', 236, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:53:37', '2026-03-24 14:53:37');
+INSERT INTO `cc_asiento_contable_det` VALUES (268, 135, 1, '1.01.04.02', 'HABER', '4.05', '39', 236, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:53:37', '2026-03-24 14:53:37');
+INSERT INTO `cc_asiento_contable_det` VALUES (269, 136, 1, '1.01.04.01.01', 'DEBE', '9.6426', '39', 237, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 14:54:40', '2026-03-24 14:54:40');
+INSERT INTO `cc_asiento_contable_det` VALUES (270, 136, 1, '1.01.04.02', 'HABER', '9.6426', '39', 237, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 14:54:40', '2026-03-24 14:54:40');
+INSERT INTO `cc_asiento_contable_det` VALUES (271, 137, 1, '1.01.04.01.01', 'DEBE', '180.0000', '39', 238, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:33:11', '2026-03-24 15:33:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (272, 137, 1, '1.01.04.02', 'HABER', '180', '39', 238, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:33:11', '2026-03-24 15:33:11');
+INSERT INTO `cc_asiento_contable_det` VALUES (273, 138, 1, '1.01.04.01.01', 'DEBE', '28.8000', '39', 239, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:33:58', '2026-03-24 15:33:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (274, 138, 1, '1.01.04.02', 'HABER', '28.8', '39', 239, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:33:58', '2026-03-24 15:33:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (275, 139, 1, '1.01.04.01.01', 'DEBE', '18.0000', '39', 240, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:34:51', '2026-03-24 15:34:51');
+INSERT INTO `cc_asiento_contable_det` VALUES (276, 139, 1, '1.01.04.02', 'HABER', '18', '39', 240, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:34:51', '2026-03-24 15:34:51');
+INSERT INTO `cc_asiento_contable_det` VALUES (277, 140, 1, '1.01.04.01.01', 'DEBE', '38.0000', '39', 241, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:36:03', '2026-03-24 15:36:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (278, 140, 1, '1.01.04.02', 'HABER', '38', '39', 241, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:36:03', '2026-03-24 15:36:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (279, 141, 1, '1.01.04.02', 'DEBE', '18.137', '38', 45, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:41:12', '2026-03-24 15:41:12');
+INSERT INTO `cc_asiento_contable_det` VALUES (280, 141, 1, '1.01.04.01.01', 'HABER', '18.1370', '38', 45, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:41:12', '2026-03-24 15:41:12');
+INSERT INTO `cc_asiento_contable_det` VALUES (281, 142, 1, '1.01.04.02', 'DEBE', '10.8822', '38', 46, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-03-24 15:42:21', '2026-03-24 15:42:21');
+INSERT INTO `cc_asiento_contable_det` VALUES (282, 142, 1, '1.01.04.01.01', 'HABER', '10.8822', '38', 46, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-03-24 15:42:21', '2026-03-24 15:42:21');
+INSERT INTO `cc_asiento_contable_det` VALUES (283, 143, 1, '1.01.04.01.01', 'DEBE', '38.7000', '39', 242, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (284, 143, 1, '1.01.04.02', 'HABER', '38.7', '39', 242, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (285, 144, 1, '1.01.04.01.02', 'DEBE', '89.25', '39', 244, 'Ajuste Entrada - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-05-01 12:54:58', '2026-05-01 12:54:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (286, 144, 1, '1.01.04.02', 'HABER', '89.25', '39', 244, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 12:54:58', '2026-05-01 12:54:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (287, 145, 1, '1.01.04.02', 'DEBE', '8.925', '38', 47, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
+INSERT INTO `cc_asiento_contable_det` VALUES (288, 145, 1, '1.01.04.01.02', 'HABER', '8.925', '38', 47, 'Ajuste Salida - Inventario Tarifa 15 % + IVA', 1, 1, NULL, NULL, '2026-05-01 13:10:10', '2026-05-01 13:10:10');
+INSERT INTO `cc_asiento_contable_det` VALUES (289, 146, 1, '1.01.04.01.01', 'DEBE', '45.0000', '39', 246, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (290, 146, 1, '1.01.04.02', 'HABER', '45', '39', 246, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (291, 147, 1, '1.01.04.02', 'DEBE', '135', '38', 48, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (292, 147, 1, '1.01.04.01.01', 'HABER', '135.0000', '38', 48, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-05-20 13:50:16', '2026-05-20 13:50:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (293, 148, 1, '1.01.04.01.01', 'DEBE', '225.0000', '39', 247, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 11:33:37', '2026-06-22 11:33:37');
+INSERT INTO `cc_asiento_contable_det` VALUES (294, 148, 1, '1.01.04.02', 'HABER', '225', '39', 247, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 11:33:37', '2026-06-22 11:33:37');
+INSERT INTO `cc_asiento_contable_det` VALUES (295, 149, 1, '1.01.04.01.01', 'DEBE', '180.0000', '39', 248, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (296, 149, 1, '1.01.04.02', 'HABER', '180', '39', 248, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (297, 150, 1, '1.01.04.01.01', 'DEBE', '90.0000', '39', 249, 'Ajuste Entrada - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (298, 150, 1, '1.01.04.02', 'HABER', '90', '39', 249, 'Ajuste Entrada - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (299, 151, 1, '1.01.04.02', 'DEBE', '45', '38', 49, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 12:53:52', '2026-06-22 12:53:52');
+INSERT INTO `cc_asiento_contable_det` VALUES (300, 151, 1, '1.01.04.01.01', 'HABER', '45.0000', '38', 49, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 12:53:52', '2026-06-22 12:53:52');
+INSERT INTO `cc_asiento_contable_det` VALUES (301, 152, 1, '1.01.04.02', 'DEBE', '135', '38', 50, 'Ajuste Salida - Cuenta de ajuste de entrada', 1, 1, NULL, NULL, '2026-06-22 12:55:43', '2026-06-22 12:55:43');
+INSERT INTO `cc_asiento_contable_det` VALUES (302, 152, 1, '1.01.04.01.01', 'HABER', '135.0000', '38', 50, 'Ajuste Salida - Inventario Tarifa 0%', 1, 1, NULL, NULL, '2026-06-22 12:55:43', '2026-06-22 12:55:43');
+INSERT INTO `cc_asiento_contable_det` VALUES (308, 154, 1, '1.01.04.01.02', 'DEBE', '42', '02', 1, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (309, 154, 1, '1.01.04.01.01', 'DEBE', '95', '02', 1, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (310, 154, 1, '1.01.06.01.02', 'DEBE', '6.3', '02', 1, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (311, 154, 1, '2.01.07.01.18', 'HABER', '0.63', '02', 1, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (312, 154, 1, '2.01.07.01.14', 'HABER', '2.4', '02', 1, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (313, 154, 1, '2.01.01.01.01', 'HABER', '140.27', '02', 1, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_asiento_contable_det` VALUES (314, 155, 1, '1.01.04.01.01', 'DEBE', '1.5', '02', 2, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 15:43:28');
+INSERT INTO `cc_asiento_contable_det` VALUES (315, 155, 1, '2.01.07.01.14', 'HABER', '0.03', '02', 2, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 15:43:28');
+INSERT INTO `cc_asiento_contable_det` VALUES (316, 155, 1, '2.01.01.01.01', 'HABER', '1.47', '02', 2, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 15:43:28');
+INSERT INTO `cc_asiento_contable_det` VALUES (317, 156, 1, '1.01.04.01.02', 'DEBE', '14', '02', 3, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (318, 156, 1, '1.01.04.01.01', 'DEBE', '9', '02', 3, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (319, 156, 1, '1.01.06.01.03', 'DEBE', '0.425', '02', 3, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (320, 156, 1, '1.01.06.01.02', 'DEBE', '2.1', '02', 3, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (321, 156, 1, '2.01.07.01.05', 'HABER', '0.76', '02', 3, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (322, 156, 1, '2.01.07.01.14', 'HABER', '0.4', '02', 3, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (323, 156, 1, '2.01.01.01.01', 'HABER', '24.365', '02', 3, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_asiento_contable_det` VALUES (324, 157, 1, '1.01.04.01.03', 'DEBE', '9', '02', 4, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (325, 157, 1, '1.01.04.01.02', 'DEBE', '14', '02', 4, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (326, 157, 1, '1.01.04.01.01', 'DEBE', '0.5', '02', 4, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (327, 157, 1, '1.01.06.01.02', 'DEBE', '2.1', '02', 4, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (328, 157, 1, '1.01.06.01.03', 'DEBE', '0.45', '02', 4, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (329, 157, 1, '2.01.07.01.05', 'HABER', '0.77', '02', 4, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (330, 157, 1, '2.01.07.01.14', 'HABER', '0.41', '02', 4, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (331, 157, 1, '2.01.01.01.01', 'HABER', '24.87', '02', 4, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_asiento_contable_det` VALUES (332, 158, 1, '1.01.04.01.01', 'DEBE', '90.5', '02', 5, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable_det` VALUES (333, 158, 1, '1.01.04.01.02', 'DEBE', '14', '02', 5, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable_det` VALUES (334, 158, 1, '1.01.06.01.02', 'DEBE', '2.1', '02', 5, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable_det` VALUES (335, 158, 1, '2.01.07.01.05', 'HABER', '0.63', '02', 5, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable_det` VALUES (336, 158, 1, '2.01.07.01.14', 'HABER', '1.83', '02', 5, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable_det` VALUES (337, 158, 1, '2.01.01.01.01', 'HABER', '104.14', '02', 5, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_asiento_contable_det` VALUES (338, 159, 1, '1.01.04.01.02', 'DEBE', '14', '02', 6, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (339, 159, 1, '1.01.04.01.03', 'DEBE', '16.8', '02', 6, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (340, 159, 1, '1.01.06.01.03', 'DEBE', '0.84', '02', 6, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (341, 159, 1, '1.01.06.01.02', 'DEBE', '2.1', '02', 6, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (342, 159, 1, '2.01.07.01.05', 'HABER', '0.88', '02', 6, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (343, 159, 1, '2.01.07.01.14', 'HABER', '0.54', '02', 6, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (344, 159, 1, '2.01.01.01.01', 'HABER', '32.32', '02', 6, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_asiento_contable_det` VALUES (345, 160, 1, '1.01.04.01.03', 'DEBE', '48.6', '02', 7, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (346, 160, 1, '1.01.04.01.01', 'DEBE', '0.6', '02', 7, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (347, 160, 1, '1.01.04.01.02', 'DEBE', '30.4', '02', 7, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (348, 160, 1, '1.01.06.01.02', 'DEBE', '4.56', '02', 7, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (349, 160, 1, '1.01.06.01.03', 'DEBE', '2.43', '02', 7, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (350, 160, 1, '2.01.07.01.05', 'HABER', '2.1', '02', 7, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (351, 160, 1, '2.01.07.01.14', 'HABER', '1.39', '02', 7, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (352, 160, 1, '2.01.01.01.01', 'HABER', '83.1', '02', 7, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_asiento_contable_det` VALUES (353, 161, 1, '1.01.04.01.03', 'DEBE', '16.2', '02', 8, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (354, 161, 1, '1.01.06.01.03', 'DEBE', '0.81', '02', 8, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (355, 161, 1, '2.01.07.01.05', 'HABER', '0.24', '02', 8, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (356, 161, 1, '2.01.07.01.14', 'HABER', '0.28', '02', 8, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (357, 161, 1, '2.01.01.01.01', 'HABER', '16.49', '02', 8, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:11:55');
+INSERT INTO `cc_asiento_contable_det` VALUES (358, 162, 1, '1.01.04.01.03', 'DEBE', '85', '02', 9, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_asiento_contable_det` VALUES (359, 162, 1, '1.01.06.01.03', 'DEBE', '4.25', '02', 9, 'IVA compras 5%', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_asiento_contable_det` VALUES (360, 162, 1, '2.01.07.01.05', 'HABER', '1.27', '02', 9, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_asiento_contable_det` VALUES (361, 162, 1, '2.01.07.01.14', 'HABER', '1.49', '02', 9, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_asiento_contable_det` VALUES (362, 162, 1, '2.01.01.01.01', 'HABER', '86.49', '02', 9, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_asiento_contable_det` VALUES (363, 163, 1, '1.01.04.01.01', 'DEBE', '207.9', '02', 12, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_asiento_contable_det` VALUES (364, 163, 1, '2.01.07.01.14', 'HABER', '3.64', '02', 12, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_asiento_contable_det` VALUES (365, 163, 1, '2.01.01.01.01', 'HABER', '204.26', '02', 12, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_asiento_contable_det` VALUES (366, 164, 1, '1.01.04.01.02', 'DEBE', '15.2', '02', 13, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (367, 164, 1, '1.01.04.01.01', 'DEBE', '1.05', '02', 13, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (368, 164, 1, '1.01.06.01.02', 'DEBE', '2.28', '02', 13, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (369, 164, 1, '2.01.07.01.05', 'HABER', '0.68', '02', 13, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (370, 164, 1, '2.01.07.01.14', 'HABER', '0.28', '02', 13, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (371, 164, 1, '2.01.01.01.01', 'HABER', '17.57', '02', 13, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_asiento_contable_det` VALUES (372, 165, 1, '1.01.04.01.01', 'DEBE', '1.05', '02', 14, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_asiento_contable_det` VALUES (373, 165, 1, '2.01.07.01.14', 'HABER', '0.02', '02', 14, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_asiento_contable_det` VALUES (374, 165, 1, '2.01.01.01.01', 'HABER', '1.03', '02', 14, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_asiento_contable_det` VALUES (375, 166, 1, '1.01.04.01.02', 'DEBE', '30.4', '02', 15, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_asiento_contable_det` VALUES (376, 166, 1, '1.01.06.01.02', 'DEBE', '4.56', '02', 15, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_asiento_contable_det` VALUES (377, 166, 1, '2.01.07.01.05', 'HABER', '1.37', '02', 15, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_asiento_contable_det` VALUES (378, 166, 1, '2.01.07.01.14', 'HABER', '0.53', '02', 15, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_asiento_contable_det` VALUES (379, 166, 1, '2.01.01.01.01', 'HABER', '33.06', '02', 15, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_asiento_contable_det` VALUES (380, 167, 1, '1.01.04.01.01', 'DEBE', '1.05', '02', 16, 'Compra - bienes y servicios', 2, 1, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
+INSERT INTO `cc_asiento_contable_det` VALUES (381, 167, 1, '2.01.07.01.14', 'HABER', '0.02', '02', 16, 'Retenciones de la compra', 2, 1, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
+INSERT INTO `cc_asiento_contable_det` VALUES (382, 167, 1, '2.01.01.01.01', 'HABER', '1.03', '02', 16, 'Cuenta por pagar proveedor', 2, 1, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
+INSERT INTO `cc_asiento_contable_det` VALUES (383, 168, 1, '1.01.04.01.02', 'DEBE', '15.2', '02', 17, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (384, 168, 1, '1.01.04.01.01', 'DEBE', '91.05', '02', 17, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (385, 168, 1, '1.01.06.01.02', 'DEBE', '2.28', '02', 17, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (386, 168, 1, '2.01.07.01.05', 'HABER', '0.68', '02', 17, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (387, 168, 1, '2.01.07.01.14', 'HABER', '1.86', '02', 17, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (388, 168, 1, '2.01.01.01.01', 'HABER', '105.99', '02', 17, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_asiento_contable_det` VALUES (389, 169, 1, '1.01.04.01.01', 'DEBE', '2.1', '02', 18, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (390, 169, 1, '2.01.07.01.14', 'HABER', '0.04', '02', 18, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (391, 169, 1, '2.01.01.01.01', 'HABER', '2.06', '02', 18, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
+INSERT INTO `cc_asiento_contable_det` VALUES (392, 170, 1, '1.01.04.01.01', 'DEBE', '10.5', '02', 19, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:42:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (393, 170, 1, '2.01.07.01.14', 'HABER', '0.18', '02', 19, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:42:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (394, 170, 1, '2.01.01.01.01', 'HABER', '10.32', '02', 19, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:42:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (395, 171, 1, '1.01.04.01.01', 'DEBE', '45', '02', 20, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (396, 171, 1, '1.01.04.01.02', 'DEBE', '30.4', '02', 20, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (397, 171, 1, '1.01.06.01.02', 'DEBE', '4.56', '02', 20, 'IVA compras 15%', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (398, 171, 1, '2.01.07.01.05', 'HABER', '1.37', '02', 20, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (399, 171, 1, '2.01.07.01.14', 'HABER', '1.32', '02', 20, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (400, 171, 1, '2.01.01.01.01', 'HABER', '77.27', '02', 20, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_asiento_contable_det` VALUES (401, 172, 1, '1.01.04.01.01', 'DEBE', '100.5', '02', 22, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_asiento_contable_det` VALUES (402, 172, 1, '2.01.07.01.14', 'HABER', '1.76', '02', 22, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_asiento_contable_det` VALUES (403, 172, 1, '2.01.01.01.01', 'HABER', '98.74', '02', 22, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_asiento_contable_det` VALUES (404, 173, 1, '2.01.01.01.01', 'DEBE', '45', '11', 23, 'Disminucion de cuenta por pagar por NDC', 1, 1, NULL, NULL, '2026-07-27 18:08:16', '2026-07-27 18:08:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (405, 173, 1, '1.01.04.01.01', 'HABER', '45', '11', 23, 'Nota de credito - bienes, servicios o descuentos', 1, 1, NULL, NULL, '2026-07-27 18:08:16', '2026-07-27 18:08:16');
+INSERT INTO `cc_asiento_contable_det` VALUES (406, 174, 1, '1.01.04.01.02', 'DEBE', '19.0816', '02', 24, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (407, 174, 1, '1.01.04.01.01', 'DEBE', '5.25', '02', 24, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (408, 174, 1, '2.01.07.01.14', 'HABER', '0.43', '02', 24, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (409, 174, 1, '2.01.01.01.01', 'HABER', '23.9016', '02', 24, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_asiento_contable_det` VALUES (410, 175, 1, '2.01.01.01.01', 'DEBE', '4.7704', '11', 25, 'Disminucion de cuenta por pagar por NDC', 1, 1, NULL, NULL, '2026-07-27 18:45:20', '2026-07-27 18:45:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (411, 175, 1, '1.01.04.01.02', 'HABER', '4.7704', '11', 25, 'Nota de credito - bienes, servicios o descuentos', 1, 1, NULL, NULL, '2026-07-27 18:45:20', '2026-07-27 18:45:20');
+INSERT INTO `cc_asiento_contable_det` VALUES (412, 176, 1, '1.01.07.02', 'DEBE', '45', '11', 26, 'Anticipo a proveedor por NDC', 1, 1, NULL, NULL, '2026-07-28 12:20:25', '2026-07-28 12:20:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (413, 176, 1, '1.01.04.01.01', 'HABER', '45', '11', 26, 'Nota de credito - bienes, servicios o descuentos', 1, 1, NULL, NULL, '2026-07-28 12:20:25', '2026-07-28 12:20:25');
+INSERT INTO `cc_asiento_contable_det` VALUES (414, 177, 1, '1.01.04.01.01', 'DEBE', '94.2', '02', 27, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_asiento_contable_det` VALUES (415, 177, 1, '2.01.07.01.14', 'HABER', '1.65', '02', 27, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_asiento_contable_det` VALUES (416, 177, 1, '2.01.01.01.01', 'HABER', '92.55', '02', 27, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_asiento_contable_det` VALUES (417, 178, 2, '1.01.04.01.01', 'DEBE', '3.15', '02', 28, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (418, 178, 2, '2.01.07.01.14', 'HABER', '0.06', '02', 28, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (419, 178, 2, '2.01.01.01.01', 'HABER', '3.09', '02', 28, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (420, 179, 2, '1.01.04.01.01', 'DEBE', '2.1', '02', 29, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (421, 179, 2, '2.01.07.01.14', 'HABER', '0.04', '02', 29, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (422, 179, 2, '2.01.01.01.01', 'HABER', '2.06', '02', 29, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_asiento_contable_det` VALUES (423, 180, 2, '1.01.04.01.01', 'DEBE', '5.75', '02', 30, 'Compra - bienes y servicios', 1, 1, NULL, NULL, '2026-07-28 14:12:45', '2026-07-28 14:12:45');
+INSERT INTO `cc_asiento_contable_det` VALUES (424, 180, 2, '2.01.07.01.14', 'HABER', '0.1', '02', 30, 'Retenciones de la compra', 1, 1, NULL, NULL, '2026-07-28 14:12:45', '2026-07-28 14:12:45');
+INSERT INTO `cc_asiento_contable_det` VALUES (425, 180, 2, '2.01.01.01.01', 'HABER', '5.65', '02', 30, 'Cuenta por pagar proveedor', 1, 1, NULL, NULL, '2026-07-28 14:12:45', '2026-07-28 14:12:45');
+INSERT INTO `cc_asiento_contable_det` VALUES (426, 181, 2, '2.01.01.01.01', 'DEBE', '1.15', '11', 31, 'Disminucion de cuenta por pagar por NDC', 1, 1, NULL, NULL, '2026-07-28 14:13:57', '2026-07-28 14:13:57');
+INSERT INTO `cc_asiento_contable_det` VALUES (427, 181, 2, '1.01.04.01.01', 'HABER', '1.15', '11', 31, 'Nota de credito - bienes, servicios o descuentos', 1, 1, NULL, NULL, '2026-07-28 14:13:57', '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_autocodigo
@@ -1192,6 +1326,7 @@ CREATE TABLE `cc_bio_auditoria`  (
 DROP TABLE IF EXISTS `cc_bio_comedores`;
 CREATE TABLE `cc_bio_comedores`  (
   `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'Identificador unico del comedor',
+  `fk_proyecto_sistema` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del sistema',
   `com_codigo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Codigo interno del comedor',
   `com_nombre` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Nombre del comedor',
   `com_ubicacion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Ubicacion fisica del comedor',
@@ -1200,13 +1335,15 @@ CREATE TABLE `cc_bio_comedores`  (
   `com_created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'Fecha de creacion del registro',
   `com_updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'Fecha de ultima actualizacion',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_bio_com_codigo`(`com_codigo`) USING BTREE
+  UNIQUE INDEX `uk_bio_com_proyecto_codigo`(`fk_proyecto_sistema`, `com_codigo`) USING BTREE,
+  INDEX `idx_bio_comedor_proyecto_sistema`(`fk_proyecto_sistema`) USING BTREE,
+  CONSTRAINT `fk_bio_comedor_proyecto_sistema` FOREIGN KEY (`fk_proyecto_sistema`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Comedores disponibles dentro de la operacion' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_bio_comedores
 -- ----------------------------
-INSERT INTO `cc_bio_comedores` VALUES (1, 'BS', 'BASE', 'BASE CENTRAL', 'COMEDOR PRINCIPAL DEL PORYECTO 1', 1, '2026-07-23 22:53:06', '2026-07-23 22:53:18');
+INSERT INTO `cc_bio_comedores` VALUES (1, 1, 'BS', 'BASE', 'BASE CENTRAL', 'COMEDOR PRINCIPAL DEL PORYECTO 1', 1, '2026-07-23 22:53:06', '2026-07-23 22:53:18');
 
 -- ----------------------------
 -- Table structure for cc_bio_comensales
@@ -1310,7 +1447,7 @@ CREATE TABLE `cc_bio_equipos`  (
   `eq_created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT 'Fecha de creacion del registro',
   `eq_updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT 'Fecha de ultima actualizacion',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_bio_eq_codigo`(`eq_codigo`) USING BTREE,
+  UNIQUE INDEX `uk_bio_eq_comedor_codigo`(`fk_comedor`, `eq_codigo`) USING BTREE,
   INDEX `idx_bio_eq_comedor`(`fk_comedor`) USING BTREE,
   CONSTRAINT `fk_bio_eq_comedor` FOREIGN KEY (`fk_comedor`) REFERENCES `cc_bio_comedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Equipos biometricos asociados a comedores' ROW_FORMAT = Dynamic;
@@ -1327,6 +1464,7 @@ INSERT INTO `cc_bio_equipos` VALUES (2, 1, '002', 'EQUIPO_DER', 'DELL', '524', '
 DROP TABLE IF EXISTS `cc_bio_marcaciones`;
 CREATE TABLE `cc_bio_marcaciones`  (
   `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT 'Identificador unico de la marcacion',
+  `fk_proyecto_sistema` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del sistema al momento de marcar',
   `fk_comensal` int(0) NOT NULL COMMENT 'Comensal que realizo la marcacion',
   `fk_comedor` int(0) NOT NULL COMMENT 'Comedor donde se realizo la marcacion',
   `fk_equipo` int(0) NOT NULL COMMENT 'Equipo biometrico que registro la marcacion',
@@ -1357,50 +1495,52 @@ CREATE TABLE `cc_bio_marcaciones`  (
   INDEX `idx_bio_marc_filtros`(`marc_fecha`, `fk_comedor`, `fk_servicio`, `marc_estado`, `marc_es_retraso`) USING BTREE,
   INDEX `idx_bio_marc_repetida`(`fk_comensal`, `fk_servicio`, `marc_fecha`, `marc_estado`) USING BTREE,
   INDEX `idx_bio_marc_tolerancia`(`fk_comensal`, `marc_estado`, `marc_fecha_hora`) USING BTREE,
+  INDEX `idx_bio_marc_proyecto_sistema`(`fk_proyecto_sistema`) USING BTREE,
   CONSTRAINT `fk_bio_marc_comedor` FOREIGN KEY (`fk_comedor`) REFERENCES `cc_bio_comedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_bio_marc_comensal` FOREIGN KEY (`fk_comensal`) REFERENCES `cc_bio_comensales` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_bio_marc_contratista` FOREIGN KEY (`fk_contratista`) REFERENCES `cc_bio_contratistas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_bio_marc_equipo` FOREIGN KEY (`fk_equipo`) REFERENCES `cc_bio_equipos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_bio_marc_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_bio_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_bio_marc_servicio` FOREIGN KEY (`fk_servicio`) REFERENCES `cc_bio_servicios` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `fk_bio_marc_servicio` FOREIGN KEY (`fk_servicio`) REFERENCES `cc_bio_servicios` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_bio_marc_proyecto_sistema` FOREIGN KEY (`fk_proyecto_sistema`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 33 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Marcaciones registradas por biometrico, manualmente o por importacion' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_bio_marcaciones
 -- ----------------------------
-INSERT INTO `cc_bio_marcaciones` VALUES (1, 2, 1, 1, 3, 1, 2, '2026-07-24', '17:01:59', '2026-07-24 17:01:59', 'VALIDA', 1, 0, 'MANUAL', 'CME-000002', 'Marcacion registrada manualmente.\nCorreccion administrativa: test de modificacion de marcacion', '2026-07-24 02:02:09', '2026-07-24 02:16:21');
-INSERT INTO `cc_bio_marcaciones` VALUES (2, 2, 1, 1, 4, 1, 2, '2026-07-24', '02:02:09', '2026-07-24 02:02:09', 'ANULADA', 0, 0, 'MANUAL', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.\nAnulacion administrativa: por que esta repetida', '2026-07-24 02:02:23', '2026-07-24 02:16:48');
-INSERT INTO `cc_bio_marcaciones` VALUES (3, 1, 1, 1, 4, 1, 1, '2026-07-24', '02:03:18', '2026-07-24 02:03:18', 'VALIDA', 1, 0, 'MANUAL', '34234D34', 'Marcacion registrada manualmente.', '2026-07-24 02:03:30', '2026-07-24 02:03:30');
-INSERT INTO `cc_bio_marcaciones` VALUES (4, 2, 1, 1, 4, 1, 2, '2026-07-24', '02:50:56', '2026-07-24 02:50:56', 'VALIDA', 1, 0, 'MANUAL', 'SDF4FDD', 'Marcacion registrada manual.', '2026-07-24 02:51:05', '2026-07-24 02:51:05');
-INSERT INTO `cc_bio_marcaciones` VALUES (5, 2, 1, 1, 3, 1, 2, '2026-07-24', '18:01:19', '2026-07-24 18:01:19', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:01:19', '2026-07-24 13:01:19');
-INSERT INTO `cc_bio_marcaciones` VALUES (6, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:13:35', '2026-07-24 13:13:35', 'VALIDA', 1, 0, '', 'SDF4FDD', 'Marcacion registrada terminal.', '2026-07-24 13:13:35', '2026-07-24 13:13:35');
-INSERT INTO `cc_bio_marcaciones` VALUES (7, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:13:49', '2026-07-24 13:13:49', 'VALIDA', 1, 0, '', '34234D34', 'Marcacion registrada terminal.', '2026-07-24 13:13:49', '2026-07-24 13:13:49');
-INSERT INTO `cc_bio_marcaciones` VALUES (8, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:16:03', '2026-07-24 13:16:03', 'REPETIDA', 0, 0, '', '34234D34', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 13:16:03', '2026-07-24 13:16:03');
-INSERT INTO `cc_bio_marcaciones` VALUES (9, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:19:38', '2026-07-24 13:19:38', 'REPETIDA', 0, 0, '', 'SDF4FDD', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:19:38', '2026-07-24 13:19:38');
-INSERT INTO `cc_bio_marcaciones` VALUES (10, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:20:09', '2026-07-24 13:20:09', 'VALIDA', 1, 0, '', 'SDF4FDD', 'Marcacion registrada terminal.', '2026-07-24 13:20:09', '2026-07-24 13:20:09');
-INSERT INTO `cc_bio_marcaciones` VALUES (11, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:24:49', '2026-07-24 13:24:49', 'REPETIDA', 0, 0, '', 'SDF4FDD', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 13:24:49', '2026-07-24 13:24:49');
-INSERT INTO `cc_bio_marcaciones` VALUES (12, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:32:36', '2026-07-24 13:32:36', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:32:36', '2026-07-24 13:32:36');
-INSERT INTO `cc_bio_marcaciones` VALUES (13, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:40:52', '2026-07-24 13:40:52', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:40:52', '2026-07-24 13:40:52');
-INSERT INTO `cc_bio_marcaciones` VALUES (14, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:41:00', '2026-07-24 13:41:00', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:41:00', '2026-07-24 13:41:00');
-INSERT INTO `cc_bio_marcaciones` VALUES (15, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:41:04', '2026-07-24 13:41:04', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:41:04', '2026-07-24 13:41:04');
-INSERT INTO `cc_bio_marcaciones` VALUES (16, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:42', '2026-07-24 14:05:42', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:43', '2026-07-24 14:05:43');
-INSERT INTO `cc_bio_marcaciones` VALUES (17, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:48', '2026-07-24 14:05:48', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:48', '2026-07-24 14:05:48');
-INSERT INTO `cc_bio_marcaciones` VALUES (18, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:55', '2026-07-24 14:05:55', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:55', '2026-07-24 14:05:55');
-INSERT INTO `cc_bio_marcaciones` VALUES (19, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:59', '2026-07-24 14:05:59', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:59', '2026-07-24 14:05:59');
-INSERT INTO `cc_bio_marcaciones` VALUES (20, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:06:43', '2026-07-24 14:06:43', 'VALIDA', 1, 1, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 14:06:44', '2026-07-24 14:06:44');
-INSERT INTO `cc_bio_marcaciones` VALUES (21, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:06:54', '2026-07-24 14:06:54', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:06:54', '2026-07-24 14:06:54');
-INSERT INTO `cc_bio_marcaciones` VALUES (22, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:23:27', '2026-07-24 14:23:27', 'VALIDA', 1, 1, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 14:23:27', '2026-07-24 14:23:27');
-INSERT INTO `cc_bio_marcaciones` VALUES (23, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:55:03', '2026-07-24 14:55:03', 'VALIDA', 1, 1, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 14:55:03', '2026-07-24 14:55:03');
-INSERT INTO `cc_bio_marcaciones` VALUES (24, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:55:15', '2026-07-24 14:55:15', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:55:15', '2026-07-24 14:55:15');
-INSERT INTO `cc_bio_marcaciones` VALUES (25, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:55:33', '2026-07-24 14:55:33', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:55:33', '2026-07-24 14:55:33');
-INSERT INTO `cc_bio_marcaciones` VALUES (26, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:55:54', '2026-07-24 14:55:54', 'VALIDA', 1, 1, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 14:55:54', '2026-07-24 14:55:54');
-INSERT INTO `cc_bio_marcaciones` VALUES (27, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:56:18', '2026-07-24 14:56:18', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:56:18', '2026-07-24 14:56:18');
-INSERT INTO `cc_bio_marcaciones` VALUES (28, 2, 1, 1, 2, 1, 2, '2026-07-24', '15:18:08', '2026-07-24 15:18:08', 'VALIDA', 1, 1, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 15:18:08', '2026-07-24 15:18:08');
-INSERT INTO `cc_bio_marcaciones` VALUES (29, 2, 1, 1, 2, 1, 2, '2026-07-24', '15:18:15', '2026-07-24 15:18:15', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 15:18:15', '2026-07-24 15:18:15');
-INSERT INTO `cc_bio_marcaciones` VALUES (30, 2, 1, 1, 3, 1, 2, '2026-07-24', '16:22:17', '2026-07-24 16:22:17', 'VALIDA', 1, 0, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 16:22:17', '2026-07-24 16:22:17');
-INSERT INTO `cc_bio_marcaciones` VALUES (31, 1, 1, 1, 3, 1, 1, '2026-07-24', '16:27:15', '2026-07-24 16:27:15', 'VALIDA', 1, 0, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 16:27:15', '2026-07-24 16:27:15');
-INSERT INTO `cc_bio_marcaciones` VALUES (32, 1, 1, 1, 3, 1, 1, '2026-07-24', '16:27:29', '2026-07-24 16:27:29', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 16:27:29', '2026-07-24 16:27:29');
-INSERT INTO `cc_bio_marcaciones` VALUES (33, 2, 1, 1, 3, 1, 2, '2026-07-24', '16:27:41', '2026-07-24 16:27:41', 'VALIDA', 1, 0, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 16:27:41', '2026-07-24 16:27:41');
+INSERT INTO `cc_bio_marcaciones` VALUES (1, 1, 2, 1, 1, 3, 1, 2, '2026-07-24', '17:01:59', '2026-07-24 17:01:59', 'VALIDA', 1, 0, 'MANUAL', 'CME-000002', 'Marcacion registrada manualmente.\nCorreccion administrativa: test de modificacion de marcacion', '2026-07-24 02:02:09', '2026-07-24 02:16:21');
+INSERT INTO `cc_bio_marcaciones` VALUES (2, 1, 2, 1, 1, 4, 1, 2, '2026-07-24', '02:02:09', '2026-07-24 02:02:09', 'ANULADA', 0, 0, 'MANUAL', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.\nAnulacion administrativa: por que esta repetida', '2026-07-24 02:02:23', '2026-07-24 02:16:48');
+INSERT INTO `cc_bio_marcaciones` VALUES (3, 1, 1, 1, 1, 4, 1, 1, '2026-07-24', '02:03:18', '2026-07-24 02:03:18', 'VALIDA', 1, 0, 'MANUAL', '34234D34', 'Marcacion registrada manualmente.', '2026-07-24 02:03:30', '2026-07-24 02:03:30');
+INSERT INTO `cc_bio_marcaciones` VALUES (4, 1, 2, 1, 1, 4, 1, 2, '2026-07-24', '02:50:56', '2026-07-24 02:50:56', 'VALIDA', 1, 0, 'MANUAL', 'SDF4FDD', 'Marcacion registrada manual.', '2026-07-24 02:51:05', '2026-07-24 02:51:05');
+INSERT INTO `cc_bio_marcaciones` VALUES (5, 1, 2, 1, 1, 3, 1, 2, '2026-07-24', '18:01:19', '2026-07-24 18:01:19', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:01:19', '2026-07-24 13:01:19');
+INSERT INTO `cc_bio_marcaciones` VALUES (6, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:13:35', '2026-07-24 13:13:35', 'VALIDA', 1, 0, '', 'SDF4FDD', 'Marcacion registrada terminal.', '2026-07-24 13:13:35', '2026-07-24 13:13:35');
+INSERT INTO `cc_bio_marcaciones` VALUES (7, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:13:49', '2026-07-24 13:13:49', 'VALIDA', 1, 0, '', '34234D34', 'Marcacion registrada terminal.', '2026-07-24 13:13:49', '2026-07-24 13:13:49');
+INSERT INTO `cc_bio_marcaciones` VALUES (8, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:16:03', '2026-07-24 13:16:03', 'REPETIDA', 0, 0, '', '34234D34', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 13:16:03', '2026-07-24 13:16:03');
+INSERT INTO `cc_bio_marcaciones` VALUES (9, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:19:38', '2026-07-24 13:19:38', 'REPETIDA', 0, 0, '', 'SDF4FDD', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:19:38', '2026-07-24 13:19:38');
+INSERT INTO `cc_bio_marcaciones` VALUES (10, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:20:09', '2026-07-24 13:20:09', 'VALIDA', 1, 0, '', 'SDF4FDD', 'Marcacion registrada terminal.', '2026-07-24 13:20:09', '2026-07-24 13:20:09');
+INSERT INTO `cc_bio_marcaciones` VALUES (11, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '13:24:49', '2026-07-24 13:24:49', 'REPETIDA', 0, 0, '', 'SDF4FDD', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 13:24:49', '2026-07-24 13:24:49');
+INSERT INTO `cc_bio_marcaciones` VALUES (12, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:32:36', '2026-07-24 13:32:36', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:32:36', '2026-07-24 13:32:36');
+INSERT INTO `cc_bio_marcaciones` VALUES (13, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:40:52', '2026-07-24 13:40:52', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:40:52', '2026-07-24 13:40:52');
+INSERT INTO `cc_bio_marcaciones` VALUES (14, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:41:00', '2026-07-24 13:41:00', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:41:00', '2026-07-24 13:41:00');
+INSERT INTO `cc_bio_marcaciones` VALUES (15, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '13:41:04', '2026-07-24 13:41:04', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 13:41:04', '2026-07-24 13:41:04');
+INSERT INTO `cc_bio_marcaciones` VALUES (16, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:42', '2026-07-24 14:05:42', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:43', '2026-07-24 14:05:43');
+INSERT INTO `cc_bio_marcaciones` VALUES (17, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:48', '2026-07-24 14:05:48', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:48', '2026-07-24 14:05:48');
+INSERT INTO `cc_bio_marcaciones` VALUES (18, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:55', '2026-07-24 14:05:55', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:55', '2026-07-24 14:05:55');
+INSERT INTO `cc_bio_marcaciones` VALUES (19, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:05:59', '2026-07-24 14:05:59', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: el comensal ya registra un consumo valido para este servicio en la fecha seleccionada.', '2026-07-24 14:05:59', '2026-07-24 14:05:59');
+INSERT INTO `cc_bio_marcaciones` VALUES (20, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:06:43', '2026-07-24 14:06:43', 'VALIDA', 1, 1, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 14:06:44', '2026-07-24 14:06:44');
+INSERT INTO `cc_bio_marcaciones` VALUES (21, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:06:54', '2026-07-24 14:06:54', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:06:54', '2026-07-24 14:06:54');
+INSERT INTO `cc_bio_marcaciones` VALUES (22, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:23:27', '2026-07-24 14:23:27', 'VALIDA', 1, 1, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 14:23:27', '2026-07-24 14:23:27');
+INSERT INTO `cc_bio_marcaciones` VALUES (23, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:55:03', '2026-07-24 14:55:03', 'VALIDA', 1, 1, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 14:55:03', '2026-07-24 14:55:03');
+INSERT INTO `cc_bio_marcaciones` VALUES (24, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:55:15', '2026-07-24 14:55:15', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:55:15', '2026-07-24 14:55:15');
+INSERT INTO `cc_bio_marcaciones` VALUES (25, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '14:55:33', '2026-07-24 14:55:33', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:55:33', '2026-07-24 14:55:33');
+INSERT INTO `cc_bio_marcaciones` VALUES (26, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:55:54', '2026-07-24 14:55:54', 'VALIDA', 1, 1, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 14:55:54', '2026-07-24 14:55:54');
+INSERT INTO `cc_bio_marcaciones` VALUES (27, 1, 1, 1, 1, 2, 1, 1, '2026-07-24', '14:56:18', '2026-07-24 14:56:18', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 14:56:18', '2026-07-24 14:56:18');
+INSERT INTO `cc_bio_marcaciones` VALUES (28, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '15:18:08', '2026-07-24 15:18:08', 'VALIDA', 1, 1, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 15:18:08', '2026-07-24 15:18:08');
+INSERT INTO `cc_bio_marcaciones` VALUES (29, 1, 2, 1, 1, 2, 1, 2, '2026-07-24', '15:18:15', '2026-07-24 15:18:15', 'REPETIDA', 0, 0, '', 'CME-000002', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 15:18:15', '2026-07-24 15:18:15');
+INSERT INTO `cc_bio_marcaciones` VALUES (30, 1, 2, 1, 1, 3, 1, 2, '2026-07-24', '16:22:17', '2026-07-24 16:22:17', 'VALIDA', 1, 0, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 16:22:17', '2026-07-24 16:22:17');
+INSERT INTO `cc_bio_marcaciones` VALUES (31, 1, 1, 1, 1, 3, 1, 1, '2026-07-24', '16:27:15', '2026-07-24 16:27:15', 'VALIDA', 1, 0, '', 'CME-000001', 'Marcacion registrada terminal.', '2026-07-24 16:27:15', '2026-07-24 16:27:15');
+INSERT INTO `cc_bio_marcaciones` VALUES (32, 1, 1, 1, 1, 3, 1, 1, '2026-07-24', '16:27:29', '2026-07-24 16:27:29', 'REPETIDA', 0, 0, '', 'CME-000001', 'Marcacion repetida: existe una marcacion valida dentro de la tolerancia configurada.', '2026-07-24 16:27:29', '2026-07-24 16:27:29');
+INSERT INTO `cc_bio_marcaciones` VALUES (33, 1, 2, 1, 1, 3, 1, 2, '2026-07-24', '16:27:41', '2026-07-24 16:27:41', 'VALIDA', 1, 0, '', 'CME-000002', 'Marcacion registrada terminal.', '2026-07-24 16:27:41', '2026-07-24 16:27:41');
 
 -- ----------------------------
 -- Table structure for cc_bio_proyectos
@@ -1887,7 +2027,7 @@ CREATE TABLE `cc_compras`  (
   `fk_compra_relacionada` int(0) NULL DEFAULT NULL COMMENT 'Compra original en caso de nota de credito',
   `comp_tipo_nota_credito` enum('DEVOLUCION','DESCUENTO') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `comp_pago_residente` enum('RESIDENTE','NO_RESIDENTE') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'SI el proveedor que paga es recidente o no del pais',
-  `fk_proyecto` int(0) NULL DEFAULT NULL COMMENT 'PROYECTOS DE LA MISMA EMPRESA O ID DE OTRA  EMPRESA',
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del sistema',
   `comp_fecha_anulacion` datetime(0) NULL DEFAULT NULL,
   `comp_motivo_anulacion` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `fk_user_anulacion` int(0) NULL DEFAULT NULL,
@@ -1912,6 +2052,7 @@ CREATE TABLE `cc_compras`  (
   INDEX `fk_user`(`fk_user`) USING BTREE,
   INDEX `idx_comp_relacionada`(`fk_compra_relacionada`) USING BTREE,
   INDEX `cod_sustento`(`cod_sustento`) USING BTREE,
+  INDEX `idx_compra_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_compras_ibfk_1` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_compras_ibfk_2` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_compras_ibfk_3` FOREIGN KEY (`fk_centro_costo`) REFERENCES `cc_centroscosto` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -1920,33 +2061,42 @@ CREATE TABLE `cc_compras`  (
   CONSTRAINT `cc_compras_ibfk_7` FOREIGN KEY (`cod_forma_pago`) REFERENCES `cc_formas_pago` (`cod`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_compras_ibfk_8` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_compras_ibfk_9` FOREIGN KEY (`cod_sustento`) REFERENCES `cc_sustentos` (`sus_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_compra_relacionada` FOREIGN KEY (`fk_compra_relacionada`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `fk_compra_relacionada` FOREIGN KEY (`fk_compra_relacionada`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_compra_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_compras
 -- ----------------------------
-INSERT INTO `cc_compras` VALUES (1, 1, 1, '123', '001', '002', '0123456789', '2026-07-06', '01', '2026-07-06', '2026-07-06 13:14:31', 1, 1, 3, '02', 0, 0, 137.000000, 0.000000, 0.000000, 0.000000, 137.000000, 6.300000, 0.000000, 0.000000, 0.000000, 143.300000, 95.000000, 95.000000, 42.000000, 42.000000, 137.000000, 137.000000, 0.000000, 0.000000, 42.000000, 1, 3, 'NO_ASUMIR', NULL, 'CREDITO', 30, 2, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-06 20:37:32', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-06 13:14:31', '2026-07-06 15:37:32');
-INSERT INTO `cc_compras` VALUES (2, 2, 1, '652', '001', '002', '0123456789', '2026-07-06', '01', '2026-07-06', '2026-07-06 15:43:28', 1, 1, 3, '02', 0, 0, 1.500000, 0.000000, 0.000000, 0.000000, 1.500000, 0.000000, 0.000000, 0.000000, 0.000000, 1.500000, 1.500000, 1.500000, 0.000000, 0.000000, 1.500000, 1.500000, 0.000000, 0.000000, 0.000000, 1, 4, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ANULADA_EN_ARCHIVADA', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, '2026-07-06 21:54:28', 'esta muy mal', 1, '2026-07-06 20:43:28', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
-INSERT INTO `cc_compras` VALUES (3, 3, 1, '578', '001', '002', '01123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 09:16:58', 1, 1, 2, '02', 0, 0, 23.000000, 0.000000, 0.000000, 0.000000, 23.000000, 2.525000, 0.000000, 0.000000, 0.000000, 25.525000, 0.500000, 0.500000, 22.500000, 22.500000, 23.000000, 23.000000, 0.000000, 0.000000, 22.500000, 1, 5, 'NO_ASUMIR', NULL, 'CREDITO', 30, 3, 'true', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-10 14:16:58', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_compras` VALUES (4, 4, 1, '544', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 10:05:14', 1, 1, 3, '01', 0, 0, 23.500000, 0.000000, 0.000000, 0.000000, 23.500000, 2.550000, 0.000000, 0.000000, 0.000000, 26.050000, 0.500000, 0.500000, 23.000000, 23.000000, 23.500000, 23.500000, 0.000000, 0.000000, 23.000000, 1, 6, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-10 15:05:14', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_compras` VALUES (5, 5, 1, '589', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 10:26:56', 1, 1, 2, '01', 0, 0, 104.500000, 0.000000, 0.000000, 0.000000, 104.500000, 2.100000, 0.000000, 0.000000, 0.000000, 106.600000, 90.500000, 90.500000, 14.000000, 14.000000, 104.500000, 104.500000, 0.000000, 0.000000, 14.000000, 1, 7, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, 'TESTERYU', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-10 15:26:56', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_compras` VALUES (6, 6, 1, '875', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 10:59:09', 1, 1, 2, '02', 0, 0, 30.800000, 0.000000, 0.000000, 0.000000, 30.800000, 2.940000, 0.000000, 0.000000, 0.000000, 33.740000, 0.000000, 0.000000, 30.800000, 30.800000, 30.800000, 30.800000, 0.000000, 0.000000, 30.800000, 1, 8, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, 'dsdf', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-10 15:59:09', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_compras` VALUES (7, 7, 1, '145', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 11:10:00', 1, 1, 3, '02', 0, 0, 79.600000, 0.000000, 0.000000, 0.000000, 79.600000, 6.990000, 0.000000, 0.000000, 0.000000, 86.590000, 0.600000, 0.600000, 79.000000, 79.000000, 79.600000, 79.600000, 0.000000, 0.000000, 79.000000, 1, 9, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-10 16:10:00', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 11:10:00', '2026-07-10 11:10:01');
-INSERT INTO `cc_compras` VALUES (8, 8, 1, '879', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 11:11:55', 1, 1, 3, '02', 0, 0, 16.200000, 0.000000, 0.000000, 0.000000, 16.200000, 0.810000, 0.000000, 0.000000, 0.000000, 17.010000, 0.000000, 0.000000, 16.200000, 16.200000, 16.200000, 16.200000, 0.000000, 0.000000, 16.200000, 1, 10, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ANULADA_EN_ARCHIVADA', NULL, 1, 'DSDFSD', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, '2026-07-10 16:14:30', 'ESTA MAL LA CANTIDAD', 1, '2026-07-10 16:11:55', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
-INSERT INTO `cc_compras` VALUES (9, 9, 1, '569', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 11:13:38', 1, 1, 3, '02', 0, 0, 85.000000, 0.000000, 0.000000, 0.000000, 85.000000, 4.250000, 0.000000, 0.000000, 0.000000, 89.250000, 0.000000, 0.000000, 85.000000, 85.000000, 85.000000, 85.000000, 0.000000, 0.000000, 85.000000, 1, 11, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-10 16:13:38', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_compras` VALUES (12, 10, 20, '000000458', '001', '100', '1506202601171071349400120011000000004587953467614', '2026-07-10', '01', '2026-06-15', '2026-07-10 23:22:54', 1, 1, 2, '01', 0, 0, 207.900000, 0.000000, 0.000000, 0.000000, 207.900000, 0.000000, 0.000000, 0.000000, 0.000000, 207.900000, 207.900000, 207.900000, 0.000000, 0.000000, 207.900000, 207.900000, 0.000000, 0.000000, 0.000000, 1, 14, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-11 04:22:54', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_compras` VALUES (13, 11, 4, '789', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 10:31:46', 1, 1, 2, '02', 0, 0, 16.250000, 0.000000, 0.000000, 0.000000, 16.250000, 2.280000, 0.000000, 0.000000, 0.000000, 18.530000, 1.050000, 1.050000, 15.200000, 15.200000, 16.250000, 16.250000, 0.000000, 0.000000, 15.200000, 1, 15, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 15:31:46', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_compras` VALUES (14, 12, 4, '742', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 10:33:43', 1, 1, 3, '01', 0, 0, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1, 16, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 15:33:43', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_compras` VALUES (15, 13, 4, '000000215', '001', '002', '0123456789', '2026-07-12', '02', '2026-07-12', '2026-07-12 10:35:59', 1, 1, 3, '02', 0, 0, 30.400000, 0.000000, 0.000000, 0.000000, 30.400000, 4.560000, 0.000000, 0.000000, 0.000000, 34.960000, 0.000000, 0.000000, 30.400000, 30.400000, 30.400000, 30.400000, 0.000000, 0.000000, 30.400000, 1, 17, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 15:35:59', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:35:59', '2026-07-12 16:44:39');
-INSERT INTO `cc_compras` VALUES (16, 14, 4, '000000518', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 10:48:44', 1, 2, 3, '01', 0, 0, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1, 18, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 8, 'compra de prueba', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 15:48:44', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:48:44', '2026-07-12 12:53:41');
-INSERT INTO `cc_compras` VALUES (17, 15, 4, '000000857', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 13:28:04', 1, 1, 8, '01', 0, 0, 106.250000, 0.000000, 0.000000, 0.000000, 106.250000, 2.280000, 0.000000, 0.000000, 0.000000, 108.530000, 91.050000, 91.050000, 15.200000, 15.200000, 106.250000, 106.250000, 0.000000, 0.000000, 15.200000, 1, 19, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 18:28:04', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 13:28:04', '2026-07-12 16:32:04');
-INSERT INTO `cc_compras` VALUES (18, 16, 19, '000000458', '001', '002', '0123456789', '2026-07-12', '02', '2026-07-12', '2026-07-12 16:33:47', 1, 1, 8, '05', 0, 0, 2.100000, 0.000000, 0.000000, 0.000000, 2.100000, 0.000000, 0.000000, 0.000000, 0.000000, 2.100000, 2.100000, 2.100000, 0.000000, 0.000000, 2.100000, 2.100000, 0.000000, 0.000000, 0.000000, 1, 20, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 21:34:47', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 16:33:47', '2026-07-12 16:43:23');
-INSERT INTO `cc_compras` VALUES (19, 17, 19, '000000236', '001', '002', '0123456789', '2026-07-12', '02', '2026-07-12', '2026-07-12 16:42:16', 1, 1, 8, '06', 0, 0, 10.500000, 0.000000, 0.000000, 0.000000, 10.500000, 0.000000, 0.000000, 0.000000, 0.000000, 10.500000, 10.500000, 10.500000, 0.000000, 0.000000, 10.500000, 10.500000, 0.000000, 0.000000, 0.000000, 1, 21, 'NO_ASUMIR', NULL, 'CREDITO', 60, 1, 'true', 'ANULADA_EN_ARCHIVADA', NULL, 1, 'texto', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, '2026-07-12 21:57:33', 'esta mal el documento', 1, '2026-07-12 21:42:16', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
-INSERT INTO `cc_compras` VALUES (20, 18, 4, '000000859', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 16:53:29', 1, 1, 8, '06', 0, 0, 75.400000, 0.000000, 0.000000, 0.000000, 75.400000, 4.560000, 0.000000, 0.000000, 0.000000, 79.960000, 45.000000, 45.000000, 30.400000, 30.400000, 75.400000, 75.400000, 0.000000, 0.000000, 30.400000, 1, 22, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-12 21:53:29', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_compras` VALUES (21, 19, 4, '000000454', '001', '002', '0123456789', '2026-07-26', '04', '2026-07-26', '2026-07-26 17:29:09', 1, 1, 8, '06', 0, 0, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 2.280000, 0.000000, 0.000000, 0.000000, 17.480000, 0.000000, 0.000000, 15.200000, 15.200000, 15.200000, 15.200000, 0.000000, 0.000000, 15.200000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', 20, 'DEVOLUCION', NULL, NULL, NULL, NULL, NULL, '2026-07-26 17:29:09', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-26 17:29:09', '2026-07-26 17:29:09');
-INSERT INTO `cc_compras` VALUES (22, 20, 4, '000000747', '001', '002', '0123456789', '2026-07-27', '01', '2026-07-27', '2026-07-27 17:52:44', 1, 1, 5, '06', 0, 0, 100.500000, 0.000000, 0.000000, 0.000000, 100.500000, 0.000000, 0.000000, 0.000000, 0.000000, 100.500000, 100.500000, 100.500000, 0.000000, 0.000000, 100.500000, 100.500000, 0.000000, 0.000000, 0.000000, 1, 23, 'NO_ASUMIR', NULL, 'CREDITO', 30, 3, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', NULL, NULL, NULL, NULL, '2026-07-27 17:52:44', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
-INSERT INTO `cc_compras` VALUES (23, 21, 4, '000000456', '001', '002', '0123456789', '2026-07-27', '04', '2026-07-27', '2026-07-27 18:08:15', 1, 1, 5, '06', 0, 0, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ARCHIVADO', NULL, 1, 'test | Destino financiero NDC: Cuenta por pagar. se va a cxp del proveedor', 'DIRECTOS', 22, 'DEVOLUCION', NULL, NULL, NULL, NULL, NULL, '2026-07-27 18:08:15', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-27 18:08:15', '2026-07-27 18:08:15');
+INSERT INTO `cc_compras` VALUES (1, 1, 1, '123', '001', '002', '0123456789', '2026-07-06', '01', '2026-07-06', '2026-07-06 13:14:31', 1, 1, 3, '02', 0, 0, 137.000000, 0.000000, 0.000000, 0.000000, 137.000000, 6.300000, 0.000000, 0.000000, 0.000000, 143.300000, 95.000000, 95.000000, 42.000000, 42.000000, 137.000000, 137.000000, 0.000000, 0.000000, 42.000000, 1, 3, 'NO_ASUMIR', NULL, 'CREDITO', 30, 2, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-06 20:37:32', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-06 13:14:31', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (2, 2, 1, '652', '001', '002', '0123456789', '2026-07-06', '01', '2026-07-06', '2026-07-06 15:43:28', 1, 1, 3, '02', 0, 0, 1.500000, 0.000000, 0.000000, 0.000000, 1.500000, 0.000000, 0.000000, 0.000000, 0.000000, 1.500000, 1.500000, 1.500000, 0.000000, 0.000000, 1.500000, 1.500000, 0.000000, 0.000000, 0.000000, 1, 4, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ANULADA_EN_ARCHIVADA', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, '2026-07-06 21:54:28', 'esta muy mal', 1, '2026-07-06 20:43:28', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-06 15:43:28', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (3, 3, 1, '578', '001', '002', '01123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 09:16:58', 1, 1, 2, '02', 0, 0, 23.000000, 0.000000, 0.000000, 0.000000, 23.000000, 2.525000, 0.000000, 0.000000, 0.000000, 25.525000, 0.500000, 0.500000, 22.500000, 22.500000, 23.000000, 23.000000, 0.000000, 0.000000, 22.500000, 1, 5, 'NO_ASUMIR', NULL, 'CREDITO', 30, 3, 'true', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-10 14:16:58', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 09:16:58', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (4, 4, 1, '544', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 10:05:14', 1, 1, 3, '01', 0, 0, 23.500000, 0.000000, 0.000000, 0.000000, 23.500000, 2.550000, 0.000000, 0.000000, 0.000000, 26.050000, 0.500000, 0.500000, 23.000000, 23.000000, 23.500000, 23.500000, 0.000000, 0.000000, 23.000000, 1, 6, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-10 15:05:14', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 10:05:14', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (5, 5, 1, '589', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 10:26:56', 1, 1, 2, '01', 0, 0, 104.500000, 0.000000, 0.000000, 0.000000, 104.500000, 2.100000, 0.000000, 0.000000, 0.000000, 106.600000, 90.500000, 90.500000, 14.000000, 14.000000, 104.500000, 104.500000, 0.000000, 0.000000, 14.000000, 1, 7, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, 'TESTERYU', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-10 15:26:56', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 10:26:56', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (6, 6, 1, '875', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 10:59:09', 1, 1, 2, '02', 0, 0, 30.800000, 0.000000, 0.000000, 0.000000, 30.800000, 2.940000, 0.000000, 0.000000, 0.000000, 33.740000, 0.000000, 0.000000, 30.800000, 30.800000, 30.800000, 30.800000, 0.000000, 0.000000, 30.800000, 1, 8, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, 'dsdf', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-10 15:59:09', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 10:59:09', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (7, 7, 1, '145', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 11:10:00', 1, 1, 3, '02', 0, 0, 79.600000, 0.000000, 0.000000, 0.000000, 79.600000, 6.990000, 0.000000, 0.000000, 0.000000, 86.590000, 0.600000, 0.600000, 79.000000, 79.000000, 79.600000, 79.600000, 0.000000, 0.000000, 79.000000, 1, 9, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-10 16:10:00', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 11:10:00', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (8, 8, 1, '879', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 11:11:55', 1, 1, 3, '02', 0, 0, 16.200000, 0.000000, 0.000000, 0.000000, 16.200000, 0.810000, 0.000000, 0.000000, 0.000000, 17.010000, 0.000000, 0.000000, 16.200000, 16.200000, 16.200000, 16.200000, 0.000000, 0.000000, 16.200000, 1, 10, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ANULADA_EN_ARCHIVADA', NULL, 1, 'DSDFSD', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, '2026-07-10 16:14:30', 'ESTA MAL LA CANTIDAD', 1, '2026-07-10 16:11:55', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 11:11:55', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (9, 9, 1, '569', '001', '002', '0123456789', '2026-07-10', '01', '2026-07-10', '2026-07-10 11:13:38', 1, 1, 3, '02', 0, 0, 85.000000, 0.000000, 0.000000, 0.000000, 85.000000, 4.250000, 0.000000, 0.000000, 0.000000, 89.250000, 0.000000, 0.000000, 85.000000, 85.000000, 85.000000, 85.000000, 0.000000, 0.000000, 85.000000, 1, 11, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-10 16:13:38', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 11:13:38', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (12, 10, 20, '000000458', '001', '100', '1506202601171071349400120011000000004587953467614', '2026-07-10', '01', '2026-06-15', '2026-07-10 23:22:54', 1, 1, 2, '01', 0, 0, 207.900000, 0.000000, 0.000000, 0.000000, 207.900000, 0.000000, 0.000000, 0.000000, 0.000000, 207.900000, 207.900000, 207.900000, 0.000000, 0.000000, 207.900000, 207.900000, 0.000000, 0.000000, 0.000000, 1, 14, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-11 04:22:54', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-10 23:22:54', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (13, 11, 4, '789', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 10:31:46', 1, 1, 2, '02', 0, 0, 16.250000, 0.000000, 0.000000, 0.000000, 16.250000, 2.280000, 0.000000, 0.000000, 0.000000, 18.530000, 1.050000, 1.050000, 15.200000, 15.200000, 16.250000, 16.250000, 0.000000, 0.000000, 15.200000, 1, 15, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 15:31:46', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:31:46', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (14, 12, 4, '742', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 10:33:43', 1, 1, 3, '01', 0, 0, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1, 16, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 15:33:43', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:33:43', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (15, 13, 4, '000000215', '001', '002', '0123456789', '2026-07-12', '02', '2026-07-12', '2026-07-12 10:35:59', 1, 1, 3, '02', 0, 0, 30.400000, 0.000000, 0.000000, 0.000000, 30.400000, 4.560000, 0.000000, 0.000000, 0.000000, 34.960000, 0.000000, 0.000000, 30.400000, 30.400000, 30.400000, 30.400000, 0.000000, 0.000000, 30.400000, 1, 17, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 15:35:59', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:35:59', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (16, 14, 4, '000000518', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 10:48:44', 1, 2, 3, '01', 0, 0, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1, 18, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 8, 'compra de prueba', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 15:48:44', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 10:48:44', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (17, 15, 4, '000000857', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 13:28:04', 1, 1, 8, '01', 0, 0, 106.250000, 0.000000, 0.000000, 0.000000, 106.250000, 2.280000, 0.000000, 0.000000, 0.000000, 108.530000, 91.050000, 91.050000, 15.200000, 15.200000, 106.250000, 106.250000, 0.000000, 0.000000, 15.200000, 1, 19, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 18:28:04', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 13:28:04', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (18, 16, 19, '000000458', '001', '002', '0123456789', '2026-07-12', '02', '2026-07-12', '2026-07-12 16:33:47', 1, 1, 8, '05', 0, 0, 2.100000, 0.000000, 0.000000, 0.000000, 2.100000, 0.000000, 0.000000, 0.000000, 0.000000, 2.100000, 2.100000, 2.100000, 0.000000, 0.000000, 2.100000, 2.100000, 0.000000, 0.000000, 0.000000, 1, 20, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 21:34:47', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 16:33:47', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (19, 17, 19, '000000236', '001', '002', '0123456789', '2026-07-12', '02', '2026-07-12', '2026-07-12 16:42:16', 1, 1, 8, '06', 0, 0, 10.500000, 0.000000, 0.000000, 0.000000, 10.500000, 0.000000, 0.000000, 0.000000, 0.000000, 10.500000, 10.500000, 10.500000, 0.000000, 0.000000, 10.500000, 10.500000, 0.000000, 0.000000, 0.000000, 1, 21, 'NO_ASUMIR', NULL, 'CREDITO', 60, 1, 'true', 'ANULADA_EN_ARCHIVADA', NULL, 1, 'texto', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, '2026-07-12 21:57:33', 'esta mal el documento', 1, '2026-07-12 21:42:16', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 16:42:16', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (20, 18, 4, '000000859', '001', '002', '0123456789', '2026-07-12', '01', '2026-07-12', '2026-07-12 16:53:29', 1, 1, 8, '06', 0, 0, 75.400000, 0.000000, 0.000000, 0.000000, 75.400000, 4.560000, 0.000000, 0.000000, 0.000000, 79.960000, 45.000000, 45.000000, 30.400000, 30.400000, 75.400000, 75.400000, 0.000000, 0.000000, 30.400000, 1, 22, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-12 21:53:29', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-12 16:53:29', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (21, 19, 4, '000000454', '001', '002', '0123456789', '2026-07-26', '04', '2026-07-26', '2026-07-26 17:29:09', 1, 1, 8, '06', 0, 0, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 2.280000, 0.000000, 0.000000, 0.000000, 17.480000, 0.000000, 0.000000, 15.200000, 15.200000, 15.200000, 15.200000, 0.000000, 0.000000, 15.200000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', 20, 'DEVOLUCION', NULL, 1, NULL, NULL, NULL, '2026-07-26 17:29:09', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-26 17:29:09', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (22, 20, 4, '000000747', '001', '002', '0123456789', '2026-07-27', '01', '2026-07-27', '2026-07-27 17:52:44', 1, 1, 5, '06', 0, 0, 100.500000, 0.000000, 0.000000, 0.000000, 100.500000, 0.000000, 0.000000, 0.000000, 0.000000, 100.500000, 100.500000, 100.500000, 0.000000, 0.000000, 100.500000, 100.500000, 0.000000, 0.000000, 0.000000, 1, 23, 'NO_ASUMIR', NULL, 'CREDITO', 30, 3, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-27 17:52:44', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-27 17:52:44', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (23, 21, 4, '000000456', '001', '002', '0123456789', '2026-07-27', '04', '2026-07-27', '2026-07-27 18:08:15', 1, 1, 5, '06', 0, 0, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ARCHIVADO', NULL, 1, 'test | Destino financiero NDC: Cuenta por pagar. se va a cxp del proveedor', 'DIRECTOS', 22, 'DEVOLUCION', NULL, 1, NULL, NULL, NULL, '2026-07-27 18:08:15', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-27 18:08:15', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (24, 22, 4, '000005637', '001', '002', '0123456789', '2026-07-27', '01', '2026-07-27', '2026-07-27 18:44:22', 1, 1, 5, '06', 0, 0, 24.331600, 0.000000, 0.000000, 0.000000, 24.331600, 0.000000, 0.000000, 0.000000, 0.000000, 24.331600, 24.331600, 24.331600, 0.000000, 0.000000, 24.331600, 24.331600, 0.000000, 0.000000, 0.000000, 1, 24, 'NO_ASUMIR', NULL, 'CREDITO', 30, 3, 'true', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-27 18:44:22', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-27 18:44:22', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (25, 23, 4, '000000456', '001', '002', '0123456789', '2026-07-27', '04', '2026-07-27', '2026-07-27 18:45:20', 1, 1, 5, '06', 0, 0, 4.770400, 0.000000, 0.000000, 0.000000, 4.770400, 0.000000, 0.000000, 0.000000, 0.000000, 4.770400, 4.770400, 4.770400, 0.000000, 0.000000, 4.770400, 4.770400, 0.000000, 0.000000, 0.000000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ANULADA_EN_ARCHIVADA', NULL, 1, 'Destino financiero NDC: Cuenta por pagar', 'DIRECTOS', 24, 'DEVOLUCION', NULL, 1, '2026-07-27 19:11:05', 'esta mal', 1, '2026-07-27 18:45:20', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-27 18:45:20', '2026-07-28 12:40:42');
+INSERT INTO `cc_compras` VALUES (26, 24, 4, '000000471', '001', '002', '0123456789', '2026-07-28', '04', '2026-07-28', '2026-07-28 12:20:25', 1, 1, 5, '06', 0, 0, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ARCHIVADO', NULL, 1, 'tester anticipo | Destino financiero NDC: Anticipo a proveedor', 'DIRECTOS', 22, 'DEVOLUCION', NULL, 1, NULL, NULL, NULL, '2026-07-28 12:20:25', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-28 12:20:25', '2026-07-28 12:20:25');
+INSERT INTO `cc_compras` VALUES (27, 25, 4, '000000585', '001', '002', '0123456789', '2026-07-28', '01', '2026-07-28', '2026-07-28 13:53:26', 1, 1, 5, '06', 0, 0, 94.200000, 0.000000, 0.000000, 0.000000, 94.200000, 0.000000, 0.000000, 0.000000, 0.000000, 94.200000, 94.200000, 94.200000, 0.000000, 0.000000, 94.200000, 94.200000, 0.000000, 0.000000, 0.000000, 1, 25, 'NO_ASUMIR', NULL, 'CREDITO', 30, 2, 'true', 'ARCHIVADO', NULL, 1, 'tester', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 1, NULL, NULL, NULL, '2026-07-28 13:53:26', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_compras` VALUES (28, 1, 4, '000000585', '001', '002', '0123456789', '2026-07-28', '01', '2026-07-28', '2026-07-28 14:00:03', 1, 1, 5, '06', 0, 0, 3.150000, 0.000000, 0.000000, 0.000000, 3.150000, 0.000000, 0.000000, 0.000000, 0.000000, 3.150000, 3.150000, 3.150000, 0.000000, 0.000000, 3.150000, 3.150000, 0.000000, 0.000000, 0.000000, 1, 26, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 2, NULL, NULL, NULL, '2026-07-28 14:00:03', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_compras` VALUES (29, 2, 4, '000000585', '001', '002', '0123456789', '2026-07-28', '01', '2026-07-28', '2026-07-28 14:02:03', 1, 1, 5, '06', 0, 0, 2.100000, 0.000000, 0.000000, 0.000000, 2.100000, 0.000000, 0.000000, 0.000000, 0.000000, 2.100000, 2.100000, 2.100000, 0.000000, 0.000000, 2.100000, 2.100000, 0.000000, 0.000000, 0.000000, 1, 27, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 2, NULL, NULL, NULL, '2026-07-28 14:02:03', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_compras` VALUES (30, 3, 4, '000000586', '001', '002', '0123456789', '2026-07-28', '01', '2026-07-28', '2026-07-28 14:12:45', 1, 1, 5, '06', 0, 0, 5.750000, 0.000000, 0.000000, 0.000000, 5.750000, 0.000000, 0.000000, 0.000000, 0.000000, 5.750000, 5.750000, 5.750000, 0.000000, 0.000000, 5.750000, 5.750000, 0.000000, 0.000000, 0.000000, 1, 28, 'NO_ASUMIR', NULL, 'CREDITO', 30, 1, 'true', 'ARCHIVADO', NULL, 1, '', 'DIRECTOS', NULL, NULL, 'RESIDENTE', 2, NULL, NULL, NULL, '2026-07-28 14:12:45', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-28 14:12:45', '2026-07-28 14:12:45');
+INSERT INTO `cc_compras` VALUES (31, 4, 4, '000000498', '001', '002', '0123456789', '2026-07-28', '04', '2026-07-28', '2026-07-28 14:13:57', 1, 1, 5, '06', 0, 0, 1.150000, 0.000000, 0.000000, 0.000000, 1.150000, 0.000000, 0.000000, 0.000000, 0.000000, 1.150000, 1.150000, 1.150000, 0.000000, 0.000000, 1.150000, 1.150000, 0.000000, 0.000000, 0.000000, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'false', 'ARCHIVADO', NULL, 1, 'tester | Destino financiero NDC: Cuenta por pagar', 'DIRECTOS', 30, 'DEVOLUCION', NULL, 2, NULL, NULL, NULL, '2026-07-28 14:13:57', 0.000000, 0.000000, 0.000000, NULL, NULL, NULL, '2026-07-28 14:13:57', '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_compras_ats_formas_pago
@@ -1955,14 +2105,17 @@ DROP TABLE IF EXISTS `cc_compras_ats_formas_pago`;
 CREATE TABLE `cc_compras_ats_formas_pago`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_compra` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa de la forma ATS',
   `fk_forma_pago_ats` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `fk_compra`(`fk_compra`) USING BTREE,
   INDEX `fk_forma_pago_ats`(`fk_forma_pago_ats`) USING BTREE,
+  INDEX `idx_compra_ats_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_compras_ats_formas_pago_ibfk_1` FOREIGN KEY (`fk_compra`) REFERENCES `cc_compras` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `cc_compras_ats_formas_pago_ibfk_2` FOREIGN KEY (`fk_forma_pago_ats`) REFERENCES `cc_formas_pago_sri` (`codigo`) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT `cc_compras_ats_formas_pago_ibfk_2` FOREIGN KEY (`fk_forma_pago_ats`) REFERENCES `cc_formas_pago_sri` (`codigo`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_compra_ats_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -1976,6 +2129,7 @@ DROP TABLE IF EXISTS `cc_compras_bases_impuesto`;
 CREATE TABLE `cc_compras_bases_impuesto`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_compra` int(0) NOT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa de la base de impuesto',
   `fk_impuesto_tarifa` int(0) NULL DEFAULT NULL,
   `imp_codigo` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `imp_detalle` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -1989,31 +2143,36 @@ CREATE TABLE `cc_compras_bases_impuesto`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_compra`(`fk_compra`) USING BTREE,
   INDEX `idx_impuesto_tarifa`(`fk_impuesto_tarifa`) USING BTREE,
+  INDEX `idx_compra_base_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_compras_bases_impuesto_ibfk_1` FOREIGN KEY (`fk_impuesto_tarifa`) REFERENCES `cc_impuesto_tarifa` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_cc_compra_base_impuesto` FOREIGN KEY (`fk_compra`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `fk_cc_compra_base_impuesto` FOREIGN KEY (`fk_compra`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_compra_base_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_compras_bases_impuesto
 -- ----------------------------
-INSERT INTO `cc_compras_bases_impuesto` VALUES (5, 1, 7, '4', 'APLICA IVA', 15.0000, 42.000000, 42.000000, 6.300000, 'IVA', '2026-07-06 15:37:32', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (6, 3, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 8.500000, 8.500000, 0.425000, 'IVA', '2026-07-10 09:16:58', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (7, 3, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 09:16:58', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (8, 4, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 10:05:14', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (9, 4, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 9.000000, 9.000000, 0.450000, 'IVA', '2026-07-10 10:05:14', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (10, 5, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 10:26:56', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (11, 6, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 16.800000, 16.800000, 0.840000, 'IVA', '2026-07-10 10:59:09', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (12, 6, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 10:59:09', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (13, 7, 7, '4', 'APLICA IVA', 15.0000, 30.400000, 30.400000, 4.560000, 'IVA', '2026-07-10 11:10:00', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (14, 7, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 48.600000, 48.600000, 2.430000, 'IVA', '2026-07-10 11:10:00', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (15, 8, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 16.200000, 16.200000, 0.810000, 'IVA', '2026-07-10 11:11:55', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (16, 9, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 85.000000, 85.000000, 4.250000, 'IVA', '2026-07-10 11:13:38', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (17, 13, 7, '4', 'APLICA IVA', 15.0000, 15.200000, 15.200000, 2.280000, 'IVA', '2026-07-12 10:31:46', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (18, 15, 7, '4', 'APLICA IVA', 15.0000, 30.400000, 30.400000, 4.560000, 'IVA', '2026-07-12 10:35:59', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (19, 17, 7, '4', 'APLICA IVA', 15.0000, 15.200000, 15.200000, 2.280000, 'IVA', '2026-07-12 13:28:04', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (20, 20, 7, '4', 'APLICA IVA', 15.0000, 30.400000, 30.400000, 4.560000, 'IVA', '2026-07-12 16:53:29', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (21, 21, 7, '4', 'IVA 15%', 15.0000, 15.200000, 15.200000, 2.280000, 'IVA', '2026-07-26 17:29:09', 1);
-INSERT INTO `cc_compras_bases_impuesto` VALUES (22, 23, 1, '0', 'TARIFA CERO', 0.0000, 45.000000, 45.000000, 0.000000, 'IVA', '2026-07-27 18:08:15', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (5, 1, 1, 7, '4', 'APLICA IVA', 15.0000, 42.000000, 42.000000, 6.300000, 'IVA', '2026-07-06 15:37:32', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (6, 3, 1, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 8.500000, 8.500000, 0.425000, 'IVA', '2026-07-10 09:16:58', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (7, 3, 1, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 09:16:58', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (8, 4, 1, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 10:05:14', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (9, 4, 1, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 9.000000, 9.000000, 0.450000, 'IVA', '2026-07-10 10:05:14', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (10, 5, 1, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 10:26:56', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (11, 6, 1, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 16.800000, 16.800000, 0.840000, 'IVA', '2026-07-10 10:59:09', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (12, 6, 1, 7, '4', 'APLICA IVA', 15.0000, 14.000000, 14.000000, 2.100000, 'IVA', '2026-07-10 10:59:09', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (13, 7, 1, 7, '4', 'APLICA IVA', 15.0000, 30.400000, 30.400000, 4.560000, 'IVA', '2026-07-10 11:10:00', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (14, 7, 1, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 48.600000, 48.600000, 2.430000, 'IVA', '2026-07-10 11:10:00', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (15, 8, 1, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 16.200000, 16.200000, 0.810000, 'IVA', '2026-07-10 11:11:55', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (16, 9, 1, 8, '5', 'APLICA IVA (CONSTRUCCION)', 5.0000, 85.000000, 85.000000, 4.250000, 'IVA', '2026-07-10 11:13:38', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (17, 13, 1, 7, '4', 'APLICA IVA', 15.0000, 15.200000, 15.200000, 2.280000, 'IVA', '2026-07-12 10:31:46', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (18, 15, 1, 7, '4', 'APLICA IVA', 15.0000, 30.400000, 30.400000, 4.560000, 'IVA', '2026-07-12 10:35:59', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (19, 17, 1, 7, '4', 'APLICA IVA', 15.0000, 15.200000, 15.200000, 2.280000, 'IVA', '2026-07-12 13:28:04', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (20, 20, 1, 7, '4', 'APLICA IVA', 15.0000, 30.400000, 30.400000, 4.560000, 'IVA', '2026-07-12 16:53:29', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (21, 21, 1, 7, '4', 'IVA 15%', 15.0000, 15.200000, 15.200000, 2.280000, 'IVA', '2026-07-26 17:29:09', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (22, 23, 1, 1, '0', 'TARIFA CERO', 0.0000, 45.000000, 45.000000, 0.000000, 'IVA', '2026-07-27 18:08:15', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (23, 25, 1, 1, '0', 'TARIFA CERO', 0.0000, 4.770400, 4.770400, 0.000000, 'IVA', '2026-07-27 18:45:20', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (24, 26, 1, 1, '0', 'TARIFA CERO', 0.0000, 45.000000, 45.000000, 0.000000, 'IVA', '2026-07-28 12:20:25', 1);
+INSERT INTO `cc_compras_bases_impuesto` VALUES (25, 31, 2, 1, '0', 'TARIFA CERO', 0.0000, 1.150000, 1.150000, 0.000000, 'IVA', '2026-07-28 14:13:57', 1);
 
 -- ----------------------------
 -- Table structure for cc_compras_det
@@ -2022,6 +2181,7 @@ DROP TABLE IF EXISTS `cc_compras_det`;
 CREATE TABLE `cc_compras_det`  (
   `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID del detalle de compra',
   `fk_compra` int(0) NOT NULL COMMENT 'FK a cc_compras',
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del detalle de compra',
   `fk_producto` int(0) NOT NULL COMMENT 'FK del producto',
   `fk_bodega` int(0) NOT NULL COMMENT 'FK de la bodega',
   `compd_cantidad` decimal(15, 6) NOT NULL COMMENT 'Cantidad del producto',
@@ -2065,52 +2225,64 @@ CREATE TABLE `cc_compras_det`  (
   INDEX `idx_compd_producto`(`fk_producto`) USING BTREE,
   INDEX `fk_bodega`(`fk_bodega`) USING BTREE,
   INDEX `fk_lote`(`fk_lote`) USING BTREE,
+  INDEX `idx_compd_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_compras_det_ibfk_1` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_bodega` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_compra` FOREIGN KEY (`fk_compra`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `fk_producto` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `fk_producto` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_compd_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 51 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_compras_det
 -- ----------------------------
-INSERT INTO `cc_compras_det` VALUES (12, 1, 69, 1, 3.000000, 14.000000, 0.000000, 0.000000, 14.000000, 42.000000, 0.000000, 0.000000, 0.000000, 14.000000, 42.000000, 7, '4', 6.300000, 15.000000, 2.100000, 6.300000, 16.100000, 48.300000, 14.000000, 42.000000, 0.000000, 0.000000, 48.300000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-06 15:37:32', 7, '2026-07-06 15:37:32', NULL);
-INSERT INTO `cc_compras_det` VALUES (13, 1, 338, 1, 10.000000, 0.500000, 0.000000, 0.000000, 0.500000, 5.000000, 0.000000, 0.000000, 0.000000, 0.500000, 5.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 5.000000, 0.500000, 5.000000, 0.000000, 0.000000, 5.000000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-06 15:37:32', 1, '2026-07-06 15:37:32', NULL);
-INSERT INTO `cc_compras_det` VALUES (14, 1, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '02', '1', 155, '23423', '2026-09-12', '2026-06-03', 1, '2026-07-06 15:37:32', 1, '2026-07-12 13:19:37', NULL);
-INSERT INTO `cc_compras_det` VALUES (15, 2, 338, 1, 3.000000, 0.500000, 0.000000, 0.000000, 0.500000, 1.500000, 0.000000, 0.000000, 0.000000, 0.500000, 1.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 1.500000, 0.500000, 1.500000, 0.000000, 0.000000, 1.500000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-06 15:43:28', 1, '2026-07-06 15:43:28', NULL);
-INSERT INTO `cc_compras_det` VALUES (16, 3, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 09:16:58', 7, '2026-07-10 09:16:58', NULL);
-INSERT INTO `cc_compras_det` VALUES (17, 3, 338, 1, 1.000000, 0.500000, 0.000000, 0.000000, 0.500000, 0.500000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 0.500000, 0.500000, 0.000000, 0.000000, 0.500000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 09:16:58', 1, '2026-07-10 09:16:58', NULL);
-INSERT INTO `cc_compras_det` VALUES (18, 3, 342, 1, 1.000000, 8.500000, 0.000000, 0.000000, 8.500000, 8.500000, 0.000000, 0.000000, 0.000000, 8.500000, 8.500000, 8, '5', 0.425000, 5.000000, 0.425000, 0.425000, 8.925000, 8.925000, 8.500000, 8.500000, 0.000000, 0.000000, 8.925000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 09:16:58', 8, '2026-07-10 09:16:58', NULL);
-INSERT INTO `cc_compras_det` VALUES (19, 4, 342, 1, 1.000000, 9.000000, 0.000000, 0.000000, 9.000000, 9.000000, 0.000000, 0.000000, 0.000000, 9.000000, 9.000000, 8, '5', 0.450000, 5.000000, 0.450000, 0.450000, 9.450000, 9.450000, 9.000000, 9.000000, 0.000000, 0.000000, 9.450000, '1.01.04.01.03', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:05:14', 8, '2026-07-10 10:05:14', NULL);
-INSERT INTO `cc_compras_det` VALUES (20, 4, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:05:14', 7, '2026-07-10 10:05:14', NULL);
-INSERT INTO `cc_compras_det` VALUES (21, 4, 338, 1, 1.000000, 0.500000, 0.000000, 0.000000, 0.500000, 0.500000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 0.500000, 0.500000, 0.000000, 0.000000, 0.500000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:05:14', 1, '2026-07-10 10:05:14', NULL);
-INSERT INTO `cc_compras_det` VALUES (22, 5, 338, 1, 1.000000, 0.500000, 0.000000, 0.000000, 0.500000, 0.500000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 0.500000, 0.500000, 0.000000, 0.000000, 0.500000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:26:56', 1, '2026-07-10 10:26:56', NULL);
-INSERT INTO `cc_compras_det` VALUES (23, 5, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:26:56', 7, '2026-07-10 10:26:56', NULL);
-INSERT INTO `cc_compras_det` VALUES (24, 5, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '01', '1', 156, 'SER45', '2026-09-17', '2026-04-28', 1, '2026-07-10 10:26:56', 1, '2026-07-10 10:26:56', NULL);
-INSERT INTO `cc_compras_det` VALUES (25, 6, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:59:09', 7, '2026-07-10 10:59:09', NULL);
-INSERT INTO `cc_compras_det` VALUES (26, 6, 342, 1, 2.000000, 8.400000, 0.000000, 0.000000, 8.400000, 16.800000, 0.000000, 0.000000, 0.000000, 8.400000, 16.800000, 8, '5', 0.840000, 5.000000, 0.420000, 0.840000, 8.820000, 17.640000, 8.400000, 16.800000, 0.000000, 0.000000, 17.640000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:59:09', 8, '2026-07-10 10:59:09', NULL);
-INSERT INTO `cc_compras_det` VALUES (27, 7, 348, 1, 3.000000, 16.200000, 0.000000, 0.000000, 16.200000, 48.600000, 0.000000, 0.000000, 0.000000, 16.200000, 48.600000, 8, '5', 2.430000, 5.000000, 0.810000, 2.430000, 17.010000, 51.030000, 16.200000, 48.600000, 0.000000, 0.000000, 51.030000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:10:00', 8, '2026-07-10 11:10:00', NULL);
-INSERT INTO `cc_compras_det` VALUES (28, 7, 338, 1, 1.000000, 0.600000, 0.000000, 0.000000, 0.600000, 0.600000, 0.000000, 0.000000, 0.000000, 0.600000, 0.600000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.600000, 0.600000, 0.600000, 0.600000, 0.000000, 0.000000, 0.600000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:10:00', 1, '2026-07-10 11:10:00', NULL);
-INSERT INTO `cc_compras_det` VALUES (29, 7, 69, 1, 2.000000, 15.200000, 0.000000, 0.000000, 15.200000, 30.400000, 0.000000, 0.000000, 0.000000, 15.200000, 30.400000, 7, '4', 4.560000, 15.000000, 2.280000, 4.560000, 17.480000, 34.960000, 15.200000, 30.400000, 0.000000, 0.000000, 34.960000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:10:00', 7, '2026-07-10 11:10:00', NULL);
-INSERT INTO `cc_compras_det` VALUES (30, 8, 348, 1, 1.000000, 16.200000, 0.000000, 0.000000, 16.200000, 16.200000, 0.000000, 0.000000, 0.000000, 16.200000, 16.200000, 8, '5', 0.810000, 5.000000, 0.810000, 0.810000, 17.010000, 17.010000, 16.200000, 16.200000, 0.000000, 0.000000, 17.010000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:11:55', 8, '2026-07-10 11:11:55', NULL);
-INSERT INTO `cc_compras_det` VALUES (31, 9, 348, 1, 5.000000, 17.000000, 0.000000, 0.000000, 17.000000, 85.000000, 0.000000, 0.000000, 0.000000, 17.000000, 85.000000, 8, '5', 4.250000, 5.000000, 0.850000, 4.250000, 17.850000, 89.250000, 17.000000, 85.000000, 0.000000, 0.000000, 89.250000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:13:38', 8, '2026-07-10 11:13:38', NULL);
-INSERT INTO `cc_compras_det` VALUES (34, 12, 338, 1, 198.000000, 1.050000, 0.000000, 0.000000, 1.050000, 207.900000, 0.000000, 0.000000, 0.000000, 1.050000, 207.900000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 207.900000, 1.050000, 207.900000, 0.000000, 0.000000, 207.900000, '1.01.04.01.01', '01', NULL, NULL, NULL, NULL, NULL, 1, '2026-07-10 23:22:54', 1, '2026-07-10 23:22:54', NULL);
-INSERT INTO `cc_compras_det` VALUES (35, 13, 69, 1, 1.000000, 15.200000, 0.000000, 0.000000, 15.200000, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 15.200000, 7, '4', 2.280000, 15.000000, 2.280000, 2.280000, 17.480000, 17.480000, 15.200000, 15.200000, 0.000000, 0.000000, 17.480000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:31:46', 7, '2026-07-12 10:31:46', NULL);
-INSERT INTO `cc_compras_det` VALUES (36, 13, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:31:46', 1, '2026-07-12 10:31:46', NULL);
-INSERT INTO `cc_compras_det` VALUES (37, 14, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:33:43', 1, '2026-07-12 10:33:43', NULL);
-INSERT INTO `cc_compras_det` VALUES (38, 15, 69, 1, 2.000000, 15.200000, 0.000000, 0.000000, 15.200000, 30.400000, 0.000000, 0.000000, 0.000000, 15.200000, 30.400000, 7, '4', 4.560000, 15.000000, 2.280000, 4.560000, 17.480000, 34.960000, 15.200000, 30.400000, 0.000000, 0.000000, 34.960000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:35:59', 7, '2026-07-12 10:35:59', NULL);
-INSERT INTO `cc_compras_det` VALUES (39, 16, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '01', '2', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:48:44', 1, '2026-07-12 12:53:41', NULL);
-INSERT INTO `cc_compras_det` VALUES (40, 17, 69, 1, 1.000000, 15.200000, 0.000000, 0.000000, 15.200000, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 15.200000, 7, '4', 2.280000, 15.000000, 2.280000, 2.280000, 17.480000, 17.480000, 15.200000, 15.200000, 0.000000, 0.000000, 17.480000, '1.01.04.01.02', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 13:28:04', 7, '2026-07-12 13:28:04', NULL);
-INSERT INTO `cc_compras_det` VALUES (41, 17, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 13:28:04', 1, '2026-07-12 13:28:04', NULL);
-INSERT INTO `cc_compras_det` VALUES (42, 17, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '01', '1', 157, '546TR', '2028-08-13', '2026-06-17', 1, '2026-07-12 13:28:04', 1, '2026-07-12 13:41:19', NULL);
-INSERT INTO `cc_compras_det` VALUES (44, 18, 338, 1, 2.000000, 1.050000, 0.000000, 0.000000, 1.050000, 2.100000, 0.000000, 0.000000, 0.000000, 1.050000, 2.100000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 2.100000, 1.050000, 2.100000, 0.000000, 0.000000, 2.100000, '1.01.04.01.01', '05', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 16:34:47', 1, '2026-07-12 16:34:47', NULL);
-INSERT INTO `cc_compras_det` VALUES (45, 19, 338, 1, 10.000000, 1.050000, 0.000000, 0.000000, 1.050000, 10.500000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1.050000, 10.500000, 0.000000, 0.000000, 10.500000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 16:42:16', 1, '2026-07-12 16:42:16', NULL);
-INSERT INTO `cc_compras_det` VALUES (46, 20, 72, 1, 1.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, '1.01.04.01.01', '06', '1', 158, '544RR4', '2026-10-01', '2026-06-09', 1, '2026-07-12 16:53:29', 1, '2026-07-12 16:53:29', NULL);
-INSERT INTO `cc_compras_det` VALUES (47, 20, 69, 1, 2.000000, 15.200000, 0.000000, 0.000000, 15.200000, 30.400000, 0.000000, 0.000000, 0.000000, 15.200000, 30.400000, 7, '4', 4.560000, 15.000000, 2.280000, 4.560000, 17.480000, 34.960000, 15.200000, 30.400000, 0.000000, 0.000000, 34.960000, '1.01.04.01.02', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 16:53:29', 7, '2026-07-12 16:53:29', NULL);
-INSERT INTO `cc_compras_det` VALUES (48, 21, 69, 1, 1.000000, 15.200000, 0.000000, 0.000000, 15.200000, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 15.200000, 7, '4', 2.280000, 15.000000, 2.280000, 2.280000, 17.480000, 17.480000, 15.200000, 15.200000, 0.000000, 0.000000, 17.480000, '1.01.04.01.02', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-26 17:29:09', 7, '2026-07-26 17:29:09', 47);
-INSERT INTO `cc_compras_det` VALUES (49, 22, 338, 1, 10.000000, 1.050000, 0.000000, 0.000000, 1.050000, 10.500000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1.050000, 10.500000, 0.000000, 0.000000, 10.500000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-27 17:52:44', 1, '2026-07-27 17:52:44', NULL);
-INSERT INTO `cc_compras_det` VALUES (50, 22, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '06', '1', 159, '4585', '2026-09-27', '2026-06-02', 1, '2026-07-27 17:52:44', 1, '2026-07-27 17:52:44', NULL);
-INSERT INTO `cc_compras_det` VALUES (51, 23, 72, 1, 1.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, '1.01.04.01.01', '06', '1', 159, '4585', '2026-09-27', '2026-06-02', 1, '2026-07-27 18:08:15', 1, '2026-07-27 18:08:15', 50);
+INSERT INTO `cc_compras_det` VALUES (12, 1, 1, 69, 1, 3.000000, 14.000000, 0.000000, 0.000000, 14.000000, 42.000000, 0.000000, 0.000000, 0.000000, 14.000000, 42.000000, 7, '4', 6.300000, 15.000000, 2.100000, 6.300000, 16.100000, 48.300000, 14.000000, 42.000000, 0.000000, 0.000000, 48.300000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-06 15:37:32', 7, '2026-07-06 15:37:32', NULL);
+INSERT INTO `cc_compras_det` VALUES (13, 1, 1, 338, 1, 10.000000, 0.500000, 0.000000, 0.000000, 0.500000, 5.000000, 0.000000, 0.000000, 0.000000, 0.500000, 5.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 5.000000, 0.500000, 5.000000, 0.000000, 0.000000, 5.000000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-06 15:37:32', 1, '2026-07-06 15:37:32', NULL);
+INSERT INTO `cc_compras_det` VALUES (14, 1, 1, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '02', '1', 155, '23423', '2026-09-12', '2026-06-03', 1, '2026-07-06 15:37:32', 1, '2026-07-12 13:19:37', NULL);
+INSERT INTO `cc_compras_det` VALUES (15, 2, 1, 338, 1, 3.000000, 0.500000, 0.000000, 0.000000, 0.500000, 1.500000, 0.000000, 0.000000, 0.000000, 0.500000, 1.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 1.500000, 0.500000, 1.500000, 0.000000, 0.000000, 1.500000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-06 15:43:28', 1, '2026-07-06 15:43:28', NULL);
+INSERT INTO `cc_compras_det` VALUES (16, 3, 1, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 09:16:58', 7, '2026-07-10 09:16:58', NULL);
+INSERT INTO `cc_compras_det` VALUES (17, 3, 1, 338, 1, 1.000000, 0.500000, 0.000000, 0.000000, 0.500000, 0.500000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 0.500000, 0.500000, 0.000000, 0.000000, 0.500000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 09:16:58', 1, '2026-07-10 09:16:58', NULL);
+INSERT INTO `cc_compras_det` VALUES (18, 3, 1, 342, 1, 1.000000, 8.500000, 0.000000, 0.000000, 8.500000, 8.500000, 0.000000, 0.000000, 0.000000, 8.500000, 8.500000, 8, '5', 0.425000, 5.000000, 0.425000, 0.425000, 8.925000, 8.925000, 8.500000, 8.500000, 0.000000, 0.000000, 8.925000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 09:16:58', 8, '2026-07-10 09:16:58', NULL);
+INSERT INTO `cc_compras_det` VALUES (19, 4, 1, 342, 1, 1.000000, 9.000000, 0.000000, 0.000000, 9.000000, 9.000000, 0.000000, 0.000000, 0.000000, 9.000000, 9.000000, 8, '5', 0.450000, 5.000000, 0.450000, 0.450000, 9.450000, 9.450000, 9.000000, 9.000000, 0.000000, 0.000000, 9.450000, '1.01.04.01.03', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:05:14', 8, '2026-07-10 10:05:14', NULL);
+INSERT INTO `cc_compras_det` VALUES (20, 4, 1, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:05:14', 7, '2026-07-10 10:05:14', NULL);
+INSERT INTO `cc_compras_det` VALUES (21, 4, 1, 338, 1, 1.000000, 0.500000, 0.000000, 0.000000, 0.500000, 0.500000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 0.500000, 0.500000, 0.000000, 0.000000, 0.500000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:05:14', 1, '2026-07-10 10:05:14', NULL);
+INSERT INTO `cc_compras_det` VALUES (22, 5, 1, 338, 1, 1.000000, 0.500000, 0.000000, 0.000000, 0.500000, 0.500000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.500000, 0.500000, 0.500000, 0.500000, 0.000000, 0.000000, 0.500000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:26:56', 1, '2026-07-10 10:26:56', NULL);
+INSERT INTO `cc_compras_det` VALUES (23, 5, 1, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:26:56', 7, '2026-07-10 10:26:56', NULL);
+INSERT INTO `cc_compras_det` VALUES (24, 5, 1, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '01', '1', 156, 'SER45', '2026-09-17', '2026-04-28', 1, '2026-07-10 10:26:56', 1, '2026-07-10 10:26:56', NULL);
+INSERT INTO `cc_compras_det` VALUES (25, 6, 1, 69, 1, 1.000000, 14.000000, 0.000000, 0.000000, 14.000000, 14.000000, 0.000000, 0.000000, 0.000000, 14.000000, 14.000000, 7, '4', 2.100000, 15.000000, 2.100000, 2.100000, 16.100000, 16.100000, 14.000000, 14.000000, 0.000000, 0.000000, 16.100000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:59:09', 7, '2026-07-10 10:59:09', NULL);
+INSERT INTO `cc_compras_det` VALUES (26, 6, 1, 342, 1, 2.000000, 8.400000, 0.000000, 0.000000, 8.400000, 16.800000, 0.000000, 0.000000, 0.000000, 8.400000, 16.800000, 8, '5', 0.840000, 5.000000, 0.420000, 0.840000, 8.820000, 17.640000, 8.400000, 16.800000, 0.000000, 0.000000, 17.640000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 10:59:09', 8, '2026-07-10 10:59:09', NULL);
+INSERT INTO `cc_compras_det` VALUES (27, 7, 1, 348, 1, 3.000000, 16.200000, 0.000000, 0.000000, 16.200000, 48.600000, 0.000000, 0.000000, 0.000000, 16.200000, 48.600000, 8, '5', 2.430000, 5.000000, 0.810000, 2.430000, 17.010000, 51.030000, 16.200000, 48.600000, 0.000000, 0.000000, 51.030000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:10:00', 8, '2026-07-10 11:10:00', NULL);
+INSERT INTO `cc_compras_det` VALUES (28, 7, 1, 338, 1, 1.000000, 0.600000, 0.000000, 0.000000, 0.600000, 0.600000, 0.000000, 0.000000, 0.000000, 0.600000, 0.600000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 0.600000, 0.600000, 0.600000, 0.600000, 0.000000, 0.000000, 0.600000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:10:00', 1, '2026-07-10 11:10:00', NULL);
+INSERT INTO `cc_compras_det` VALUES (29, 7, 1, 69, 1, 2.000000, 15.200000, 0.000000, 0.000000, 15.200000, 30.400000, 0.000000, 0.000000, 0.000000, 15.200000, 30.400000, 7, '4', 4.560000, 15.000000, 2.280000, 4.560000, 17.480000, 34.960000, 15.200000, 30.400000, 0.000000, 0.000000, 34.960000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:10:00', 7, '2026-07-10 11:10:00', NULL);
+INSERT INTO `cc_compras_det` VALUES (30, 8, 1, 348, 1, 1.000000, 16.200000, 0.000000, 0.000000, 16.200000, 16.200000, 0.000000, 0.000000, 0.000000, 16.200000, 16.200000, 8, '5', 0.810000, 5.000000, 0.810000, 0.810000, 17.010000, 17.010000, 16.200000, 16.200000, 0.000000, 0.000000, 17.010000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:11:55', 8, '2026-07-10 11:11:55', NULL);
+INSERT INTO `cc_compras_det` VALUES (31, 9, 1, 348, 1, 5.000000, 17.000000, 0.000000, 0.000000, 17.000000, 85.000000, 0.000000, 0.000000, 0.000000, 17.000000, 85.000000, 8, '5', 4.250000, 5.000000, 0.850000, 4.250000, 17.850000, 89.250000, 17.000000, 85.000000, 0.000000, 0.000000, 89.250000, '1.01.04.01.03', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-10 11:13:38', 8, '2026-07-10 11:13:38', NULL);
+INSERT INTO `cc_compras_det` VALUES (34, 12, 1, 338, 1, 198.000000, 1.050000, 0.000000, 0.000000, 1.050000, 207.900000, 0.000000, 0.000000, 0.000000, 1.050000, 207.900000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 207.900000, 1.050000, 207.900000, 0.000000, 0.000000, 207.900000, '1.01.04.01.01', '01', NULL, NULL, NULL, NULL, NULL, 1, '2026-07-10 23:22:54', 1, '2026-07-10 23:22:54', NULL);
+INSERT INTO `cc_compras_det` VALUES (35, 13, 1, 69, 1, 1.000000, 15.200000, 0.000000, 0.000000, 15.200000, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 15.200000, 7, '4', 2.280000, 15.000000, 2.280000, 2.280000, 17.480000, 17.480000, 15.200000, 15.200000, 0.000000, 0.000000, 17.480000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:31:46', 7, '2026-07-12 10:31:46', NULL);
+INSERT INTO `cc_compras_det` VALUES (36, 13, 1, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:31:46', 1, '2026-07-12 10:31:46', NULL);
+INSERT INTO `cc_compras_det` VALUES (37, 14, 1, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:33:43', 1, '2026-07-12 10:33:43', NULL);
+INSERT INTO `cc_compras_det` VALUES (38, 15, 1, 69, 1, 2.000000, 15.200000, 0.000000, 0.000000, 15.200000, 30.400000, 0.000000, 0.000000, 0.000000, 15.200000, 30.400000, 7, '4', 4.560000, 15.000000, 2.280000, 4.560000, 17.480000, 34.960000, 15.200000, 30.400000, 0.000000, 0.000000, 34.960000, '1.01.04.01.02', '02', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:35:59', 7, '2026-07-12 10:35:59', NULL);
+INSERT INTO `cc_compras_det` VALUES (39, 16, 1, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '01', '2', NULL, NULL, NULL, NULL, 1, '2026-07-12 10:48:44', 1, '2026-07-12 12:53:41', NULL);
+INSERT INTO `cc_compras_det` VALUES (40, 17, 1, 69, 1, 1.000000, 15.200000, 0.000000, 0.000000, 15.200000, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 15.200000, 7, '4', 2.280000, 15.000000, 2.280000, 2.280000, 17.480000, 17.480000, 15.200000, 15.200000, 0.000000, 0.000000, 17.480000, '1.01.04.01.02', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 13:28:04', 7, '2026-07-12 13:28:04', NULL);
+INSERT INTO `cc_compras_det` VALUES (41, 17, 1, 338, 1, 1.000000, 1.050000, 0.000000, 0.000000, 1.050000, 1.050000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 1.050000, 1.050000, 1.050000, 0.000000, 0.000000, 1.050000, '1.01.04.01.01', '01', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 13:28:04', 1, '2026-07-12 13:28:04', NULL);
+INSERT INTO `cc_compras_det` VALUES (42, 17, 1, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '01', '1', 157, '546TR', '2028-08-13', '2026-06-17', 1, '2026-07-12 13:28:04', 1, '2026-07-12 13:41:19', NULL);
+INSERT INTO `cc_compras_det` VALUES (44, 18, 1, 338, 1, 2.000000, 1.050000, 0.000000, 0.000000, 1.050000, 2.100000, 0.000000, 0.000000, 0.000000, 1.050000, 2.100000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 2.100000, 1.050000, 2.100000, 0.000000, 0.000000, 2.100000, '1.01.04.01.01', '05', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 16:34:47', 1, '2026-07-12 16:34:47', NULL);
+INSERT INTO `cc_compras_det` VALUES (45, 19, 1, 338, 1, 10.000000, 1.050000, 0.000000, 0.000000, 1.050000, 10.500000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1.050000, 10.500000, 0.000000, 0.000000, 10.500000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 16:42:16', 1, '2026-07-12 16:42:16', NULL);
+INSERT INTO `cc_compras_det` VALUES (46, 20, 1, 72, 1, 1.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, '1.01.04.01.01', '06', '1', 158, '544RR4', '2026-10-01', '2026-06-09', 1, '2026-07-12 16:53:29', 1, '2026-07-12 16:53:29', NULL);
+INSERT INTO `cc_compras_det` VALUES (47, 20, 1, 69, 1, 2.000000, 15.200000, 0.000000, 0.000000, 15.200000, 30.400000, 0.000000, 0.000000, 0.000000, 15.200000, 30.400000, 7, '4', 4.560000, 15.000000, 2.280000, 4.560000, 17.480000, 34.960000, 15.200000, 30.400000, 0.000000, 0.000000, 34.960000, '1.01.04.01.02', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-12 16:53:29', 7, '2026-07-12 16:53:29', NULL);
+INSERT INTO `cc_compras_det` VALUES (48, 21, 1, 69, 1, 1.000000, 15.200000, 0.000000, 0.000000, 15.200000, 15.200000, 0.000000, 0.000000, 0.000000, 15.200000, 15.200000, 7, '4', 2.280000, 15.000000, 2.280000, 2.280000, 17.480000, 17.480000, 15.200000, 15.200000, 0.000000, 0.000000, 17.480000, '1.01.04.01.02', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-26 17:29:09', 7, '2026-07-26 17:29:09', 47);
+INSERT INTO `cc_compras_det` VALUES (49, 22, 1, 338, 1, 10.000000, 1.050000, 0.000000, 0.000000, 1.050000, 10.500000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 10.500000, 1.050000, 10.500000, 0.000000, 0.000000, 10.500000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-27 17:52:44', 1, '2026-07-27 17:52:44', NULL);
+INSERT INTO `cc_compras_det` VALUES (50, 22, 1, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '06', '1', 159, '4585', '2026-09-27', '2026-06-02', 1, '2026-07-27 17:52:44', 1, '2026-07-27 17:52:44', NULL);
+INSERT INTO `cc_compras_det` VALUES (51, 23, 1, 72, 1, 1.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, '1.01.04.01.01', '06', '1', 159, '4585', '2026-09-27', '2026-06-02', 1, '2026-07-27 18:08:15', 1, '2026-07-27 18:08:15', 50);
+INSERT INTO `cc_compras_det` VALUES (52, 24, 1, 333, 1, 4.000000, 4.770400, 0.000000, 0.000000, 4.770400, 19.081600, 0.000000, 0.000000, 0.000000, 4.770400, 19.081600, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 4.770400, 19.081600, 4.770400, 19.081600, 0.000000, 0.000000, 19.081600, '1.01.04.01.02', '06', '1', 160, '4333', '2026-09-24', '2026-07-07', 1, '2026-07-27 18:44:22', 1, '2026-07-27 18:44:22', NULL);
+INSERT INTO `cc_compras_det` VALUES (53, 24, 1, 338, 1, 5.000000, 1.050000, 0.000000, 0.000000, 1.050000, 5.250000, 0.000000, 0.000000, 0.000000, 1.050000, 5.250000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 5.250000, 1.050000, 5.250000, 0.000000, 0.000000, 5.250000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-27 18:44:22', 1, '2026-07-27 18:44:22', NULL);
+INSERT INTO `cc_compras_det` VALUES (54, 25, 1, 333, 1, 1.000000, 4.770400, 0.000000, 0.000000, 4.770400, 4.770400, 0.000000, 0.000000, 0.000000, 4.770400, 4.770400, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 4.770400, 4.770400, 4.770400, 4.770400, 0.000000, 0.000000, 4.770400, '1.01.04.01.02', '06', '1', 160, '4333', '2026-09-24', '2026-07-07', 1, '2026-07-27 18:45:20', 1, '2026-07-27 18:45:20', 52);
+INSERT INTO `cc_compras_det` VALUES (55, 26, 1, 72, 1, 1.000000, 45.000000, 0.000000, 0.000000, 45.000000, 45.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 45.000000, 45.000000, 45.000000, 0.000000, 0.000000, 45.000000, '1.01.04.01.01', '06', '1', 159, '4585', '2026-09-27', '2026-06-02', 1, '2026-07-28 12:20:25', 1, '2026-07-28 12:20:25', 50);
+INSERT INTO `cc_compras_det` VALUES (56, 27, 1, 72, 1, 2.000000, 45.000000, 0.000000, 0.000000, 45.000000, 90.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 45.000000, 90.000000, 45.000000, 90.000000, 0.000000, 0.000000, 90.000000, '1.01.04.01.01', '06', '1', 161, '223344', '2026-09-24', '2026-07-14', 1, '2026-07-28 13:53:26', 1, '2026-07-28 13:53:26', NULL);
+INSERT INTO `cc_compras_det` VALUES (57, 27, 1, 338, 1, 4.000000, 1.050000, 0.000000, 0.000000, 1.050000, 4.200000, 0.000000, 0.000000, 0.000000, 1.050000, 4.200000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 4.200000, 1.050000, 4.200000, 0.000000, 0.000000, 4.200000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-28 13:53:26', 1, '2026-07-28 13:53:26', NULL);
+INSERT INTO `cc_compras_det` VALUES (58, 28, 2, 338, 1, 3.000000, 1.050000, 0.000000, 0.000000, 1.050000, 3.150000, 0.000000, 0.000000, 0.000000, 1.050000, 3.150000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 3.150000, 1.050000, 3.150000, 0.000000, 0.000000, 3.150000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-28 14:00:03', 1, '2026-07-28 14:00:03', NULL);
+INSERT INTO `cc_compras_det` VALUES (59, 29, 2, 338, 1, 2.000000, 1.050000, 0.000000, 0.000000, 1.050000, 2.100000, 0.000000, 0.000000, 0.000000, 1.050000, 2.100000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.050000, 2.100000, 1.050000, 2.100000, 0.000000, 0.000000, 2.100000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-28 14:02:03', 1, '2026-07-28 14:02:03', NULL);
+INSERT INTO `cc_compras_det` VALUES (60, 30, 2, 338, 1, 5.000000, 1.150000, 0.000000, 0.000000, 1.150000, 5.750000, 0.000000, 0.000000, 0.000000, 1.150000, 5.750000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.150000, 5.750000, 1.150000, 5.750000, 0.000000, 0.000000, 5.750000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-28 14:12:45', 1, '2026-07-28 14:12:45', NULL);
+INSERT INTO `cc_compras_det` VALUES (61, 31, 2, 338, 1, 1.000000, 1.150000, 0.000000, 0.000000, 1.150000, 1.150000, 0.000000, 0.000000, 0.000000, 1.150000, 1.150000, 1, '0', 0.000000, 0.000000, 0.000000, 0.000000, 1.150000, 1.150000, 1.150000, 1.150000, 0.000000, 0.000000, 1.150000, '1.01.04.01.01', '06', '1', NULL, NULL, NULL, NULL, 1, '2026-07-28 14:13:57', 1, '2026-07-28 14:13:57', 60);
 
 -- ----------------------------
 -- Table structure for cc_cuenta_contable
@@ -2412,6 +2584,8 @@ INSERT INTO `cc_cuenta_contabledet_config` VALUES (10, '019', 'RECARGOS EN COMPR
 INSERT INTO `cc_cuenta_contabledet_config` VALUES (11, '020', 'SERVICIOS ADICIONALES EN COMPRAS', 'SERVICIOS ADICIONALES EN COMPRAS', '5.03.03', 1, '2026-07-05 18:00:00', '2026-07-05 18:00:00');
 INSERT INTO `cc_cuenta_contabledet_config` VALUES (12, '021', 'CUENTAS POR PAGAR PROVEEDORES LOCALES', 'CUENTAS Y DCTOS. X PAGAR PROVEEDORES NO RELAC. LOCALES', '2.01.01.01.01', 1, '2026-07-06 08:54:19', '2026-07-06 09:02:44');
 INSERT INTO `cc_cuenta_contabledet_config` VALUES (13, '022', 'INVENTARIO DE MATERIA PRIMA IVA 5% ESPECIAL', 'IVA ESPECIAL PARA MATERIALES DE CONSTRUCCIÓN', '1.01.04.01.03', 1, '2026-07-10 10:00:02', '2026-07-10 10:00:02');
+INSERT INTO `cc_cuenta_contabledet_config` VALUES (14, '023', 'DESCUENTO EN COMPRAS', 'Para los descuentos en compras en general', '4.01.05', 1, '2026-07-28 09:43:22', '2026-07-28 09:43:22');
+INSERT INTO `cc_cuenta_contabledet_config` VALUES (15, '024', 'ANTICIPO A PROVEEDORES', 'PARA REGISTRAR ANTICIPO DE PROVEEDORES YA SEA POR NDC O POR OTRO MOVIMIENTO', '1.01.07.02', 1, '2026-07-28 10:17:44', '2026-07-28 10:17:44');
 
 -- ----------------------------
 -- Table structure for cc_cxp
@@ -2420,6 +2594,7 @@ DROP TABLE IF EXISTS `cc_cxp`;
 CREATE TABLE `cc_cxp`  (
   `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID de la cuenta por pagar',
   `fk_compra` int(0) NOT NULL COMMENT 'FK a cc_compras',
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa de la cuenta por pagar',
   `fk_proveedor` int(0) NOT NULL COMMENT 'FK del proveedor',
   `cxp_tipo_transaccion_cod` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Codigo de transaccion',
   `cxp_numero_documento` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Numero de factura',
@@ -2439,33 +2614,40 @@ CREATE TABLE `cc_cxp`  (
   INDEX `idx_cxp_proveedor`(`fk_proveedor`) USING BTREE,
   INDEX `idx_cxp_estado`(`cxp_estado`) USING BTREE,
   INDEX `cc_cxp_ibfk_3`(`fk_user`) USING BTREE,
+  INDEX `idx_cxp_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_cxp_ibfk_1` FOREIGN KEY (`fk_compra`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_cxp_ibfk_2` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_cxp_ibfk_3` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_cxp_ibfk_3` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_cxp_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_cxp
 -- ----------------------------
-INSERT INTO `cc_cxp` VALUES (3, 1, 1, '02', '123', 'CREDITO', 2, 140.2700, 0.0000, 140.2700, NULL, 'PENDIENTE', '', 1, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_cxp` VALUES (4, 2, 1, '02', '652', 'CREDITO', 1, 1.4700, 0.0000, 0.0000, NULL, 'ANULADO', '', 1, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
-INSERT INTO `cc_cxp` VALUES (5, 3, 1, '02', '578', 'CREDITO', 3, 24.3650, 0.0000, 24.3650, NULL, 'PENDIENTE', 'tester', 1, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_cxp` VALUES (6, 4, 1, '02', '544', 'CREDITO', 1, 24.8700, 0.0000, 24.8700, NULL, 'PENDIENTE', '', 1, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_cxp` VALUES (7, 5, 1, '02', '589', 'CREDITO', 1, 104.1400, 0.0000, 104.1400, NULL, 'PENDIENTE', 'TESTERYU', 1, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_cxp` VALUES (8, 6, 1, '02', '875', 'CREDITO', 1, 32.3200, 0.0000, 32.3200, NULL, 'PENDIENTE', 'dsdf', 1, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_cxp` VALUES (9, 7, 1, '02', '145', 'CREDITO', 1, 83.1000, 0.0000, 83.1000, NULL, 'PENDIENTE', '', 1, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_cxp` VALUES (10, 8, 1, '02', '879', 'CREDITO', 1, 16.4900, 0.0000, 0.0000, NULL, 'ANULADO', 'DSDFSD', 1, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
-INSERT INTO `cc_cxp` VALUES (11, 9, 1, '02', '569', 'CREDITO', 1, 86.4900, 0.0000, 86.4900, NULL, 'PENDIENTE', '', 1, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_cxp` VALUES (14, 12, 20, '02', '000000458', 'CREDITO', 1, 204.2600, 0.0000, 204.2600, NULL, 'PENDIENTE', 'tester', 1, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_cxp` VALUES (15, 13, 4, '02', '789', 'CREDITO', 1, 17.5700, 0.0000, 17.5700, NULL, 'PENDIENTE', '', 1, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_cxp` VALUES (16, 14, 4, '02', '742', 'CREDITO', 1, 1.0300, 0.0000, 1.0300, NULL, 'PENDIENTE', '', 1, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_cxp` VALUES (17, 15, 4, '02', '000000215', 'CREDITO', 1, 33.0600, 0.0000, 33.0600, NULL, 'PENDIENTE', '', 1, '2026-07-12 10:35:59', '2026-07-12 16:44:39');
-INSERT INTO `cc_cxp` VALUES (18, 16, 4, '02', '000000518', 'CREDITO', 1, 1.0300, 0.0000, 1.0300, NULL, 'PENDIENTE', '', 8, '2026-07-12 10:48:44', '2026-07-12 12:41:30');
-INSERT INTO `cc_cxp` VALUES (19, 17, 4, '02', '000000857', 'CREDITO', 1, 105.9900, 0.0000, 105.9900, NULL, 'PENDIENTE', '', 1, '2026-07-12 13:28:04', '2026-07-12 16:32:04');
-INSERT INTO `cc_cxp` VALUES (20, 18, 19, '02', '000000458', 'CREDITO', 1, 2.0600, 0.0000, 2.0600, NULL, 'PENDIENTE', '', 1, '2026-07-12 16:34:47', '2026-07-12 16:41:05');
-INSERT INTO `cc_cxp` VALUES (21, 19, 19, '02', '000000236', 'CREDITO', 1, 10.3200, 0.0000, 0.0000, NULL, 'ANULADO', '', 1, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
-INSERT INTO `cc_cxp` VALUES (22, 20, 4, '02', '000000859', 'CREDITO', 1, 77.2700, 0.0000, 77.2700, NULL, 'PENDIENTE', '', 1, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_cxp` VALUES (23, 22, 4, '02', '000000747', 'CREDITO', 3, 98.7400, 45.0000, 53.7400, '2026-07-27', 'PARCIAL', 'NDC #23 aplicada por 45.0000', 1, '2026-07-27 17:52:44', '2026-07-27 18:08:15');
+INSERT INTO `cc_cxp` VALUES (3, 1, 1, 1, '02', '123', 'CREDITO', 2, 140.2700, 0.0000, 140.2700, NULL, 'PENDIENTE', '', 1, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_cxp` VALUES (4, 2, 1, 1, '02', '652', 'CREDITO', 1, 1.4700, 0.0000, 0.0000, NULL, 'ANULADO', '', 1, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
+INSERT INTO `cc_cxp` VALUES (5, 3, 1, 1, '02', '578', 'CREDITO', 3, 24.3650, 0.0000, 24.3650, NULL, 'PENDIENTE', 'tester', 1, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_cxp` VALUES (6, 4, 1, 1, '02', '544', 'CREDITO', 1, 24.8700, 0.0000, 24.8700, NULL, 'PENDIENTE', '', 1, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_cxp` VALUES (7, 5, 1, 1, '02', '589', 'CREDITO', 1, 104.1400, 0.0000, 104.1400, NULL, 'PENDIENTE', 'TESTERYU', 1, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_cxp` VALUES (8, 6, 1, 1, '02', '875', 'CREDITO', 1, 32.3200, 0.0000, 32.3200, NULL, 'PENDIENTE', 'dsdf', 1, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_cxp` VALUES (9, 7, 1, 1, '02', '145', 'CREDITO', 1, 83.1000, 0.0000, 83.1000, NULL, 'PENDIENTE', '', 1, '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_cxp` VALUES (10, 8, 1, 1, '02', '879', 'CREDITO', 1, 16.4900, 0.0000, 0.0000, NULL, 'ANULADO', 'DSDFSD', 1, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
+INSERT INTO `cc_cxp` VALUES (11, 9, 1, 1, '02', '569', 'CREDITO', 1, 86.4900, 0.0000, 86.4900, NULL, 'PENDIENTE', '', 1, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_cxp` VALUES (14, 12, 1, 20, '02', '000000458', 'CREDITO', 1, 204.2600, 0.0000, 204.2600, NULL, 'PENDIENTE', 'tester', 1, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_cxp` VALUES (15, 13, 1, 4, '02', '789', 'CREDITO', 1, 17.5700, 0.0000, 17.5700, NULL, 'PENDIENTE', '', 1, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_cxp` VALUES (16, 14, 1, 4, '02', '742', 'CREDITO', 1, 1.0300, 0.0000, 1.0300, NULL, 'PENDIENTE', '', 1, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_cxp` VALUES (17, 15, 1, 4, '02', '000000215', 'CREDITO', 1, 33.0600, 0.0000, 33.0600, NULL, 'PENDIENTE', '', 1, '2026-07-12 10:35:59', '2026-07-12 16:44:39');
+INSERT INTO `cc_cxp` VALUES (18, 16, 1, 4, '02', '000000518', 'CREDITO', 1, 1.0300, 0.0000, 1.0300, NULL, 'PENDIENTE', '', 8, '2026-07-12 10:48:44', '2026-07-12 12:41:30');
+INSERT INTO `cc_cxp` VALUES (19, 17, 1, 4, '02', '000000857', 'CREDITO', 1, 105.9900, 0.0000, 105.9900, NULL, 'PENDIENTE', '', 1, '2026-07-12 13:28:04', '2026-07-12 16:32:04');
+INSERT INTO `cc_cxp` VALUES (20, 18, 1, 19, '02', '000000458', 'CREDITO', 1, 2.0600, 0.0000, 2.0600, NULL, 'PENDIENTE', '', 1, '2026-07-12 16:34:47', '2026-07-12 16:41:05');
+INSERT INTO `cc_cxp` VALUES (21, 19, 1, 19, '02', '000000236', 'CREDITO', 1, 10.3200, 0.0000, 0.0000, NULL, 'ANULADO', '', 1, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
+INSERT INTO `cc_cxp` VALUES (22, 20, 1, 4, '02', '000000859', 'CREDITO', 1, 77.2700, 0.0000, 77.2700, NULL, 'PENDIENTE', '', 1, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_cxp` VALUES (23, 22, 1, 4, '02', '000000747', 'CREDITO', 3, 98.7400, 45.0000, 53.7400, '2026-07-27', 'PARCIAL', 'NDC #23 aplicada por 45.0000', 1, '2026-07-27 17:52:44', '2026-07-27 18:08:15');
+INSERT INTO `cc_cxp` VALUES (24, 24, 1, 4, '02', '000005637', 'CREDITO', 3, 23.9016, 0.0000, 23.9016, '2026-07-27', 'PENDIENTE', 'tester | NDC #25 aplicada por 4.7704 | Anulacion NDC #25 por 4.7704', 1, '2026-07-27 18:44:22', '2026-07-27 19:11:05');
+INSERT INTO `cc_cxp` VALUES (25, 27, 1, 4, '02', '000000585', 'CREDITO', 2, 92.5500, 0.0000, 92.5500, NULL, 'PENDIENTE', 'tester', 1, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_cxp` VALUES (26, 28, 2, 4, '02', '000000585', 'CREDITO', 1, 3.0900, 0.0000, 3.0900, NULL, 'PENDIENTE', '', 1, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_cxp` VALUES (27, 29, 2, 4, '02', '000000585', 'CREDITO', 1, 2.0600, 0.0000, 2.0600, NULL, 'PENDIENTE', '', 1, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_cxp` VALUES (28, 30, 2, 4, '02', '000000586', 'CREDITO', 1, 5.6500, 1.1500, 4.5000, '2026-07-28', 'PARCIAL', 'NDC #31 aplicada por 1.1500', 1, '2026-07-28 14:12:45', '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_cxp_cuotas
@@ -2474,6 +2656,7 @@ DROP TABLE IF EXISTS `cc_cxp_cuotas`;
 CREATE TABLE `cc_cxp_cuotas`  (
   `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID de la cuota',
   `fk_cxp` int(0) NOT NULL COMMENT 'FK a cc_cxp',
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa de la cuota CxP',
   `cxpc_numero` int(0) NOT NULL COMMENT 'Numero de cuota',
   `cxpc_fecha_vencimiento` date NOT NULL COMMENT 'Fecha de vencimiento',
   `cxpc_valor` decimal(14, 4) NOT NULL COMMENT 'Valor de la cuota',
@@ -2485,36 +2668,46 @@ CREATE TABLE `cc_cxp_cuotas`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_cxpc_cxp`(`fk_cxp`) USING BTREE,
   INDEX `idx_cxpc_estado`(`cxpc_estado`) USING BTREE,
-  CONSTRAINT `cc_cxp_cuotas_ibfk_1` FOREIGN KEY (`fk_cxp`) REFERENCES `cc_cxp` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  INDEX `idx_cxpc_proyecto`(`fk_proyecto`) USING BTREE,
+  CONSTRAINT `cc_cxp_cuotas_ibfk_1` FOREIGN KEY (`fk_cxp`) REFERENCES `cc_cxp` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_cxpc_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_cxp_cuotas
 -- ----------------------------
-INSERT INTO `cc_cxp_cuotas` VALUES (5, 3, 1, '2026-08-05', 70.1350, 0.0000, 70.1350, 'PENDIENTE', '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_cxp_cuotas` VALUES (6, 3, 2, '2026-09-04', 70.1350, 0.0000, 70.1350, 'PENDIENTE', '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_cxp_cuotas` VALUES (7, 4, 1, '2026-08-05', 1.4700, 0.0000, 1.4700, 'ANULADO', '2026-07-06 15:43:28', '2026-07-06 16:54:28');
-INSERT INTO `cc_cxp_cuotas` VALUES (8, 5, 1, '2026-08-09', 8.1217, 0.0000, 8.1217, 'PENDIENTE', '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_cxp_cuotas` VALUES (9, 5, 2, '2026-09-08', 8.1217, 0.0000, 8.1217, 'PENDIENTE', '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_cxp_cuotas` VALUES (10, 5, 3, '2026-10-08', 8.1216, 0.0000, 8.1216, 'PENDIENTE', '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_cxp_cuotas` VALUES (11, 6, 1, '2026-08-09', 24.8700, 0.0000, 24.8700, 'PENDIENTE', '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_cxp_cuotas` VALUES (12, 7, 1, '2026-08-09', 104.1400, 0.0000, 104.1400, 'PENDIENTE', '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_cxp_cuotas` VALUES (13, 8, 1, '2026-08-09', 32.3200, 0.0000, 32.3200, 'PENDIENTE', '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_cxp_cuotas` VALUES (14, 9, 1, '2026-08-09', 83.1000, 0.0000, 83.1000, 'PENDIENTE', '2026-07-10 11:10:01', '2026-07-10 11:10:01');
-INSERT INTO `cc_cxp_cuotas` VALUES (15, 10, 1, '2026-08-09', 16.4900, 0.0000, 16.4900, 'ANULADO', '2026-07-10 11:11:55', '2026-07-10 11:14:30');
-INSERT INTO `cc_cxp_cuotas` VALUES (16, 11, 1, '2026-08-09', 86.4900, 0.0000, 86.4900, 'PENDIENTE', '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_cxp_cuotas` VALUES (19, 14, 1, '2026-08-09', 204.2600, 0.0000, 204.2600, 'PENDIENTE', '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_cxp_cuotas` VALUES (20, 15, 1, '2026-08-11', 17.5700, 0.0000, 17.5700, 'PENDIENTE', '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_cxp_cuotas` VALUES (21, 16, 1, '2026-08-11', 1.0300, 0.0000, 1.0300, 'PENDIENTE', '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_cxp_cuotas` VALUES (22, 17, 1, '2026-08-11', 33.0600, 0.0000, 33.0600, 'PENDIENTE', '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_cxp_cuotas` VALUES (23, 18, 1, '2026-08-11', 1.0300, 0.0000, 1.0300, 'PENDIENTE', '2026-07-12 10:48:44', '2026-07-12 10:48:44');
-INSERT INTO `cc_cxp_cuotas` VALUES (24, 19, 1, '2026-08-11', 105.9900, 0.0000, 105.9900, 'PENDIENTE', '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_cxp_cuotas` VALUES (25, 20, 1, '2026-08-11', 2.0600, 0.0000, 2.0600, 'PENDIENTE', '2026-07-12 16:34:47', '2026-07-12 16:34:47');
-INSERT INTO `cc_cxp_cuotas` VALUES (26, 21, 1, '2026-09-10', 10.3200, 0.0000, 10.3200, 'ANULADO', '2026-07-12 16:42:16', '2026-07-12 16:57:33');
-INSERT INTO `cc_cxp_cuotas` VALUES (27, 22, 1, '2026-08-11', 77.2700, 0.0000, 77.2700, 'PENDIENTE', '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_cxp_cuotas` VALUES (28, 23, 1, '2026-08-26', 32.9133, 32.9133, 0.0000, 'PAGADO', '2026-07-27 17:52:44', '2026-07-27 18:08:15');
-INSERT INTO `cc_cxp_cuotas` VALUES (29, 23, 2, '2026-09-25', 32.9133, 12.0867, 20.8266, 'PARCIAL', '2026-07-27 17:52:44', '2026-07-27 18:08:15');
-INSERT INTO `cc_cxp_cuotas` VALUES (30, 23, 3, '2026-10-25', 32.9134, 0.0000, 32.9134, 'PENDIENTE', '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_cxp_cuotas` VALUES (5, 3, 1, 1, '2026-08-05', 70.1350, 0.0000, 70.1350, 'PENDIENTE', '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_cxp_cuotas` VALUES (6, 3, 1, 2, '2026-09-04', 70.1350, 0.0000, 70.1350, 'PENDIENTE', '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_cxp_cuotas` VALUES (7, 4, 1, 1, '2026-08-05', 1.4700, 0.0000, 1.4700, 'ANULADO', '2026-07-06 15:43:28', '2026-07-06 16:54:28');
+INSERT INTO `cc_cxp_cuotas` VALUES (8, 5, 1, 1, '2026-08-09', 8.1217, 0.0000, 8.1217, 'PENDIENTE', '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_cxp_cuotas` VALUES (9, 5, 1, 2, '2026-09-08', 8.1217, 0.0000, 8.1217, 'PENDIENTE', '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_cxp_cuotas` VALUES (10, 5, 1, 3, '2026-10-08', 8.1216, 0.0000, 8.1216, 'PENDIENTE', '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_cxp_cuotas` VALUES (11, 6, 1, 1, '2026-08-09', 24.8700, 0.0000, 24.8700, 'PENDIENTE', '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_cxp_cuotas` VALUES (12, 7, 1, 1, '2026-08-09', 104.1400, 0.0000, 104.1400, 'PENDIENTE', '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_cxp_cuotas` VALUES (13, 8, 1, 1, '2026-08-09', 32.3200, 0.0000, 32.3200, 'PENDIENTE', '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_cxp_cuotas` VALUES (14, 9, 1, 1, '2026-08-09', 83.1000, 0.0000, 83.1000, 'PENDIENTE', '2026-07-10 11:10:01', '2026-07-10 11:10:01');
+INSERT INTO `cc_cxp_cuotas` VALUES (15, 10, 1, 1, '2026-08-09', 16.4900, 0.0000, 16.4900, 'ANULADO', '2026-07-10 11:11:55', '2026-07-10 11:14:30');
+INSERT INTO `cc_cxp_cuotas` VALUES (16, 11, 1, 1, '2026-08-09', 86.4900, 0.0000, 86.4900, 'PENDIENTE', '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_cxp_cuotas` VALUES (19, 14, 1, 1, '2026-08-09', 204.2600, 0.0000, 204.2600, 'PENDIENTE', '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_cxp_cuotas` VALUES (20, 15, 1, 1, '2026-08-11', 17.5700, 0.0000, 17.5700, 'PENDIENTE', '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_cxp_cuotas` VALUES (21, 16, 1, 1, '2026-08-11', 1.0300, 0.0000, 1.0300, 'PENDIENTE', '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_cxp_cuotas` VALUES (22, 17, 1, 1, '2026-08-11', 33.0600, 0.0000, 33.0600, 'PENDIENTE', '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_cxp_cuotas` VALUES (23, 18, 1, 1, '2026-08-11', 1.0300, 0.0000, 1.0300, 'PENDIENTE', '2026-07-12 10:48:44', '2026-07-12 10:48:44');
+INSERT INTO `cc_cxp_cuotas` VALUES (24, 19, 1, 1, '2026-08-11', 105.9900, 0.0000, 105.9900, 'PENDIENTE', '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_cxp_cuotas` VALUES (25, 20, 1, 1, '2026-08-11', 2.0600, 0.0000, 2.0600, 'PENDIENTE', '2026-07-12 16:34:47', '2026-07-12 16:34:47');
+INSERT INTO `cc_cxp_cuotas` VALUES (26, 21, 1, 1, '2026-09-10', 10.3200, 0.0000, 10.3200, 'ANULADO', '2026-07-12 16:42:16', '2026-07-12 16:57:33');
+INSERT INTO `cc_cxp_cuotas` VALUES (27, 22, 1, 1, '2026-08-11', 77.2700, 0.0000, 77.2700, 'PENDIENTE', '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_cxp_cuotas` VALUES (28, 23, 1, 1, '2026-08-26', 32.9133, 32.9133, 0.0000, 'PAGADO', '2026-07-27 17:52:44', '2026-07-27 18:08:15');
+INSERT INTO `cc_cxp_cuotas` VALUES (29, 23, 1, 2, '2026-09-25', 32.9133, 12.0867, 20.8266, 'PARCIAL', '2026-07-27 17:52:44', '2026-07-27 18:08:15');
+INSERT INTO `cc_cxp_cuotas` VALUES (30, 23, 1, 3, '2026-10-25', 32.9134, 0.0000, 32.9134, 'PENDIENTE', '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_cxp_cuotas` VALUES (31, 24, 1, 1, '2026-08-26', 7.9672, 0.0000, 7.9672, 'PENDIENTE', '2026-07-27 18:44:22', '2026-07-27 19:11:05');
+INSERT INTO `cc_cxp_cuotas` VALUES (32, 24, 1, 2, '2026-09-25', 7.9672, 0.0000, 7.9672, 'PENDIENTE', '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_cxp_cuotas` VALUES (33, 24, 1, 3, '2026-10-25', 7.9672, 0.0000, 7.9672, 'PENDIENTE', '2026-07-27 18:44:23', '2026-07-27 18:44:23');
+INSERT INTO `cc_cxp_cuotas` VALUES (34, 25, 1, 1, '2026-08-27', 46.2750, 0.0000, 46.2750, 'PENDIENTE', '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_cxp_cuotas` VALUES (35, 25, 1, 2, '2026-09-26', 46.2750, 0.0000, 46.2750, 'PENDIENTE', '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_cxp_cuotas` VALUES (36, 26, 2, 1, '2026-08-27', 3.0900, 0.0000, 3.0900, 'PENDIENTE', '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_cxp_cuotas` VALUES (37, 27, 2, 1, '2026-08-27', 2.0600, 0.0000, 2.0600, 'PENDIENTE', '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_cxp_cuotas` VALUES (38, 28, 2, 1, '2026-08-27', 5.6500, 1.1500, 4.5000, 'PARCIAL', '2026-07-28 14:12:45', '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_departamento
@@ -2554,6 +2747,34 @@ INSERT INTO `cc_empleado_bodegas` VALUES (1, 1);
 INSERT INTO `cc_empleado_bodegas` VALUES (1, 2);
 INSERT INTO `cc_empleado_bodegas` VALUES (2, 2);
 INSERT INTO `cc_empleado_bodegas` VALUES (8, 2);
+
+-- ----------------------------
+-- Table structure for cc_empleado_proyecto
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_empleado_proyecto`;
+CREATE TABLE `cc_empleado_proyecto`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID de la relacion usuario proyecto',
+  `fk_empleado` int(0) NOT NULL COMMENT 'Usuario con acceso al proyecto',
+  `fk_proyecto` int(0) NOT NULL COMMENT 'Proyecto al que tiene acceso el usuario',
+  `estado` tinyint(0) NOT NULL DEFAULT 1 COMMENT '1 activo, 0 inactivo',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `idx_empleado_proyecto`(`fk_empleado`, `fk_proyecto`) USING BTREE,
+  INDEX `idx_empleado_proyecto_empleado`(`fk_empleado`) USING BTREE,
+  INDEX `idx_empleado_proyecto_proyecto`(`fk_proyecto`) USING BTREE,
+  INDEX `idx_empleado_proyecto_estado`(`estado`) USING BTREE,
+  CONSTRAINT `cc_empleado_proyecto_ibfk_1` FOREIGN KEY (`fk_empleado`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_empleado_proyecto_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Relacion de usuarios con proyectos o subempresas permitidas' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_empleado_proyecto
+-- ----------------------------
+INSERT INTO `cc_empleado_proyecto` VALUES (1, 1, 1, 1, '2026-07-28 11:26:32', '2026-07-28 11:26:32');
+INSERT INTO `cc_empleado_proyecto` VALUES (2, 2, 1, 1, '2026-07-28 11:26:32', '2026-07-28 11:26:32');
+INSERT INTO `cc_empleado_proyecto` VALUES (3, 8, 1, 1, '2026-07-28 11:26:32', '2026-07-28 11:26:32');
+INSERT INTO `cc_empleado_proyecto` VALUES (4, 1, 2, 1, '2026-07-28 11:49:57', '2026-07-28 11:49:57');
 
 -- ----------------------------
 -- Table structure for cc_empleados
@@ -2643,7 +2864,7 @@ CREATE TABLE `cc_empresa_indice`  (
 -- ----------------------------
 -- Records of cc_empresa_indice
 -- ----------------------------
-INSERT INTO `cc_empresa_indice` VALUES (1, 'COSTO_INVENTARIO', 12666.4551, '2026-07-27 18:08:15', 'Costo total de inventario de la empresa');
+INSERT INTO `cc_empresa_indice` VALUES (1, 'COSTO_INVENTARIO', 12749.8369, '2026-07-28 14:13:57', 'Costo total de inventario de la empresa');
 
 -- ----------------------------
 -- Table structure for cc_formas_pago
@@ -2666,6 +2887,7 @@ INSERT INTO `cc_formas_pago` VALUES ('03', 'CHEQUE', 'Pago mediante cheque', 1);
 INSERT INTO `cc_formas_pago` VALUES ('04', 'TARJETA DE CREDITO', 'Pago mediante tarjeta de credito', 1);
 INSERT INTO `cc_formas_pago` VALUES ('05', 'TARJETA DE DEBITO', 'Pago mediante tarjeta de debito', 1);
 INSERT INTO `cc_formas_pago` VALUES ('06', 'RETENCION', 'Cuando hacemos uso de la retención para poder pagar', 1);
+INSERT INTO `cc_formas_pago` VALUES ('07', 'NOTA DE CREDITO', 'Cuando pagamos con una nota de credito', 1);
 
 -- ----------------------------
 -- Table structure for cc_formas_pago_sri
@@ -2791,6 +3013,7 @@ DROP TABLE IF EXISTS `cc_kardex`;
 CREATE TABLE `cc_kardex`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_producto` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del movimiento kardex',
   `kar_kardex` decimal(15, 3) NULL DEFAULT NULL,
   `kar_kardex_total` decimal(15, 3) NULL DEFAULT NULL,
   `kar_costo_promedio` decimal(15, 4) NULL DEFAULT NULL,
@@ -2814,302 +3037,315 @@ CREATE TABLE `cc_kardex`  (
   INDEX `fk_lote`(`fk_lote`) USING BTREE,
   INDEX `idx_kardex_estado_fecha_producto_id`(`kar_estado`, `kar_fecha`, `fk_producto`, `id`) USING BTREE,
   INDEX `idx_kardex_producto_estado_fecha_id`(`fk_producto`, `kar_estado`, `kar_fecha`, `id`) USING BTREE,
+  INDEX `idx_kardex_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_kardex_ibfk_1` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_ibfk_2` FOREIGN KEY (`kar_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_ibfk_3` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_ibfk_4` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_kardex_ibfk_5` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_kardex_ibfk_5` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_kardex_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 496 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_kardex
 -- ----------------------------
-INSERT INTO `cc_kardex` VALUES (96, 69, 2.000, 2.000, 14.0000, 14.0000, 28.0000, 77, '39', '2025-10-19', '22:02:39', 28.0000, 28.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (97, 62, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 77, '39', '2025-10-19', '22:02:39', 45.0000, 73.0000, '1', 1, 1, 39);
-INSERT INTO `cc_kardex` VALUES (98, 69, 2.000, 4.000, 14.0000, 14.0000, 28.0000, 78, '39', '2025-10-19', '22:15:25', 56.0000, 101.0000, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (99, 62, 2.000, 3.000, 45.0000, 45.0000, 90.0000, 78, '39', '2025-10-19', '22:15:25', 135.0000, 191.0000, '1', 2, 1, 40);
-INSERT INTO `cc_kardex` VALUES (102, 62, 1.000, 4.000, 45.0000, 45.0000, 45.0000, 81, '39', '2025-10-19', '22:26:34', 180.0000, 236.0000, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (142, 62, 1.000, 5.000, 45.0000, 45.0000, 45.0000, 109, '39', '2025-10-20', '15:49:11', 225.0000, 281.0000, '1', 1, 1, 58);
-INSERT INTO `cc_kardex` VALUES (143, 60, 2.000, 2.000, 350.0000, 350.0000, 700.0000, 109, '39', '2025-10-20', '15:49:11', 700.0000, 981.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (144, 60, 1.000, 3.000, 350.0000, 350.0000, 350.0000, 110, '39', '2025-10-20', '16:08:27', 1050.0000, 1331.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (146, 62, 2.000, 7.000, 45.0000, 45.0000, 90.0000, 112, '39', '2025-10-20', '16:09:22', 315.0000, 1421.0000, '1', 1, 1, 60);
-INSERT INTO `cc_kardex` VALUES (147, 62, 1.000, 8.000, 45.0000, 45.0000, 45.0000, 114, '39', '2025-10-22', '21:33:33', 360.0000, 1466.0000, '1', 1, 1, 62);
-INSERT INTO `cc_kardex` VALUES (148, 69, 3.000, 7.000, 14.0000, 14.0000, 42.0000, 115, '39', '2025-10-22', '21:43:47', 98.0000, 1508.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (149, 62, 1.000, 1.000, 360.0000, 0.0000, 0.0000, 116, '39', '2025-10-24', '18:07:45', 360.0000, 1508.0000, '1', 1, 1, 63);
-INSERT INTO `cc_kardex` VALUES (150, 60, 2.000, 5.000, 350.0000, 350.0000, 700.0000, 116, '39', '2025-10-24', '18:07:45', 1750.0000, 2208.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (151, 69, 5.000, 12.000, 14.0000, 14.0000, 70.0000, 117, '39', '2025-10-31', '21:59:23', 168.0000, 2278.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (152, 62, 4.000, 5.000, 108.0000, 45.0000, 180.0000, 117, '39', '2025-10-31', '21:59:23', 540.0000, 2458.0000, '1', 1, 1, 64);
-INSERT INTO `cc_kardex` VALUES (176, 69, 1.000, 13.000, 14.0000, 14.0000, 14.0000, 130, '39', '2025-11-01', '20:37:08', 182.0000, 2472.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (177, 62, 2.000, 7.000, 90.2857, 46.0000, 92.0000, 130, '39', '2025-11-01', '20:37:08', 632.0000, 2564.0000, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (178, 69, 2.000, 15.000, 14.0000, 14.0000, 28.0000, 131, '39', '2025-11-01', '20:40:01', 210.0000, 2592.0000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (179, 62, 3.000, 10.000, 76.7000, 45.0000, 135.0000, 113, '39', '2025-11-01', '23:56:15', 767.0000, 2727.0000, '1', 1, 1, 61);
-INSERT INTO `cc_kardex` VALUES (180, 62, 1.000, 11.000, 76.7000, 76.7000, 76.7000, 132, '39', '2025-11-01', '00:01:14', 843.7000, 2803.7000, '1', 1, 1, 65);
-INSERT INTO `cc_kardex` VALUES (181, 69, 2.000, 17.000, 14.0000, 14.0000, 28.0000, 132, '39', '2025-11-01', '00:01:14', 238.0000, 2831.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (182, 60, 1.000, 6.000, 350.0000, 350.0000, 350.0000, 132, '39', '2025-11-01', '00:01:14', 2100.0000, 3181.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (183, 69, 2.000, 19.000, 14.0000, 14.0000, 28.0000, 139, '39', '2025-11-01', '00:14:10', 266.0000, 3209.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (184, 69, 3.000, 22.000, 14.0000, 14.0000, 42.0000, 133, '39', '2025-11-01', '00:14:35', 308.0000, 3251.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (185, 69, -2.000, 20.000, 14.0000, 14.0000, -28.0000, 139, '41', '2025-11-04', '20:08:05', 280.0000, 3223.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (186, 69, 4.000, 24.000, 14.0000, 14.0000, 56.0000, 140, '39', '2025-11-04', '20:18:00', 336.0000, 3279.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (187, 62, 1.000, 12.000, 74.0583, 45.0000, 45.0000, 140, '39', '2025-11-04', '20:18:00', 888.7000, 3324.7000, '1', 1, 1, 66);
-INSERT INTO `cc_kardex` VALUES (190, 69, -4.000, 20.000, 14.0000, 14.0000, -56.0000, 140, '41', '2025-11-04', '20:20:50', 280.0000, 3268.7000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (191, 62, -1.000, 11.000, 76.7000, 45.0000, -45.0000, 140, '41', '2025-11-04', '20:20:50', 843.7000, 3223.7000, '1', 1, 1, 66);
-INSERT INTO `cc_kardex` VALUES (192, 72, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 141, '39', '2025-11-04', '20:39:39', 45.0000, 3268.7000, '1', 1, 1, 68);
-INSERT INTO `cc_kardex` VALUES (193, 74, 1.000, 1.000, 2.5000, 2.5000, 2.5000, 141, '39', '2025-11-04', '20:39:39', 2.5000, 3271.2000, '1', 1, 1, 67);
-INSERT INTO `cc_kardex` VALUES (194, 72, 2.000, 3.000, 45.0000, 45.0000, 90.0000, 142, '39', '2025-11-04', '20:44:26', 135.0000, 3361.2000, '1', 1, 1, 69);
-INSERT INTO `cc_kardex` VALUES (195, 74, 50.000, 51.000, 2.5000, 2.5000, 125.0000, 143, '39', '2025-11-04', '20:49:04', 127.5000, 3486.2000, '1', 1, 1, 70);
-INSERT INTO `cc_kardex` VALUES (196, 72, 3.000, 6.000, 45.0000, 45.0000, 135.0000, 143, '39', '2025-11-04', '20:49:05', 270.0000, 3621.2000, '1', 1, 1, 71);
-INSERT INTO `cc_kardex` VALUES (197, 72, 5.000, 11.000, 45.0000, 45.0000, 225.0000, 144, '39', '2025-11-04', '20:59:17', 495.0000, 3846.2000, '1', 1, 1, 72);
-INSERT INTO `cc_kardex` VALUES (198, 72, -2.000, 9.000, 45.0000, 45.0000, -90.0000, 142, '41', '2025-11-04', '21:00:34', 405.0000, 3756.2000, '1', 1, 1, 69);
-INSERT INTO `cc_kardex` VALUES (199, 72, 2.000, 11.000, 45.0000, 45.0000, 90.0000, 146, '39', '2025-11-04', '21:11:57', 495.0000, 3846.2000, '1', 1, 1, 73);
-INSERT INTO `cc_kardex` VALUES (200, 72, 1.000, 12.000, 45.0000, 45.0000, 45.0000, 148, '39', '2025-11-04', '21:12:58', 540.0000, 3891.2000, '1', 1, 1, 74);
-INSERT INTO `cc_kardex` VALUES (201, 69, 10.000, 30.000, 14.0000, 14.0000, 140.0000, 149, '39', '2025-11-04', '01:16:23', 420.0000, 4031.2000, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (202, 72, 2.000, 14.000, 45.0000, 45.0000, 90.0000, 149, '39', '2025-11-04', '01:16:23', 630.0000, 4121.2000, '1', 1, 1, 75);
-INSERT INTO `cc_kardex` VALUES (203, 69, 10.000, 40.000, 14.0000, 14.0000, 140.0000, 150, '39', '2025-11-04', '01:39:48', 560.0000, 4261.2002, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (204, 72, 2.000, 16.000, 45.0000, 45.0000, 90.0000, 150, '39', '2025-11-04', '01:39:48', 720.0000, 4351.2002, '1', 1, 1, 75);
-INSERT INTO `cc_kardex` VALUES (205, 69, 10.000, 50.000, 14.0000, 14.0000, 140.0000, 152, '39', '2025-11-05', '19:37:27', 700.0000, 4491.2002, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (206, 72, 2.000, 18.000, 45.0000, 45.0000, 90.0000, 152, '39', '2025-11-05', '19:37:27', 810.0000, 4581.2002, '1', 1, 1, 75);
-INSERT INTO `cc_kardex` VALUES (207, 62, 1.000, 12.000, 76.7000, 76.7000, 76.7000, 154, '39', '2025-11-05', '20:08:00', 920.4000, 4657.9002, '1', 1, 1, 76);
-INSERT INTO `cc_kardex` VALUES (208, 72, 2.000, 20.000, 45.0000, 45.0000, 90.0000, 156, '39', '2025-11-05', '20:12:25', 900.0000, 4747.9004, '1', 1, 1, 77);
-INSERT INTO `cc_kardex` VALUES (209, 72, 1.000, 21.000, 45.0000, 45.0000, 45.0000, 157, '39', '2025-11-05', '21:45:25', 945.0000, 4792.9004, '1', 1, 1, 78);
-INSERT INTO `cc_kardex` VALUES (210, 74, 50.000, 101.000, 2.5000, 2.5000, 125.0000, 158, '39', '2025-11-07', '16:37:41', 252.5000, 4917.9004, '1', 1, 1, 79);
-INSERT INTO `cc_kardex` VALUES (211, 72, 2.000, 23.000, 45.0000, 45.0000, 90.0000, 158, '39', '2025-11-07', '16:37:41', 1035.0000, 5007.9004, '1', 1, 1, 80);
-INSERT INTO `cc_kardex` VALUES (212, 72, 4.000, 27.000, 45.0000, 45.0000, 180.0000, 162, '39', '2025-11-07', '17:16:06', 1215.0000, 5187.9004, '1', 1, 1, 80);
-INSERT INTO `cc_kardex` VALUES (213, 74, 60.000, 161.000, 2.5000, 2.5000, 150.0000, 162, '39', '2025-11-07', '17:16:06', 402.5000, 5337.9004, '1', 1, 1, 79);
-INSERT INTO `cc_kardex` VALUES (214, 72, 2.000, 29.000, 45.0000, 45.0000, 90.0000, 182, '39', '2025-11-25', '23:12:38', 1305.0000, 5427.9004, '1', 1, 1, 118);
-INSERT INTO `cc_kardex` VALUES (215, 72, -2.000, 27.000, 45.0000, 45.0000, -90.0000, 182, '41', '2025-11-25', '23:54:13', 1215.0000, 5337.9004, '1', 1, 1, 118);
-INSERT INTO `cc_kardex` VALUES (228, 333, 12.000, 12.000, 4.6000, 4.6000, 55.2000, 194, '39', '2025-11-25', '01:12:21', 55.2000, 5270.3001, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (229, 332, 8.000, 8.000, 3.4500, 3.4500, 27.6000, 194, '39', '2025-11-25', '01:12:21', 27.6000, 5297.9003, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (230, 331, 10.000, 10.000, 2.5000, 2.5000, 25.0000, 194, '39', '2025-11-25', '01:12:21', 25.0000, 5322.9004, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (231, 330, 10.000, 10.000, 1.5000, 1.5000, 15.0000, 194, '39', '2025-11-25', '01:12:21', 15.0000, 5337.9004, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (232, 333, 12.000, 24.000, 4.6000, 4.6000, 55.2000, 195, '39', '2025-11-25', '01:18:09', 110.4000, 5393.1004, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (233, 332, 8.000, 16.000, 3.4500, 3.4500, 27.6000, 195, '39', '2025-11-25', '01:18:09', 55.2000, 5420.7006, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (234, 331, 10.000, 20.000, 2.5000, 2.5000, 25.0000, 195, '39', '2025-11-25', '01:18:09', 50.0000, 5445.7007, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (235, 330, 10.000, 20.000, 1.5000, 1.5000, 15.0000, 195, '39', '2025-11-25', '01:18:09', 30.0000, 5460.7007, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (236, 333, 1.000, 25.000, 4.6000, 4.6000, 4.6000, 196, '39', '2025-11-26', '14:49:36', 115.0000, 5465.3007, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (237, 332, 1.000, 17.000, 3.4500, 3.4500, 3.4500, 196, '39', '2025-11-26', '14:49:36', 58.6500, 5468.7508, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (238, 331, 1.000, 21.000, 2.5000, 2.5000, 2.5000, 196, '39', '2025-11-26', '14:49:36', 52.5000, 5471.2510, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (239, 330, 1.000, 21.000, 1.5000, 1.5000, 1.5000, 196, '39', '2025-11-26', '14:49:36', 31.5000, 5472.7510, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (240, 333, 1.000, 26.000, 4.6000, 4.6000, 4.6000, 197, '39', '2025-11-26', '14:56:53', 119.6000, 5477.3510, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (241, 332, 1.000, 18.000, 3.4500, 3.4500, 3.4500, 197, '39', '2025-11-26', '14:56:53', 62.1000, 5480.8011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (242, 331, 1.000, 22.000, 2.5000, 2.5000, 2.5000, 197, '39', '2025-11-26', '14:56:53', 55.0000, 5483.3013, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (243, 330, 1.000, 22.000, 1.5000, 1.5000, 1.5000, 197, '39', '2025-11-26', '14:56:53', 33.0000, 5484.8013, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (244, 333, 1.000, 27.000, 4.6000, 4.6000, 4.6000, 198, '39', '2025-11-27', '20:51:44', 124.2000, 5489.4013, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (245, 332, 1.000, 19.000, 3.4500, 3.4500, 3.4500, 198, '39', '2025-11-27', '20:51:44', 65.5500, 5492.8514, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (246, 331, 1.000, 23.000, 2.5000, 2.5000, 2.5000, 198, '39', '2025-11-27', '20:51:44', 57.5000, 5495.3516, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (247, 330, 1.000, 23.000, 1.5000, 1.5000, 1.5000, 198, '39', '2025-11-27', '20:51:44', 34.5000, 5496.8516, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (248, 333, 1.000, 28.000, 4.6000, 4.6000, 4.6000, 199, '39', '2025-11-27', '20:52:47', 128.8000, 5501.4516, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (249, 332, 1.000, 20.000, 3.4500, 3.4500, 3.4500, 199, '39', '2025-11-27', '20:52:47', 69.0000, 5504.9017, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (250, 331, 1.000, 24.000, 2.5000, 2.5000, 2.5000, 199, '39', '2025-11-27', '20:52:47', 60.0000, 5507.4019, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (251, 330, 1.000, 24.000, 1.5000, 1.5000, 1.5000, 199, '39', '2025-11-27', '20:52:47', 36.0000, 5508.9019, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (253, 77, 10.000, 10.000, 2.3000, 2.3000, 23.0000, 200, '39', '2025-11-27', '20:55:12', 23.0000, 5531.9019, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (254, 77, 1.000, 11.000, 2.3273, 2.6000, 2.6000, 203, '39', '2025-11-27', '21:03:24', 25.6000, 5534.5019, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (255, 77, 10.000, 21.000, 2.4571, 2.6000, 26.0000, 201, '39', '2025-11-27', '21:05:23', 51.6000, 5560.5020, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (256, 332, 1.000, 21.000, 3.4500, 3.4500, 3.4500, 204, '39', '2025-11-29', '17:06:21', 72.4500, 5563.9520, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (261, 62, -2.000, 10.000, 76.7000, 76.7000, 153.4000, 3, '38', '2025-11-29', '20:11:23', 767.0000, 5410.5521, '1', 1, 1, 60);
-INSERT INTO `cc_kardex` VALUES (262, 332, -1.000, 20.000, 3.4500, 3.4500, 3.4500, 3, '38', '2025-11-29', '20:11:23', 69.0000, 5407.1022, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (267, 332, -2.000, 18.000, 3.4500, 3.4500, 6.9000, 9, '38', '2025-11-30', '20:10:15', 62.1000, 5400.2021, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (268, 62, -2.000, -2.000, 0.0000, 76.7000, 153.4000, 9, '38', '2025-11-30', '20:10:15', 613.6000, 5246.8021, '1', 1, 1, 64);
-INSERT INTO `cc_kardex` VALUES (269, 62, -1.000, -3.000, 0.0000, 45.0000, 45.0000, 11, '38', '2025-11-30', '20:13:15', 568.6000, 5201.8022, '1', 1, 1, 64);
-INSERT INTO `cc_kardex` VALUES (270, 332, -1.000, 17.000, 3.4500, 3.4500, 3.4500, 11, '38', '2025-11-30', '20:13:15', 58.6500, 5198.3522, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (271, 62, -1.000, -4.000, 0.0000, 45.0000, 45.0000, 20, '38', '2025-11-30', '20:21:46', 523.6000, 5153.3521, '1', 1, 1, 61);
-INSERT INTO `cc_kardex` VALUES (272, 332, -1.000, 16.000, 3.4500, 3.4500, 3.4500, 20, '38', '2025-11-30', '20:21:46', 55.2000, 5149.9021, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (273, 330, -1.000, 23.000, 1.5000, 1.5000, 1.5000, 22, '38', '2025-11-30', '20:28:10', 34.5000, 5148.4023, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (274, 332, -1.000, 15.000, 3.4500, 3.4500, 3.4500, 22, '38', '2025-11-30', '20:28:10', 51.7500, 5144.9523, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (275, 332, -1.000, 14.000, 3.4500, 3.4500, 3.4500, 21, '38', '2025-11-30', '20:33:20', 48.3000, 5141.5021, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (276, 330, -2.000, 21.000, 1.5000, 1.5000, 3.0000, 21, '38', '2025-11-30', '20:33:20', 31.5000, 5138.5020, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (277, 62, -1.000, -5.000, 0.0000, 45.0000, 45.0000, 17, '38', '2025-11-30', '20:34:19', 478.6000, 5093.5020, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (278, 332, -1.000, 13.000, 3.4500, 3.4500, 3.4500, 17, '38', '2025-11-30', '20:34:19', 44.8500, 5090.0520, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (279, 62, -1.000, -6.000, 0.0000, 45.0000, 45.0000, 15, '38', '2025-11-30', '20:35:07', 433.6000, 5045.0518, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (280, 332, -1.000, 12.000, 3.4500, 3.4500, 3.4500, 13, '38', '2025-11-30', '20:35:58', 41.4000, 5041.6018, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (281, 62, -1.000, -7.000, 0.0000, 45.0000, 45.0000, 13, '38', '2025-11-30', '20:35:58', 388.6000, 4996.6016, '1', 1, 1, 64);
-INSERT INTO `cc_kardex` VALUES (282, 62, 9.000, 2.000, 399.5000, 45.6000, 410.4000, 205, '39', '2025-12-01', '20:08:50', 799.0000, 5407.0016, '1', 1, 1, 138);
-INSERT INTO `cc_kardex` VALUES (283, 62, 3.000, 5.000, 188.0000, 47.0000, 141.0000, 206, '39', '2025-12-01', '20:22:52', 940.0000, 5548.0015, '1', 1, 1, 138);
-INSERT INTO `cc_kardex` VALUES (284, 62, 10.000, 15.000, 188.0000, 188.0000, 1880.0000, 207, '39', '2025-12-01', '20:23:50', 2820.0000, 7428.0015, '1', 1, 1, 138);
-INSERT INTO `cc_kardex` VALUES (285, 62, 11.000, 26.000, 127.5000, 45.0000, 495.0000, 208, '39', '2025-12-01', '20:24:57', 3315.0000, 7923.0015, '1', 1, 1, 138);
-INSERT INTO `cc_kardex` VALUES (287, 332, 10.000, 22.000, 3.4727, 3.5000, 35.0000, 210, '39', '2025-12-01', '20:36:29', 76.4000, 7958.0015, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (288, 62, -11.000, 15.000, 188.0000, 45.0000, -495.0000, 208, '41', '2025-12-01', '20:50:05', 2820.0000, 7463.0015, '1', 1, 1, 138);
-INSERT INTO `cc_kardex` VALUES (289, 332, -10.000, 12.000, 3.4500, 3.5000, 35.0000, 210, '41', '2025-12-01', '21:09:38', 41.4000, 7428.0015, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (290, 332, 10.000, 22.000, 3.5182, 3.6000, 36.0000, 211, '39', '2025-12-01', '21:23:13', 77.4000, 7464.0015, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (291, 332, -10.000, 12.000, 3.4500, 3.6000, 36.0000, 211, '41', '2025-12-01', '21:42:57', 41.4000, 7428.0015, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (292, 332, -2.000, 10.000, 3.4500, 3.4500, 6.9000, 23, '38', '2025-12-02', '19:00:51', 34.5000, 7421.1015, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (293, 330, -3.000, 18.000, 1.5000, 1.5000, 4.5000, 24, '38', '2025-12-02', '19:06:48', 27.0000, 7416.6016, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (294, 332, -3.000, 7.000, 3.4500, 3.4500, 10.3500, 24, '38', '2025-12-02', '19:06:48', 24.1500, 7406.2516, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (295, 330, -1.000, 17.000, 1.5000, 1.5000, 1.5000, 26, '38', '2025-12-03', '15:14:31', 25.5000, 7404.7515, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (296, 332, -3.000, 4.000, 3.4500, 3.4500, 10.3500, 26, '38', '2025-12-03', '15:14:31', 13.8000, 7394.4015, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (297, 330, 1.000, 18.000, 1.5000, 1.5000, -1.5000, 26, '40', '2025-12-03', '15:36:53', 27.0000, 7395.9014, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (298, 331, -2.000, 22.000, 2.5000, 2.5000, 5.0000, 27, '38', '2025-12-03', '15:47:03', 55.0000, 7390.9014, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (300, 331, 2.000, 24.000, 2.5000, 2.5000, 5.0000, 27, '40', '2025-12-03', '16:38:41', 60.0000, 7395.9014, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (301, 331, -1.000, 23.000, 2.5000, 2.5000, 2.5000, 28, '38', '2025-12-03', '16:44:35', 57.5000, 7393.4014, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (302, 332, -1.000, 3.000, 3.4500, 3.4500, 3.4500, 28, '38', '2025-12-03', '16:44:35', 10.3500, 7389.9514, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (303, 331, 1.000, 24.000, 2.5000, 2.5000, 2.5000, 28, '40', '2025-12-03', '16:45:42', 60.0000, 7392.4512, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (304, 331, -1.000, 23.000, 2.5000, 2.5000, 2.5000, 29, '38', '2025-12-03', '16:49:09', 57.5000, 7389.9512, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (305, 332, -1.000, 2.000, 3.4500, 3.4500, 3.4500, 29, '38', '2025-12-03', '16:49:09', 6.9000, 7386.5012, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (306, 331, 1.000, 24.000, 2.5000, 2.5000, 2.5000, 29, '40', '2025-12-03', '16:49:46', 60.0000, 7389.0010, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (307, 332, 1.000, 3.000, 3.4500, 3.4500, 3.4500, 29, '40', '2025-12-03', '16:49:46', 10.3500, 7392.4510, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (308, 331, -2.000, 22.000, 2.5000, 2.5000, 5.0000, 30, '38', '2025-12-03', '16:51:13', 55.0000, 7387.4512, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (309, 332, -1.000, 2.000, 3.4500, 3.4500, 3.4500, 30, '38', '2025-12-03', '16:51:13', 6.9000, 7384.0012, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (310, 332, -2.000, 0.000, 0.0000, 3.4500, 6.9000, 32, '38', '2025-12-04', '14:50:15', 0.0000, 7377.1010, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (311, 330, -5.000, 13.000, 1.5000, 1.5000, 7.5000, 32, '38', '2025-12-04', '14:50:15', 19.5000, 7369.6011, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (312, 69, 2.000, 52.000, 14.0000, 14.0000, 28.0000, 212, '39', '2025-12-09', '01:53:01', 728.0000, 7397.6011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (313, 330, -1.000, 12.000, 1.5000, 1.5000, 1.5000, 33, '38', '2025-12-19', '17:20:30', 18.0000, 7396.1011, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (314, 330, 10.000, 22.000, 1.5000, 1.5000, 15.0000, 214, '39', '2025-12-19', '17:22:16', 33.0000, 7411.1011, '1', 1, 1, 139);
-INSERT INTO `cc_kardex` VALUES (332, 331, -2.000, 20.000, 2.5000, 2.5000, 5.0000, 5, '17', '2025-12-11', '19:52:25', 55.0000, 7411.1011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (333, 331, 2.000, 22.000, 2.7500, 2.5000, 5.0000, 5, '17', '2025-12-11', '19:52:25', 55.0000, 7411.1011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (334, 330, -1.000, 21.000, 1.5000, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 33.0000, 7411.1011, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (335, 330, 1.000, 22.000, 1.5714, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 33.0000, 7411.1011, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (336, 331, -1.000, 21.000, 2.5000, 2.5000, 2.5000, 4, '17', '2025-12-09', '19:58:03', 55.0000, 7411.1011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (337, 331, 1.000, 22.000, 2.6190, 2.5000, 2.5000, 4, '17', '2025-12-09', '19:58:03', 55.0000, 7411.1011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (338, 69, -2.000, 50.000, 14.0000, 14.0000, 28.0000, 3, '17', '2025-12-09', '19:59:25', 728.0000, 7411.1011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (339, 69, 2.000, 52.000, 14.5600, 14.0000, 28.0000, 3, '17', '2025-12-09', '19:59:25', 728.0000, 7411.1011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (340, 331, -1.000, 21.000, 2.5000, 2.5000, 2.5000, 2, '17', '2025-12-09', '20:06:08', 55.0000, 7411.1011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (341, 331, 1.000, 22.000, 2.6190, 2.5000, 2.5000, 2, '17', '2025-12-09', '20:06:08', 55.0000, 7411.1011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (342, 333, -4.000, 24.000, 4.6000, 4.6000, 18.4000, 1, '17', '2025-12-09', '20:07:09', 128.8000, 7411.1011, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (343, 333, 4.000, 28.000, 5.3667, 4.6000, 18.4000, 1, '17', '2025-12-09', '20:07:09', 128.8000, 7411.1011, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (344, 330, -1.000, 21.000, 1.5000, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 33.0000, 7411.1011, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (345, 330, 1.000, 22.000, 1.5714, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 33.0000, 7411.1011, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (346, 331, -1.000, 21.000, 2.5000, 2.6190, 2.6190, 6, '17', '2025-12-30', '20:16:51', 55.0000, 7411.1011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (347, 331, 1.000, 22.000, 2.6190, 2.6190, 2.6190, 6, '17', '2025-12-30', '20:16:51', 55.0000, 7411.1011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (348, 333, -1.000, 27.000, 4.6000, 5.3667, 5.3667, 7, '17', '2025-12-30', '20:19:04', 128.8000, 7411.1011, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (349, 333, 1.000, 28.000, 4.7704, 5.3667, 5.3667, 7, '17', '2025-12-30', '20:19:04', 128.8000, 7411.1011, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (350, 330, -3.000, 19.000, 1.5000, 1.5714, 4.7142, 8, '17', '2025-12-30', '20:20:50', 33.0000, 7411.1011, '1', 2, 1, 137);
-INSERT INTO `cc_kardex` VALUES (351, 330, 3.000, 22.000, 1.7368, 1.5714, 4.7142, 8, '17', '2025-12-30', '20:20:50', 33.0000, 7411.1011, '1', 1, 1, 137);
-INSERT INTO `cc_kardex` VALUES (352, 331, -2.000, 20.000, 2.5000, 2.6190, 5.2380, 10, '17', '2026-01-02', '22:36:09', 55.0000, 7411.1011, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (353, 331, 2.000, 22.000, 2.7500, 2.6190, 5.2380, 10, '17', '2026-01-02', '22:36:09', 55.0000, 7411.1011, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (354, 333, -3.000, 25.000, 4.6000, 4.7704, 14.3112, 11, '17', '2026-01-02', '00:45:24', 128.8000, 7411.1011, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (355, 333, 3.000, 28.000, 5.1520, 4.7704, 14.3112, 11, '17', '2026-01-02', '00:45:24', 128.8000, 7411.1011, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (356, 333, -2.000, 26.000, 4.5575, 5.1520, 10.3040, 34, '38', '2026-01-02', '01:46:46', 118.4960, 7400.7971, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (357, 333, 2.000, 28.000, 4.6000, 5.1520, 10.3040, 34, '40', '2026-01-03', '01:47:11', 128.8000, 7411.1009, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (358, 333, -1.000, 27.000, 4.6000, 4.6000, 4.6000, 35, '38', '2026-01-02', '01:52:42', 124.2000, 7406.5011, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (359, 333, 3.000, 30.000, 4.6000, 4.7704, 14.3112, 11, '44', '2026-01-02', '02:01:04', 124.2000, 7406.5010, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (360, 333, -3.000, 27.000, 4.1400, 4.7704, 14.3112, 11, '44', '2026-01-02', '02:01:04', 124.2000, 7406.5010, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (361, 331, 2.000, 24.000, 2.5000, 2.6190, 5.2380, 10, '44', '2026-01-02', '03:09:32', 55.0000, 7406.5010, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (362, 331, -2.000, 22.000, 2.2917, 2.6190, 5.2380, 10, '44', '2026-01-02', '03:09:32', 55.0000, 7406.5010, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (363, 333, -2.000, 25.000, 4.6000, 4.1400, 8.2800, 13, '17', '2026-01-03', '03:14:38', 124.2000, 7406.5010, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (364, 333, 2.000, 27.000, 4.9680, 4.1400, 8.2800, 13, '17', '2026-01-03', '03:14:38', 124.2000, 7406.5010, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (365, 331, -4.000, 18.000, 2.5000, 2.6190, 10.4760, 13, '17', '2026-01-03', '03:14:38', 55.0000, 7406.5010, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (366, 331, 4.000, 22.000, 3.0556, 2.6190, 10.4760, 13, '17', '2026-01-03', '03:14:38', 55.0000, 7406.5010, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (367, 333, -2.000, 25.000, 4.6000, 4.9680, 9.9360, 14, '17', '2026-01-03', '03:29:05', 124.2000, 7406.5010, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (368, 333, 2.000, 27.000, 4.9680, 4.9680, 9.9360, 14, '17', '2026-01-03', '03:29:05', 124.2000, 7406.5010, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (369, 333, 10.000, 37.000, 4.6995, 4.9680, 49.6800, 215, '39', '2026-01-03', '03:32:53', 173.8800, 7456.1810, '1', 1, 1, 140);
-INSERT INTO `cc_kardex` VALUES (370, 333, -3.000, 34.000, 4.6995, 4.6995, 14.0985, 15, '17', '2026-01-03', '03:35:52', 173.8800, 7456.1812, '1', 1, 1, 140);
-INSERT INTO `cc_kardex` VALUES (371, 333, 3.000, 37.000, 5.1141, 4.6995, 14.0985, 15, '17', '2026-01-03', '03:35:52', 173.8800, 7456.1812, '1', 2, 1, 140);
-INSERT INTO `cc_kardex` VALUES (372, 333, -2.000, 35.000, 4.6995, 4.6995, 9.3990, 15, '17', '2026-01-03', '03:35:52', 173.8800, 7456.1812, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (373, 333, 2.000, 37.000, 4.9680, 4.6995, 9.3990, 15, '17', '2026-01-03', '03:35:53', 173.8800, 7456.1812, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (374, 333, -1.000, 36.000, 4.6995, 4.9680, 4.9680, 16, '17', '2026-01-03', '03:38:19', 173.8800, 7456.1812, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (375, 333, 1.000, 37.000, 4.8300, 4.9680, 4.9680, 16, '17', '2026-01-03', '03:38:19', 173.8800, 7456.1812, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (376, 333, 1.000, 38.000, 4.6995, 4.9680, 4.9680, 16, '44', '2026-01-03', '03:38:57', 173.8800, 7456.1812, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (377, 333, -1.000, 37.000, 4.5758, 4.9680, 4.9680, 16, '44', '2026-01-03', '03:38:57', 173.8800, 7456.1812, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (378, 332, 2.000, 2.000, 1.6000, 1.6000, 3.2000, 217, '39', '2026-01-26', '21:10:55', 3.2000, 7459.3812, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (379, 66, 3.000, 3.000, 250.0000, 250.0000, 750.0000, 217, '39', '2026-01-26', '21:10:55', 750.0000, 8209.3813, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (380, 62, 10.000, 25.000, 130.8000, 45.0000, 450.0000, 218, '39', '2026-02-28', '15:47:22', 3270.0000, 8659.3809, '1', 1, 1, 141);
-INSERT INTO `cc_kardex` VALUES (381, 62, -4.000, 21.000, 130.8000, 130.8000, 523.2000, 18, '17', '2026-02-28', '15:48:44', 3270.0000, 8659.3809, '1', 1, 1, 141);
-INSERT INTO `cc_kardex` VALUES (382, 62, 4.000, 25.000, 155.7143, 130.8000, 523.2000, 18, '17', '2026-02-28', '15:48:44', 3270.0000, 8659.3809, '1', 2, 1, 141);
-INSERT INTO `cc_kardex` VALUES (383, 333, -2.000, 35.000, 4.6995, 4.7704, 9.5408, 12, '17', '2026-01-02', '18:00:26', 173.8800, 8659.3809, '1', 1, 1, 136);
-INSERT INTO `cc_kardex` VALUES (384, 333, 2.000, 37.000, 4.9680, 4.7704, 9.5408, 12, '17', '2026-01-02', '18:00:27', 173.8800, 8659.3809, '1', 2, 1, 136);
-INSERT INTO `cc_kardex` VALUES (385, 72, 16.000, 43.000, 45.0000, 45.0000, 720.0000, 219, '39', '2026-03-05', '14:55:50', 1935.0000, 9379.3809, '1', 1, 1, 142);
-INSERT INTO `cc_kardex` VALUES (386, 62, 5.000, 30.000, 134.9524, 155.7143, 778.5715, 219, '39', '2026-03-05', '14:55:50', 4048.5715, 10157.9524, '1', 1, 1, 143);
-INSERT INTO `cc_kardex` VALUES (387, 330, 10.000, 32.000, 1.5740, 1.7368, 17.3680, 219, '39', '2026-03-05', '14:55:50', 50.3680, 10175.3201, '1', 1, 1, 144);
-INSERT INTO `cc_kardex` VALUES (388, 64, 2.000, 2.000, 250.0000, 250.0000, 500.0000, 220, '39', '2026-03-07', '22:47:22', 500.0000, 10675.3203, '1', 1, 1, 145);
-INSERT INTO `cc_kardex` VALUES (389, 62, 2.000, 32.000, 134.9524, 134.9524, 269.9048, 221, '39', '2026-03-22', '16:59:34', 4318.4763, 10945.2251, '1', 1, 1, 146);
-INSERT INTO `cc_kardex` VALUES (390, 62, -1.000, 31.000, 134.9524, 134.9524, 134.9524, 38, '38', '2026-03-22', '17:00:22', 4183.5239, 10810.2732, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (391, 62, 1.000, 32.000, 134.9524, 134.9524, 134.9524, 38, '40', '2026-03-22', '17:00:51', 4318.4763, 10945.2258, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (392, 62, -2.000, 30.000, 134.9524, 134.9524, 269.9048, 39, '38', '2026-03-22', '17:02:11', 4048.5715, 10675.3208, '1', 2, 1, 40);
-INSERT INTO `cc_kardex` VALUES (393, 62, -1.000, 29.000, 134.9524, 134.9524, 134.9524, 40, '38', '2026-03-22', '17:05:13', 3913.6191, 10540.3679, '1', 2, 1, 141);
-INSERT INTO `cc_kardex` VALUES (394, 62, -1.000, 28.000, 134.9524, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 3913.6191, 10540.3682, '1', 2, 1, 141);
-INSERT INTO `cc_kardex` VALUES (395, 62, 1.000, 29.000, 139.7721, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 3913.6191, 10540.3682, '1', 1, 1, 141);
-INSERT INTO `cc_kardex` VALUES (396, 62, -1.000, 28.000, 134.9524, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 3913.6191, 10540.3682, '1', 1, 1, 43);
-INSERT INTO `cc_kardex` VALUES (397, 62, 1.000, 29.000, 139.7721, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 3913.6191, 10540.3682, '1', 2, 1, 43);
-INSERT INTO `cc_kardex` VALUES (398, 62, 1.000, 30.000, 135.1130, 139.7721, 139.7721, 222, '39', '2026-03-22', '17:30:24', 4053.3912, 10680.1403, '1', 1, 1, 147);
-INSERT INTO `cc_kardex` VALUES (399, 62, 2.000, 2.000, 2073.6956, 47.0000, 94.0000, 224, '39', '2026-03-23', '21:49:09', 4147.3912, 10774.1406, '1', 1, 1, 148);
-INSERT INTO `cc_kardex` VALUES (400, 62, -1.000, 1.000, 2073.6956, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 4147.3912, 10774.1406, '1', 1, 1, 58);
-INSERT INTO `cc_kardex` VALUES (401, 62, 1.000, 2.000, 4147.3912, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 4147.3912, 10774.1406, '1', 2, 1, 58);
-INSERT INTO `cc_kardex` VALUES (402, 62, 1.000, 3.000, 1398.4637, 48.0000, 48.0000, 225, '39', '2026-03-24', '14:40:29', 4195.3912, 10822.1406, '1', 1, 1, 149);
-INSERT INTO `cc_kardex` VALUES (403, 335, 100.000, 100.000, 3.5000, 3.5000, 350.0000, 226, '39', '2026-03-24', '14:51:12', 350.0000, 11172.1406, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (404, 335, -5.000, 95.000, 3.5000, 3.5000, 17.5000, 41, '38', '2026-03-24', '14:52:24', 332.5000, 11154.6406, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (405, 335, -7.000, 88.000, 3.5000, 3.5000, 24.5000, 42, '38', '2026-03-24', '14:53:05', 308.0000, 11130.1406, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (406, 335, 20.000, 108.000, 3.5926, 4.0000, 80.0000, 227, '39', '2026-03-24', '14:56:36', 388.0000, 11210.1406, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (407, 335, -7.000, 101.000, 3.5926, 4.0000, 25.1482, 43, '38', '2026-03-24', '14:59:04', 362.8518, 11184.9924, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (408, 335, 10.000, 111.000, 3.6338, 4.0500, 40.5000, 228, '39', '2026-03-24', '15:17:18', 403.3518, 11225.4922, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (409, 335, -5.000, 106.000, 3.6338, 4.0500, 18.1690, 44, '38', '2026-03-24', '15:18:33', 385.1828, 11207.3232, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (410, 335, -5.000, 101.000, 3.6338, 4.0500, 18.1690, 22, '17', '2026-03-24', '15:25:02', 385.1828, 11207.3232, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (411, 335, 5.000, 106.000, 3.6338, 4.0500, 18.1690, 22, '17', '2026-03-24', '15:25:02', 385.1828, 11207.3232, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (412, 335, -7.000, 99.000, 3.6338, 4.0500, 25.4366, 23, '17', '2026-03-24', '15:32:38', 385.1828, 11207.3232, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (413, 335, 7.000, 106.000, 3.6338, 4.0500, 25.4366, 23, '17', '2026-03-24', '15:32:38', 385.1828, 11207.3232, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (414, 335, 10.000, 116.000, 3.6338, 4.0500, 40.5000, 229, '39', '2026-03-24', '16:45:08', 425.6828, 11247.8232, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (415, 335, 5.000, 121.000, 3.6338, 4.0500, 20.2500, 230, '39', '2026-03-24', '16:47:55', 445.9328, 11268.0732, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (416, 335, 2.000, 123.000, 3.6338, 4.0500, 7.2676, 232, '39', '2026-03-24', '19:40:32', 445.9328, 11275.3408, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (417, 335, 10.000, 133.000, 3.6338, 4.0500, 36.3380, 233, '39', '2026-03-24', '19:46:58', 445.9328, 11311.6788, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (418, 335, 1.000, 134.000, 3.6338, 4.0500, 3.6338, 234, '39', '2026-03-24', '19:48:50', 445.9328, 11315.3125, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (419, 335, 5.000, 139.000, 3.6338, 4.0500, 18.1690, 235, '39', '2026-03-24', '19:52:23', 445.9328, 11333.4815, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (420, 335, 1.000, 140.000, 3.2142, 4.0500, 4.0500, 236, '39', '2026-03-24', '19:53:37', 449.9828, 11337.5314, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (421, 335, 3.000, 143.000, 3.2142, 4.0500, 9.6426, 237, '39', '2026-03-24', '19:54:40', 449.9828, 11347.1738, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (422, 336, 50.000, 50.000, 3.6000, 3.6000, 180.0000, 238, '39', '2026-03-24', '20:33:11', 180.0000, 11527.1738, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (423, 336, 8.000, 58.000, 3.6000, 3.6000, 28.8000, 239, '39', '2026-03-24', '20:33:58', 208.8000, 11555.9738, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (424, 336, 5.000, 63.000, 3.6000, 3.6000, 18.0000, 240, '39', '2026-03-24', '20:34:51', 226.8000, 11573.9736, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (425, 336, 10.000, 73.000, 3.6274, 3.8000, 38.0000, 241, '39', '2026-03-24', '20:36:03', 264.8000, 11611.9736, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (426, 336, -5.000, 68.000, 3.6274, 3.8000, 18.1370, 45, '38', '2026-03-24', '20:41:12', 246.6630, 11593.8366, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (427, 336, -3.000, 65.000, 3.6274, 3.8000, 10.8822, 46, '38', '2026-03-24', '20:42:21', 235.7808, 11582.9547, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (428, 336, -3.000, 62.000, 3.6274, 3.8000, 10.8822, 24, '17', '2026-03-24', '21:21:00', 235.7808, 11582.9551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (429, 336, 3.000, 65.000, 3.6274, 3.8000, 10.8822, 24, '17', '2026-03-24', '21:21:00', 235.7808, 11582.9551, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (430, 336, -5.000, 60.000, 3.6274, 3.8000, 18.0000, 240, '41', '2026-03-24', '21:34:15', 217.7808, 11564.9551, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (431, 336, -10.000, 50.000, 3.5956, 3.8000, 38.0000, 241, '41', '2026-03-24', '21:44:59', 179.7808, 11526.9551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (432, 341, 10.000, 10.000, 3.8700, 3.8700, 38.7000, 242, '39', '2026-04-23', '21:57:23', 38.7000, 11565.6551, '1', 1, 1, 150);
-INSERT INTO `cc_kardex` VALUES (433, 342, 10.000, 10.000, 8.5000, 8.5000, 85.0000, 244, '39', '2026-05-01', '17:54:58', 85.0000, 11650.6553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (434, 342, -1.000, 9.000, 8.5000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 85.0000, 11650.6553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (435, 342, 1.000, 10.000, 8.5000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 85.0000, 11650.6553, '1', 2, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (436, 342, -1.000, 9.000, 8.5000, 8.5000, 8.5000, 47, '38', '2026-05-01', '18:10:10', 76.5000, 11642.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (437, 72, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1980.0000, 11687.1553, '1', 1, 1, 151);
-INSERT INTO `cc_kardex` VALUES (438, 72, -3.000, -2.000, 45.0000, 45.0000, 135.0000, 48, '38', '2026-05-20', '18:50:16', 1845.0000, 11552.1553, '1', 1, 1, 71);
-INSERT INTO `cc_kardex` VALUES (439, 72, 5.000, 3.000, 45.0000, 45.0000, 225.0000, 247, '39', '2026-06-22', '16:33:37', 2070.0000, 11777.1553, '1', 1, 1, 152);
-INSERT INTO `cc_kardex` VALUES (440, 72, 4.000, 7.000, 45.0000, 45.0000, 180.0000, 248, '39', '2026-06-22', '16:44:20', 2250.0000, 11957.1553, '1', 1, 1, 153);
-INSERT INTO `cc_kardex` VALUES (441, 72, -5.000, 2.000, 45.0000, 45.0000, 225.0000, 247, '41', '2026-06-22', '16:44:40', 2025.0000, 11732.1553, '1', 1, 1, 152);
-INSERT INTO `cc_kardex` VALUES (442, 72, 2.000, 4.000, 45.0000, 45.0000, 90.0000, 249, '39', '2026-06-22', '17:41:09', 2115.0000, 11822.1553, '1', 1, 1, 154);
-INSERT INTO `cc_kardex` VALUES (443, 72, -1.000, 3.000, 45.0000, 45.0000, 45.0000, 49, '38', '2026-06-22', '17:53:52', 2070.0000, 11777.1553, '1', 1, 1, 78);
-INSERT INTO `cc_kardex` VALUES (444, 72, -3.000, 0.000, 45.0000, 45.0000, 135.0000, 50, '38', '2026-06-22', '17:55:43', 1935.0000, 11642.1553, '1', 1, 1, 72);
-INSERT INTO `cc_kardex` VALUES (445, 72, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 49, '40', '2026-06-22', '18:22:33', 1980.0000, 11687.1553, '1', 1, 1, 78);
-INSERT INTO `cc_kardex` VALUES (446, 72, -3.000, -2.000, 45.0000, 45.0000, 135.0000, 28, '17', '2026-06-22', '18:24:08', 1980.0000, 11687.1553, '1', 1, 1, 80);
-INSERT INTO `cc_kardex` VALUES (447, 72, 3.000, 1.000, 45.0000, 45.0000, 135.0000, 28, '17', '2026-06-22', '18:24:08', 1980.0000, 11687.1553, '1', 2, 1, 80);
-INSERT INTO `cc_kardex` VALUES (448, 72, -1.000, 0.000, 45.0000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1980.0000, 11687.1553, '1', 1, 1, 78);
-INSERT INTO `cc_kardex` VALUES (449, 72, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1980.0000, 11687.1553, '1', 2, 1, 78);
-INSERT INTO `cc_kardex` VALUES (456, 69, 3.000, 3.000, 256.6667, 14.0000, 42.0000, 1, '02', '2026-07-06', '20:37:32', 770.0000, 11729.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (457, 338, 10.000, 10.000, 0.5000, 0.5000, 5.0000, 1, '02', '2026-07-06', '20:37:32', 5.0000, 11734.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (458, 72, 2.000, 3.000, 690.0000, 45.0000, 90.0000, 1, '02', '2026-07-06', '20:37:32', 2070.0000, 11824.1553, '1', 1, 1, 155);
-INSERT INTO `cc_kardex` VALUES (459, 338, 3.000, 13.000, 0.5000, 0.5000, 1.5000, 2, '02', '2026-07-06', '20:43:28', 6.5000, 11825.6553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (460, 338, -3.000, 10.000, 0.5000, 0.5000, 1.5000, 2, '09', '2026-07-06', '21:54:28', 5.0000, 11824.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (461, 69, 1.000, 4.000, 196.0000, 14.0000, 14.0000, 3, '02', '2026-07-10', '14:16:58', 784.0000, 11838.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (462, 338, 1.000, 11.000, 0.5000, 0.5000, 0.5000, 3, '02', '2026-07-10', '14:16:58', 5.5000, 11838.6553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (463, 342, 1.000, 10.000, 8.5000, 8.5000, 8.5000, 3, '02', '2026-07-10', '14:16:58', 85.0000, 11847.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (464, 342, 1.000, 1.000, 8.5455, 9.0000, 9.0000, 4, '02', '2026-07-10', '15:05:14', 94.0000, 11856.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (465, 69, 1.000, 5.000, 159.6000, 14.0000, 14.0000, 4, '02', '2026-07-10', '15:05:14', 798.0000, 11870.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (466, 338, 1.000, 12.000, 0.5000, 0.5000, 0.5000, 4, '02', '2026-07-10', '15:05:14', 6.0000, 11870.6553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (467, 338, 1.000, 13.000, 0.5000, 0.5000, 0.5000, 5, '02', '2026-07-10', '15:26:56', 6.5000, 11871.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (468, 69, 1.000, 6.000, 135.3333, 14.0000, 14.0000, 5, '02', '2026-07-10', '15:26:56', 812.0000, 11885.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (469, 72, 2.000, 5.000, 432.0000, 45.0000, 90.0000, 5, '02', '2026-07-10', '15:26:56', 2160.0000, 11975.1553, '1', 1, 1, 156);
-INSERT INTO `cc_kardex` VALUES (470, 69, 1.000, 7.000, 118.0000, 14.0000, 14.0000, 6, '02', '2026-07-10', '15:59:09', 826.0000, 11989.1553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (471, 342, 2.000, 3.000, 36.9333, 8.4000, 16.8000, 6, '02', '2026-07-10', '15:59:09', 110.8000, 12005.9553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (472, 348, 3.000, 3.000, 16.2000, 16.2000, 48.6000, 7, '02', '2026-07-10', '16:10:00', 48.6000, 12054.5551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (473, 338, 1.000, 14.000, 0.5071, 0.6000, 0.6000, 7, '02', '2026-07-10', '16:10:00', 7.1000, 12055.1547, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (474, 69, 2.000, 9.000, 95.1556, 15.2000, 30.4000, 7, '02', '2026-07-10', '16:10:00', 856.4000, 12085.5543, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (475, 348, 1.000, 4.000, 16.2000, 16.2000, 16.2000, 8, '02', '2026-07-10', '16:11:55', 64.8000, 12101.7547, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (476, 348, 5.000, 9.000, 16.6444, 17.0000, 85.0000, 9, '02', '2026-07-10', '16:13:38', 149.8000, 12186.7549, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (477, 348, -1.000, 8.000, 16.7000, 16.2000, 16.2000, 8, '09', '2026-07-10', '16:14:30', 133.6000, 12170.5549, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (480, 338, 198.000, 198.000, 1.0859, 1.0500, 207.9000, 12, '02', '2026-06-15', '04:22:54', 215.0000, 12378.4547, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (481, 69, 1.000, 10.000, 87.1600, 15.2000, 15.2000, 13, '02', '2026-07-12', '15:31:46', 871.6000, 12393.6551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (482, 338, 1.000, 199.000, 1.0857, 1.0500, 1.0500, 13, '02', '2026-07-12', '15:31:46', 216.0500, 12394.7053, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (483, 338, 1.000, 200.000, 1.0855, 1.0500, 1.0500, 14, '02', '2026-07-12', '15:33:43', 217.1000, 12395.7551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (484, 69, 2.000, 12.000, 75.1667, 15.2000, 30.4000, 15, '02', '2026-07-12', '15:35:59', 902.0000, 12426.1549, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (485, 338, 1.000, 201.000, 1.0853, 1.0500, 1.0500, 16, '02', '2026-07-12', '15:48:44', 218.1500, 12427.2053, '1', 1, 8, NULL);
-INSERT INTO `cc_kardex` VALUES (486, 69, 1.000, 13.000, 70.5538, 15.2000, 15.2000, 17, '02', '2026-07-12', '18:28:04', 917.2000, 12442.4051, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (487, 338, 1.000, 202.000, 1.0851, 1.0500, 1.0500, 17, '02', '2026-07-12', '18:28:04', 219.2000, 12443.4553, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (488, 72, 2.000, 7.000, 321.4286, 45.0000, 90.0000, 17, '02', '2026-07-12', '18:28:04', 2250.0000, 12533.4551, '1', 1, 1, 157);
-INSERT INTO `cc_kardex` VALUES (489, 338, 2.000, 204.000, 1.0848, 1.0500, 2.1000, 18, '02', '2026-07-12', '21:34:47', 221.3000, 12535.5551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (490, 338, 10.000, 214.000, 1.0832, 1.0500, 10.5000, 19, '02', '2026-07-12', '21:42:16', 231.8000, 12546.0547, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (491, 72, 1.000, 8.000, 286.8750, 45.0000, 45.0000, 20, '02', '2026-07-12', '21:53:29', 2295.0000, 12591.0547, '1', 1, 1, 158);
-INSERT INTO `cc_kardex` VALUES (492, 69, 2.000, 15.000, 63.1733, 15.2000, 30.4000, 20, '02', '2026-07-12', '21:53:29', 947.6000, 12621.4547, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (493, 338, -10.000, 204.000, 1.0848, 1.0500, 10.5000, 19, '09', '2026-07-12', '21:57:33', 221.3000, 12610.9551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (494, 338, 10.000, 214.000, 1.0832, 1.0500, 10.5000, 22, '02', '2026-07-27', '17:52:44', 231.8000, 12621.4551, '1', 1, 1, NULL);
-INSERT INTO `cc_kardex` VALUES (495, 72, 2.000, 10.000, 238.5000, 45.0000, 90.0000, 22, '02', '2026-07-27', '17:52:44', 2385.0000, 12711.4551, '1', 1, 1, 159);
-INSERT INTO `cc_kardex` VALUES (496, 72, -1.000, 9.000, 260.0000, 45.0000, 45.0000, 23, '11', '2026-07-27', '18:08:15', 2340.0000, 12666.4551, '1', 1, 1, 159);
+INSERT INTO `cc_kardex` VALUES (96, 69, 1, 2.000, 2.000, 14.0000, 14.0000, 28.0000, 77, '39', '2025-10-19', '22:02:39', 28.0000, 28.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (97, 62, 1, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 77, '39', '2025-10-19', '22:02:39', 45.0000, 73.0000, '1', 1, 1, 39);
+INSERT INTO `cc_kardex` VALUES (98, 69, 1, 2.000, 4.000, 14.0000, 14.0000, 28.0000, 78, '39', '2025-10-19', '22:15:25', 56.0000, 101.0000, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (99, 62, 1, 2.000, 3.000, 45.0000, 45.0000, 90.0000, 78, '39', '2025-10-19', '22:15:25', 135.0000, 191.0000, '1', 2, 1, 40);
+INSERT INTO `cc_kardex` VALUES (102, 62, 1, 1.000, 4.000, 45.0000, 45.0000, 45.0000, 81, '39', '2025-10-19', '22:26:34', 180.0000, 236.0000, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (142, 62, 1, 1.000, 5.000, 45.0000, 45.0000, 45.0000, 109, '39', '2025-10-20', '15:49:11', 225.0000, 281.0000, '1', 1, 1, 58);
+INSERT INTO `cc_kardex` VALUES (143, 60, 1, 2.000, 2.000, 350.0000, 350.0000, 700.0000, 109, '39', '2025-10-20', '15:49:11', 700.0000, 981.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (144, 60, 1, 1.000, 3.000, 350.0000, 350.0000, 350.0000, 110, '39', '2025-10-20', '16:08:27', 1050.0000, 1331.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (146, 62, 1, 2.000, 7.000, 45.0000, 45.0000, 90.0000, 112, '39', '2025-10-20', '16:09:22', 315.0000, 1421.0000, '1', 1, 1, 60);
+INSERT INTO `cc_kardex` VALUES (147, 62, 1, 1.000, 8.000, 45.0000, 45.0000, 45.0000, 114, '39', '2025-10-22', '21:33:33', 360.0000, 1466.0000, '1', 1, 1, 62);
+INSERT INTO `cc_kardex` VALUES (148, 69, 1, 3.000, 7.000, 14.0000, 14.0000, 42.0000, 115, '39', '2025-10-22', '21:43:47', 98.0000, 1508.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (149, 62, 1, 1.000, 1.000, 360.0000, 0.0000, 0.0000, 116, '39', '2025-10-24', '18:07:45', 360.0000, 1508.0000, '1', 1, 1, 63);
+INSERT INTO `cc_kardex` VALUES (150, 60, 1, 2.000, 5.000, 350.0000, 350.0000, 700.0000, 116, '39', '2025-10-24', '18:07:45', 1750.0000, 2208.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (151, 69, 1, 5.000, 12.000, 14.0000, 14.0000, 70.0000, 117, '39', '2025-10-31', '21:59:23', 168.0000, 2278.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (152, 62, 1, 4.000, 5.000, 108.0000, 45.0000, 180.0000, 117, '39', '2025-10-31', '21:59:23', 540.0000, 2458.0000, '1', 1, 1, 64);
+INSERT INTO `cc_kardex` VALUES (176, 69, 1, 1.000, 13.000, 14.0000, 14.0000, 14.0000, 130, '39', '2025-11-01', '20:37:08', 182.0000, 2472.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (177, 62, 1, 2.000, 7.000, 90.2857, 46.0000, 92.0000, 130, '39', '2025-11-01', '20:37:08', 632.0000, 2564.0000, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (178, 69, 1, 2.000, 15.000, 14.0000, 14.0000, 28.0000, 131, '39', '2025-11-01', '20:40:01', 210.0000, 2592.0000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (179, 62, 1, 3.000, 10.000, 76.7000, 45.0000, 135.0000, 113, '39', '2025-11-01', '23:56:15', 767.0000, 2727.0000, '1', 1, 1, 61);
+INSERT INTO `cc_kardex` VALUES (180, 62, 1, 1.000, 11.000, 76.7000, 76.7000, 76.7000, 132, '39', '2025-11-01', '00:01:14', 843.7000, 2803.7000, '1', 1, 1, 65);
+INSERT INTO `cc_kardex` VALUES (181, 69, 1, 2.000, 17.000, 14.0000, 14.0000, 28.0000, 132, '39', '2025-11-01', '00:01:14', 238.0000, 2831.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (182, 60, 1, 1.000, 6.000, 350.0000, 350.0000, 350.0000, 132, '39', '2025-11-01', '00:01:14', 2100.0000, 3181.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (183, 69, 1, 2.000, 19.000, 14.0000, 14.0000, 28.0000, 139, '39', '2025-11-01', '00:14:10', 266.0000, 3209.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (184, 69, 1, 3.000, 22.000, 14.0000, 14.0000, 42.0000, 133, '39', '2025-11-01', '00:14:35', 308.0000, 3251.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (185, 69, 1, -2.000, 20.000, 14.0000, 14.0000, -28.0000, 139, '41', '2025-11-04', '20:08:05', 280.0000, 3223.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (186, 69, 1, 4.000, 24.000, 14.0000, 14.0000, 56.0000, 140, '39', '2025-11-04', '20:18:00', 336.0000, 3279.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (187, 62, 1, 1.000, 12.000, 74.0583, 45.0000, 45.0000, 140, '39', '2025-11-04', '20:18:00', 888.7000, 3324.7000, '1', 1, 1, 66);
+INSERT INTO `cc_kardex` VALUES (190, 69, 1, -4.000, 20.000, 14.0000, 14.0000, -56.0000, 140, '41', '2025-11-04', '20:20:50', 280.0000, 3268.7000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (191, 62, 1, -1.000, 11.000, 76.7000, 45.0000, -45.0000, 140, '41', '2025-11-04', '20:20:50', 843.7000, 3223.7000, '1', 1, 1, 66);
+INSERT INTO `cc_kardex` VALUES (192, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 141, '39', '2025-11-04', '20:39:39', 45.0000, 3268.7000, '1', 1, 1, 68);
+INSERT INTO `cc_kardex` VALUES (193, 74, 1, 1.000, 1.000, 2.5000, 2.5000, 2.5000, 141, '39', '2025-11-04', '20:39:39', 2.5000, 3271.2000, '1', 1, 1, 67);
+INSERT INTO `cc_kardex` VALUES (194, 72, 1, 2.000, 3.000, 45.0000, 45.0000, 90.0000, 142, '39', '2025-11-04', '20:44:26', 135.0000, 3361.2000, '1', 1, 1, 69);
+INSERT INTO `cc_kardex` VALUES (195, 74, 1, 50.000, 51.000, 2.5000, 2.5000, 125.0000, 143, '39', '2025-11-04', '20:49:04', 127.5000, 3486.2000, '1', 1, 1, 70);
+INSERT INTO `cc_kardex` VALUES (196, 72, 1, 3.000, 6.000, 45.0000, 45.0000, 135.0000, 143, '39', '2025-11-04', '20:49:05', 270.0000, 3621.2000, '1', 1, 1, 71);
+INSERT INTO `cc_kardex` VALUES (197, 72, 1, 5.000, 11.000, 45.0000, 45.0000, 225.0000, 144, '39', '2025-11-04', '20:59:17', 495.0000, 3846.2000, '1', 1, 1, 72);
+INSERT INTO `cc_kardex` VALUES (198, 72, 1, -2.000, 9.000, 45.0000, 45.0000, -90.0000, 142, '41', '2025-11-04', '21:00:34', 405.0000, 3756.2000, '1', 1, 1, 69);
+INSERT INTO `cc_kardex` VALUES (199, 72, 1, 2.000, 11.000, 45.0000, 45.0000, 90.0000, 146, '39', '2025-11-04', '21:11:57', 495.0000, 3846.2000, '1', 1, 1, 73);
+INSERT INTO `cc_kardex` VALUES (200, 72, 1, 1.000, 12.000, 45.0000, 45.0000, 45.0000, 148, '39', '2025-11-04', '21:12:58', 540.0000, 3891.2000, '1', 1, 1, 74);
+INSERT INTO `cc_kardex` VALUES (201, 69, 1, 10.000, 30.000, 14.0000, 14.0000, 140.0000, 149, '39', '2025-11-04', '01:16:23', 420.0000, 4031.2000, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (202, 72, 1, 2.000, 14.000, 45.0000, 45.0000, 90.0000, 149, '39', '2025-11-04', '01:16:23', 630.0000, 4121.2000, '1', 1, 1, 75);
+INSERT INTO `cc_kardex` VALUES (203, 69, 1, 10.000, 40.000, 14.0000, 14.0000, 140.0000, 150, '39', '2025-11-04', '01:39:48', 560.0000, 4261.2002, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (204, 72, 1, 2.000, 16.000, 45.0000, 45.0000, 90.0000, 150, '39', '2025-11-04', '01:39:48', 720.0000, 4351.2002, '1', 1, 1, 75);
+INSERT INTO `cc_kardex` VALUES (205, 69, 1, 10.000, 50.000, 14.0000, 14.0000, 140.0000, 152, '39', '2025-11-05', '19:37:27', 700.0000, 4491.2002, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (206, 72, 1, 2.000, 18.000, 45.0000, 45.0000, 90.0000, 152, '39', '2025-11-05', '19:37:27', 810.0000, 4581.2002, '1', 1, 1, 75);
+INSERT INTO `cc_kardex` VALUES (207, 62, 1, 1.000, 12.000, 76.7000, 76.7000, 76.7000, 154, '39', '2025-11-05', '20:08:00', 920.4000, 4657.9002, '1', 1, 1, 76);
+INSERT INTO `cc_kardex` VALUES (208, 72, 1, 2.000, 20.000, 45.0000, 45.0000, 90.0000, 156, '39', '2025-11-05', '20:12:25', 900.0000, 4747.9004, '1', 1, 1, 77);
+INSERT INTO `cc_kardex` VALUES (209, 72, 1, 1.000, 21.000, 45.0000, 45.0000, 45.0000, 157, '39', '2025-11-05', '21:45:25', 945.0000, 4792.9004, '1', 1, 1, 78);
+INSERT INTO `cc_kardex` VALUES (210, 74, 1, 50.000, 101.000, 2.5000, 2.5000, 125.0000, 158, '39', '2025-11-07', '16:37:41', 252.5000, 4917.9004, '1', 1, 1, 79);
+INSERT INTO `cc_kardex` VALUES (211, 72, 1, 2.000, 23.000, 45.0000, 45.0000, 90.0000, 158, '39', '2025-11-07', '16:37:41', 1035.0000, 5007.9004, '1', 1, 1, 80);
+INSERT INTO `cc_kardex` VALUES (212, 72, 1, 4.000, 27.000, 45.0000, 45.0000, 180.0000, 162, '39', '2025-11-07', '17:16:06', 1215.0000, 5187.9004, '1', 1, 1, 80);
+INSERT INTO `cc_kardex` VALUES (213, 74, 1, 60.000, 161.000, 2.5000, 2.5000, 150.0000, 162, '39', '2025-11-07', '17:16:06', 402.5000, 5337.9004, '1', 1, 1, 79);
+INSERT INTO `cc_kardex` VALUES (214, 72, 1, 2.000, 29.000, 45.0000, 45.0000, 90.0000, 182, '39', '2025-11-25', '23:12:38', 1305.0000, 5427.9004, '1', 1, 1, 118);
+INSERT INTO `cc_kardex` VALUES (215, 72, 1, -2.000, 27.000, 45.0000, 45.0000, -90.0000, 182, '41', '2025-11-25', '23:54:13', 1215.0000, 5337.9004, '1', 1, 1, 118);
+INSERT INTO `cc_kardex` VALUES (228, 333, 1, 12.000, 12.000, 4.6000, 4.6000, 55.2000, 194, '39', '2025-11-25', '01:12:21', 55.2000, 5270.3001, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (229, 332, 1, 8.000, 8.000, 3.4500, 3.4500, 27.6000, 194, '39', '2025-11-25', '01:12:21', 27.6000, 5297.9003, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (230, 331, 1, 10.000, 10.000, 2.5000, 2.5000, 25.0000, 194, '39', '2025-11-25', '01:12:21', 25.0000, 5322.9004, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (231, 330, 1, 10.000, 10.000, 1.5000, 1.5000, 15.0000, 194, '39', '2025-11-25', '01:12:21', 15.0000, 5337.9004, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (232, 333, 1, 12.000, 24.000, 4.6000, 4.6000, 55.2000, 195, '39', '2025-11-25', '01:18:09', 110.4000, 5393.1004, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (233, 332, 1, 8.000, 16.000, 3.4500, 3.4500, 27.6000, 195, '39', '2025-11-25', '01:18:09', 55.2000, 5420.7006, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (234, 331, 1, 10.000, 20.000, 2.5000, 2.5000, 25.0000, 195, '39', '2025-11-25', '01:18:09', 50.0000, 5445.7007, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (235, 330, 1, 10.000, 20.000, 1.5000, 1.5000, 15.0000, 195, '39', '2025-11-25', '01:18:09', 30.0000, 5460.7007, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (236, 333, 1, 1.000, 25.000, 4.6000, 4.6000, 4.6000, 196, '39', '2025-11-26', '14:49:36', 115.0000, 5465.3007, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (237, 332, 1, 1.000, 17.000, 3.4500, 3.4500, 3.4500, 196, '39', '2025-11-26', '14:49:36', 58.6500, 5468.7508, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (238, 331, 1, 1.000, 21.000, 2.5000, 2.5000, 2.5000, 196, '39', '2025-11-26', '14:49:36', 52.5000, 5471.2510, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (239, 330, 1, 1.000, 21.000, 1.5000, 1.5000, 1.5000, 196, '39', '2025-11-26', '14:49:36', 31.5000, 5472.7510, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (240, 333, 1, 1.000, 26.000, 4.6000, 4.6000, 4.6000, 197, '39', '2025-11-26', '14:56:53', 119.6000, 5477.3510, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (241, 332, 1, 1.000, 18.000, 3.4500, 3.4500, 3.4500, 197, '39', '2025-11-26', '14:56:53', 62.1000, 5480.8011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (242, 331, 1, 1.000, 22.000, 2.5000, 2.5000, 2.5000, 197, '39', '2025-11-26', '14:56:53', 55.0000, 5483.3013, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (243, 330, 1, 1.000, 22.000, 1.5000, 1.5000, 1.5000, 197, '39', '2025-11-26', '14:56:53', 33.0000, 5484.8013, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (244, 333, 1, 1.000, 27.000, 4.6000, 4.6000, 4.6000, 198, '39', '2025-11-27', '20:51:44', 124.2000, 5489.4013, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (245, 332, 1, 1.000, 19.000, 3.4500, 3.4500, 3.4500, 198, '39', '2025-11-27', '20:51:44', 65.5500, 5492.8514, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (246, 331, 1, 1.000, 23.000, 2.5000, 2.5000, 2.5000, 198, '39', '2025-11-27', '20:51:44', 57.5000, 5495.3516, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (247, 330, 1, 1.000, 23.000, 1.5000, 1.5000, 1.5000, 198, '39', '2025-11-27', '20:51:44', 34.5000, 5496.8516, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (248, 333, 1, 1.000, 28.000, 4.6000, 4.6000, 4.6000, 199, '39', '2025-11-27', '20:52:47', 128.8000, 5501.4516, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (249, 332, 1, 1.000, 20.000, 3.4500, 3.4500, 3.4500, 199, '39', '2025-11-27', '20:52:47', 69.0000, 5504.9017, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (250, 331, 1, 1.000, 24.000, 2.5000, 2.5000, 2.5000, 199, '39', '2025-11-27', '20:52:47', 60.0000, 5507.4019, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (251, 330, 1, 1.000, 24.000, 1.5000, 1.5000, 1.5000, 199, '39', '2025-11-27', '20:52:47', 36.0000, 5508.9019, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (253, 77, 1, 10.000, 10.000, 2.3000, 2.3000, 23.0000, 200, '39', '2025-11-27', '20:55:12', 23.0000, 5531.9019, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (254, 77, 1, 1.000, 11.000, 2.3273, 2.6000, 2.6000, 203, '39', '2025-11-27', '21:03:24', 25.6000, 5534.5019, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (255, 77, 1, 10.000, 21.000, 2.4571, 2.6000, 26.0000, 201, '39', '2025-11-27', '21:05:23', 51.6000, 5560.5020, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (256, 332, 1, 1.000, 21.000, 3.4500, 3.4500, 3.4500, 204, '39', '2025-11-29', '17:06:21', 72.4500, 5563.9520, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (261, 62, 1, -2.000, 10.000, 76.7000, 76.7000, 153.4000, 3, '38', '2025-11-29', '20:11:23', 767.0000, 5410.5521, '1', 1, 1, 60);
+INSERT INTO `cc_kardex` VALUES (262, 332, 1, -1.000, 20.000, 3.4500, 3.4500, 3.4500, 3, '38', '2025-11-29', '20:11:23', 69.0000, 5407.1022, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (267, 332, 1, -2.000, 18.000, 3.4500, 3.4500, 6.9000, 9, '38', '2025-11-30', '20:10:15', 62.1000, 5400.2021, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (268, 62, 1, -2.000, -2.000, 0.0000, 76.7000, 153.4000, 9, '38', '2025-11-30', '20:10:15', 613.6000, 5246.8021, '1', 1, 1, 64);
+INSERT INTO `cc_kardex` VALUES (269, 62, 1, -1.000, -3.000, 0.0000, 45.0000, 45.0000, 11, '38', '2025-11-30', '20:13:15', 568.6000, 5201.8022, '1', 1, 1, 64);
+INSERT INTO `cc_kardex` VALUES (270, 332, 1, -1.000, 17.000, 3.4500, 3.4500, 3.4500, 11, '38', '2025-11-30', '20:13:15', 58.6500, 5198.3522, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (271, 62, 1, -1.000, -4.000, 0.0000, 45.0000, 45.0000, 20, '38', '2025-11-30', '20:21:46', 523.6000, 5153.3521, '1', 1, 1, 61);
+INSERT INTO `cc_kardex` VALUES (272, 332, 1, -1.000, 16.000, 3.4500, 3.4500, 3.4500, 20, '38', '2025-11-30', '20:21:46', 55.2000, 5149.9021, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (273, 330, 1, -1.000, 23.000, 1.5000, 1.5000, 1.5000, 22, '38', '2025-11-30', '20:28:10', 34.5000, 5148.4023, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (274, 332, 1, -1.000, 15.000, 3.4500, 3.4500, 3.4500, 22, '38', '2025-11-30', '20:28:10', 51.7500, 5144.9523, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (275, 332, 1, -1.000, 14.000, 3.4500, 3.4500, 3.4500, 21, '38', '2025-11-30', '20:33:20', 48.3000, 5141.5021, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (276, 330, 1, -2.000, 21.000, 1.5000, 1.5000, 3.0000, 21, '38', '2025-11-30', '20:33:20', 31.5000, 5138.5020, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (277, 62, 1, -1.000, -5.000, 0.0000, 45.0000, 45.0000, 17, '38', '2025-11-30', '20:34:19', 478.6000, 5093.5020, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (278, 332, 1, -1.000, 13.000, 3.4500, 3.4500, 3.4500, 17, '38', '2025-11-30', '20:34:19', 44.8500, 5090.0520, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (279, 62, 1, -1.000, -6.000, 0.0000, 45.0000, 45.0000, 15, '38', '2025-11-30', '20:35:07', 433.6000, 5045.0518, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (280, 332, 1, -1.000, 12.000, 3.4500, 3.4500, 3.4500, 13, '38', '2025-11-30', '20:35:58', 41.4000, 5041.6018, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (281, 62, 1, -1.000, -7.000, 0.0000, 45.0000, 45.0000, 13, '38', '2025-11-30', '20:35:58', 388.6000, 4996.6016, '1', 1, 1, 64);
+INSERT INTO `cc_kardex` VALUES (282, 62, 1, 9.000, 2.000, 399.5000, 45.6000, 410.4000, 205, '39', '2025-12-01', '20:08:50', 799.0000, 5407.0016, '1', 1, 1, 138);
+INSERT INTO `cc_kardex` VALUES (283, 62, 1, 3.000, 5.000, 188.0000, 47.0000, 141.0000, 206, '39', '2025-12-01', '20:22:52', 940.0000, 5548.0015, '1', 1, 1, 138);
+INSERT INTO `cc_kardex` VALUES (284, 62, 1, 10.000, 15.000, 188.0000, 188.0000, 1880.0000, 207, '39', '2025-12-01', '20:23:50', 2820.0000, 7428.0015, '1', 1, 1, 138);
+INSERT INTO `cc_kardex` VALUES (285, 62, 1, 11.000, 26.000, 127.5000, 45.0000, 495.0000, 208, '39', '2025-12-01', '20:24:57', 3315.0000, 7923.0015, '1', 1, 1, 138);
+INSERT INTO `cc_kardex` VALUES (287, 332, 1, 10.000, 22.000, 3.4727, 3.5000, 35.0000, 210, '39', '2025-12-01', '20:36:29', 76.4000, 7958.0015, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (288, 62, 1, -11.000, 15.000, 188.0000, 45.0000, -495.0000, 208, '41', '2025-12-01', '20:50:05', 2820.0000, 7463.0015, '1', 1, 1, 138);
+INSERT INTO `cc_kardex` VALUES (289, 332, 1, -10.000, 12.000, 3.4500, 3.5000, 35.0000, 210, '41', '2025-12-01', '21:09:38', 41.4000, 7428.0015, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (290, 332, 1, 10.000, 22.000, 3.5182, 3.6000, 36.0000, 211, '39', '2025-12-01', '21:23:13', 77.4000, 7464.0015, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (291, 332, 1, -10.000, 12.000, 3.4500, 3.6000, 36.0000, 211, '41', '2025-12-01', '21:42:57', 41.4000, 7428.0015, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (292, 332, 1, -2.000, 10.000, 3.4500, 3.4500, 6.9000, 23, '38', '2025-12-02', '19:00:51', 34.5000, 7421.1015, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (293, 330, 1, -3.000, 18.000, 1.5000, 1.5000, 4.5000, 24, '38', '2025-12-02', '19:06:48', 27.0000, 7416.6016, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (294, 332, 1, -3.000, 7.000, 3.4500, 3.4500, 10.3500, 24, '38', '2025-12-02', '19:06:48', 24.1500, 7406.2516, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (295, 330, 1, -1.000, 17.000, 1.5000, 1.5000, 1.5000, 26, '38', '2025-12-03', '15:14:31', 25.5000, 7404.7515, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (296, 332, 1, -3.000, 4.000, 3.4500, 3.4500, 10.3500, 26, '38', '2025-12-03', '15:14:31', 13.8000, 7394.4015, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (297, 330, 1, 1.000, 18.000, 1.5000, 1.5000, -1.5000, 26, '40', '2025-12-03', '15:36:53', 27.0000, 7395.9014, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (298, 331, 1, -2.000, 22.000, 2.5000, 2.5000, 5.0000, 27, '38', '2025-12-03', '15:47:03', 55.0000, 7390.9014, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (300, 331, 1, 2.000, 24.000, 2.5000, 2.5000, 5.0000, 27, '40', '2025-12-03', '16:38:41', 60.0000, 7395.9014, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (301, 331, 1, -1.000, 23.000, 2.5000, 2.5000, 2.5000, 28, '38', '2025-12-03', '16:44:35', 57.5000, 7393.4014, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (302, 332, 1, -1.000, 3.000, 3.4500, 3.4500, 3.4500, 28, '38', '2025-12-03', '16:44:35', 10.3500, 7389.9514, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (303, 331, 1, 1.000, 24.000, 2.5000, 2.5000, 2.5000, 28, '40', '2025-12-03', '16:45:42', 60.0000, 7392.4512, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (304, 331, 1, -1.000, 23.000, 2.5000, 2.5000, 2.5000, 29, '38', '2025-12-03', '16:49:09', 57.5000, 7389.9512, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (305, 332, 1, -1.000, 2.000, 3.4500, 3.4500, 3.4500, 29, '38', '2025-12-03', '16:49:09', 6.9000, 7386.5012, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (306, 331, 1, 1.000, 24.000, 2.5000, 2.5000, 2.5000, 29, '40', '2025-12-03', '16:49:46', 60.0000, 7389.0010, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (307, 332, 1, 1.000, 3.000, 3.4500, 3.4500, 3.4500, 29, '40', '2025-12-03', '16:49:46', 10.3500, 7392.4510, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (308, 331, 1, -2.000, 22.000, 2.5000, 2.5000, 5.0000, 30, '38', '2025-12-03', '16:51:13', 55.0000, 7387.4512, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (309, 332, 1, -1.000, 2.000, 3.4500, 3.4500, 3.4500, 30, '38', '2025-12-03', '16:51:13', 6.9000, 7384.0012, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (310, 332, 1, -2.000, 0.000, 0.0000, 3.4500, 6.9000, 32, '38', '2025-12-04', '14:50:15', 0.0000, 7377.1010, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (311, 330, 1, -5.000, 13.000, 1.5000, 1.5000, 7.5000, 32, '38', '2025-12-04', '14:50:15', 19.5000, 7369.6011, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (312, 69, 1, 2.000, 52.000, 14.0000, 14.0000, 28.0000, 212, '39', '2025-12-09', '01:53:01', 728.0000, 7397.6011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (313, 330, 1, -1.000, 12.000, 1.5000, 1.5000, 1.5000, 33, '38', '2025-12-19', '17:20:30', 18.0000, 7396.1011, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (314, 330, 1, 10.000, 22.000, 1.5000, 1.5000, 15.0000, 214, '39', '2025-12-19', '17:22:16', 33.0000, 7411.1011, '1', 1, 1, 139);
+INSERT INTO `cc_kardex` VALUES (332, 331, 1, -2.000, 20.000, 2.5000, 2.5000, 5.0000, 5, '17', '2025-12-11', '19:52:25', 55.0000, 7411.1011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (333, 331, 1, 2.000, 22.000, 2.7500, 2.5000, 5.0000, 5, '17', '2025-12-11', '19:52:25', 55.0000, 7411.1011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (334, 330, 1, -1.000, 21.000, 1.5000, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 33.0000, 7411.1011, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (335, 330, 1, 1.000, 22.000, 1.5714, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 33.0000, 7411.1011, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (336, 331, 1, -1.000, 21.000, 2.5000, 2.5000, 2.5000, 4, '17', '2025-12-09', '19:58:03', 55.0000, 7411.1011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (337, 331, 1, 1.000, 22.000, 2.6190, 2.5000, 2.5000, 4, '17', '2025-12-09', '19:58:03', 55.0000, 7411.1011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (338, 69, 1, -2.000, 50.000, 14.0000, 14.0000, 28.0000, 3, '17', '2025-12-09', '19:59:25', 728.0000, 7411.1011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (339, 69, 1, 2.000, 52.000, 14.5600, 14.0000, 28.0000, 3, '17', '2025-12-09', '19:59:25', 728.0000, 7411.1011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (340, 331, 1, -1.000, 21.000, 2.5000, 2.5000, 2.5000, 2, '17', '2025-12-09', '20:06:08', 55.0000, 7411.1011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (341, 331, 1, 1.000, 22.000, 2.6190, 2.5000, 2.5000, 2, '17', '2025-12-09', '20:06:08', 55.0000, 7411.1011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (342, 333, 1, -4.000, 24.000, 4.6000, 4.6000, 18.4000, 1, '17', '2025-12-09', '20:07:09', 128.8000, 7411.1011, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (343, 333, 1, 4.000, 28.000, 5.3667, 4.6000, 18.4000, 1, '17', '2025-12-09', '20:07:09', 128.8000, 7411.1011, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (344, 330, 1, -1.000, 21.000, 1.5000, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 33.0000, 7411.1011, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (345, 330, 1, 1.000, 22.000, 1.5714, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 33.0000, 7411.1011, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (346, 331, 1, -1.000, 21.000, 2.5000, 2.6190, 2.6190, 6, '17', '2025-12-30', '20:16:51', 55.0000, 7411.1011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (347, 331, 1, 1.000, 22.000, 2.6190, 2.6190, 2.6190, 6, '17', '2025-12-30', '20:16:51', 55.0000, 7411.1011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (348, 333, 1, -1.000, 27.000, 4.6000, 5.3667, 5.3667, 7, '17', '2025-12-30', '20:19:04', 128.8000, 7411.1011, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (349, 333, 1, 1.000, 28.000, 4.7704, 5.3667, 5.3667, 7, '17', '2025-12-30', '20:19:04', 128.8000, 7411.1011, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (350, 330, 1, -3.000, 19.000, 1.5000, 1.5714, 4.7142, 8, '17', '2025-12-30', '20:20:50', 33.0000, 7411.1011, '1', 2, 1, 137);
+INSERT INTO `cc_kardex` VALUES (351, 330, 1, 3.000, 22.000, 1.7368, 1.5714, 4.7142, 8, '17', '2025-12-30', '20:20:50', 33.0000, 7411.1011, '1', 1, 1, 137);
+INSERT INTO `cc_kardex` VALUES (352, 331, 1, -2.000, 20.000, 2.5000, 2.6190, 5.2380, 10, '17', '2026-01-02', '22:36:09', 55.0000, 7411.1011, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (353, 331, 1, 2.000, 22.000, 2.7500, 2.6190, 5.2380, 10, '17', '2026-01-02', '22:36:09', 55.0000, 7411.1011, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (354, 333, 1, -3.000, 25.000, 4.6000, 4.7704, 14.3112, 11, '17', '2026-01-02', '00:45:24', 128.8000, 7411.1011, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (355, 333, 1, 3.000, 28.000, 5.1520, 4.7704, 14.3112, 11, '17', '2026-01-02', '00:45:24', 128.8000, 7411.1011, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (356, 333, 1, -2.000, 26.000, 4.5575, 5.1520, 10.3040, 34, '38', '2026-01-02', '01:46:46', 118.4960, 7400.7971, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (357, 333, 1, 2.000, 28.000, 4.6000, 5.1520, 10.3040, 34, '40', '2026-01-03', '01:47:11', 128.8000, 7411.1009, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (358, 333, 1, -1.000, 27.000, 4.6000, 4.6000, 4.6000, 35, '38', '2026-01-02', '01:52:42', 124.2000, 7406.5011, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (359, 333, 1, 3.000, 30.000, 4.6000, 4.7704, 14.3112, 11, '44', '2026-01-02', '02:01:04', 124.2000, 7406.5010, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (360, 333, 1, -3.000, 27.000, 4.1400, 4.7704, 14.3112, 11, '44', '2026-01-02', '02:01:04', 124.2000, 7406.5010, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (361, 331, 1, 2.000, 24.000, 2.5000, 2.6190, 5.2380, 10, '44', '2026-01-02', '03:09:32', 55.0000, 7406.5010, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (362, 331, 1, -2.000, 22.000, 2.2917, 2.6190, 5.2380, 10, '44', '2026-01-02', '03:09:32', 55.0000, 7406.5010, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (363, 333, 1, -2.000, 25.000, 4.6000, 4.1400, 8.2800, 13, '17', '2026-01-03', '03:14:38', 124.2000, 7406.5010, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (364, 333, 1, 2.000, 27.000, 4.9680, 4.1400, 8.2800, 13, '17', '2026-01-03', '03:14:38', 124.2000, 7406.5010, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (365, 331, 1, -4.000, 18.000, 2.5000, 2.6190, 10.4760, 13, '17', '2026-01-03', '03:14:38', 55.0000, 7406.5010, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (366, 331, 1, 4.000, 22.000, 3.0556, 2.6190, 10.4760, 13, '17', '2026-01-03', '03:14:38', 55.0000, 7406.5010, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (367, 333, 1, -2.000, 25.000, 4.6000, 4.9680, 9.9360, 14, '17', '2026-01-03', '03:29:05', 124.2000, 7406.5010, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (368, 333, 1, 2.000, 27.000, 4.9680, 4.9680, 9.9360, 14, '17', '2026-01-03', '03:29:05', 124.2000, 7406.5010, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (369, 333, 1, 10.000, 37.000, 4.6995, 4.9680, 49.6800, 215, '39', '2026-01-03', '03:32:53', 173.8800, 7456.1810, '1', 1, 1, 140);
+INSERT INTO `cc_kardex` VALUES (370, 333, 1, -3.000, 34.000, 4.6995, 4.6995, 14.0985, 15, '17', '2026-01-03', '03:35:52', 173.8800, 7456.1812, '1', 1, 1, 140);
+INSERT INTO `cc_kardex` VALUES (371, 333, 1, 3.000, 37.000, 5.1141, 4.6995, 14.0985, 15, '17', '2026-01-03', '03:35:52', 173.8800, 7456.1812, '1', 2, 1, 140);
+INSERT INTO `cc_kardex` VALUES (372, 333, 1, -2.000, 35.000, 4.6995, 4.6995, 9.3990, 15, '17', '2026-01-03', '03:35:52', 173.8800, 7456.1812, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (373, 333, 1, 2.000, 37.000, 4.9680, 4.6995, 9.3990, 15, '17', '2026-01-03', '03:35:53', 173.8800, 7456.1812, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (374, 333, 1, -1.000, 36.000, 4.6995, 4.9680, 4.9680, 16, '17', '2026-01-03', '03:38:19', 173.8800, 7456.1812, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (375, 333, 1, 1.000, 37.000, 4.8300, 4.9680, 4.9680, 16, '17', '2026-01-03', '03:38:19', 173.8800, 7456.1812, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (376, 333, 1, 1.000, 38.000, 4.6995, 4.9680, 4.9680, 16, '44', '2026-01-03', '03:38:57', 173.8800, 7456.1812, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (377, 333, 1, -1.000, 37.000, 4.5758, 4.9680, 4.9680, 16, '44', '2026-01-03', '03:38:57', 173.8800, 7456.1812, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (378, 332, 1, 2.000, 2.000, 1.6000, 1.6000, 3.2000, 217, '39', '2026-01-26', '21:10:55', 3.2000, 7459.3812, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (379, 66, 1, 3.000, 3.000, 250.0000, 250.0000, 750.0000, 217, '39', '2026-01-26', '21:10:55', 750.0000, 8209.3813, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (380, 62, 1, 10.000, 25.000, 130.8000, 45.0000, 450.0000, 218, '39', '2026-02-28', '15:47:22', 3270.0000, 8659.3809, '1', 1, 1, 141);
+INSERT INTO `cc_kardex` VALUES (381, 62, 1, -4.000, 21.000, 130.8000, 130.8000, 523.2000, 18, '17', '2026-02-28', '15:48:44', 3270.0000, 8659.3809, '1', 1, 1, 141);
+INSERT INTO `cc_kardex` VALUES (382, 62, 1, 4.000, 25.000, 155.7143, 130.8000, 523.2000, 18, '17', '2026-02-28', '15:48:44', 3270.0000, 8659.3809, '1', 2, 1, 141);
+INSERT INTO `cc_kardex` VALUES (383, 333, 1, -2.000, 35.000, 4.6995, 4.7704, 9.5408, 12, '17', '2026-01-02', '18:00:26', 173.8800, 8659.3809, '1', 1, 1, 136);
+INSERT INTO `cc_kardex` VALUES (384, 333, 1, 2.000, 37.000, 4.9680, 4.7704, 9.5408, 12, '17', '2026-01-02', '18:00:27', 173.8800, 8659.3809, '1', 2, 1, 136);
+INSERT INTO `cc_kardex` VALUES (385, 72, 1, 16.000, 43.000, 45.0000, 45.0000, 720.0000, 219, '39', '2026-03-05', '14:55:50', 1935.0000, 9379.3809, '1', 1, 1, 142);
+INSERT INTO `cc_kardex` VALUES (386, 62, 1, 5.000, 30.000, 134.9524, 155.7143, 778.5715, 219, '39', '2026-03-05', '14:55:50', 4048.5715, 10157.9524, '1', 1, 1, 143);
+INSERT INTO `cc_kardex` VALUES (387, 330, 1, 10.000, 32.000, 1.5740, 1.7368, 17.3680, 219, '39', '2026-03-05', '14:55:50', 50.3680, 10175.3201, '1', 1, 1, 144);
+INSERT INTO `cc_kardex` VALUES (388, 64, 1, 2.000, 2.000, 250.0000, 250.0000, 500.0000, 220, '39', '2026-03-07', '22:47:22', 500.0000, 10675.3203, '1', 1, 1, 145);
+INSERT INTO `cc_kardex` VALUES (389, 62, 1, 2.000, 32.000, 134.9524, 134.9524, 269.9048, 221, '39', '2026-03-22', '16:59:34', 4318.4763, 10945.2251, '1', 1, 1, 146);
+INSERT INTO `cc_kardex` VALUES (390, 62, 1, -1.000, 31.000, 134.9524, 134.9524, 134.9524, 38, '38', '2026-03-22', '17:00:22', 4183.5239, 10810.2732, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (391, 62, 1, 1.000, 32.000, 134.9524, 134.9524, 134.9524, 38, '40', '2026-03-22', '17:00:51', 4318.4763, 10945.2258, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (392, 62, 1, -2.000, 30.000, 134.9524, 134.9524, 269.9048, 39, '38', '2026-03-22', '17:02:11', 4048.5715, 10675.3208, '1', 2, 1, 40);
+INSERT INTO `cc_kardex` VALUES (393, 62, 1, -1.000, 29.000, 134.9524, 134.9524, 134.9524, 40, '38', '2026-03-22', '17:05:13', 3913.6191, 10540.3679, '1', 2, 1, 141);
+INSERT INTO `cc_kardex` VALUES (394, 62, 1, -1.000, 28.000, 134.9524, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 3913.6191, 10540.3682, '1', 2, 1, 141);
+INSERT INTO `cc_kardex` VALUES (395, 62, 1, 1.000, 29.000, 139.7721, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 3913.6191, 10540.3682, '1', 1, 1, 141);
+INSERT INTO `cc_kardex` VALUES (396, 62, 1, -1.000, 28.000, 134.9524, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 3913.6191, 10540.3682, '1', 1, 1, 43);
+INSERT INTO `cc_kardex` VALUES (397, 62, 1, 1.000, 29.000, 139.7721, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 3913.6191, 10540.3682, '1', 2, 1, 43);
+INSERT INTO `cc_kardex` VALUES (398, 62, 1, 1.000, 30.000, 135.1130, 139.7721, 139.7721, 222, '39', '2026-03-22', '17:30:24', 4053.3912, 10680.1403, '1', 1, 1, 147);
+INSERT INTO `cc_kardex` VALUES (399, 62, 1, 2.000, 2.000, 2073.6956, 47.0000, 94.0000, 224, '39', '2026-03-23', '21:49:09', 4147.3912, 10774.1406, '1', 1, 1, 148);
+INSERT INTO `cc_kardex` VALUES (400, 62, 1, -1.000, 1.000, 2073.6956, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 4147.3912, 10774.1406, '1', 1, 1, 58);
+INSERT INTO `cc_kardex` VALUES (401, 62, 1, 1.000, 2.000, 4147.3912, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 4147.3912, 10774.1406, '1', 2, 1, 58);
+INSERT INTO `cc_kardex` VALUES (402, 62, 1, 1.000, 3.000, 1398.4637, 48.0000, 48.0000, 225, '39', '2026-03-24', '14:40:29', 4195.3912, 10822.1406, '1', 1, 1, 149);
+INSERT INTO `cc_kardex` VALUES (403, 335, 1, 100.000, 100.000, 3.5000, 3.5000, 350.0000, 226, '39', '2026-03-24', '14:51:12', 350.0000, 11172.1406, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (404, 335, 1, -5.000, 95.000, 3.5000, 3.5000, 17.5000, 41, '38', '2026-03-24', '14:52:24', 332.5000, 11154.6406, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (405, 335, 1, -7.000, 88.000, 3.5000, 3.5000, 24.5000, 42, '38', '2026-03-24', '14:53:05', 308.0000, 11130.1406, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (406, 335, 1, 20.000, 108.000, 3.5926, 4.0000, 80.0000, 227, '39', '2026-03-24', '14:56:36', 388.0000, 11210.1406, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (407, 335, 1, -7.000, 101.000, 3.5926, 4.0000, 25.1482, 43, '38', '2026-03-24', '14:59:04', 362.8518, 11184.9924, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (408, 335, 1, 10.000, 111.000, 3.6338, 4.0500, 40.5000, 228, '39', '2026-03-24', '15:17:18', 403.3518, 11225.4922, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (409, 335, 1, -5.000, 106.000, 3.6338, 4.0500, 18.1690, 44, '38', '2026-03-24', '15:18:33', 385.1828, 11207.3232, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (410, 335, 1, -5.000, 101.000, 3.6338, 4.0500, 18.1690, 22, '17', '2026-03-24', '15:25:02', 385.1828, 11207.3232, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (411, 335, 1, 5.000, 106.000, 3.6338, 4.0500, 18.1690, 22, '17', '2026-03-24', '15:25:02', 385.1828, 11207.3232, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (412, 335, 1, -7.000, 99.000, 3.6338, 4.0500, 25.4366, 23, '17', '2026-03-24', '15:32:38', 385.1828, 11207.3232, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (413, 335, 1, 7.000, 106.000, 3.6338, 4.0500, 25.4366, 23, '17', '2026-03-24', '15:32:38', 385.1828, 11207.3232, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (414, 335, 1, 10.000, 116.000, 3.6338, 4.0500, 40.5000, 229, '39', '2026-03-24', '16:45:08', 425.6828, 11247.8232, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (415, 335, 1, 5.000, 121.000, 3.6338, 4.0500, 20.2500, 230, '39', '2026-03-24', '16:47:55', 445.9328, 11268.0732, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (416, 335, 1, 2.000, 123.000, 3.6338, 4.0500, 7.2676, 232, '39', '2026-03-24', '19:40:32', 445.9328, 11275.3408, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (417, 335, 1, 10.000, 133.000, 3.6338, 4.0500, 36.3380, 233, '39', '2026-03-24', '19:46:58', 445.9328, 11311.6788, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (418, 335, 1, 1.000, 134.000, 3.6338, 4.0500, 3.6338, 234, '39', '2026-03-24', '19:48:50', 445.9328, 11315.3125, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (419, 335, 1, 5.000, 139.000, 3.6338, 4.0500, 18.1690, 235, '39', '2026-03-24', '19:52:23', 445.9328, 11333.4815, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (420, 335, 1, 1.000, 140.000, 3.2142, 4.0500, 4.0500, 236, '39', '2026-03-24', '19:53:37', 449.9828, 11337.5314, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (421, 335, 1, 3.000, 143.000, 3.2142, 4.0500, 9.6426, 237, '39', '2026-03-24', '19:54:40', 449.9828, 11347.1738, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (422, 336, 1, 50.000, 50.000, 3.6000, 3.6000, 180.0000, 238, '39', '2026-03-24', '20:33:11', 180.0000, 11527.1738, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (423, 336, 1, 8.000, 58.000, 3.6000, 3.6000, 28.8000, 239, '39', '2026-03-24', '20:33:58', 208.8000, 11555.9738, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (424, 336, 1, 5.000, 63.000, 3.6000, 3.6000, 18.0000, 240, '39', '2026-03-24', '20:34:51', 226.8000, 11573.9736, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (425, 336, 1, 10.000, 73.000, 3.6274, 3.8000, 38.0000, 241, '39', '2026-03-24', '20:36:03', 264.8000, 11611.9736, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (426, 336, 1, -5.000, 68.000, 3.6274, 3.8000, 18.1370, 45, '38', '2026-03-24', '20:41:12', 246.6630, 11593.8366, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (427, 336, 1, -3.000, 65.000, 3.6274, 3.8000, 10.8822, 46, '38', '2026-03-24', '20:42:21', 235.7808, 11582.9547, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (428, 336, 1, -3.000, 62.000, 3.6274, 3.8000, 10.8822, 24, '17', '2026-03-24', '21:21:00', 235.7808, 11582.9551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (429, 336, 1, 3.000, 65.000, 3.6274, 3.8000, 10.8822, 24, '17', '2026-03-24', '21:21:00', 235.7808, 11582.9551, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (430, 336, 1, -5.000, 60.000, 3.6274, 3.8000, 18.0000, 240, '41', '2026-03-24', '21:34:15', 217.7808, 11564.9551, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (431, 336, 1, -10.000, 50.000, 3.5956, 3.8000, 38.0000, 241, '41', '2026-03-24', '21:44:59', 179.7808, 11526.9551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (432, 341, 1, 10.000, 10.000, 3.8700, 3.8700, 38.7000, 242, '39', '2026-04-23', '21:57:23', 38.7000, 11565.6551, '1', 1, 1, 150);
+INSERT INTO `cc_kardex` VALUES (433, 342, 1, 10.000, 10.000, 8.5000, 8.5000, 85.0000, 244, '39', '2026-05-01', '17:54:58', 85.0000, 11650.6553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (434, 342, 1, -1.000, 9.000, 8.5000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 85.0000, 11650.6553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (435, 342, 1, 1.000, 10.000, 8.5000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 85.0000, 11650.6553, '1', 2, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (436, 342, 1, -1.000, 9.000, 8.5000, 8.5000, 8.5000, 47, '38', '2026-05-01', '18:10:10', 76.5000, 11642.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (437, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1980.0000, 11687.1553, '1', 1, 1, 151);
+INSERT INTO `cc_kardex` VALUES (438, 72, 1, -3.000, -2.000, 45.0000, 45.0000, 135.0000, 48, '38', '2026-05-20', '18:50:16', 1845.0000, 11552.1553, '1', 1, 1, 71);
+INSERT INTO `cc_kardex` VALUES (439, 72, 1, 5.000, 3.000, 45.0000, 45.0000, 225.0000, 247, '39', '2026-06-22', '16:33:37', 2070.0000, 11777.1553, '1', 1, 1, 152);
+INSERT INTO `cc_kardex` VALUES (440, 72, 1, 4.000, 7.000, 45.0000, 45.0000, 180.0000, 248, '39', '2026-06-22', '16:44:20', 2250.0000, 11957.1553, '1', 1, 1, 153);
+INSERT INTO `cc_kardex` VALUES (441, 72, 1, -5.000, 2.000, 45.0000, 45.0000, 225.0000, 247, '41', '2026-06-22', '16:44:40', 2025.0000, 11732.1553, '1', 1, 1, 152);
+INSERT INTO `cc_kardex` VALUES (442, 72, 1, 2.000, 4.000, 45.0000, 45.0000, 90.0000, 249, '39', '2026-06-22', '17:41:09', 2115.0000, 11822.1553, '1', 1, 1, 154);
+INSERT INTO `cc_kardex` VALUES (443, 72, 1, -1.000, 3.000, 45.0000, 45.0000, 45.0000, 49, '38', '2026-06-22', '17:53:52', 2070.0000, 11777.1553, '1', 1, 1, 78);
+INSERT INTO `cc_kardex` VALUES (444, 72, 1, -3.000, 0.000, 45.0000, 45.0000, 135.0000, 50, '38', '2026-06-22', '17:55:43', 1935.0000, 11642.1553, '1', 1, 1, 72);
+INSERT INTO `cc_kardex` VALUES (445, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 49, '40', '2026-06-22', '18:22:33', 1980.0000, 11687.1553, '1', 1, 1, 78);
+INSERT INTO `cc_kardex` VALUES (446, 72, 1, -3.000, -2.000, 45.0000, 45.0000, 135.0000, 28, '17', '2026-06-22', '18:24:08', 1980.0000, 11687.1553, '1', 1, 1, 80);
+INSERT INTO `cc_kardex` VALUES (447, 72, 1, 3.000, 1.000, 45.0000, 45.0000, 135.0000, 28, '17', '2026-06-22', '18:24:08', 1980.0000, 11687.1553, '1', 2, 1, 80);
+INSERT INTO `cc_kardex` VALUES (448, 72, 1, -1.000, 0.000, 45.0000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1980.0000, 11687.1553, '1', 1, 1, 78);
+INSERT INTO `cc_kardex` VALUES (449, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1980.0000, 11687.1553, '1', 2, 1, 78);
+INSERT INTO `cc_kardex` VALUES (456, 69, 1, 3.000, 3.000, 256.6667, 14.0000, 42.0000, 1, '02', '2026-07-06', '20:37:32', 770.0000, 11729.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (457, 338, 1, 10.000, 10.000, 0.5000, 0.5000, 5.0000, 1, '02', '2026-07-06', '20:37:32', 5.0000, 11734.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (458, 72, 1, 2.000, 3.000, 690.0000, 45.0000, 90.0000, 1, '02', '2026-07-06', '20:37:32', 2070.0000, 11824.1553, '1', 1, 1, 155);
+INSERT INTO `cc_kardex` VALUES (459, 338, 1, 3.000, 13.000, 0.5000, 0.5000, 1.5000, 2, '02', '2026-07-06', '20:43:28', 6.5000, 11825.6553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (460, 338, 1, -3.000, 10.000, 0.5000, 0.5000, 1.5000, 2, '09', '2026-07-06', '21:54:28', 5.0000, 11824.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (461, 69, 1, 1.000, 4.000, 196.0000, 14.0000, 14.0000, 3, '02', '2026-07-10', '14:16:58', 784.0000, 11838.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (462, 338, 1, 1.000, 11.000, 0.5000, 0.5000, 0.5000, 3, '02', '2026-07-10', '14:16:58', 5.5000, 11838.6553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (463, 342, 1, 1.000, 10.000, 8.5000, 8.5000, 8.5000, 3, '02', '2026-07-10', '14:16:58', 85.0000, 11847.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (464, 342, 1, 1.000, 1.000, 8.5455, 9.0000, 9.0000, 4, '02', '2026-07-10', '15:05:14', 94.0000, 11856.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (465, 69, 1, 1.000, 5.000, 159.6000, 14.0000, 14.0000, 4, '02', '2026-07-10', '15:05:14', 798.0000, 11870.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (466, 338, 1, 1.000, 12.000, 0.5000, 0.5000, 0.5000, 4, '02', '2026-07-10', '15:05:14', 6.0000, 11870.6553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (467, 338, 1, 1.000, 13.000, 0.5000, 0.5000, 0.5000, 5, '02', '2026-07-10', '15:26:56', 6.5000, 11871.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (468, 69, 1, 1.000, 6.000, 135.3333, 14.0000, 14.0000, 5, '02', '2026-07-10', '15:26:56', 812.0000, 11885.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (469, 72, 1, 2.000, 5.000, 432.0000, 45.0000, 90.0000, 5, '02', '2026-07-10', '15:26:56', 2160.0000, 11975.1553, '1', 1, 1, 156);
+INSERT INTO `cc_kardex` VALUES (470, 69, 1, 1.000, 7.000, 118.0000, 14.0000, 14.0000, 6, '02', '2026-07-10', '15:59:09', 826.0000, 11989.1553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (471, 342, 1, 2.000, 3.000, 36.9333, 8.4000, 16.8000, 6, '02', '2026-07-10', '15:59:09', 110.8000, 12005.9553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (472, 348, 1, 3.000, 3.000, 16.2000, 16.2000, 48.6000, 7, '02', '2026-07-10', '16:10:00', 48.6000, 12054.5551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (473, 338, 1, 1.000, 14.000, 0.5071, 0.6000, 0.6000, 7, '02', '2026-07-10', '16:10:00', 7.1000, 12055.1547, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (474, 69, 1, 2.000, 9.000, 95.1556, 15.2000, 30.4000, 7, '02', '2026-07-10', '16:10:00', 856.4000, 12085.5543, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (475, 348, 1, 1.000, 4.000, 16.2000, 16.2000, 16.2000, 8, '02', '2026-07-10', '16:11:55', 64.8000, 12101.7547, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (476, 348, 1, 5.000, 9.000, 16.6444, 17.0000, 85.0000, 9, '02', '2026-07-10', '16:13:38', 149.8000, 12186.7549, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (477, 348, 1, -1.000, 8.000, 16.7000, 16.2000, 16.2000, 8, '09', '2026-07-10', '16:14:30', 133.6000, 12170.5549, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (480, 338, 1, 198.000, 198.000, 1.0859, 1.0500, 207.9000, 12, '02', '2026-06-15', '04:22:54', 215.0000, 12378.4547, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (481, 69, 1, 1.000, 10.000, 87.1600, 15.2000, 15.2000, 13, '02', '2026-07-12', '15:31:46', 871.6000, 12393.6551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (482, 338, 1, 1.000, 199.000, 1.0857, 1.0500, 1.0500, 13, '02', '2026-07-12', '15:31:46', 216.0500, 12394.7053, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (483, 338, 1, 1.000, 200.000, 1.0855, 1.0500, 1.0500, 14, '02', '2026-07-12', '15:33:43', 217.1000, 12395.7551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (484, 69, 1, 2.000, 12.000, 75.1667, 15.2000, 30.4000, 15, '02', '2026-07-12', '15:35:59', 902.0000, 12426.1549, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (485, 338, 1, 1.000, 201.000, 1.0853, 1.0500, 1.0500, 16, '02', '2026-07-12', '15:48:44', 218.1500, 12427.2053, '1', 1, 8, NULL);
+INSERT INTO `cc_kardex` VALUES (486, 69, 1, 1.000, 13.000, 70.5538, 15.2000, 15.2000, 17, '02', '2026-07-12', '18:28:04', 917.2000, 12442.4051, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (487, 338, 1, 1.000, 202.000, 1.0851, 1.0500, 1.0500, 17, '02', '2026-07-12', '18:28:04', 219.2000, 12443.4553, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (488, 72, 1, 2.000, 7.000, 321.4286, 45.0000, 90.0000, 17, '02', '2026-07-12', '18:28:04', 2250.0000, 12533.4551, '1', 1, 1, 157);
+INSERT INTO `cc_kardex` VALUES (489, 338, 1, 2.000, 204.000, 1.0848, 1.0500, 2.1000, 18, '02', '2026-07-12', '21:34:47', 221.3000, 12535.5551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (490, 338, 1, 10.000, 214.000, 1.0832, 1.0500, 10.5000, 19, '02', '2026-07-12', '21:42:16', 231.8000, 12546.0547, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (491, 72, 1, 1.000, 8.000, 286.8750, 45.0000, 45.0000, 20, '02', '2026-07-12', '21:53:29', 2295.0000, 12591.0547, '1', 1, 1, 158);
+INSERT INTO `cc_kardex` VALUES (492, 69, 1, 2.000, 15.000, 63.1733, 15.2000, 30.4000, 20, '02', '2026-07-12', '21:53:29', 947.6000, 12621.4547, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (493, 338, 1, -10.000, 204.000, 1.0848, 1.0500, 10.5000, 19, '09', '2026-07-12', '21:57:33', 221.3000, 12610.9551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (494, 338, 1, 10.000, 214.000, 1.0832, 1.0500, 10.5000, 22, '02', '2026-07-27', '17:52:44', 231.8000, 12621.4551, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (495, 72, 1, 2.000, 10.000, 238.5000, 45.0000, 90.0000, 22, '02', '2026-07-27', '17:52:44', 2385.0000, 12711.4551, '1', 1, 1, 159);
+INSERT INTO `cc_kardex` VALUES (496, 72, 1, -1.000, 9.000, 260.0000, 45.0000, 45.0000, 23, '11', '2026-07-27', '18:08:15', 2340.0000, 12666.4551, '1', 1, 1, 159);
+INSERT INTO `cc_kardex` VALUES (497, 333, 1, 4.000, 41.000, 4.7064, 4.7704, 19.0816, 24, '02', '2026-07-27', '18:44:22', 192.9616, 12685.5367, '1', 1, 1, 160);
+INSERT INTO `cc_kardex` VALUES (498, 338, 1, 5.000, 219.000, 1.0824, 1.0500, 5.2500, 24, '02', '2026-07-27', '18:44:22', 237.0500, 12690.7871, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (499, 333, 1, -1.000, 40.000, 4.7048, 4.7704, 4.7704, 25, '11', '2026-07-27', '18:45:20', 188.1912, 12686.0167, '1', 1, 1, 160);
+INSERT INTO `cc_kardex` VALUES (500, 333, 1, 1.000, 41.000, 4.7064, 4.7704, 4.7704, 25, '36', '2026-07-27', '19:11:05', 192.9616, 12690.7870, '1', 1, 1, 160);
+INSERT INTO `cc_kardex` VALUES (501, 72, 1, -1.000, 8.000, 286.8750, 45.0000, 45.0000, 26, '11', '2026-07-28', '12:20:25', 2295.0000, 12645.7871, '1', 1, 1, 159);
+INSERT INTO `cc_kardex` VALUES (502, 72, 1, 2.000, 10.000, 238.5000, 45.0000, 90.0000, 27, '02', '2026-07-28', '13:53:26', 2385.0000, 12735.7871, '1', 1, 1, 161);
+INSERT INTO `cc_kardex` VALUES (503, 338, 1, 4.000, 223.000, 1.0818, 1.0500, 4.2000, 27, '02', '2026-07-28', '13:53:26', 241.2500, 12739.9871, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (504, 338, 2, 3.000, 226.000, 1.0814, 1.0500, 3.1500, 28, '02', '2026-07-28', '14:00:03', 244.4000, 12743.1373, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (505, 338, 2, 2.000, 228.000, 1.0811, 1.0500, 2.1000, 29, '02', '2026-07-28', '14:02:03', 246.5000, 12745.2377, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (506, 338, 2, 5.000, 233.000, 1.0826, 1.1500, 5.7500, 30, '02', '2026-07-28', '14:12:45', 252.2500, 12750.9873, '1', 1, 1, NULL);
+INSERT INTO `cc_kardex` VALUES (507, 338, 2, -1.000, 232.000, 1.0823, 1.1500, 1.1500, 31, '11', '2026-07-28', '14:13:57', 251.1000, 12749.8373, '1', 1, 1, NULL);
 
 -- ----------------------------
 -- Table structure for cc_kardex_bodega
@@ -3118,6 +3354,7 @@ DROP TABLE IF EXISTS `cc_kardex_bodega`;
 CREATE TABLE `cc_kardex_bodega`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_producto` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del kardex por bodega',
   `fk_bodega` int(0) NULL DEFAULT NULL,
   `karb_kardex` decimal(15, 3) NULL DEFAULT NULL,
   `karb_kardex_total` decimal(15, 3) NULL DEFAULT NULL,
@@ -3137,302 +3374,315 @@ CREATE TABLE `cc_kardex_bodega`  (
   INDEX `fk_lote`(`fk_lote`) USING BTREE,
   INDEX `fk_user_id`(`fk_user_id`) USING BTREE,
   INDEX `idx_karb_bodega_estado_fecha_producto_id`(`fk_bodega`, `karb_estado`, `karb_fecha`, `fk_producto`, `id`) USING BTREE,
+  INDEX `idx_karb_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_kardex_bodega_ibfk_1` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_ibfk_2` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_ibfk_3` FOREIGN KEY (`karb_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_ibfk_4` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_kardex_bodega_ibfk_5` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_kardex_bodega_ibfk_5` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_karb_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 484 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_kardex_bodega
 -- ----------------------------
-INSERT INTO `cc_kardex_bodega` VALUES (86, 69, 1, 2.000, 2.000, 14.0000, 14.0000, 77, '39', '2025-10-19', '22:02:39', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (87, 62, 1, 1.000, 1.000, 45.0000, 45.0000, 77, '39', '2025-10-19', '22:02:39', 1, 39, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (88, 69, 2, 2.000, 2.000, 14.0000, 14.0000, 78, '39', '2025-10-19', '22:15:25', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (89, 62, 2, 2.000, 2.000, 45.0000, 45.0000, 78, '39', '2025-10-19', '22:15:25', 1, 40, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (92, 62, 1, 1.000, 2.000, 45.0000, 45.0000, 81, '39', '2025-10-19', '22:26:34', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (132, 62, 1, 1.000, 3.000, 45.0000, 45.0000, 109, '39', '2025-10-20', '15:49:11', 1, 58, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (133, 60, 1, 2.000, 2.000, 350.0000, 350.0000, 109, '39', '2025-10-20', '15:49:11', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (134, 60, 1, 1.000, 3.000, 350.0000, 350.0000, 110, '39', '2025-10-20', '16:08:27', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (136, 62, 1, 2.000, 5.000, 45.0000, 45.0000, 112, '39', '2025-10-20', '16:09:22', 1, 60, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (137, 62, 1, 1.000, 6.000, 45.0000, 45.0000, 114, '39', '2025-10-22', '21:33:33', 1, 62, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (138, 69, 1, 3.000, 5.000, 14.0000, 14.0000, 115, '39', '2025-10-22', '21:43:47', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (139, 62, 1, 1.000, 7.000, 360.0000, 0.0000, 116, '39', '2025-10-24', '18:07:45', 1, 63, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (140, 60, 1, 2.000, 5.000, 350.0000, 350.0000, 116, '39', '2025-10-24', '18:07:45', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (141, 69, 1, 5.000, 10.000, 14.0000, 14.0000, 117, '39', '2025-10-31', '21:59:23', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (142, 62, 1, 4.000, 11.000, 108.0000, 45.0000, 117, '39', '2025-10-31', '21:59:23', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (166, 69, 1, 1.000, 11.000, 14.0000, 14.0000, 130, '39', '2025-11-01', '20:37:08', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (167, 62, 1, 2.000, 13.000, 90.2857, 46.0000, 130, '39', '2025-11-01', '20:37:08', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (168, 69, 1, 2.000, 13.000, 14.0000, 14.0000, 131, '39', '2025-11-01', '20:40:01', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (169, 62, 1, 3.000, 16.000, 76.7000, 45.0000, 113, '39', '2025-11-01', '23:56:15', 1, 61, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (170, 62, 1, 1.000, 17.000, 76.7000, 76.7000, 132, '39', '2025-11-01', '00:01:14', 1, 65, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (171, 69, 1, 2.000, 15.000, 14.0000, 14.0000, 132, '39', '2025-11-01', '00:01:14', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (172, 60, 1, 1.000, 6.000, 350.0000, 350.0000, 132, '39', '2025-11-01', '00:01:14', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (173, 69, 1, 2.000, 17.000, 14.0000, 14.0000, 139, '39', '2025-11-01', '00:14:10', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (174, 69, 1, 3.000, 20.000, 14.0000, 14.0000, 133, '39', '2025-11-01', '00:14:35', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (175, 69, 1, -2.000, 18.000, 14.0000, 14.0000, 139, '41', '2025-11-04', '20:08:05', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (176, 69, 1, 4.000, 22.000, 14.0000, 14.0000, 140, '39', '2025-11-04', '20:18:00', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (177, 62, 1, 1.000, 18.000, 74.0583, 45.0000, 140, '39', '2025-11-04', '20:18:00', 1, 66, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (180, 69, 1, -4.000, 18.000, 14.0000, 14.0000, 140, '41', '2025-11-04', '20:20:50', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (181, 62, 1, -1.000, 17.000, 76.7000, 45.0000, 140, '41', '2025-11-04', '20:20:50', 1, 66, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (182, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 141, '39', '2025-11-04', '20:39:39', 1, 68, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (183, 74, 1, 1.000, 1.000, 2.5000, 2.5000, 141, '39', '2025-11-04', '20:39:39', 1, 67, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (184, 72, 1, 2.000, 3.000, 45.0000, 45.0000, 142, '39', '2025-11-04', '20:44:26', 1, 69, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (185, 74, 1, 50.000, 51.000, 2.5000, 2.5000, 143, '39', '2025-11-04', '20:49:04', 1, 70, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (186, 72, 1, 3.000, 6.000, 45.0000, 45.0000, 143, '39', '2025-11-04', '20:49:05', 1, 71, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (187, 72, 1, 5.000, 11.000, 45.0000, 45.0000, 144, '39', '2025-11-04', '20:59:17', 1, 72, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (188, 72, 1, -2.000, 9.000, 45.0000, 45.0000, 142, '41', '2025-11-04', '21:00:34', 1, 69, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (189, 72, 1, 2.000, 11.000, 45.0000, 45.0000, 146, '39', '2025-11-04', '21:11:57', 1, 73, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (190, 72, 1, 1.000, 12.000, 45.0000, 45.0000, 148, '39', '2025-11-04', '21:12:58', 1, 74, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (191, 69, 1, 10.000, 28.000, 14.0000, 14.0000, 149, '39', '2025-11-04', '01:16:23', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (192, 72, 1, 2.000, 14.000, 45.0000, 45.0000, 149, '39', '2025-11-04', '01:16:23', 1, 75, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (193, 69, 1, 10.000, 38.000, 14.0000, 14.0000, 150, '39', '2025-11-04', '01:39:48', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (194, 72, 1, 2.000, 16.000, 45.0000, 45.0000, 150, '39', '2025-11-04', '01:39:48', 1, 75, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (195, 69, 1, 10.000, 48.000, 14.0000, 14.0000, 152, '39', '2025-11-05', '19:37:27', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (196, 72, 1, 2.000, 18.000, 45.0000, 45.0000, 152, '39', '2025-11-05', '19:37:27', 1, 75, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (197, 62, 1, 1.000, 18.000, 76.7000, 76.7000, 154, '39', '2025-11-05', '20:08:00', 1, 76, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (198, 72, 1, 2.000, 20.000, 45.0000, 45.0000, 156, '39', '2025-11-05', '20:12:25', 1, 77, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (199, 72, 1, 1.000, 21.000, 45.0000, 45.0000, 157, '39', '2025-11-05', '21:45:25', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (200, 74, 1, 50.000, 101.000, 2.5000, 2.5000, 158, '39', '2025-11-07', '16:37:41', 1, 79, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (201, 72, 1, 2.000, 23.000, 45.0000, 45.0000, 158, '39', '2025-11-07', '16:37:41', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (202, 72, 1, 4.000, 27.000, 45.0000, 45.0000, 162, '39', '2025-11-07', '17:16:06', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (203, 74, 1, 60.000, 161.000, 2.5000, 2.5000, 162, '39', '2025-11-07', '17:16:06', 1, 79, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (204, 72, 1, 2.000, 29.000, 45.0000, 45.0000, 182, '39', '2025-11-25', '23:12:38', 1, 118, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (205, 72, 1, -2.000, 27.000, 45.0000, 45.0000, 182, '41', '2025-11-25', '23:54:13', 1, 118, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (218, 333, 1, 12.000, 12.000, 4.6000, 4.6000, 194, '39', '2025-11-25', '01:12:21', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (219, 332, 1, 8.000, 8.000, 3.4500, 3.4500, 194, '39', '2025-11-25', '01:12:21', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (220, 331, 1, 10.000, 10.000, 2.5000, 2.5000, 194, '39', '2025-11-25', '01:12:21', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (221, 330, 1, 10.000, 10.000, 1.5000, 1.5000, 194, '39', '2025-11-25', '01:12:21', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (222, 333, 2, 12.000, 12.000, 4.6000, 4.6000, 195, '39', '2025-11-25', '01:18:09', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (223, 332, 2, 8.000, 8.000, 3.4500, 3.4500, 195, '39', '2025-11-25', '01:18:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (224, 331, 2, 10.000, 10.000, 2.5000, 2.5000, 195, '39', '2025-11-25', '01:18:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (225, 330, 2, 10.000, 10.000, 1.5000, 1.5000, 195, '39', '2025-11-25', '01:18:09', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (226, 333, 2, 1.000, 13.000, 4.6000, 4.6000, 196, '39', '2025-11-26', '14:49:36', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (227, 332, 2, 1.000, 9.000, 3.4500, 3.4500, 196, '39', '2025-11-26', '14:49:36', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (228, 331, 2, 1.000, 11.000, 2.5000, 2.5000, 196, '39', '2025-11-26', '14:49:36', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (229, 330, 2, 1.000, 11.000, 1.5000, 1.5000, 196, '39', '2025-11-26', '14:49:36', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (230, 333, 2, 1.000, 14.000, 4.6000, 4.6000, 197, '39', '2025-11-26', '14:56:53', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (231, 332, 2, 1.000, 10.000, 3.4500, 3.4500, 197, '39', '2025-11-26', '14:56:53', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (232, 331, 2, 1.000, 12.000, 2.5000, 2.5000, 197, '39', '2025-11-26', '14:56:53', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (233, 330, 2, 1.000, 12.000, 1.5000, 1.5000, 197, '39', '2025-11-26', '14:56:53', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (234, 333, 1, 1.000, 13.000, 4.6000, 4.6000, 198, '39', '2025-11-27', '20:51:44', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (235, 332, 1, 1.000, 9.000, 3.4500, 3.4500, 198, '39', '2025-11-27', '20:51:44', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (236, 331, 1, 1.000, 11.000, 2.5000, 2.5000, 198, '39', '2025-11-27', '20:51:44', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (237, 330, 1, 1.000, 11.000, 1.5000, 1.5000, 198, '39', '2025-11-27', '20:51:44', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (238, 333, 1, 1.000, 14.000, 4.6000, 4.6000, 199, '39', '2025-11-27', '20:52:47', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (239, 332, 1, 1.000, 10.000, 3.4500, 3.4500, 199, '39', '2025-11-27', '20:52:47', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (240, 331, 1, 1.000, 12.000, 2.5000, 2.5000, 199, '39', '2025-11-27', '20:52:47', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (241, 330, 1, 1.000, 12.000, 1.5000, 1.5000, 199, '39', '2025-11-27', '20:52:47', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (243, 77, 1, 10.000, 10.000, 2.3000, 2.3000, 200, '39', '2025-11-27', '20:55:12', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (244, 77, 1, 1.000, 11.000, 2.3273, 2.6000, 203, '39', '2025-11-27', '21:03:24', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (245, 77, 1, 10.000, 21.000, 2.4571, 2.6000, 201, '39', '2025-11-27', '21:05:23', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (246, 332, 1, 1.000, 11.000, 3.4500, 3.4500, 204, '39', '2025-11-29', '17:06:21', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (251, 62, 1, -2.000, 16.000, 76.7000, 76.7000, 3, '38', '2025-11-29', '20:11:23', 1, 60, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (252, 332, 1, -1.000, 10.000, 3.4500, 3.4500, 3, '38', '2025-11-29', '20:11:23', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (257, 332, 1, -2.000, 8.000, 3.4500, 3.4500, 9, '38', '2025-11-30', '20:10:15', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (258, 62, 1, -2.000, 14.000, 0.0000, 76.7000, 9, '38', '2025-11-30', '20:10:15', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (259, 62, 1, -1.000, 13.000, 0.0000, 45.0000, 11, '38', '2025-11-30', '20:13:15', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (260, 332, 1, -1.000, 7.000, 3.4500, 3.4500, 11, '38', '2025-11-30', '20:13:15', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (261, 62, 1, -1.000, 12.000, 0.0000, 45.0000, 20, '38', '2025-11-30', '20:21:46', 1, 61, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (262, 332, 1, -1.000, 6.000, 3.4500, 3.4500, 20, '38', '2025-11-30', '20:21:46', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (263, 330, 1, -1.000, 11.000, 1.5000, 1.5000, 22, '38', '2025-11-30', '20:28:10', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (264, 332, 1, -1.000, 5.000, 3.4500, 3.4500, 22, '38', '2025-11-30', '20:28:10', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (265, 332, 1, -1.000, 4.000, 3.4500, 3.4500, 21, '38', '2025-11-30', '20:33:20', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (266, 330, 1, -2.000, 9.000, 1.5000, 1.5000, 21, '38', '2025-11-30', '20:33:20', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (267, 62, 1, -1.000, 11.000, 0.0000, 45.0000, 17, '38', '2025-11-30', '20:34:19', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (268, 332, 1, -1.000, 3.000, 3.4500, 3.4500, 17, '38', '2025-11-30', '20:34:19', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (269, 62, 1, -1.000, 10.000, 0.0000, 45.0000, 15, '38', '2025-11-30', '20:35:07', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (270, 332, 1, -1.000, 2.000, 3.4500, 3.4500, 13, '38', '2025-11-30', '20:35:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (271, 62, 1, -1.000, 9.000, 0.0000, 45.0000, 13, '38', '2025-11-30', '20:35:58', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (272, 62, 1, 9.000, 18.000, 399.5000, 45.6000, 205, '39', '2025-12-01', '20:08:50', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (273, 62, 1, 3.000, 21.000, 188.0000, 47.0000, 206, '39', '2025-12-01', '20:22:52', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (274, 62, 1, 10.000, 31.000, 188.0000, 188.0000, 207, '39', '2025-12-01', '20:23:50', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (275, 62, 1, 11.000, 42.000, 127.5000, 45.0000, 208, '39', '2025-12-01', '20:24:57', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (276, 332, 1, 10.000, 12.000, 3.4727, 3.5000, 210, '39', '2025-12-01', '20:36:29', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (277, 62, 1, -11.000, 31.000, 188.0000, 45.0000, 208, '41', '2025-12-01', '20:50:05', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (278, 332, 1, -10.000, 2.000, 3.4500, 3.5000, 210, '41', '2025-12-01', '21:09:38', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (279, 332, 1, 10.000, 12.000, 3.5182, 3.6000, 211, '39', '2025-12-01', '21:23:13', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (280, 332, 1, -10.000, 2.000, 3.4500, 3.6000, 211, '41', '2025-12-01', '21:42:57', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (281, 332, 2, -2.000, 8.000, 3.4500, 3.4500, 23, '38', '2025-12-02', '19:00:51', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (282, 330, 2, -3.000, 9.000, 1.5000, 1.5000, 24, '38', '2025-12-02', '19:06:48', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (283, 332, 2, -3.000, 5.000, 3.4500, 3.4500, 24, '38', '2025-12-02', '19:06:48', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (284, 330, 2, -1.000, 8.000, 1.5000, 1.5000, 26, '38', '2025-12-03', '15:14:31', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (285, 332, 2, -3.000, 2.000, 3.4500, 3.4500, 26, '38', '2025-12-03', '15:14:31', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (286, 330, 2, 1.000, 9.000, 1.5000, 1.5000, 26, '40', '2025-12-03', '15:36:53', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (287, 331, 2, -2.000, 10.000, 2.5000, 2.5000, 27, '38', '2025-12-03', '15:47:03', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (288, 331, 2, 2.000, 12.000, 2.5000, 2.5000, 27, '40', '2025-12-03', '16:38:41', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (289, 331, 2, -1.000, 11.000, 2.5000, 2.5000, 28, '38', '2025-12-03', '16:44:35', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (290, 332, 2, -1.000, 1.000, 3.4500, 3.4500, 28, '38', '2025-12-03', '16:44:35', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (291, 331, 2, 1.000, 12.000, 2.5000, 2.5000, 28, '40', '2025-12-03', '16:45:42', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (292, 331, 2, -1.000, 11.000, 2.5000, 2.5000, 29, '38', '2025-12-03', '16:49:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (293, 332, 2, -1.000, 0.000, 3.4500, 3.4500, 29, '38', '2025-12-03', '16:49:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (294, 331, 2, 1.000, 12.000, 2.5000, 2.5000, 29, '40', '2025-12-03', '16:49:46', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (295, 332, 2, 1.000, 1.000, 3.4500, 3.4500, 29, '40', '2025-12-03', '16:49:46', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (296, 331, 2, -2.000, 10.000, 2.5000, 2.5000, 30, '38', '2025-12-03', '16:51:13', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (297, 332, 2, -1.000, 0.000, 3.4500, 3.4500, 30, '38', '2025-12-03', '16:51:13', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (298, 332, 1, -2.000, 0.000, 0.0000, 3.4500, 32, '38', '2025-12-04', '14:50:15', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (299, 330, 1, -5.000, 4.000, 1.5000, 1.5000, 32, '38', '2025-12-04', '14:50:15', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (300, 69, 1, 2.000, 50.000, 14.0000, 14.0000, 212, '39', '2025-12-09', '01:53:01', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (301, 330, 1, -1.000, 3.000, 1.5000, 1.5000, 33, '38', '2025-12-19', '17:20:30', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (302, 330, 1, 10.000, 13.000, 1.5000, 1.5000, 214, '39', '2025-12-19', '17:22:16', 1, 139, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (320, 331, 1, -2.000, 10.000, 2.5000, 2.5000, 5, '17', '2025-12-11', '19:52:25', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (321, 331, 2, 2.000, 12.000, 2.7500, 2.5000, 5, '17', '2025-12-11', '19:52:25', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (322, 330, 1, -1.000, 12.000, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (323, 330, 2, 1.000, 10.000, 1.5714, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (324, 331, 1, -1.000, 9.000, 2.5000, 2.5000, 4, '17', '2025-12-09', '19:58:03', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (325, 331, 2, 1.000, 13.000, 2.6190, 2.5000, 4, '17', '2025-12-09', '19:58:03', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (326, 69, 1, -2.000, 48.000, 14.0000, 14.0000, 3, '17', '2025-12-09', '19:59:25', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (327, 69, 2, 2.000, 4.000, 14.5600, 14.0000, 3, '17', '2025-12-09', '19:59:25', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (328, 331, 1, -1.000, 8.000, 2.5000, 2.5000, 2, '17', '2025-12-09', '20:06:08', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (329, 331, 2, 1.000, 14.000, 2.6190, 2.5000, 2, '17', '2025-12-09', '20:06:08', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (330, 333, 1, -4.000, 10.000, 4.6000, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (331, 333, 2, 4.000, 18.000, 5.3667, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (332, 330, 1, -1.000, 11.000, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (333, 330, 2, 1.000, 11.000, 1.5714, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (334, 331, 2, -1.000, 13.000, 2.5000, 2.6190, 6, '17', '2025-12-30', '20:16:51', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (335, 331, 1, 1.000, 9.000, 2.6190, 2.6190, 6, '17', '2025-12-30', '20:16:51', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (336, 333, 2, -1.000, 17.000, 4.6000, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (337, 333, 1, 1.000, 11.000, 4.7704, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (338, 330, 2, -3.000, 8.000, 1.5000, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (339, 330, 1, 3.000, 14.000, 1.7368, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (340, 331, 1, -2.000, 7.000, 2.5000, 2.6190, 10, '17', '2026-01-02', '22:36:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (341, 331, 2, 2.000, 15.000, 2.7500, 2.6190, 10, '17', '2026-01-02', '22:36:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (342, 333, 2, -3.000, 14.000, 4.6000, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (343, 333, 1, 3.000, 14.000, 5.1520, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (344, 333, 1, -2.000, 12.000, 4.5575, 5.1520, 34, '38', '2026-01-02', '01:46:46', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (345, 333, 1, 2.000, 14.000, 4.6000, 5.1520, 34, '40', '2026-01-03', '01:47:11', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (346, 333, 1, -1.000, 13.000, 4.6000, 4.6000, 35, '38', '2026-01-02', '01:52:42', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (347, 333, 1, 3.000, 16.000, 4.6000, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (348, 333, 2, -3.000, 11.000, 4.1400, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (349, 331, 1, 2.000, 9.000, 2.5000, 2.6190, 10, '44', '2026-01-02', '03:09:32', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (350, 331, 2, -2.000, 13.000, 2.2917, 2.6190, 10, '44', '2026-01-02', '03:09:32', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (351, 333, 1, -2.000, 14.000, 4.6000, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (352, 333, 2, 2.000, 13.000, 4.9680, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (353, 331, 1, -4.000, 5.000, 2.5000, 2.6190, 13, '17', '2026-01-03', '03:14:38', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (354, 331, 2, 4.000, 17.000, 3.0556, 2.6190, 13, '17', '2026-01-03', '03:14:38', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (355, 333, 1, -2.000, 12.000, 4.6000, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (356, 333, 2, 2.000, 15.000, 4.9680, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (357, 333, 1, 10.000, 22.000, 4.6995, 4.9680, 215, '39', '2026-01-03', '03:32:53', 1, 140, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (358, 333, 1, -3.000, 19.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (359, 333, 2, 3.000, 18.000, 5.1141, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (360, 333, 1, -2.000, 17.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (361, 333, 2, 2.000, 20.000, 4.9680, 4.6995, 15, '17', '2026-01-03', '03:35:53', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (362, 333, 1, -1.000, 16.000, 4.6995, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (363, 333, 2, 1.000, 21.000, 4.8300, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (364, 333, 1, 1.000, 17.000, 4.6995, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (365, 333, 2, -1.000, 20.000, 4.5758, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (366, 332, 1, 2.000, 2.000, 1.6000, 1.6000, 217, '39', '2026-01-26', '21:10:55', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (367, 66, 1, 3.000, 3.000, 250.0000, 250.0000, 217, '39', '2026-01-26', '21:10:55', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (368, 62, 1, 10.000, 41.000, 130.8000, 45.0000, 218, '39', '2026-02-28', '15:47:22', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (369, 62, 1, -4.000, 37.000, 130.8000, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (370, 62, 2, 4.000, 6.000, 155.7143, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (371, 333, 1, -2.000, 15.000, 4.6995, 4.7704, 12, '17', '2026-01-02', '18:00:26', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (372, 333, 2, 2.000, 22.000, 4.9680, 4.7704, 12, '17', '2026-01-02', '18:00:27', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (373, 72, 1, 16.000, 43.000, 45.0000, 45.0000, 219, '39', '2026-03-05', '14:55:50', 1, 142, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (374, 62, 1, 5.000, 42.000, 134.9524, 155.7143, 219, '39', '2026-03-05', '14:55:50', 1, 143, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (375, 330, 1, 10.000, 24.000, 1.5740, 1.7368, 219, '39', '2026-03-05', '14:55:50', 1, 144, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (376, 64, 1, 2.000, 2.000, 250.0000, 250.0000, 220, '39', '2026-03-07', '22:47:22', 1, 145, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (377, 62, 1, 2.000, 44.000, 134.9524, 134.9524, 221, '39', '2026-03-22', '16:59:34', 1, 146, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (378, 62, 1, -1.000, 43.000, 134.9524, 134.9524, 38, '38', '2026-03-22', '17:00:22', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (379, 62, 1, 1.000, 44.000, 134.9524, 134.9524, 38, '40', '2026-03-22', '17:00:51', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (380, 62, 2, -2.000, 4.000, 134.9524, 134.9524, 39, '38', '2026-03-22', '17:02:11', 1, 40, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (381, 62, 2, -1.000, 3.000, 134.9524, 134.9524, 40, '38', '2026-03-22', '17:05:13', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (382, 62, 2, -1.000, 2.000, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (383, 62, 1, 1.000, 45.000, 139.7721, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (384, 62, 1, -1.000, 44.000, 134.9524, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (385, 62, 2, 1.000, 3.000, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (386, 62, 1, 1.000, 45.000, 135.1130, 139.7721, 222, '39', '2026-03-22', '17:30:24', 1, 147, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (387, 62, 1, 2.000, 47.000, 2073.6956, 47.0000, 224, '39', '2026-03-23', '21:49:09', 1, 148, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (388, 62, 1, -1.000, 46.000, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (389, 62, 2, 1.000, 4.000, 4147.3912, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (390, 62, 1, 1.000, 47.000, 1398.4637, 48.0000, 225, '39', '2026-03-24', '14:40:29', 1, 149, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (391, 335, 1, 100.000, 100.000, 3.5000, 3.5000, 226, '39', '2026-03-24', '14:51:12', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (392, 335, 1, -5.000, 95.000, 3.5000, 3.5000, 41, '38', '2026-03-24', '14:52:24', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (393, 335, 1, -7.000, 88.000, 3.5000, 3.5000, 42, '38', '2026-03-24', '14:53:05', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (394, 335, 1, 20.000, 108.000, 3.5926, 4.0000, 227, '39', '2026-03-24', '14:56:36', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (395, 335, 1, -7.000, 101.000, 3.5926, 4.0000, 43, '38', '2026-03-24', '14:59:04', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (396, 335, 1, 10.000, 111.000, 3.6338, 4.0500, 228, '39', '2026-03-24', '15:17:18', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (397, 335, 1, -5.000, 106.000, 3.6338, 4.0500, 44, '38', '2026-03-24', '15:18:33', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (398, 335, 1, -5.000, 101.000, 3.6338, 4.0500, 22, '17', '2026-03-24', '15:25:02', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (399, 335, 2, 5.000, 5.000, 3.6338, 4.0500, 22, '17', '2026-03-24', '15:25:02', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (400, 335, 1, -7.000, 94.000, 3.6338, 4.0500, 23, '17', '2026-03-24', '15:32:38', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (401, 335, 2, 7.000, 12.000, 3.6338, 4.0500, 23, '17', '2026-03-24', '15:32:38', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (402, 335, 2, 10.000, 22.000, 3.6338, 4.0500, 229, '39', '2026-03-24', '16:45:08', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (403, 335, 2, 5.000, 27.000, 3.6854, 4.0500, 230, '39', '2026-03-24', '16:47:55', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (404, 335, 2, 2.000, 29.000, 3.6338, 4.0500, 232, '39', '2026-03-24', '19:40:32', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (405, 335, 2, 10.000, 39.000, 3.6338, 4.0500, 233, '39', '2026-03-24', '19:46:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (406, 335, 2, 1.000, 40.000, 3.6338, 4.0500, 234, '39', '2026-03-24', '19:48:50', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (407, 335, 2, 5.000, 45.000, 3.6338, 4.0500, 235, '39', '2026-03-24', '19:52:23', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (408, 335, 1, 1.000, 95.000, 3.2142, 4.0500, 236, '39', '2026-03-24', '19:53:37', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (409, 335, 1, 3.000, 98.000, 3.2142, 4.0500, 237, '39', '2026-03-24', '19:54:40', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (410, 336, 1, 50.000, 50.000, 3.6000, 3.6000, 238, '39', '2026-03-24', '20:33:11', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (411, 336, 1, 8.000, 58.000, 3.6000, 3.6000, 239, '39', '2026-03-24', '20:33:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (412, 336, 2, 5.000, 5.000, 3.6000, 3.6000, 240, '39', '2026-03-24', '20:34:51', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (413, 336, 1, 10.000, 68.000, 3.6274, 3.8000, 241, '39', '2026-03-24', '20:36:03', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (414, 336, 1, -5.000, 63.000, 3.6274, 3.8000, 45, '38', '2026-03-24', '20:41:12', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (415, 336, 2, -3.000, 2.000, 3.6274, 3.8000, 46, '38', '2026-03-24', '20:42:21', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (416, 336, 1, -3.000, 60.000, 3.6274, 3.6274, 24, '17', '2026-03-24', '21:21:00', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (417, 336, 2, 3.000, 5.000, 3.6274, 3.6274, 24, '17', '2026-03-24', '21:21:00', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (418, 336, 2, -5.000, 0.000, 3.6274, 3.8000, 240, '41', '2026-03-24', '21:34:15', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (419, 336, 1, -10.000, 50.000, 3.5956, 3.8000, 241, '41', '2026-03-24', '21:44:59', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (420, 341, 1, 10.000, 10.000, 3.8700, 3.8700, 242, '39', '2026-04-23', '21:57:23', 1, 150, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (421, 342, 1, 10.000, 10.000, 8.5000, 8.5000, 244, '39', '2026-05-01', '17:54:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (422, 342, 1, -1.000, 9.000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (423, 342, 2, 1.000, 1.000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (424, 342, 1, -1.000, 8.000, 8.5000, 8.5000, 47, '38', '2026-05-01', '18:10:10', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (425, 72, 1, 1.000, 44.000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1, 151, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (426, 72, 1, -3.000, 41.000, 45.0000, 45.0000, 48, '38', '2026-05-20', '18:50:16', 1, 71, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (427, 72, 1, 5.000, 46.000, 45.0000, 45.0000, 247, '39', '2026-06-22', '16:33:37', 1, 152, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (428, 72, 1, 4.000, 50.000, 45.0000, 45.0000, 248, '39', '2026-06-22', '16:44:20', 1, 153, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (429, 72, 1, -5.000, 45.000, 45.0000, 45.0000, 247, '41', '2026-06-22', '16:44:40', 1, 152, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (430, 72, 1, 2.000, 47.000, 45.0000, 45.0000, 249, '39', '2026-06-22', '17:41:09', 1, 154, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (431, 72, 1, -1.000, 46.000, 45.0000, 45.0000, 49, '38', '2026-06-22', '17:53:52', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (432, 72, 1, -3.000, 43.000, 45.0000, 45.0000, 50, '38', '2026-06-22', '17:55:43', 1, 72, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (433, 72, 1, 1.000, 44.000, 45.0000, 45.0000, 49, '40', '2026-06-22', '18:22:33', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (434, 72, 1, -3.000, 41.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (435, 72, 2, 3.000, 3.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (436, 72, 1, -1.000, 40.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (437, 72, 2, 1.000, 4.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (444, 69, 1, 3.000, 51.000, 256.6667, 14.0000, 1, '02', '2026-07-06', '20:37:32', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (445, 338, 1, 10.000, 10.000, 0.5000, 0.5000, 1, '02', '2026-07-06', '20:37:32', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (446, 72, 1, 2.000, 42.000, 690.0000, 45.0000, 1, '02', '2026-07-06', '20:37:32', 1, 155, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (447, 338, 1, 3.000, 13.000, 0.5000, 0.5000, 2, '02', '2026-07-06', '20:43:28', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (448, 338, 1, -3.000, 10.000, 0.5000, 0.5000, 2, '09', '2026-07-06', '21:54:28', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (449, 69, 1, 1.000, 52.000, 196.0000, 14.0000, 3, '02', '2026-07-10', '14:16:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (450, 338, 1, 1.000, 11.000, 0.5000, 0.5000, 3, '02', '2026-07-10', '14:16:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (451, 342, 1, 1.000, 9.000, 8.5000, 8.5000, 3, '02', '2026-07-10', '14:16:58', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (452, 342, 1, 1.000, 10.000, 94.0000, 9.0000, 4, '02', '2026-07-10', '15:05:14', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (453, 69, 1, 1.000, 53.000, 159.6000, 14.0000, 4, '02', '2026-07-10', '15:05:14', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (454, 338, 1, 1.000, 12.000, 0.5000, 0.5000, 4, '02', '2026-07-10', '15:05:14', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (455, 338, 1, 1.000, 13.000, 0.5000, 0.5000, 5, '02', '2026-07-10', '15:26:56', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (456, 69, 1, 1.000, 54.000, 135.3333, 14.0000, 5, '02', '2026-07-10', '15:26:56', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (457, 72, 1, 2.000, 44.000, 432.0000, 45.0000, 5, '02', '2026-07-10', '15:26:56', 1, 156, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (458, 69, 1, 1.000, 55.000, 118.0000, 14.0000, 6, '02', '2026-07-10', '15:59:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (459, 342, 1, 2.000, 12.000, 36.9333, 8.4000, 6, '02', '2026-07-10', '15:59:09', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (460, 348, 1, 3.000, 3.000, 16.2000, 16.2000, 7, '02', '2026-07-10', '16:10:00', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (461, 338, 1, 1.000, 14.000, 0.5071, 0.6000, 7, '02', '2026-07-10', '16:10:00', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (462, 69, 1, 2.000, 57.000, 95.1556, 15.2000, 7, '02', '2026-07-10', '16:10:00', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (463, 348, 1, 1.000, 4.000, 16.2000, 16.2000, 8, '02', '2026-07-10', '16:11:55', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (464, 348, 1, 5.000, 9.000, 16.6444, 17.0000, 9, '02', '2026-07-10', '16:13:38', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (465, 348, 1, -1.000, 8.000, 16.7000, 16.2000, 8, '09', '2026-07-10', '16:14:30', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (468, 338, 1, 198.000, 212.000, 1.0859, 1.0500, 12, '02', '2026-06-15', '04:22:54', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (469, 69, 1, 1.000, 58.000, 87.1600, 15.2000, 13, '02', '2026-07-12', '15:31:46', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (470, 338, 1, 1.000, 213.000, 1.0857, 1.0500, 13, '02', '2026-07-12', '15:31:46', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (471, 338, 1, 1.000, 214.000, 1.0855, 1.0500, 14, '02', '2026-07-12', '15:33:43', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (472, 69, 1, 2.000, 60.000, 75.1667, 15.2000, 15, '02', '2026-07-12', '15:35:59', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (473, 338, 1, 1.000, 215.000, 1.0853, 1.0500, 16, '02', '2026-07-12', '15:48:44', 1, NULL, 8);
-INSERT INTO `cc_kardex_bodega` VALUES (474, 69, 1, 1.000, 61.000, 70.5538, 15.2000, 17, '02', '2026-07-12', '18:28:04', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (475, 338, 1, 1.000, 216.000, 1.0851, 1.0500, 17, '02', '2026-07-12', '18:28:04', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (476, 72, 1, 2.000, 46.000, 321.4286, 45.0000, 17, '02', '2026-07-12', '18:28:04', 1, 157, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (477, 338, 1, 2.000, 218.000, 1.0848, 1.0500, 18, '02', '2026-07-12', '21:34:47', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (478, 338, 1, 10.000, 228.000, 1.0832, 1.0500, 19, '02', '2026-07-12', '21:42:16', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (479, 72, 1, 1.000, 47.000, 286.8750, 45.0000, 20, '02', '2026-07-12', '21:53:29', 1, 158, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (480, 69, 1, 2.000, 63.000, 63.1733, 15.2000, 20, '02', '2026-07-12', '21:53:29', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (481, 338, 1, -10.000, 218.000, 1.0848, 1.0500, 19, '09', '2026-07-12', '21:57:33', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (482, 338, 1, 10.000, 228.000, 1.0832, 1.0500, 22, '02', '2026-07-27', '17:52:44', 1, NULL, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (483, 72, 1, 2.000, 49.000, 238.5000, 45.0000, 22, '02', '2026-07-27', '17:52:44', 1, 159, 1);
-INSERT INTO `cc_kardex_bodega` VALUES (484, 72, 1, -1.000, 48.000, 260.0000, 45.0000, 23, '11', '2026-07-27', '18:08:15', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (86, 69, 1, 1, 2.000, 2.000, 14.0000, 14.0000, 77, '39', '2025-10-19', '22:02:39', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (87, 62, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 77, '39', '2025-10-19', '22:02:39', 1, 39, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (88, 69, 1, 2, 2.000, 2.000, 14.0000, 14.0000, 78, '39', '2025-10-19', '22:15:25', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (89, 62, 1, 2, 2.000, 2.000, 45.0000, 45.0000, 78, '39', '2025-10-19', '22:15:25', 1, 40, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (92, 62, 1, 1, 1.000, 2.000, 45.0000, 45.0000, 81, '39', '2025-10-19', '22:26:34', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (132, 62, 1, 1, 1.000, 3.000, 45.0000, 45.0000, 109, '39', '2025-10-20', '15:49:11', 1, 58, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (133, 60, 1, 1, 2.000, 2.000, 350.0000, 350.0000, 109, '39', '2025-10-20', '15:49:11', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (134, 60, 1, 1, 1.000, 3.000, 350.0000, 350.0000, 110, '39', '2025-10-20', '16:08:27', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (136, 62, 1, 1, 2.000, 5.000, 45.0000, 45.0000, 112, '39', '2025-10-20', '16:09:22', 1, 60, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (137, 62, 1, 1, 1.000, 6.000, 45.0000, 45.0000, 114, '39', '2025-10-22', '21:33:33', 1, 62, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (138, 69, 1, 1, 3.000, 5.000, 14.0000, 14.0000, 115, '39', '2025-10-22', '21:43:47', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (139, 62, 1, 1, 1.000, 7.000, 360.0000, 0.0000, 116, '39', '2025-10-24', '18:07:45', 1, 63, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (140, 60, 1, 1, 2.000, 5.000, 350.0000, 350.0000, 116, '39', '2025-10-24', '18:07:45', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (141, 69, 1, 1, 5.000, 10.000, 14.0000, 14.0000, 117, '39', '2025-10-31', '21:59:23', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (142, 62, 1, 1, 4.000, 11.000, 108.0000, 45.0000, 117, '39', '2025-10-31', '21:59:23', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (166, 69, 1, 1, 1.000, 11.000, 14.0000, 14.0000, 130, '39', '2025-11-01', '20:37:08', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (167, 62, 1, 1, 2.000, 13.000, 90.2857, 46.0000, 130, '39', '2025-11-01', '20:37:08', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (168, 69, 1, 1, 2.000, 13.000, 14.0000, 14.0000, 131, '39', '2025-11-01', '20:40:01', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (169, 62, 1, 1, 3.000, 16.000, 76.7000, 45.0000, 113, '39', '2025-11-01', '23:56:15', 1, 61, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (170, 62, 1, 1, 1.000, 17.000, 76.7000, 76.7000, 132, '39', '2025-11-01', '00:01:14', 1, 65, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (171, 69, 1, 1, 2.000, 15.000, 14.0000, 14.0000, 132, '39', '2025-11-01', '00:01:14', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (172, 60, 1, 1, 1.000, 6.000, 350.0000, 350.0000, 132, '39', '2025-11-01', '00:01:14', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (173, 69, 1, 1, 2.000, 17.000, 14.0000, 14.0000, 139, '39', '2025-11-01', '00:14:10', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (174, 69, 1, 1, 3.000, 20.000, 14.0000, 14.0000, 133, '39', '2025-11-01', '00:14:35', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (175, 69, 1, 1, -2.000, 18.000, 14.0000, 14.0000, 139, '41', '2025-11-04', '20:08:05', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (176, 69, 1, 1, 4.000, 22.000, 14.0000, 14.0000, 140, '39', '2025-11-04', '20:18:00', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (177, 62, 1, 1, 1.000, 18.000, 74.0583, 45.0000, 140, '39', '2025-11-04', '20:18:00', 1, 66, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (180, 69, 1, 1, -4.000, 18.000, 14.0000, 14.0000, 140, '41', '2025-11-04', '20:20:50', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (181, 62, 1, 1, -1.000, 17.000, 76.7000, 45.0000, 140, '41', '2025-11-04', '20:20:50', 1, 66, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (182, 72, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 141, '39', '2025-11-04', '20:39:39', 1, 68, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (183, 74, 1, 1, 1.000, 1.000, 2.5000, 2.5000, 141, '39', '2025-11-04', '20:39:39', 1, 67, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (184, 72, 1, 1, 2.000, 3.000, 45.0000, 45.0000, 142, '39', '2025-11-04', '20:44:26', 1, 69, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (185, 74, 1, 1, 50.000, 51.000, 2.5000, 2.5000, 143, '39', '2025-11-04', '20:49:04', 1, 70, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (186, 72, 1, 1, 3.000, 6.000, 45.0000, 45.0000, 143, '39', '2025-11-04', '20:49:05', 1, 71, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (187, 72, 1, 1, 5.000, 11.000, 45.0000, 45.0000, 144, '39', '2025-11-04', '20:59:17', 1, 72, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (188, 72, 1, 1, -2.000, 9.000, 45.0000, 45.0000, 142, '41', '2025-11-04', '21:00:34', 1, 69, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (189, 72, 1, 1, 2.000, 11.000, 45.0000, 45.0000, 146, '39', '2025-11-04', '21:11:57', 1, 73, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (190, 72, 1, 1, 1.000, 12.000, 45.0000, 45.0000, 148, '39', '2025-11-04', '21:12:58', 1, 74, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (191, 69, 1, 1, 10.000, 28.000, 14.0000, 14.0000, 149, '39', '2025-11-04', '01:16:23', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (192, 72, 1, 1, 2.000, 14.000, 45.0000, 45.0000, 149, '39', '2025-11-04', '01:16:23', 1, 75, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (193, 69, 1, 1, 10.000, 38.000, 14.0000, 14.0000, 150, '39', '2025-11-04', '01:39:48', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (194, 72, 1, 1, 2.000, 16.000, 45.0000, 45.0000, 150, '39', '2025-11-04', '01:39:48', 1, 75, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (195, 69, 1, 1, 10.000, 48.000, 14.0000, 14.0000, 152, '39', '2025-11-05', '19:37:27', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (196, 72, 1, 1, 2.000, 18.000, 45.0000, 45.0000, 152, '39', '2025-11-05', '19:37:27', 1, 75, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (197, 62, 1, 1, 1.000, 18.000, 76.7000, 76.7000, 154, '39', '2025-11-05', '20:08:00', 1, 76, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (198, 72, 1, 1, 2.000, 20.000, 45.0000, 45.0000, 156, '39', '2025-11-05', '20:12:25', 1, 77, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (199, 72, 1, 1, 1.000, 21.000, 45.0000, 45.0000, 157, '39', '2025-11-05', '21:45:25', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (200, 74, 1, 1, 50.000, 101.000, 2.5000, 2.5000, 158, '39', '2025-11-07', '16:37:41', 1, 79, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (201, 72, 1, 1, 2.000, 23.000, 45.0000, 45.0000, 158, '39', '2025-11-07', '16:37:41', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (202, 72, 1, 1, 4.000, 27.000, 45.0000, 45.0000, 162, '39', '2025-11-07', '17:16:06', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (203, 74, 1, 1, 60.000, 161.000, 2.5000, 2.5000, 162, '39', '2025-11-07', '17:16:06', 1, 79, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (204, 72, 1, 1, 2.000, 29.000, 45.0000, 45.0000, 182, '39', '2025-11-25', '23:12:38', 1, 118, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (205, 72, 1, 1, -2.000, 27.000, 45.0000, 45.0000, 182, '41', '2025-11-25', '23:54:13', 1, 118, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (218, 333, 1, 1, 12.000, 12.000, 4.6000, 4.6000, 194, '39', '2025-11-25', '01:12:21', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (219, 332, 1, 1, 8.000, 8.000, 3.4500, 3.4500, 194, '39', '2025-11-25', '01:12:21', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (220, 331, 1, 1, 10.000, 10.000, 2.5000, 2.5000, 194, '39', '2025-11-25', '01:12:21', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (221, 330, 1, 1, 10.000, 10.000, 1.5000, 1.5000, 194, '39', '2025-11-25', '01:12:21', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (222, 333, 1, 2, 12.000, 12.000, 4.6000, 4.6000, 195, '39', '2025-11-25', '01:18:09', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (223, 332, 1, 2, 8.000, 8.000, 3.4500, 3.4500, 195, '39', '2025-11-25', '01:18:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (224, 331, 1, 2, 10.000, 10.000, 2.5000, 2.5000, 195, '39', '2025-11-25', '01:18:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (225, 330, 1, 2, 10.000, 10.000, 1.5000, 1.5000, 195, '39', '2025-11-25', '01:18:09', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (226, 333, 1, 2, 1.000, 13.000, 4.6000, 4.6000, 196, '39', '2025-11-26', '14:49:36', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (227, 332, 1, 2, 1.000, 9.000, 3.4500, 3.4500, 196, '39', '2025-11-26', '14:49:36', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (228, 331, 1, 2, 1.000, 11.000, 2.5000, 2.5000, 196, '39', '2025-11-26', '14:49:36', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (229, 330, 1, 2, 1.000, 11.000, 1.5000, 1.5000, 196, '39', '2025-11-26', '14:49:36', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (230, 333, 1, 2, 1.000, 14.000, 4.6000, 4.6000, 197, '39', '2025-11-26', '14:56:53', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (231, 332, 1, 2, 1.000, 10.000, 3.4500, 3.4500, 197, '39', '2025-11-26', '14:56:53', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (232, 331, 1, 2, 1.000, 12.000, 2.5000, 2.5000, 197, '39', '2025-11-26', '14:56:53', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (233, 330, 1, 2, 1.000, 12.000, 1.5000, 1.5000, 197, '39', '2025-11-26', '14:56:53', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (234, 333, 1, 1, 1.000, 13.000, 4.6000, 4.6000, 198, '39', '2025-11-27', '20:51:44', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (235, 332, 1, 1, 1.000, 9.000, 3.4500, 3.4500, 198, '39', '2025-11-27', '20:51:44', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (236, 331, 1, 1, 1.000, 11.000, 2.5000, 2.5000, 198, '39', '2025-11-27', '20:51:44', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (237, 330, 1, 1, 1.000, 11.000, 1.5000, 1.5000, 198, '39', '2025-11-27', '20:51:44', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (238, 333, 1, 1, 1.000, 14.000, 4.6000, 4.6000, 199, '39', '2025-11-27', '20:52:47', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (239, 332, 1, 1, 1.000, 10.000, 3.4500, 3.4500, 199, '39', '2025-11-27', '20:52:47', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (240, 331, 1, 1, 1.000, 12.000, 2.5000, 2.5000, 199, '39', '2025-11-27', '20:52:47', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (241, 330, 1, 1, 1.000, 12.000, 1.5000, 1.5000, 199, '39', '2025-11-27', '20:52:47', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (243, 77, 1, 1, 10.000, 10.000, 2.3000, 2.3000, 200, '39', '2025-11-27', '20:55:12', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (244, 77, 1, 1, 1.000, 11.000, 2.3273, 2.6000, 203, '39', '2025-11-27', '21:03:24', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (245, 77, 1, 1, 10.000, 21.000, 2.4571, 2.6000, 201, '39', '2025-11-27', '21:05:23', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (246, 332, 1, 1, 1.000, 11.000, 3.4500, 3.4500, 204, '39', '2025-11-29', '17:06:21', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (251, 62, 1, 1, -2.000, 16.000, 76.7000, 76.7000, 3, '38', '2025-11-29', '20:11:23', 1, 60, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (252, 332, 1, 1, -1.000, 10.000, 3.4500, 3.4500, 3, '38', '2025-11-29', '20:11:23', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (257, 332, 1, 1, -2.000, 8.000, 3.4500, 3.4500, 9, '38', '2025-11-30', '20:10:15', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (258, 62, 1, 1, -2.000, 14.000, 0.0000, 76.7000, 9, '38', '2025-11-30', '20:10:15', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (259, 62, 1, 1, -1.000, 13.000, 0.0000, 45.0000, 11, '38', '2025-11-30', '20:13:15', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (260, 332, 1, 1, -1.000, 7.000, 3.4500, 3.4500, 11, '38', '2025-11-30', '20:13:15', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (261, 62, 1, 1, -1.000, 12.000, 0.0000, 45.0000, 20, '38', '2025-11-30', '20:21:46', 1, 61, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (262, 332, 1, 1, -1.000, 6.000, 3.4500, 3.4500, 20, '38', '2025-11-30', '20:21:46', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (263, 330, 1, 1, -1.000, 11.000, 1.5000, 1.5000, 22, '38', '2025-11-30', '20:28:10', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (264, 332, 1, 1, -1.000, 5.000, 3.4500, 3.4500, 22, '38', '2025-11-30', '20:28:10', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (265, 332, 1, 1, -1.000, 4.000, 3.4500, 3.4500, 21, '38', '2025-11-30', '20:33:20', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (266, 330, 1, 1, -2.000, 9.000, 1.5000, 1.5000, 21, '38', '2025-11-30', '20:33:20', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (267, 62, 1, 1, -1.000, 11.000, 0.0000, 45.0000, 17, '38', '2025-11-30', '20:34:19', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (268, 332, 1, 1, -1.000, 3.000, 3.4500, 3.4500, 17, '38', '2025-11-30', '20:34:19', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (269, 62, 1, 1, -1.000, 10.000, 0.0000, 45.0000, 15, '38', '2025-11-30', '20:35:07', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (270, 332, 1, 1, -1.000, 2.000, 3.4500, 3.4500, 13, '38', '2025-11-30', '20:35:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (271, 62, 1, 1, -1.000, 9.000, 0.0000, 45.0000, 13, '38', '2025-11-30', '20:35:58', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (272, 62, 1, 1, 9.000, 18.000, 399.5000, 45.6000, 205, '39', '2025-12-01', '20:08:50', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (273, 62, 1, 1, 3.000, 21.000, 188.0000, 47.0000, 206, '39', '2025-12-01', '20:22:52', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (274, 62, 1, 1, 10.000, 31.000, 188.0000, 188.0000, 207, '39', '2025-12-01', '20:23:50', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (275, 62, 1, 1, 11.000, 42.000, 127.5000, 45.0000, 208, '39', '2025-12-01', '20:24:57', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (276, 332, 1, 1, 10.000, 12.000, 3.4727, 3.5000, 210, '39', '2025-12-01', '20:36:29', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (277, 62, 1, 1, -11.000, 31.000, 188.0000, 45.0000, 208, '41', '2025-12-01', '20:50:05', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (278, 332, 1, 1, -10.000, 2.000, 3.4500, 3.5000, 210, '41', '2025-12-01', '21:09:38', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (279, 332, 1, 1, 10.000, 12.000, 3.5182, 3.6000, 211, '39', '2025-12-01', '21:23:13', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (280, 332, 1, 1, -10.000, 2.000, 3.4500, 3.6000, 211, '41', '2025-12-01', '21:42:57', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (281, 332, 1, 2, -2.000, 8.000, 3.4500, 3.4500, 23, '38', '2025-12-02', '19:00:51', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (282, 330, 1, 2, -3.000, 9.000, 1.5000, 1.5000, 24, '38', '2025-12-02', '19:06:48', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (283, 332, 1, 2, -3.000, 5.000, 3.4500, 3.4500, 24, '38', '2025-12-02', '19:06:48', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (284, 330, 1, 2, -1.000, 8.000, 1.5000, 1.5000, 26, '38', '2025-12-03', '15:14:31', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (285, 332, 1, 2, -3.000, 2.000, 3.4500, 3.4500, 26, '38', '2025-12-03', '15:14:31', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (286, 330, 1, 2, 1.000, 9.000, 1.5000, 1.5000, 26, '40', '2025-12-03', '15:36:53', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (287, 331, 1, 2, -2.000, 10.000, 2.5000, 2.5000, 27, '38', '2025-12-03', '15:47:03', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (288, 331, 1, 2, 2.000, 12.000, 2.5000, 2.5000, 27, '40', '2025-12-03', '16:38:41', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (289, 331, 1, 2, -1.000, 11.000, 2.5000, 2.5000, 28, '38', '2025-12-03', '16:44:35', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (290, 332, 1, 2, -1.000, 1.000, 3.4500, 3.4500, 28, '38', '2025-12-03', '16:44:35', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (291, 331, 1, 2, 1.000, 12.000, 2.5000, 2.5000, 28, '40', '2025-12-03', '16:45:42', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (292, 331, 1, 2, -1.000, 11.000, 2.5000, 2.5000, 29, '38', '2025-12-03', '16:49:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (293, 332, 1, 2, -1.000, 0.000, 3.4500, 3.4500, 29, '38', '2025-12-03', '16:49:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (294, 331, 1, 2, 1.000, 12.000, 2.5000, 2.5000, 29, '40', '2025-12-03', '16:49:46', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (295, 332, 1, 2, 1.000, 1.000, 3.4500, 3.4500, 29, '40', '2025-12-03', '16:49:46', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (296, 331, 1, 2, -2.000, 10.000, 2.5000, 2.5000, 30, '38', '2025-12-03', '16:51:13', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (297, 332, 1, 2, -1.000, 0.000, 3.4500, 3.4500, 30, '38', '2025-12-03', '16:51:13', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (298, 332, 1, 1, -2.000, 0.000, 0.0000, 3.4500, 32, '38', '2025-12-04', '14:50:15', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (299, 330, 1, 1, -5.000, 4.000, 1.5000, 1.5000, 32, '38', '2025-12-04', '14:50:15', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (300, 69, 1, 1, 2.000, 50.000, 14.0000, 14.0000, 212, '39', '2025-12-09', '01:53:01', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (301, 330, 1, 1, -1.000, 3.000, 1.5000, 1.5000, 33, '38', '2025-12-19', '17:20:30', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (302, 330, 1, 1, 10.000, 13.000, 1.5000, 1.5000, 214, '39', '2025-12-19', '17:22:16', 1, 139, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (320, 331, 1, 1, -2.000, 10.000, 2.5000, 2.5000, 5, '17', '2025-12-11', '19:52:25', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (321, 331, 1, 2, 2.000, 12.000, 2.7500, 2.5000, 5, '17', '2025-12-11', '19:52:25', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (322, 330, 1, 1, -1.000, 12.000, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (323, 330, 1, 2, 1.000, 10.000, 1.5714, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (324, 331, 1, 1, -1.000, 9.000, 2.5000, 2.5000, 4, '17', '2025-12-09', '19:58:03', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (325, 331, 1, 2, 1.000, 13.000, 2.6190, 2.5000, 4, '17', '2025-12-09', '19:58:03', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (326, 69, 1, 1, -2.000, 48.000, 14.0000, 14.0000, 3, '17', '2025-12-09', '19:59:25', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (327, 69, 1, 2, 2.000, 4.000, 14.5600, 14.0000, 3, '17', '2025-12-09', '19:59:25', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (328, 331, 1, 1, -1.000, 8.000, 2.5000, 2.5000, 2, '17', '2025-12-09', '20:06:08', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (329, 331, 1, 2, 1.000, 14.000, 2.6190, 2.5000, 2, '17', '2025-12-09', '20:06:08', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (330, 333, 1, 1, -4.000, 10.000, 4.6000, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (331, 333, 1, 2, 4.000, 18.000, 5.3667, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (332, 330, 1, 1, -1.000, 11.000, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (333, 330, 1, 2, 1.000, 11.000, 1.5714, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (334, 331, 1, 2, -1.000, 13.000, 2.5000, 2.6190, 6, '17', '2025-12-30', '20:16:51', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (335, 331, 1, 1, 1.000, 9.000, 2.6190, 2.6190, 6, '17', '2025-12-30', '20:16:51', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (336, 333, 1, 2, -1.000, 17.000, 4.6000, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (337, 333, 1, 1, 1.000, 11.000, 4.7704, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (338, 330, 1, 2, -3.000, 8.000, 1.5000, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (339, 330, 1, 1, 3.000, 14.000, 1.7368, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (340, 331, 1, 1, -2.000, 7.000, 2.5000, 2.6190, 10, '17', '2026-01-02', '22:36:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (341, 331, 1, 2, 2.000, 15.000, 2.7500, 2.6190, 10, '17', '2026-01-02', '22:36:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (342, 333, 1, 2, -3.000, 14.000, 4.6000, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (343, 333, 1, 1, 3.000, 14.000, 5.1520, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (344, 333, 1, 1, -2.000, 12.000, 4.5575, 5.1520, 34, '38', '2026-01-02', '01:46:46', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (345, 333, 1, 1, 2.000, 14.000, 4.6000, 5.1520, 34, '40', '2026-01-03', '01:47:11', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (346, 333, 1, 1, -1.000, 13.000, 4.6000, 4.6000, 35, '38', '2026-01-02', '01:52:42', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (347, 333, 1, 1, 3.000, 16.000, 4.6000, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (348, 333, 1, 2, -3.000, 11.000, 4.1400, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (349, 331, 1, 1, 2.000, 9.000, 2.5000, 2.6190, 10, '44', '2026-01-02', '03:09:32', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (350, 331, 1, 2, -2.000, 13.000, 2.2917, 2.6190, 10, '44', '2026-01-02', '03:09:32', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (351, 333, 1, 1, -2.000, 14.000, 4.6000, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (352, 333, 1, 2, 2.000, 13.000, 4.9680, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (353, 331, 1, 1, -4.000, 5.000, 2.5000, 2.6190, 13, '17', '2026-01-03', '03:14:38', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (354, 331, 1, 2, 4.000, 17.000, 3.0556, 2.6190, 13, '17', '2026-01-03', '03:14:38', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (355, 333, 1, 1, -2.000, 12.000, 4.6000, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (356, 333, 1, 2, 2.000, 15.000, 4.9680, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (357, 333, 1, 1, 10.000, 22.000, 4.6995, 4.9680, 215, '39', '2026-01-03', '03:32:53', 1, 140, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (358, 333, 1, 1, -3.000, 19.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (359, 333, 1, 2, 3.000, 18.000, 5.1141, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (360, 333, 1, 1, -2.000, 17.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (361, 333, 1, 2, 2.000, 20.000, 4.9680, 4.6995, 15, '17', '2026-01-03', '03:35:53', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (362, 333, 1, 1, -1.000, 16.000, 4.6995, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (363, 333, 1, 2, 1.000, 21.000, 4.8300, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (364, 333, 1, 1, 1.000, 17.000, 4.6995, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (365, 333, 1, 2, -1.000, 20.000, 4.5758, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (366, 332, 1, 1, 2.000, 2.000, 1.6000, 1.6000, 217, '39', '2026-01-26', '21:10:55', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (367, 66, 1, 1, 3.000, 3.000, 250.0000, 250.0000, 217, '39', '2026-01-26', '21:10:55', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (368, 62, 1, 1, 10.000, 41.000, 130.8000, 45.0000, 218, '39', '2026-02-28', '15:47:22', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (369, 62, 1, 1, -4.000, 37.000, 130.8000, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (370, 62, 1, 2, 4.000, 6.000, 155.7143, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (371, 333, 1, 1, -2.000, 15.000, 4.6995, 4.7704, 12, '17', '2026-01-02', '18:00:26', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (372, 333, 1, 2, 2.000, 22.000, 4.9680, 4.7704, 12, '17', '2026-01-02', '18:00:27', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (373, 72, 1, 1, 16.000, 43.000, 45.0000, 45.0000, 219, '39', '2026-03-05', '14:55:50', 1, 142, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (374, 62, 1, 1, 5.000, 42.000, 134.9524, 155.7143, 219, '39', '2026-03-05', '14:55:50', 1, 143, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (375, 330, 1, 1, 10.000, 24.000, 1.5740, 1.7368, 219, '39', '2026-03-05', '14:55:50', 1, 144, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (376, 64, 1, 1, 2.000, 2.000, 250.0000, 250.0000, 220, '39', '2026-03-07', '22:47:22', 1, 145, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (377, 62, 1, 1, 2.000, 44.000, 134.9524, 134.9524, 221, '39', '2026-03-22', '16:59:34', 1, 146, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (378, 62, 1, 1, -1.000, 43.000, 134.9524, 134.9524, 38, '38', '2026-03-22', '17:00:22', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (379, 62, 1, 1, 1.000, 44.000, 134.9524, 134.9524, 38, '40', '2026-03-22', '17:00:51', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (380, 62, 1, 2, -2.000, 4.000, 134.9524, 134.9524, 39, '38', '2026-03-22', '17:02:11', 1, 40, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (381, 62, 1, 2, -1.000, 3.000, 134.9524, 134.9524, 40, '38', '2026-03-22', '17:05:13', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (382, 62, 1, 2, -1.000, 2.000, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (383, 62, 1, 1, 1.000, 45.000, 139.7721, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (384, 62, 1, 1, -1.000, 44.000, 134.9524, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (385, 62, 1, 2, 1.000, 3.000, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (386, 62, 1, 1, 1.000, 45.000, 135.1130, 139.7721, 222, '39', '2026-03-22', '17:30:24', 1, 147, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (387, 62, 1, 1, 2.000, 47.000, 2073.6956, 47.0000, 224, '39', '2026-03-23', '21:49:09', 1, 148, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (388, 62, 1, 1, -1.000, 46.000, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (389, 62, 1, 2, 1.000, 4.000, 4147.3912, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (390, 62, 1, 1, 1.000, 47.000, 1398.4637, 48.0000, 225, '39', '2026-03-24', '14:40:29', 1, 149, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (391, 335, 1, 1, 100.000, 100.000, 3.5000, 3.5000, 226, '39', '2026-03-24', '14:51:12', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (392, 335, 1, 1, -5.000, 95.000, 3.5000, 3.5000, 41, '38', '2026-03-24', '14:52:24', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (393, 335, 1, 1, -7.000, 88.000, 3.5000, 3.5000, 42, '38', '2026-03-24', '14:53:05', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (394, 335, 1, 1, 20.000, 108.000, 3.5926, 4.0000, 227, '39', '2026-03-24', '14:56:36', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (395, 335, 1, 1, -7.000, 101.000, 3.5926, 4.0000, 43, '38', '2026-03-24', '14:59:04', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (396, 335, 1, 1, 10.000, 111.000, 3.6338, 4.0500, 228, '39', '2026-03-24', '15:17:18', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (397, 335, 1, 1, -5.000, 106.000, 3.6338, 4.0500, 44, '38', '2026-03-24', '15:18:33', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (398, 335, 1, 1, -5.000, 101.000, 3.6338, 4.0500, 22, '17', '2026-03-24', '15:25:02', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (399, 335, 1, 2, 5.000, 5.000, 3.6338, 4.0500, 22, '17', '2026-03-24', '15:25:02', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (400, 335, 1, 1, -7.000, 94.000, 3.6338, 4.0500, 23, '17', '2026-03-24', '15:32:38', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (401, 335, 1, 2, 7.000, 12.000, 3.6338, 4.0500, 23, '17', '2026-03-24', '15:32:38', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (402, 335, 1, 2, 10.000, 22.000, 3.6338, 4.0500, 229, '39', '2026-03-24', '16:45:08', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (403, 335, 1, 2, 5.000, 27.000, 3.6854, 4.0500, 230, '39', '2026-03-24', '16:47:55', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (404, 335, 1, 2, 2.000, 29.000, 3.6338, 4.0500, 232, '39', '2026-03-24', '19:40:32', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (405, 335, 1, 2, 10.000, 39.000, 3.6338, 4.0500, 233, '39', '2026-03-24', '19:46:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (406, 335, 1, 2, 1.000, 40.000, 3.6338, 4.0500, 234, '39', '2026-03-24', '19:48:50', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (407, 335, 1, 2, 5.000, 45.000, 3.6338, 4.0500, 235, '39', '2026-03-24', '19:52:23', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (408, 335, 1, 1, 1.000, 95.000, 3.2142, 4.0500, 236, '39', '2026-03-24', '19:53:37', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (409, 335, 1, 1, 3.000, 98.000, 3.2142, 4.0500, 237, '39', '2026-03-24', '19:54:40', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (410, 336, 1, 1, 50.000, 50.000, 3.6000, 3.6000, 238, '39', '2026-03-24', '20:33:11', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (411, 336, 1, 1, 8.000, 58.000, 3.6000, 3.6000, 239, '39', '2026-03-24', '20:33:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (412, 336, 1, 2, 5.000, 5.000, 3.6000, 3.6000, 240, '39', '2026-03-24', '20:34:51', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (413, 336, 1, 1, 10.000, 68.000, 3.6274, 3.8000, 241, '39', '2026-03-24', '20:36:03', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (414, 336, 1, 1, -5.000, 63.000, 3.6274, 3.8000, 45, '38', '2026-03-24', '20:41:12', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (415, 336, 1, 2, -3.000, 2.000, 3.6274, 3.8000, 46, '38', '2026-03-24', '20:42:21', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (416, 336, 1, 1, -3.000, 60.000, 3.6274, 3.6274, 24, '17', '2026-03-24', '21:21:00', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (417, 336, 1, 2, 3.000, 5.000, 3.6274, 3.6274, 24, '17', '2026-03-24', '21:21:00', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (418, 336, 1, 2, -5.000, 0.000, 3.6274, 3.8000, 240, '41', '2026-03-24', '21:34:15', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (419, 336, 1, 1, -10.000, 50.000, 3.5956, 3.8000, 241, '41', '2026-03-24', '21:44:59', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (420, 341, 1, 1, 10.000, 10.000, 3.8700, 3.8700, 242, '39', '2026-04-23', '21:57:23', 1, 150, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (421, 342, 1, 1, 10.000, 10.000, 8.5000, 8.5000, 244, '39', '2026-05-01', '17:54:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (422, 342, 1, 1, -1.000, 9.000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (423, 342, 1, 2, 1.000, 1.000, 8.5000, 8.5000, 25, '17', '2026-05-01', '18:09:02', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (424, 342, 1, 1, -1.000, 8.000, 8.5000, 8.5000, 47, '38', '2026-05-01', '18:10:10', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (425, 72, 1, 1, 1.000, 44.000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1, 151, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (426, 72, 1, 1, -3.000, 41.000, 45.0000, 45.0000, 48, '38', '2026-05-20', '18:50:16', 1, 71, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (427, 72, 1, 1, 5.000, 46.000, 45.0000, 45.0000, 247, '39', '2026-06-22', '16:33:37', 1, 152, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (428, 72, 1, 1, 4.000, 50.000, 45.0000, 45.0000, 248, '39', '2026-06-22', '16:44:20', 1, 153, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (429, 72, 1, 1, -5.000, 45.000, 45.0000, 45.0000, 247, '41', '2026-06-22', '16:44:40', 1, 152, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (430, 72, 1, 1, 2.000, 47.000, 45.0000, 45.0000, 249, '39', '2026-06-22', '17:41:09', 1, 154, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (431, 72, 1, 1, -1.000, 46.000, 45.0000, 45.0000, 49, '38', '2026-06-22', '17:53:52', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (432, 72, 1, 1, -3.000, 43.000, 45.0000, 45.0000, 50, '38', '2026-06-22', '17:55:43', 1, 72, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (433, 72, 1, 1, 1.000, 44.000, 45.0000, 45.0000, 49, '40', '2026-06-22', '18:22:33', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (434, 72, 1, 1, -3.000, 41.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (435, 72, 1, 2, 3.000, 3.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (436, 72, 1, 1, -1.000, 40.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (437, 72, 1, 2, 1.000, 4.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (444, 69, 1, 1, 3.000, 51.000, 256.6667, 14.0000, 1, '02', '2026-07-06', '20:37:32', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (445, 338, 1, 1, 10.000, 10.000, 0.5000, 0.5000, 1, '02', '2026-07-06', '20:37:32', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (446, 72, 1, 1, 2.000, 42.000, 690.0000, 45.0000, 1, '02', '2026-07-06', '20:37:32', 1, 155, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (447, 338, 1, 1, 3.000, 13.000, 0.5000, 0.5000, 2, '02', '2026-07-06', '20:43:28', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (448, 338, 1, 1, -3.000, 10.000, 0.5000, 0.5000, 2, '09', '2026-07-06', '21:54:28', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (449, 69, 1, 1, 1.000, 52.000, 196.0000, 14.0000, 3, '02', '2026-07-10', '14:16:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (450, 338, 1, 1, 1.000, 11.000, 0.5000, 0.5000, 3, '02', '2026-07-10', '14:16:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (451, 342, 1, 1, 1.000, 9.000, 8.5000, 8.5000, 3, '02', '2026-07-10', '14:16:58', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (452, 342, 1, 1, 1.000, 10.000, 94.0000, 9.0000, 4, '02', '2026-07-10', '15:05:14', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (453, 69, 1, 1, 1.000, 53.000, 159.6000, 14.0000, 4, '02', '2026-07-10', '15:05:14', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (454, 338, 1, 1, 1.000, 12.000, 0.5000, 0.5000, 4, '02', '2026-07-10', '15:05:14', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (455, 338, 1, 1, 1.000, 13.000, 0.5000, 0.5000, 5, '02', '2026-07-10', '15:26:56', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (456, 69, 1, 1, 1.000, 54.000, 135.3333, 14.0000, 5, '02', '2026-07-10', '15:26:56', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (457, 72, 1, 1, 2.000, 44.000, 432.0000, 45.0000, 5, '02', '2026-07-10', '15:26:56', 1, 156, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (458, 69, 1, 1, 1.000, 55.000, 118.0000, 14.0000, 6, '02', '2026-07-10', '15:59:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (459, 342, 1, 1, 2.000, 12.000, 36.9333, 8.4000, 6, '02', '2026-07-10', '15:59:09', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (460, 348, 1, 1, 3.000, 3.000, 16.2000, 16.2000, 7, '02', '2026-07-10', '16:10:00', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (461, 338, 1, 1, 1.000, 14.000, 0.5071, 0.6000, 7, '02', '2026-07-10', '16:10:00', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (462, 69, 1, 1, 2.000, 57.000, 95.1556, 15.2000, 7, '02', '2026-07-10', '16:10:00', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (463, 348, 1, 1, 1.000, 4.000, 16.2000, 16.2000, 8, '02', '2026-07-10', '16:11:55', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (464, 348, 1, 1, 5.000, 9.000, 16.6444, 17.0000, 9, '02', '2026-07-10', '16:13:38', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (465, 348, 1, 1, -1.000, 8.000, 16.7000, 16.2000, 8, '09', '2026-07-10', '16:14:30', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (468, 338, 1, 1, 198.000, 212.000, 1.0859, 1.0500, 12, '02', '2026-06-15', '04:22:54', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (469, 69, 1, 1, 1.000, 58.000, 87.1600, 15.2000, 13, '02', '2026-07-12', '15:31:46', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (470, 338, 1, 1, 1.000, 213.000, 1.0857, 1.0500, 13, '02', '2026-07-12', '15:31:46', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (471, 338, 1, 1, 1.000, 214.000, 1.0855, 1.0500, 14, '02', '2026-07-12', '15:33:43', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (472, 69, 1, 1, 2.000, 60.000, 75.1667, 15.2000, 15, '02', '2026-07-12', '15:35:59', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (473, 338, 1, 1, 1.000, 215.000, 1.0853, 1.0500, 16, '02', '2026-07-12', '15:48:44', 1, NULL, 8);
+INSERT INTO `cc_kardex_bodega` VALUES (474, 69, 1, 1, 1.000, 61.000, 70.5538, 15.2000, 17, '02', '2026-07-12', '18:28:04', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (475, 338, 1, 1, 1.000, 216.000, 1.0851, 1.0500, 17, '02', '2026-07-12', '18:28:04', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (476, 72, 1, 1, 2.000, 46.000, 321.4286, 45.0000, 17, '02', '2026-07-12', '18:28:04', 1, 157, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (477, 338, 1, 1, 2.000, 218.000, 1.0848, 1.0500, 18, '02', '2026-07-12', '21:34:47', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (478, 338, 1, 1, 10.000, 228.000, 1.0832, 1.0500, 19, '02', '2026-07-12', '21:42:16', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (479, 72, 1, 1, 1.000, 47.000, 286.8750, 45.0000, 20, '02', '2026-07-12', '21:53:29', 1, 158, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (480, 69, 1, 1, 2.000, 63.000, 63.1733, 15.2000, 20, '02', '2026-07-12', '21:53:29', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (481, 338, 1, 1, -10.000, 218.000, 1.0848, 1.0500, 19, '09', '2026-07-12', '21:57:33', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (482, 338, 1, 1, 10.000, 228.000, 1.0832, 1.0500, 22, '02', '2026-07-27', '17:52:44', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (483, 72, 1, 1, 2.000, 49.000, 238.5000, 45.0000, 22, '02', '2026-07-27', '17:52:44', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (484, 72, 1, 1, -1.000, 48.000, 260.0000, 45.0000, 23, '11', '2026-07-27', '18:08:15', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (485, 333, 1, 1, 4.000, 19.000, 4.7064, 4.7704, 24, '02', '2026-07-27', '18:44:22', 1, 160, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (486, 338, 1, 1, 5.000, 233.000, 1.0824, 1.0500, 24, '02', '2026-07-27', '18:44:22', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (487, 333, 1, 1, -1.000, 18.000, 4.7048, 4.7704, 25, '11', '2026-07-27', '18:45:20', 1, 160, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (488, 333, 1, 1, 1.000, 19.000, 4.7064, 4.7704, 25, '36', '2026-07-27', '19:11:05', 1, 160, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (489, 72, 1, 1, -1.000, 47.000, 286.8750, 45.0000, 26, '11', '2026-07-28', '12:20:25', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (490, 72, 1, 1, 2.000, 49.000, 238.5000, 45.0000, 27, '02', '2026-07-28', '13:53:26', 1, 161, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (491, 338, 1, 1, 4.000, 237.000, 1.0818, 1.0500, 27, '02', '2026-07-28', '13:53:26', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (492, 338, 2, 1, 3.000, 240.000, 1.0814, 1.0500, 28, '02', '2026-07-28', '14:00:03', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (493, 338, 2, 1, 2.000, 242.000, 1.0811, 1.0500, 29, '02', '2026-07-28', '14:02:03', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (494, 338, 2, 1, 5.000, 247.000, 1.0826, 1.1500, 30, '02', '2026-07-28', '14:12:45', 1, NULL, 1);
+INSERT INTO `cc_kardex_bodega` VALUES (495, 338, 2, 1, -1.000, 246.000, 1.0823, 1.1500, 31, '11', '2026-07-28', '14:13:57', 1, NULL, 1);
 
 -- ----------------------------
 -- Table structure for cc_kardex_bodega_lote
@@ -3441,6 +3691,7 @@ DROP TABLE IF EXISTS `cc_kardex_bodega_lote`;
 CREATE TABLE `cc_kardex_bodega_lote`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `fk_producto` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del kardex por bodega y lote',
   `fk_bodega` int(0) NULL DEFAULT NULL,
   `karbl_kardex` decimal(15, 3) NULL DEFAULT NULL,
   `karbl_kardex_total` decimal(15, 3) NULL DEFAULT NULL,
@@ -3459,155 +3710,162 @@ CREATE TABLE `cc_kardex_bodega_lote`  (
   INDEX `karb_codigo_transaccion`(`karbl_codigo_transaccion`) USING BTREE,
   INDEX `fk_lote`(`fk_lote`) USING BTREE,
   INDEX `fk_user_id`(`fk_user_id`) USING BTREE,
+  INDEX `idx_karbl_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_1` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_2` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_3` FOREIGN KEY (`karbl_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_kardex_bodega_lote_ibfk_4` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_kardex_bodega_lote_ibfk_5` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_kardex_bodega_lote_ibfk_5` FOREIGN KEY (`fk_user_id`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_karbl_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 220 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_kardex_bodega_lote
 -- ----------------------------
-INSERT INTO `cc_kardex_bodega_lote` VALUES (36, 62, 1, 1.000, 1.000, 45.0000, 45.0000, 77, '39', '2025-10-19', '22:02:39', 1, 39, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (37, 62, 2, 2.000, 2.000, 45.0000, 45.0000, 78, '39', '2025-10-19', '22:15:25', 1, 40, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (38, 62, 1, 1.000, 1.000, 45.0000, 45.0000, 81, '39', '2025-10-19', '22:26:34', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (53, 62, 1, 1.000, 1.000, 45.0000, 45.0000, 109, '39', '2025-10-20', '15:49:11', 1, 58, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (55, 62, 1, 2.000, 2.000, 45.0000, 45.0000, 112, '39', '2025-10-20', '16:09:22', 1, 60, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (56, 62, 1, 1.000, 1.000, 45.0000, 45.0000, 114, '39', '2025-10-22', '21:33:33', 1, 62, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (57, 62, 1, 1.000, 1.000, 360.0000, 0.0000, 116, '39', '2025-10-24', '18:07:45', 1, 63, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (58, 62, 1, 4.000, 4.000, 108.0000, 45.0000, 117, '39', '2025-10-31', '21:59:23', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (70, 62, 1, 2.000, 3.000, 90.2857, 46.0000, 130, '39', '2025-11-01', '20:37:08', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (71, 62, 1, 3.000, 3.000, 76.7000, 45.0000, 113, '39', '2025-11-01', '23:56:15', 1, 61, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (72, 62, 1, 1.000, 1.000, 76.7000, 76.7000, 132, '39', '2025-11-01', '00:01:14', 1, 65, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (73, 62, 1, 1.000, 1.000, 74.0583, 45.0000, 140, '39', '2025-11-04', '20:18:00', 1, 66, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (75, 62, 1, -1.000, 0.000, 76.7000, 45.0000, 140, '41', '2025-11-04', '20:20:50', 1, 66, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (76, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 141, '39', '2025-11-04', '20:39:39', 1, 68, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (77, 74, 1, 1.000, 1.000, 2.5000, 2.5000, 141, '39', '2025-11-04', '20:39:39', 1, 67, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (78, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 142, '39', '2025-11-04', '20:44:26', 1, 69, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (79, 74, 1, 50.000, 50.000, 2.5000, 2.5000, 143, '39', '2025-11-04', '20:49:04', 1, 70, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (80, 72, 1, 3.000, 3.000, 45.0000, 45.0000, 143, '39', '2025-11-04', '20:49:05', 1, 71, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (81, 72, 1, 5.000, 5.000, 45.0000, 45.0000, 144, '39', '2025-11-04', '20:59:17', 1, 72, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (82, 72, 1, -2.000, 0.000, 45.0000, 45.0000, 142, '41', '2025-11-04', '21:00:34', 1, 69, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (83, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 146, '39', '2025-11-04', '21:11:57', 1, 73, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (84, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 148, '39', '2025-11-04', '21:12:58', 1, 74, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (85, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 149, '39', '2025-11-04', '01:16:23', 1, 75, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (86, 72, 1, 2.000, 4.000, 45.0000, 45.0000, 150, '39', '2025-11-04', '01:39:48', 1, 75, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (87, 72, 1, 2.000, 6.000, 45.0000, 45.0000, 152, '39', '2025-11-05', '19:37:27', 1, 75, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (88, 62, 1, 1.000, 1.000, 76.7000, 76.7000, 154, '39', '2025-11-05', '20:08:00', 1, 76, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (89, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 156, '39', '2025-11-05', '20:12:25', 1, 77, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (90, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 157, '39', '2025-11-05', '21:45:25', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (91, 74, 1, 50.000, 50.000, 2.5000, 2.5000, 158, '39', '2025-11-07', '16:37:41', 1, 79, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (92, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 158, '39', '2025-11-07', '16:37:41', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (93, 72, 1, 4.000, 6.000, 45.0000, 45.0000, 162, '39', '2025-11-07', '17:16:06', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (94, 74, 1, 60.000, 110.000, 2.5000, 2.5000, 162, '39', '2025-11-07', '17:16:06', 1, 79, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (95, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 182, '39', '2025-11-25', '23:12:38', 1, 118, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (96, 72, 1, -2.000, 0.000, 45.0000, 45.0000, 182, '41', '2025-11-25', '23:54:13', 1, 118, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (103, 333, 1, 12.000, 12.000, 4.6000, 4.6000, 194, '39', '2025-11-25', '01:12:21', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (104, 330, 1, 10.000, 10.000, 1.5000, 1.5000, 194, '39', '2025-11-25', '01:12:21', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (105, 333, 2, 12.000, 12.000, 4.6000, 4.6000, 195, '39', '2025-11-25', '01:18:09', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (106, 330, 2, 10.000, 10.000, 1.5000, 1.5000, 195, '39', '2025-11-25', '01:18:09', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (107, 333, 2, 1.000, 13.000, 4.6000, 4.6000, 196, '39', '2025-11-26', '14:49:36', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (108, 330, 2, 1.000, 11.000, 1.5000, 1.5000, 196, '39', '2025-11-26', '14:49:36', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (109, 333, 2, 1.000, 14.000, 4.6000, 4.6000, 197, '39', '2025-11-26', '14:56:53', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (110, 330, 2, 1.000, 12.000, 1.5000, 1.5000, 197, '39', '2025-11-26', '14:56:53', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (111, 333, 1, 1.000, 13.000, 4.6000, 4.6000, 198, '39', '2025-11-27', '20:51:44', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (112, 330, 1, 1.000, 11.000, 1.5000, 1.5000, 198, '39', '2025-11-27', '20:51:44', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (113, 333, 1, 1.000, 14.000, 4.6000, 4.6000, 199, '39', '2025-11-27', '20:52:47', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (114, 330, 1, 1.000, 12.000, 1.5000, 1.5000, 199, '39', '2025-11-27', '20:52:47', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (117, 62, 1, -2.000, 0.000, 76.7000, 76.7000, 3, '38', '2025-11-29', '20:11:23', 1, 60, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (119, 62, 1, -2.000, 2.000, 0.0000, 76.7000, 9, '38', '2025-11-30', '20:10:15', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (120, 62, 1, -1.000, 1.000, 0.0000, 45.0000, 11, '38', '2025-11-30', '20:13:15', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (121, 62, 1, -1.000, 2.000, 0.0000, 45.0000, 20, '38', '2025-11-30', '20:21:46', 1, 61, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (122, 330, 1, -1.000, 11.000, 1.5000, 1.5000, 22, '38', '2025-11-30', '20:28:10', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (123, 330, 1, -2.000, 9.000, 1.5000, 1.5000, 21, '38', '2025-11-30', '20:33:20', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (124, 62, 1, -1.000, 2.000, 0.0000, 45.0000, 17, '38', '2025-11-30', '20:34:19', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (125, 62, 1, -1.000, 1.000, 0.0000, 45.0000, 15, '38', '2025-11-30', '20:35:07', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (126, 62, 1, -1.000, 0.000, 0.0000, 45.0000, 13, '38', '2025-11-30', '20:35:58', 1, 64, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (127, 62, 1, 9.000, 9.000, 399.5000, 45.6000, 205, '39', '2025-12-01', '20:08:50', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (128, 62, 1, 3.000, 12.000, 188.0000, 47.0000, 206, '39', '2025-12-01', '20:22:52', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (129, 62, 1, 10.000, 22.000, 188.0000, 188.0000, 207, '39', '2025-12-01', '20:23:50', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (130, 62, 1, 11.000, 33.000, 127.5000, 45.0000, 208, '39', '2025-12-01', '20:24:57', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (131, 62, 1, -11.000, 22.000, 188.0000, 45.0000, 208, '41', '2025-12-01', '20:50:05', 1, 138, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (132, 330, 2, -3.000, 9.000, 1.5000, 1.5000, 24, '38', '2025-12-02', '19:06:48', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (133, 330, 2, -1.000, 8.000, 1.5000, 1.5000, 26, '38', '2025-12-03', '15:14:31', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (134, 330, 2, 1.000, 9.000, 1.5000, 1.5000, 26, '40', '2025-12-03', '15:36:53', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (135, 330, 1, -5.000, 4.000, 1.5000, 1.5000, 32, '38', '2025-12-04', '14:50:15', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (136, 330, 1, -1.000, 3.000, 1.5000, 1.5000, 33, '38', '2025-12-19', '17:20:30', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (137, 330, 1, 10.000, 10.000, 1.5000, 1.5000, 214, '39', '2025-12-19', '17:22:16', 1, 139, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (146, 330, 1, -2.000, 2.000, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (147, 330, 2, 0.000, 10.000, 1.5714, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (148, 333, 1, -4.000, 10.000, 4.6000, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (149, 333, 2, -3.000, 18.000, 5.3667, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (150, 330, 1, -2.000, 1.000, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (151, 330, 2, 0.000, 11.000, 1.5714, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (152, 333, 2, -2.000, 17.000, 4.6000, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (153, 333, 1, 1.000, 11.000, 4.7704, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (154, 330, 2, -4.000, 8.000, 1.5000, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (155, 330, 1, -2.000, 4.000, 1.7368, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (156, 333, 2, -4.000, 14.000, 4.6000, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (157, 333, 1, 3.000, 14.000, 5.1520, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (158, 333, 1, -2.000, 12.000, 4.5575, 5.1520, 34, '38', '2026-01-02', '01:46:46', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (159, 333, 1, 2.000, 14.000, 4.6000, 5.1520, 34, '40', '2026-01-03', '01:47:11', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (160, 333, 1, -1.000, 13.000, 4.6000, 4.6000, 35, '38', '2026-01-02', '01:52:42', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (161, 333, 1, 3.000, 16.000, 4.6000, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (162, 333, 2, -4.000, 11.000, 4.1400, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (163, 333, 1, -2.000, 14.000, 4.6000, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (164, 333, 2, -1.000, 13.000, 4.9680, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (165, 333, 1, -2.000, 12.000, 4.6000, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (166, 333, 2, 2.000, 15.000, 4.9680, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (167, 333, 1, 10.000, 10.000, 4.6995, 4.9680, 215, '39', '2026-01-03', '03:32:53', 1, 140, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (168, 333, 1, -3.000, 7.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (169, 333, 2, 3.000, 3.000, 5.1141, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (170, 333, 1, -2.000, 10.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (171, 333, 2, 2.000, 17.000, 4.9680, 4.6995, 15, '17', '2026-01-03', '03:35:53', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (172, 333, 1, -1.000, 9.000, 4.6995, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (173, 333, 2, 1.000, 18.000, 4.8300, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (174, 333, 1, 1.000, 10.000, 4.6995, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (175, 333, 2, -1.000, 17.000, 4.5758, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (176, 62, 1, 10.000, 10.000, 130.8000, 45.0000, 218, '39', '2026-02-28', '15:47:22', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (177, 62, 1, -4.000, 6.000, 130.8000, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (178, 62, 2, 4.000, 4.000, 155.7143, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (179, 333, 1, -2.000, 8.000, 4.6995, 4.7704, 12, '17', '2026-01-02', '18:00:26', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (180, 333, 2, 2.000, 19.000, 4.9680, 4.7704, 12, '17', '2026-01-02', '18:00:27', 1, 136, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (181, 72, 1, 16.000, 16.000, 45.0000, 45.0000, 219, '39', '2026-03-05', '14:55:50', 1, 142, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (182, 62, 1, 5.000, 5.000, 134.9524, 155.7143, 219, '39', '2026-03-05', '14:55:50', 1, 143, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (183, 330, 1, 10.000, 10.000, 1.5740, 1.7368, 219, '39', '2026-03-05', '14:55:50', 1, 144, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (184, 64, 1, 2.000, 2.000, 250.0000, 250.0000, 220, '39', '2026-03-07', '22:47:22', 1, 145, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (185, 62, 1, 2.000, 2.000, 134.9524, 134.9524, 221, '39', '2026-03-22', '16:59:34', 1, 146, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (186, 62, 1, -1.000, 0.000, 134.9524, 134.9524, 38, '38', '2026-03-22', '17:00:22', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (187, 62, 1, 1.000, 1.000, 134.9524, 134.9524, 38, '40', '2026-03-22', '17:00:51', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (188, 62, 2, -2.000, 0.000, 134.9524, 134.9524, 39, '38', '2026-03-22', '17:02:11', 1, 40, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (189, 62, 2, -1.000, 3.000, 134.9524, 134.9524, 40, '38', '2026-03-22', '17:05:13', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (190, 62, 2, -1.000, 2.000, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (191, 62, 1, 1.000, 7.000, 139.7721, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (192, 62, 1, -1.000, 0.000, 134.9524, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (193, 62, 2, 1.000, 1.000, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (194, 62, 1, 1.000, 1.000, 135.1130, 139.7721, 222, '39', '2026-03-22', '17:30:24', 1, 147, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (195, 62, 1, 2.000, 2.000, 2073.6956, 47.0000, 224, '39', '2026-03-23', '21:49:09', 1, 148, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (196, 62, 1, -1.000, 0.000, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (197, 62, 2, 1.000, 1.000, 4147.3912, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (198, 62, 1, 1.000, 1.000, 1398.4637, 48.0000, 225, '39', '2026-03-24', '14:40:29', 1, 149, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (199, 341, 1, 10.000, 10.000, 3.8700, 3.8700, 242, '39', '2026-04-23', '21:57:23', 1, 150, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (200, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1, 151, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (201, 72, 1, -3.000, 0.000, 45.0000, 45.0000, 48, '38', '2026-05-20', '18:50:16', 1, 71, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (202, 72, 1, 5.000, 5.000, 45.0000, 45.0000, 247, '39', '2026-06-22', '16:33:37', 1, 152, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (203, 72, 1, 4.000, 4.000, 45.0000, 45.0000, 248, '39', '2026-06-22', '16:44:20', 1, 153, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (204, 72, 1, -5.000, 0.000, 45.0000, 45.0000, 247, '41', '2026-06-22', '16:44:40', 1, 152, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (205, 72, 1, 2.000, 2.000, 45.0000, 45.0000, 249, '39', '2026-06-22', '17:41:09', 1, 154, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (206, 72, 1, -1.000, 0.000, 45.0000, 45.0000, 49, '38', '2026-06-22', '17:53:52', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (207, 72, 1, -3.000, 2.000, 45.0000, 45.0000, 50, '38', '2026-06-22', '17:55:43', 1, 72, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (208, 72, 1, 1.000, 1.000, 45.0000, 45.0000, 49, '40', '2026-06-22', '18:22:33', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (209, 72, 1, -3.000, 3.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (210, 72, 2, 3.000, 3.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (211, 72, 1, -1.000, 0.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (212, 72, 2, 1.000, 1.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (215, 72, 1, 2.000, 2.000, 690.0000, 45.0000, 1, '02', '2026-07-06', '20:37:32', 1, 155, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (216, 72, 1, 2.000, 2.000, 432.0000, 45.0000, 5, '02', '2026-07-10', '15:26:56', 1, 156, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (217, 72, 1, 2.000, 2.000, 321.4286, 45.0000, 17, '02', '2026-07-12', '18:28:04', 1, 157, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (218, 72, 1, 1.000, 1.000, 286.8750, 45.0000, 20, '02', '2026-07-12', '21:53:29', 1, 158, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (219, 72, 1, 2.000, 2.000, 238.5000, 45.0000, 22, '02', '2026-07-27', '17:52:44', 1, 159, 1);
-INSERT INTO `cc_kardex_bodega_lote` VALUES (220, 72, 1, -1.000, 1.000, 260.0000, 45.0000, 23, '11', '2026-07-27', '18:08:15', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (36, 62, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 77, '39', '2025-10-19', '22:02:39', 1, 39, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (37, 62, 1, 2, 2.000, 2.000, 45.0000, 45.0000, 78, '39', '2025-10-19', '22:15:25', 1, 40, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (38, 62, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 81, '39', '2025-10-19', '22:26:34', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (53, 62, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 109, '39', '2025-10-20', '15:49:11', 1, 58, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (55, 62, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 112, '39', '2025-10-20', '16:09:22', 1, 60, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (56, 62, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 114, '39', '2025-10-22', '21:33:33', 1, 62, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (57, 62, 1, 1, 1.000, 1.000, 360.0000, 0.0000, 116, '39', '2025-10-24', '18:07:45', 1, 63, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (58, 62, 1, 1, 4.000, 4.000, 108.0000, 45.0000, 117, '39', '2025-10-31', '21:59:23', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (70, 62, 1, 1, 2.000, 3.000, 90.2857, 46.0000, 130, '39', '2025-11-01', '20:37:08', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (71, 62, 1, 1, 3.000, 3.000, 76.7000, 45.0000, 113, '39', '2025-11-01', '23:56:15', 1, 61, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (72, 62, 1, 1, 1.000, 1.000, 76.7000, 76.7000, 132, '39', '2025-11-01', '00:01:14', 1, 65, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (73, 62, 1, 1, 1.000, 1.000, 74.0583, 45.0000, 140, '39', '2025-11-04', '20:18:00', 1, 66, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (75, 62, 1, 1, -1.000, 0.000, 76.7000, 45.0000, 140, '41', '2025-11-04', '20:20:50', 1, 66, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (76, 72, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 141, '39', '2025-11-04', '20:39:39', 1, 68, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (77, 74, 1, 1, 1.000, 1.000, 2.5000, 2.5000, 141, '39', '2025-11-04', '20:39:39', 1, 67, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (78, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 142, '39', '2025-11-04', '20:44:26', 1, 69, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (79, 74, 1, 1, 50.000, 50.000, 2.5000, 2.5000, 143, '39', '2025-11-04', '20:49:04', 1, 70, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (80, 72, 1, 1, 3.000, 3.000, 45.0000, 45.0000, 143, '39', '2025-11-04', '20:49:05', 1, 71, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (81, 72, 1, 1, 5.000, 5.000, 45.0000, 45.0000, 144, '39', '2025-11-04', '20:59:17', 1, 72, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (82, 72, 1, 1, -2.000, 0.000, 45.0000, 45.0000, 142, '41', '2025-11-04', '21:00:34', 1, 69, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (83, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 146, '39', '2025-11-04', '21:11:57', 1, 73, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (84, 72, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 148, '39', '2025-11-04', '21:12:58', 1, 74, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (85, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 149, '39', '2025-11-04', '01:16:23', 1, 75, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (86, 72, 1, 1, 2.000, 4.000, 45.0000, 45.0000, 150, '39', '2025-11-04', '01:39:48', 1, 75, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (87, 72, 1, 1, 2.000, 6.000, 45.0000, 45.0000, 152, '39', '2025-11-05', '19:37:27', 1, 75, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (88, 62, 1, 1, 1.000, 1.000, 76.7000, 76.7000, 154, '39', '2025-11-05', '20:08:00', 1, 76, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (89, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 156, '39', '2025-11-05', '20:12:25', 1, 77, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (90, 72, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 157, '39', '2025-11-05', '21:45:25', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (91, 74, 1, 1, 50.000, 50.000, 2.5000, 2.5000, 158, '39', '2025-11-07', '16:37:41', 1, 79, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (92, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 158, '39', '2025-11-07', '16:37:41', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (93, 72, 1, 1, 4.000, 6.000, 45.0000, 45.0000, 162, '39', '2025-11-07', '17:16:06', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (94, 74, 1, 1, 60.000, 110.000, 2.5000, 2.5000, 162, '39', '2025-11-07', '17:16:06', 1, 79, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (95, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 182, '39', '2025-11-25', '23:12:38', 1, 118, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (96, 72, 1, 1, -2.000, 0.000, 45.0000, 45.0000, 182, '41', '2025-11-25', '23:54:13', 1, 118, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (103, 333, 1, 1, 12.000, 12.000, 4.6000, 4.6000, 194, '39', '2025-11-25', '01:12:21', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (104, 330, 1, 1, 10.000, 10.000, 1.5000, 1.5000, 194, '39', '2025-11-25', '01:12:21', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (105, 333, 1, 2, 12.000, 12.000, 4.6000, 4.6000, 195, '39', '2025-11-25', '01:18:09', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (106, 330, 1, 2, 10.000, 10.000, 1.5000, 1.5000, 195, '39', '2025-11-25', '01:18:09', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (107, 333, 1, 2, 1.000, 13.000, 4.6000, 4.6000, 196, '39', '2025-11-26', '14:49:36', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (108, 330, 1, 2, 1.000, 11.000, 1.5000, 1.5000, 196, '39', '2025-11-26', '14:49:36', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (109, 333, 1, 2, 1.000, 14.000, 4.6000, 4.6000, 197, '39', '2025-11-26', '14:56:53', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (110, 330, 1, 2, 1.000, 12.000, 1.5000, 1.5000, 197, '39', '2025-11-26', '14:56:53', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (111, 333, 1, 1, 1.000, 13.000, 4.6000, 4.6000, 198, '39', '2025-11-27', '20:51:44', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (112, 330, 1, 1, 1.000, 11.000, 1.5000, 1.5000, 198, '39', '2025-11-27', '20:51:44', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (113, 333, 1, 1, 1.000, 14.000, 4.6000, 4.6000, 199, '39', '2025-11-27', '20:52:47', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (114, 330, 1, 1, 1.000, 12.000, 1.5000, 1.5000, 199, '39', '2025-11-27', '20:52:47', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (117, 62, 1, 1, -2.000, 0.000, 76.7000, 76.7000, 3, '38', '2025-11-29', '20:11:23', 1, 60, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (119, 62, 1, 1, -2.000, 2.000, 0.0000, 76.7000, 9, '38', '2025-11-30', '20:10:15', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (120, 62, 1, 1, -1.000, 1.000, 0.0000, 45.0000, 11, '38', '2025-11-30', '20:13:15', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (121, 62, 1, 1, -1.000, 2.000, 0.0000, 45.0000, 20, '38', '2025-11-30', '20:21:46', 1, 61, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (122, 330, 1, 1, -1.000, 11.000, 1.5000, 1.5000, 22, '38', '2025-11-30', '20:28:10', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (123, 330, 1, 1, -2.000, 9.000, 1.5000, 1.5000, 21, '38', '2025-11-30', '20:33:20', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (124, 62, 1, 1, -1.000, 2.000, 0.0000, 45.0000, 17, '38', '2025-11-30', '20:34:19', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (125, 62, 1, 1, -1.000, 1.000, 0.0000, 45.0000, 15, '38', '2025-11-30', '20:35:07', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (126, 62, 1, 1, -1.000, 0.000, 0.0000, 45.0000, 13, '38', '2025-11-30', '20:35:58', 1, 64, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (127, 62, 1, 1, 9.000, 9.000, 399.5000, 45.6000, 205, '39', '2025-12-01', '20:08:50', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (128, 62, 1, 1, 3.000, 12.000, 188.0000, 47.0000, 206, '39', '2025-12-01', '20:22:52', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (129, 62, 1, 1, 10.000, 22.000, 188.0000, 188.0000, 207, '39', '2025-12-01', '20:23:50', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (130, 62, 1, 1, 11.000, 33.000, 127.5000, 45.0000, 208, '39', '2025-12-01', '20:24:57', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (131, 62, 1, 1, -11.000, 22.000, 188.0000, 45.0000, 208, '41', '2025-12-01', '20:50:05', 1, 138, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (132, 330, 1, 2, -3.000, 9.000, 1.5000, 1.5000, 24, '38', '2025-12-02', '19:06:48', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (133, 330, 1, 2, -1.000, 8.000, 1.5000, 1.5000, 26, '38', '2025-12-03', '15:14:31', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (134, 330, 1, 2, 1.000, 9.000, 1.5000, 1.5000, 26, '40', '2025-12-03', '15:36:53', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (135, 330, 1, 1, -5.000, 4.000, 1.5000, 1.5000, 32, '38', '2025-12-04', '14:50:15', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (136, 330, 1, 1, -1.000, 3.000, 1.5000, 1.5000, 33, '38', '2025-12-19', '17:20:30', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (137, 330, 1, 1, 10.000, 10.000, 1.5000, 1.5000, 214, '39', '2025-12-19', '17:22:16', 1, 139, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (146, 330, 1, 1, -2.000, 2.000, 1.5000, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (147, 330, 1, 2, 0.000, 10.000, 1.5714, 1.5000, 5, '17', '2025-12-11', '19:52:25', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (148, 333, 1, 1, -4.000, 10.000, 4.6000, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (149, 333, 1, 2, -3.000, 18.000, 5.3667, 4.6000, 1, '17', '2025-12-09', '20:07:09', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (150, 330, 1, 1, -2.000, 1.000, 1.5000, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (151, 330, 1, 2, 0.000, 11.000, 1.5714, 1.5000, 1, '17', '2025-12-09', '20:07:09', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (152, 333, 1, 2, -2.000, 17.000, 4.6000, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (153, 333, 1, 1, 1.000, 11.000, 4.7704, 5.3667, 7, '17', '2025-12-30', '20:19:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (154, 330, 1, 2, -4.000, 8.000, 1.5000, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (155, 330, 1, 1, -2.000, 4.000, 1.7368, 1.5714, 8, '17', '2025-12-30', '20:20:50', 1, 137, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (156, 333, 1, 2, -4.000, 14.000, 4.6000, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (157, 333, 1, 1, 3.000, 14.000, 5.1520, 4.7704, 11, '17', '2026-01-02', '00:45:24', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (158, 333, 1, 1, -2.000, 12.000, 4.5575, 5.1520, 34, '38', '2026-01-02', '01:46:46', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (159, 333, 1, 1, 2.000, 14.000, 4.6000, 5.1520, 34, '40', '2026-01-03', '01:47:11', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (160, 333, 1, 1, -1.000, 13.000, 4.6000, 4.6000, 35, '38', '2026-01-02', '01:52:42', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (161, 333, 1, 1, 3.000, 16.000, 4.6000, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (162, 333, 1, 2, -4.000, 11.000, 4.1400, 4.7704, 11, '44', '2026-01-02', '02:01:04', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (163, 333, 1, 1, -2.000, 14.000, 4.6000, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (164, 333, 1, 2, -1.000, 13.000, 4.9680, 4.1400, 13, '17', '2026-01-03', '03:14:38', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (165, 333, 1, 1, -2.000, 12.000, 4.6000, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (166, 333, 1, 2, 2.000, 15.000, 4.9680, 4.9680, 14, '17', '2026-01-03', '03:29:05', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (167, 333, 1, 1, 10.000, 10.000, 4.6995, 4.9680, 215, '39', '2026-01-03', '03:32:53', 1, 140, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (168, 333, 1, 1, -3.000, 7.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (169, 333, 1, 2, 3.000, 3.000, 5.1141, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 140, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (170, 333, 1, 1, -2.000, 10.000, 4.6995, 4.6995, 15, '17', '2026-01-03', '03:35:52', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (171, 333, 1, 2, 2.000, 17.000, 4.9680, 4.6995, 15, '17', '2026-01-03', '03:35:53', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (172, 333, 1, 1, -1.000, 9.000, 4.6995, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (173, 333, 1, 2, 1.000, 18.000, 4.8300, 4.9680, 16, '17', '2026-01-03', '03:38:19', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (174, 333, 1, 1, 1.000, 10.000, 4.6995, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (175, 333, 1, 2, -1.000, 17.000, 4.5758, 4.9680, 16, '44', '2026-01-03', '03:38:57', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (176, 62, 1, 1, 10.000, 10.000, 130.8000, 45.0000, 218, '39', '2026-02-28', '15:47:22', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (177, 62, 1, 1, -4.000, 6.000, 130.8000, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (178, 62, 1, 2, 4.000, 4.000, 155.7143, 130.8000, 18, '17', '2026-02-28', '15:48:44', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (179, 333, 1, 1, -2.000, 8.000, 4.6995, 4.7704, 12, '17', '2026-01-02', '18:00:26', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (180, 333, 1, 2, 2.000, 19.000, 4.9680, 4.7704, 12, '17', '2026-01-02', '18:00:27', 1, 136, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (181, 72, 1, 1, 16.000, 16.000, 45.0000, 45.0000, 219, '39', '2026-03-05', '14:55:50', 1, 142, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (182, 62, 1, 1, 5.000, 5.000, 134.9524, 155.7143, 219, '39', '2026-03-05', '14:55:50', 1, 143, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (183, 330, 1, 1, 10.000, 10.000, 1.5740, 1.7368, 219, '39', '2026-03-05', '14:55:50', 1, 144, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (184, 64, 1, 1, 2.000, 2.000, 250.0000, 250.0000, 220, '39', '2026-03-07', '22:47:22', 1, 145, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (185, 62, 1, 1, 2.000, 2.000, 134.9524, 134.9524, 221, '39', '2026-03-22', '16:59:34', 1, 146, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (186, 62, 1, 1, -1.000, 0.000, 134.9524, 134.9524, 38, '38', '2026-03-22', '17:00:22', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (187, 62, 1, 1, 1.000, 1.000, 134.9524, 134.9524, 38, '40', '2026-03-22', '17:00:51', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (188, 62, 1, 2, -2.000, 0.000, 134.9524, 134.9524, 39, '38', '2026-03-22', '17:02:11', 1, 40, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (189, 62, 1, 2, -1.000, 3.000, 134.9524, 134.9524, 40, '38', '2026-03-22', '17:05:13', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (190, 62, 1, 2, -1.000, 2.000, 134.9524, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (191, 62, 1, 1, 1.000, 7.000, 139.7721, 134.9524, 19, '17', '2026-03-22', '17:06:47', 1, 141, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (192, 62, 1, 1, -1.000, 0.000, 134.9524, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (193, 62, 1, 2, 1.000, 1.000, 139.7721, 139.7721, 20, '17', '2026-03-22', '17:07:40', 1, 43, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (194, 62, 1, 1, 1.000, 1.000, 135.1130, 139.7721, 222, '39', '2026-03-22', '17:30:24', 1, 147, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (195, 62, 1, 1, 2.000, 2.000, 2073.6956, 47.0000, 224, '39', '2026-03-23', '21:49:09', 1, 148, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (196, 62, 1, 1, -1.000, 0.000, 2073.6956, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (197, 62, 1, 2, 1.000, 1.000, 4147.3912, 2073.6956, 21, '17', '2026-03-23', '21:49:55', 1, 58, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (198, 62, 1, 1, 1.000, 1.000, 1398.4637, 48.0000, 225, '39', '2026-03-24', '14:40:29', 1, 149, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (199, 341, 1, 1, 10.000, 10.000, 3.8700, 3.8700, 242, '39', '2026-04-23', '21:57:23', 1, 150, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (200, 72, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 246, '39', '2026-05-01', '18:18:25', 1, 151, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (201, 72, 1, 1, -3.000, 0.000, 45.0000, 45.0000, 48, '38', '2026-05-20', '18:50:16', 1, 71, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (202, 72, 1, 1, 5.000, 5.000, 45.0000, 45.0000, 247, '39', '2026-06-22', '16:33:37', 1, 152, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (203, 72, 1, 1, 4.000, 4.000, 45.0000, 45.0000, 248, '39', '2026-06-22', '16:44:20', 1, 153, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (204, 72, 1, 1, -5.000, 0.000, 45.0000, 45.0000, 247, '41', '2026-06-22', '16:44:40', 1, 152, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (205, 72, 1, 1, 2.000, 2.000, 45.0000, 45.0000, 249, '39', '2026-06-22', '17:41:09', 1, 154, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (206, 72, 1, 1, -1.000, 0.000, 45.0000, 45.0000, 49, '38', '2026-06-22', '17:53:52', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (207, 72, 1, 1, -3.000, 2.000, 45.0000, 45.0000, 50, '38', '2026-06-22', '17:55:43', 1, 72, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (208, 72, 1, 1, 1.000, 1.000, 45.0000, 45.0000, 49, '40', '2026-06-22', '18:22:33', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (209, 72, 1, 1, -3.000, 3.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (210, 72, 1, 2, 3.000, 3.000, 45.0000, 45.0000, 28, '17', '2026-06-22', '18:24:08', 1, 80, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (211, 72, 1, 1, -1.000, 0.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (212, 72, 1, 2, 1.000, 1.000, 45.0000, 45.0000, 27, '17', '2026-06-22', '14:58:20', 1, 78, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (215, 72, 1, 1, 2.000, 2.000, 690.0000, 45.0000, 1, '02', '2026-07-06', '20:37:32', 1, 155, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (216, 72, 1, 1, 2.000, 2.000, 432.0000, 45.0000, 5, '02', '2026-07-10', '15:26:56', 1, 156, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (217, 72, 1, 1, 2.000, 2.000, 321.4286, 45.0000, 17, '02', '2026-07-12', '18:28:04', 1, 157, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (218, 72, 1, 1, 1.000, 1.000, 286.8750, 45.0000, 20, '02', '2026-07-12', '21:53:29', 1, 158, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (219, 72, 1, 1, 2.000, 2.000, 238.5000, 45.0000, 22, '02', '2026-07-27', '17:52:44', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (220, 72, 1, 1, -1.000, 1.000, 260.0000, 45.0000, 23, '11', '2026-07-27', '18:08:15', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (221, 333, 1, 1, 4.000, 4.000, 4.7064, 4.7704, 24, '02', '2026-07-27', '18:44:22', 1, 160, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (222, 333, 1, 1, -1.000, 3.000, 4.7048, 4.7704, 25, '11', '2026-07-27', '18:45:20', 1, 160, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (223, 333, 1, 1, 1.000, 4.000, 4.7064, 4.7704, 25, '36', '2026-07-27', '19:11:05', 1, 160, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (224, 72, 1, 1, -1.000, 0.000, 286.8750, 45.0000, 26, '11', '2026-07-28', '12:20:25', 1, 159, 1);
+INSERT INTO `cc_kardex_bodega_lote` VALUES (225, 72, 1, 1, 2.000, 2.000, 238.5000, 45.0000, 27, '02', '2026-07-28', '13:53:26', 1, 161, 1);
 
 -- ----------------------------
 -- Table structure for cc_log
@@ -7634,6 +7892,35 @@ INSERT INTO `cc_log` VALUES (4026, 1, 'SE HA CREADO UN PRODUCTO CON EL ID 349', 
 INSERT INTO `cc_log` VALUES (4027, 1, 'SE HA CREADO UN PRODUCTO CON EL ID 350', '2026-07-26', '11:38:03', '/index.php/admin/productos/saveProducto', 'SUCCESS');
 INSERT INTO `cc_log` VALUES (4028, 1, 'SE HA INICIADO SECION', '2026-07-26', '15:56:33', '/index.php/welcome', 'INFO');
 INSERT INTO `cc_log` VALUES (4029, 1, 'SE HA INICIADO SECION', '2026-07-27', '17:50:55', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4030, 1, 'SE HA INICIADO SECION', '2026-07-28', '09:17:02', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4031, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '09:17:41', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4032, 1, 'SE HA INICIADO SECION', '2026-07-28', '09:18:03', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4033, 1, 'SE HA REGISTRADO UNA CONFIGURACIÓN DE CUENTA CON EL ID 14', '2026-07-28', '09:43:22', '/index.php/admin/cuentasconfig/saveConfigCuenta', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (4034, 1, 'SE HA REGISTRADO UNA CONFIGURACIÓN DE CUENTA CON EL ID 15', '2026-07-28', '10:17:44', '/index.php/admin/cuentasconfig/saveConfigCuenta', 'SUCCESS');
+INSERT INTO `cc_log` VALUES (4035, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '11:47:45', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4036, 1, 'SE HA INICIADO SECION', '2026-07-28', '11:48:02', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4037, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '11:48:10', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4038, 1, 'SE HA INICIADO SECION', '2026-07-28', '11:56:18', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4039, 1, 'SE HA INICIADO SECION', '2026-07-28', '11:56:30', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4040, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '11:56:34', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4041, 1, 'SE HA INICIADO SECION', '2026-07-28', '11:56:40', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4042, 1, 'SE HA INICIADO SECION', '2026-07-28', '11:56:57', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4043, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '11:57:02', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4044, 1, 'SE HA INICIADO SECION', '2026-07-28', '11:57:09', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4045, 1, 'SE HA INICIADO SECION', '2026-07-28', '12:00:34', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4046, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '12:00:40', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4047, 8, 'SE HA INICIADO SECION', '2026-07-28', '12:01:32', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4048, 8, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 8', '2026-07-28', '12:01:37', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4049, 1, 'SE HA INICIADO SECION', '2026-07-28', '12:01:47', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4050, 1, 'SE HA INICIADO SECION', '2026-07-28', '12:01:54', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4051, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '12:01:57', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4052, 8, 'SE HA INICIADO SECION', '2026-07-28', '12:02:03', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4053, 8, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 8', '2026-07-28', '12:02:14', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4054, 1, 'SE HA INICIADO SECION', '2026-07-28', '12:09:38', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4055, 1, 'SE HA INICIADO SECION', '2026-07-28', '12:09:47', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4056, 1, 'LOGOUT DEL SISTEMA CON EN EL USUARIO DE ID : 1', '2026-07-28', '13:54:15', '/index.php/welcome/closeSession', 'INFO');
+INSERT INTO `cc_log` VALUES (4057, 1, 'SE HA INICIADO SECION', '2026-07-28', '13:54:21', '/index.php/welcome', 'INFO');
+INSERT INTO `cc_log` VALUES (4058, 1, 'SE HA CREADO UN NUEVO PUNTO DE VENTA CON EL ID 9', '2026-07-28', '13:58:42', '/index.php/admin/pventa/savePuntoVenta', 'SUCCESS');
 
 -- ----------------------------
 -- Table structure for cc_login_system
@@ -10597,6 +10884,22 @@ INSERT INTO `cc_login_system` VALUES (2943, 1, '2026-07-26', '08:29:18', '127.0.
 INSERT INTO `cc_login_system` VALUES (2944, 1, '2026-07-26', '11:28:13', '127.0.0.1');
 INSERT INTO `cc_login_system` VALUES (2945, 1, '2026-07-26', '15:56:33', '127.0.0.1');
 INSERT INTO `cc_login_system` VALUES (2946, 1, '2026-07-27', '17:50:55', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2947, 1, '2026-07-28', '09:17:01', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2948, 1, '2026-07-28', '09:18:03', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2949, 1, '2026-07-28', '11:48:02', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2950, 1, '2026-07-28', '11:56:17', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2951, 1, '2026-07-28', '11:56:30', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2952, 1, '2026-07-28', '11:56:40', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2953, 1, '2026-07-28', '11:56:57', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2954, 1, '2026-07-28', '11:57:09', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2955, 1, '2026-07-28', '12:00:34', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2956, 8, '2026-07-28', '12:01:32', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2957, 1, '2026-07-28', '12:01:47', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2958, 1, '2026-07-28', '12:01:54', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2959, 8, '2026-07-28', '12:02:03', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2960, 1, '2026-07-28', '12:09:38', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2961, 1, '2026-07-28', '12:09:47', '127.0.0.1');
+INSERT INTO `cc_login_system` VALUES (2962, 1, '2026-07-28', '13:54:21', '127.0.0.1');
 
 -- ----------------------------
 -- Table structure for cc_lotes
@@ -10670,6 +10973,8 @@ INSERT INTO `cc_lotes` VALUES (156, 'SER45', '2026-04-28', '2026-09-17', '5', 72
 INSERT INTO `cc_lotes` VALUES (157, '546TR', '2026-06-17', '2028-08-13', '17', 72);
 INSERT INTO `cc_lotes` VALUES (158, '544RR4', '2026-06-09', '2026-10-01', '20', 72);
 INSERT INTO `cc_lotes` VALUES (159, '4585', '2026-06-02', '2026-09-27', '22', 72);
+INSERT INTO `cc_lotes` VALUES (160, '4333', '2026-07-07', '2026-09-24', '24', 333);
+INSERT INTO `cc_lotes` VALUES (161, '223344', '2026-07-14', '2026-09-24', '27', 72);
 
 -- ----------------------------
 -- Table structure for cc_marcas
@@ -10795,6 +11100,7 @@ DROP TABLE IF EXISTS `cc_pagos`;
 CREATE TABLE `cc_pagos`  (
   `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID del pago',
   `fk_proveedor` int(0) NOT NULL COMMENT 'Proveedor al que se paga',
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del pago',
   `pg_numero_secuencial` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Numero de comprobante de pago es un secuencial',
   `pg_tipo_movimiento` enum('PAGO','NDC_COMPRA') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'PAGO' COMMENT 'PAGO = pago real, NDC_COMPRA = aplicacion de nota de credito de compra',
   `fk_compra_nota_credito` int(0) NULL DEFAULT NULL COMMENT 'FK a cc_compras cuando el movimiento corresponde a una nota de credito de compra',
@@ -10827,17 +11133,21 @@ CREATE TABLE `cc_pagos`  (
   INDEX `idx_pago_banco`(`fk_banco`) USING BTREE,
   INDEX `idx_pago_ndc_compra`(`fk_compra_nota_credito`) USING BTREE,
   INDEX `idx_pago_tipo_ndc_estado`(`pg_tipo_movimiento`, `fk_compra_nota_credito`, `pg_estado`) USING BTREE,
+  INDEX `idx_pago_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_pagos_ibfk_1` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_pagos_ibfk_2` FOREIGN KEY (`fk_proveedor`) REFERENCES `cc_proveedores` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_pagos_ibfk_3` FOREIGN KEY (`fk_forma_pago`) REFERENCES `cc_formas_pago` (`cod`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_pago_banco` FOREIGN KEY (`fk_banco`) REFERENCES `cc_bancos_list` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_pago_cuenta_contable` FOREIGN KEY (`fk_cuenta_contable`) REFERENCES `cc_cuenta_contabledet` (`ctad_codigo`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_pago_ndc_compra` FOREIGN KEY (`fk_compra_nota_credito`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `fk_pago_ndc_compra` FOREIGN KEY (`fk_compra_nota_credito`) REFERENCES `cc_compras` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_pago_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_pagos
 -- ----------------------------
+INSERT INTO `cc_pagos` VALUES (1, 4, 1, '1', 'NDC_COMPRA', 25, '2026-07-27', NULL, NULL, NULL, 'NDC #25', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4.7704, 'ANULADO', 'Aplicacion de nota de credito de compra a CxP.', 1, '2026-07-27 18:45:20', '2026-07-27 19:11:05');
+INSERT INTO `cc_pagos` VALUES (2, 4, 2, '1', 'NDC_COMPRA', 31, '2026-07-28', NULL, NULL, NULL, 'NDC #31', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1.1500, 'ACTIVO', 'Aplicacion de nota de credito de compra a CxP.', 1, '2026-07-28 14:13:57', '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_pagos_det
@@ -10846,6 +11156,7 @@ DROP TABLE IF EXISTS `cc_pagos_det`;
 CREATE TABLE `cc_pagos_det`  (
   `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'Detalle del pago',
   `fk_pago` int(0) NOT NULL COMMENT 'FK a cc_pagos',
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa del detalle de pago',
   `fk_cxp` int(0) NOT NULL COMMENT 'FK a cc_cxp',
   `fk_cuota` int(0) NULL DEFAULT NULL COMMENT 'FK a cc_cxp_cuotas (opcional)',
   `pgd_valor` decimal(14, 4) NOT NULL COMMENT 'Monto aplicado a la deuda/cuota',
@@ -10854,14 +11165,18 @@ CREATE TABLE `cc_pagos_det`  (
   INDEX `idx_pgd_pago`(`fk_pago`) USING BTREE,
   INDEX `idx_pgd_cxp`(`fk_cxp`) USING BTREE,
   INDEX `idx_pgd_cuota`(`fk_cuota`) USING BTREE,
+  INDEX `idx_pgd_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_pagos_det_ibfk_1` FOREIGN KEY (`fk_pago`) REFERENCES `cc_pagos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_pagos_det_ibfk_2` FOREIGN KEY (`fk_cxp`) REFERENCES `cc_cxp` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_pagos_det_ibfk_3` FOREIGN KEY (`fk_cuota`) REFERENCES `cc_cxp_cuotas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_pagos_det_ibfk_3` FOREIGN KEY (`fk_cuota`) REFERENCES `cc_cxp_cuotas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_pgd_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_pagos_det
 -- ----------------------------
+INSERT INTO `cc_pagos_det` VALUES (1, 1, 1, 24, 31, 4.7704, '2026-07-27 18:45:20');
+INSERT INTO `cc_pagos_det` VALUES (2, 2, 2, 28, 38, 1.1500, '2026-07-28 14:13:57');
 
 -- ----------------------------
 -- Table structure for cc_parametros_irbpnr
@@ -12326,7 +12641,7 @@ INSERT INTO `cc_periodos_contables` VALUES (6, 2026, 3, '2026-03-01', '2026-03-3
 INSERT INTO `cc_periodos_contables` VALUES (7, 2026, 4, '2026-04-01', '2026-04-30', 'CERRADO', 2, '2026-04-23 16:29:14');
 INSERT INTO `cc_periodos_contables` VALUES (8, 2026, 5, '2026-05-01', '2026-05-31', 'CERRADO', 5, '2026-05-01 12:52:27');
 INSERT INTO `cc_periodos_contables` VALUES (9, 2026, 6, '2026-06-01', '2026-06-30', 'CERRADO', 6, '2026-06-22 11:32:40');
-INSERT INTO `cc_periodos_contables` VALUES (10, 2026, 7, '2026-07-01', '2026-07-31', 'ABIERTO', 21, '2026-07-06 15:34:42');
+INSERT INTO `cc_periodos_contables` VALUES (10, 2026, 7, '2026-07-01', '2026-07-31', 'ABIERTO', 24, '2026-07-06 15:34:42');
 
 -- ----------------------------
 -- Table structure for cc_producto_impuestotarifa
@@ -12536,18 +12851,18 @@ INSERT INTO `cc_productos` VALUES (64, 'PLAY STATION 4', 'CCF-000005', '22233444
 INSERT INTO `cc_productos` VALUES (66, 'MONITOR', 'CCF-000006', '12333222', '22332322', '', '', NULL, 2, 6, 3.000, 250.0000, 250.0000, 0.0000, 1, 1, '2024-08-29', '2026-01-26 16:10:55', 0, 0, '1', 9, 2, 2, 1, 15.00, -1.00, 0, 0.000000, 0, '750', 0, NULL, NULL, 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (67, 'IMPRENT DE PRUEBA', 'CCF-000007', '5525252', '2527525', '452452452', '', NULL, 3, 4, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2025-10-14', NULL, 0, 0, '1', 9, 2, 1, 1, 0.00, -1.00, 0, 0.000000, 0, NULL, 0, NULL, NULL, 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (69, 'AZUCAR SPLENDA', 'CCF-000008', '3432432434', '324234234', '', '', NULL, 3, 60, 15.000, 63.1733, 15.2000, 0.0000, 1, 1, '2025-10-19', '2026-07-12 16:53:29', 0, 0, '1', 6, 12, NULL, 1, 15.00, NULL, 0, 0.000000, 0, '947.6', 0, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 0, 0, 0, NULL, NULL, 1);
-INSERT INTO `cc_productos` VALUES (72, 'ACEITE CANECA', 'CCF-000009', '11111110000', '222226677', 'undefined', '', NULL, 4, 9, 9.000, 260.0000, 45.0000, 0.0000, 1, 1, '2025-11-04', '2026-07-27 18:08:15', 0, 0, '20', 4, 1, 5, 1, 0.00, NULL, 0, 0.000000, 0, '2340', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 1, 0, 0, NULL, NULL, NULL);
+INSERT INTO `cc_productos` VALUES (72, 'ACEITE CANECA', 'CCF-000009', '11111110000', '222226677', 'undefined', '', NULL, 4, 9, 10.000, 238.5000, 45.0000, 0.0000, 1, 1, '2025-11-04', '2026-07-28 13:53:26', 0, 0, '20', 4, 1, 5, 1, 0.00, NULL, 0, 0.000000, 0, '2385', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (74, 'POLLO VACIO', 'CCF-000010', '32343', '433434', '54455', '', NULL, 20, 100, 161.000, 2.5000, 2.5000, 0.0000, 1, 1, '2025-11-04', '2025-11-07 12:16:06', 0, 0, '1', 1, 1, 6, 1, 0.00, -1.00, 0, 0.000000, 0, '402.5', 0, NULL, NULL, 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (77, 'PIERNA DE CERDO', 'CCF-000011', '3243242343', '', 'undefined', '', NULL, 0, 0, 0.000, 2.4600, 2.6000, 0.0000, 1, 1, '2025-11-11', '2026-05-01 13:16:38', 0, 0, '', 1, 1, NULL, 1, 0.00, NULL, 0, 0.000000, 0, '51.6', 0, NULL, NULL, 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (330, 'QUEZO FRESCO', 'CCF-000012', '45202349', '3834031', '37052834', NULL, NULL, 5, 10, 32.000, 1.5740, 1.7368, NULL, 1, 1, '2025-11-26', '2026-03-05 09:55:50', 0, 0, NULL, 9, 3, 7, 1, 0.00, NULL, 0, NULL, 0, '50.368', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (331, 'QUEZO MOZARELLA', 'CCF-000013', '24766250', '8016899', '50767056', NULL, NULL, 5, 10, 22.000, 3.0556, 2.6190, NULL, 1, 1, '2025-11-26', '2026-01-03 22:14:38', 0, 0, NULL, 9, 3, 7, 1, 0.00, NULL, 0, NULL, 0, '55', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (332, 'QUESO PARMESANO', 'CCF-000014', '77317710', '1241059', '19848819', NULL, NULL, 5, 10, 2.000, 1.6000, 1.6000, NULL, 1, 1, '2025-11-26', '2026-01-26 16:10:55', 0, 0, NULL, 9, 3, 7, 1, 0.00, NULL, 0, NULL, 0, '3.2', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 0, 0, 0, NULL, NULL, NULL);
-INSERT INTO `cc_productos` VALUES (333, 'YOGURT DE FRESA', 'CCF-000015', '66365861', '13360898', '28597854', NULL, NULL, 5, 10, 37.000, 4.9680, 4.7704, NULL, 1, 1, '2025-11-26', '2026-02-28 13:00:27', 0, 0, NULL, 51, 3, 49, 1, 0.00, NULL, 0, NULL, 0, '173.88', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 1, 0, 0, NULL, NULL, NULL);
+INSERT INTO `cc_productos` VALUES (333, 'YOGURT DE FRESA', 'CCF-000015', '66365861', '13360898', '28597854', NULL, NULL, 5, 10, 41.000, 4.7064, 4.7704, NULL, 1, 1, '2025-11-26', '2026-07-27 19:11:05', 0, 0, NULL, 51, 3, 49, 1, 0.00, NULL, 0, NULL, 0, '192.9616', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (334, 'SANDIA', 'CCF-000016', '23323232', '', '', '', NULL, 1, 5, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-03-22', '2026-03-22 12:57:53', 0, 0, '', 9, 1, 6, 1, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (335, 'COSTILLA DE CERDO', 'CCF-000017', '43434', '4554545', 'undefined', '', NULL, 4, 67, 143.000, 3.2142, 4.0500, 0.0000, 1, 1, '2026-03-24', '2026-03-24 14:54:40', 0, 0, '1', 1, 3, 6, 1, 0.00, NULL, 0, 0.000000, 0, '449.9828', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (336, 'CUERO DE CERDO', 'CCF-000018', '323232', '554545', '3232323', '', NULL, 4, 9, 50.000, 3.5956, 3.8000, 0.0000, 1, 1, '2026-03-24', '2026-03-24 16:44:59', 0, 0, '1', 1, 1, 6, 1, 0.00, NULL, 0, 0.000000, 0, '179.7808', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (337, 'HARINA CINTEGRAL', 'CCF-000019', '34324', '32423432', '', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-04-13', '2026-04-13 09:54:11', 0, 0, '50', 8, 1, 123, 1, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, NULL);
-INSERT INTO `cc_productos` VALUES (338, 'PAPAYA IMPORTADA', 'CCF-000020', '323232', '33232', '', '', NULL, 5, 50, 214.000, 1.0832, 1.0500, 0.0000, 1, 1, '2026-04-13', '2026-07-27 17:52:44', 0, 0, '', 9, 1, NULL, 1, 0.00, NULL, 0, 0.000000, 0, '231.8', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, 0, NULL, 1);
+INSERT INTO `cc_productos` VALUES (338, 'PAPAYA IMPORTADA', 'CCF-000020', '323232', '33232', '', '', NULL, 5, 50, 232.000, 1.0823, 1.1500, 0.0000, 1, 1, '2026-04-13', '2026-07-28 14:13:57', 0, 0, '', 9, 1, NULL, 1, 0.00, NULL, 0, 0.000000, 0, '251.1', 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, 0, NULL, 1);
 INSERT INTO `cc_productos` VALUES (340, 'HORMIGAS ESPECIALES', 'CCF-000021', '3223322', '3443443', '', '', NULL, 5, 50, 0.000, 0.0000, 0.0000, 0.0000, 1, 1, '2026-04-23', '2026-04-23 16:02:03', 0, 0, '5', 1, 9, 125, 1, 0.00, NULL, 0, 0.000000, 0, NULL, 0, '1.01.04.01.01', '1.01.04.01.01', 1, 0, 0, 0, 0, NULL, NULL, 1);
 INSERT INTO `cc_productos` VALUES (341, 'COSTILLA ESPECILAL DE CERDO', 'CCF-GEN-000011', '2334324', '432432432', '45345345', NULL, NULL, 5, 10, 10.000, 3.8700, 3.8700, NULL, 1, 1, '2026-04-23', '2026-04-23 16:57:23', 0, 0, NULL, 52, 10, 6, 1, 0.00, NULL, 0, NULL, 0, '38.7', NULL, '1.01.04.01.02', '1.01.04.01.02', 1, 0, 1, 0, 0, NULL, NULL, NULL);
 INSERT INTO `cc_productos` VALUES (342, 'SACO DE CEMENTO', 'CCF-000022', '2323', '34324', '', '', NULL, 5, 50, 3.000, 36.9333, 8.4000, 0.0000, 1, 1, '2026-04-30', '2026-07-10 10:59:09', 0, 0, '50', 8, 11, 126, 1, 5.00, NULL, 0, 0.000000, 0, '110.8', 0, '1.01.04.01.02', '1.01.04.01.03', 1, 0, 0, 0, 0, 0, NULL, 1);
@@ -12697,11 +13012,38 @@ INSERT INTO `cc_provincia` VALUES (24, '24', 'SANTA ELENA', 1);
 INSERT INTO `cc_provincia` VALUES (25, '90', 'ZONAS NO DELIMITADAS', 1);
 
 -- ----------------------------
+-- Table structure for cc_proyectos
+-- ----------------------------
+DROP TABLE IF EXISTS `cc_proyectos`;
+CREATE TABLE `cc_proyectos`  (
+  `id` int(0) NOT NULL AUTO_INCREMENT COMMENT 'ID del proyecto o subempresa',
+  `proy_codigo` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Codigo interno del proyecto',
+  `proy_nombre` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Nombre del proyecto o subempresa',
+  `proy_ruc` varchar(13) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'RUC del proyecto o subempresa si aplica',
+  `proy_direccion` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Direccion del proyecto',
+  `proy_telefono` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Telefono del proyecto',
+  `proy_email` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'Email del proyecto',
+  `proy_estado` tinyint(0) NOT NULL DEFAULT 1 COMMENT '1 activo, 0 inactivo',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `idx_proy_codigo`(`proy_codigo`) USING BTREE,
+  INDEX `idx_proy_estado`(`proy_estado`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = 'Proyectos o subempresas disponibles para segmentar la operacion' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of cc_proyectos
+-- ----------------------------
+INSERT INTO `cc_proyectos` VALUES (1, 'PRY-001', 'PROYECTO PRINCIPAL', NULL, NULL, NULL, NULL, 1, '2026-07-28 11:26:03', '2026-07-28 11:26:03');
+INSERT INTO `cc_proyectos` VALUES (2, 'PRY-002', 'PROYECTO MINA NORTE', NULL, 'Campamento Mina Norte', NULL, NULL, 1, '2026-07-28 11:49:33', '2026-07-28 11:49:33');
+
+-- ----------------------------
 -- Table structure for cc_puntos_venta
 -- ----------------------------
 DROP TABLE IF EXISTS `cc_puntos_venta`;
 CREATE TABLE `cc_puntos_venta`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto al que pertenece este punto de venta/emisión',
   `fk_comprobante` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `pv_establecimiento` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `pv_emision` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -12717,18 +13059,21 @@ CREATE TABLE `cc_puntos_venta`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `pv_fk_bodega`(`pv_fk_bodega`) USING BTREE,
   INDEX `pv_fk_comprobante`(`fk_comprobante`) USING BTREE,
+  INDEX `idx_puntos_venta_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_puntos_venta_ibfk_1` FOREIGN KEY (`pv_fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `cc_puntos_venta_ibfk_2` FOREIGN KEY (`fk_comprobante`) REFERENCES `cc_tipos_comprobante` (`comp_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `cc_puntos_venta_ibfk_2` FOREIGN KEY (`fk_comprobante`) REFERENCES `cc_tipos_comprobante` (`comp_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_puntos_venta_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of cc_puntos_venta
 -- ----------------------------
-INSERT INTO `cc_puntos_venta` VALUES (4, '01', '001', '002', '0123456789', '2024-06-14', 1, 1, 999, 0, 1, '1', '2024-04-14');
-INSERT INTO `cc_puntos_venta` VALUES (5, '01', '002', '007', '12345678900', '2024-08-21', 1, 1, 120, 0, 2, '1', '2026-07-12');
-INSERT INTO `cc_puntos_venta` VALUES (6, '07', '001', '001', '123456789', '2026-09-30', 1, 9, 150, 0, 1, '1', '2026-07-12');
-INSERT INTO `cc_puntos_venta` VALUES (7, '07', '001', '002', '1234567890', '2026-10-21', 1, 2, 50, 0, 1, '1', '2026-07-12');
-INSERT INTO `cc_puntos_venta` VALUES (8, '03', '001', '001', '123456789', '2026-12-02', 1, 1, 200, 0, 1, '1', '2026-07-12');
+INSERT INTO `cc_puntos_venta` VALUES (4, 1, '01', '001', '002', '0123456789', '2024-06-14', 1, 1, 999, 0, 1, '1', '2024-04-14');
+INSERT INTO `cc_puntos_venta` VALUES (5, 1, '01', '002', '007', '12345678900', '2024-08-21', 1, 1, 120, 0, 2, '1', '2026-07-12');
+INSERT INTO `cc_puntos_venta` VALUES (6, 1, '07', '001', '001', '123456789', '2026-09-30', 1, 11, 150, 0, 1, '1', '2026-07-12');
+INSERT INTO `cc_puntos_venta` VALUES (7, 1, '07', '001', '002', '1234567890', '2026-10-21', 1, 2, 50, 0, 1, '1', '2026-07-12');
+INSERT INTO `cc_puntos_venta` VALUES (8, 1, '03', '001', '001', '123456789', '2026-12-02', 1, 1, 200, 0, 1, '1', '2026-07-12');
+INSERT INTO `cc_puntos_venta` VALUES (9, 2, '07', '001', '001', '123456789', '2028-07-29', 1, 4, 100, 0, 1, '1', '2026-07-28');
 
 -- ----------------------------
 -- Table structure for cc_puntoventa_empleado
@@ -12754,6 +13099,7 @@ INSERT INTO `cc_puntoventa_empleado` VALUES (6, 1, '0000-00-00');
 INSERT INTO `cc_puntoventa_empleado` VALUES (6, 2, '0000-00-00');
 INSERT INTO `cc_puntoventa_empleado` VALUES (7, 8, '0000-00-00');
 INSERT INTO `cc_puntoventa_empleado` VALUES (8, 1, '0000-00-00');
+INSERT INTO `cc_puntoventa_empleado` VALUES (9, 1, '0000-00-00');
 
 -- ----------------------------
 -- Table structure for cc_reserva_inventario
@@ -12761,6 +13107,7 @@ INSERT INTO `cc_puntoventa_empleado` VALUES (8, 1, '0000-00-00');
 DROP TABLE IF EXISTS `cc_reserva_inventario`;
 CREATE TABLE `cc_reserva_inventario`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/empresa al que pertenece la reserva de inventario',
   `fk_producto` int(0) NOT NULL,
   `fk_bodega` int(0) NOT NULL,
   `fk_lote` int(0) NULL DEFAULT NULL,
@@ -12780,6 +13127,7 @@ CREATE TABLE `cc_reserva_inventario`  (
   INDEX `fk_user_id`(`fk_user_id`) USING BTREE,
   INDEX `idx_origen`(`res_codigo_transaccion`, `res_documento_id`) USING BTREE,
   INDEX `fk_lote`(`fk_lote`) USING BTREE,
+  INDEX `idx_reserva_inventario_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_reserva_inventario_ibfk_1` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_reserva_inventario_ibfk_2` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_reserva_inventario_ibfk_3` FOREIGN KEY (`res_codigo_transaccion`) REFERENCES `cc_transacciones` (`tr_codigo`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -12790,70 +13138,70 @@ CREATE TABLE `cc_reserva_inventario`  (
 -- ----------------------------
 -- Records of cc_reserva_inventario
 -- ----------------------------
-INSERT INTO `cc_reserva_inventario` VALUES (3, 62, 1, 64, '38', 9, 2.000000, 'CONSUMIDA', '2025-11-30 02:22:18', NULL, 1, '2025-11-29 21:22:18', '2025-11-30 15:10:15');
-INSERT INTO `cc_reserva_inventario` VALUES (4, 332, 1, NULL, '38', 9, 1.000000, 'CONSUMIDA', '2025-11-30 02:22:18', NULL, 1, '2025-11-29 21:22:19', '2025-11-30 15:10:15');
-INSERT INTO `cc_reserva_inventario` VALUES (5, 62, 1, 64, '38', 13, 1.000000, 'CONSUMIDA', '2025-11-30 20:14:08', NULL, 1, '2025-11-30 15:14:08', '2025-11-30 15:35:58');
-INSERT INTO `cc_reserva_inventario` VALUES (6, 332, 1, NULL, '38', 13, 1.000000, 'CONSUMIDA', '2025-11-30 20:14:08', NULL, 1, '2025-11-30 15:14:08', '2025-11-30 15:35:58');
-INSERT INTO `cc_reserva_inventario` VALUES (7, 62, 1, 43, '38', 15, 1.000000, 'CONSUMIDA', '2025-11-30 20:18:38', NULL, 1, '2025-11-30 15:18:38', '2025-11-30 15:35:07');
-INSERT INTO `cc_reserva_inventario` VALUES (8, 332, 1, NULL, '38', 17, 1.000000, 'CONSUMIDA', '2025-11-30 20:20:26', NULL, 1, '2025-11-30 15:20:26', '2025-11-30 15:34:19');
-INSERT INTO `cc_reserva_inventario` VALUES (9, 62, 1, 43, '38', 17, 1.000000, 'CONSUMIDA', '2025-11-30 20:20:26', NULL, 1, '2025-11-30 15:20:26', '2025-11-30 15:34:19');
-INSERT INTO `cc_reserva_inventario` VALUES (10, 330, 1, 137, '38', 21, 2.000000, 'CONSUMIDA', '2025-11-30 20:22:33', NULL, 1, '2025-11-30 15:22:33', '2025-11-30 15:33:20');
-INSERT INTO `cc_reserva_inventario` VALUES (11, 332, 1, NULL, '38', 21, 1.000000, 'CONSUMIDA', '2025-11-30 20:22:33', NULL, 1, '2025-11-30 15:22:33', '2025-11-30 15:33:20');
-INSERT INTO `cc_reserva_inventario` VALUES (12, 332, 2, NULL, '38', 25, 2.000000, 'LIBERADA', '2025-12-03 15:10:11', NULL, 1, '2025-12-03 10:10:11', '2025-12-03 10:12:26');
-INSERT INTO `cc_reserva_inventario` VALUES (13, 333, 1, 136, '17', 1, 2.000000, 'LIBERADA', '2025-12-10 00:51:40', NULL, 1, '2025-12-09 19:51:40', '2025-12-19 16:05:26');
-INSERT INTO `cc_reserva_inventario` VALUES (14, 330, 1, 137, '17', 1, 1.000000, 'LIBERADA', '2025-12-10 00:51:40', NULL, 1, '2025-12-09 19:51:40', '2025-12-19 16:05:26');
-INSERT INTO `cc_reserva_inventario` VALUES (15, 331, 1, NULL, '17', 2, 1.000000, 'CONSUMIDA', '2025-12-10 01:03:31', NULL, 1, '2025-12-09 20:03:31', '2025-12-30 15:06:08');
-INSERT INTO `cc_reserva_inventario` VALUES (16, 69, 1, NULL, '17', 3, 2.000000, 'CONSUMIDA', '2025-12-10 01:06:39', NULL, 1, '2025-12-09 20:06:39', '2025-12-30 14:59:25');
-INSERT INTO `cc_reserva_inventario` VALUES (17, 331, 1, NULL, '17', 4, 1.000000, 'CONSUMIDA', '2025-12-10 03:45:10', NULL, 1, '2025-12-09 22:45:10', '2025-12-30 14:58:03');
-INSERT INTO `cc_reserva_inventario` VALUES (18, 331, 1, NULL, '17', 5, 2.000000, 'CONSUMIDA', '2025-12-11 18:33:51', NULL, 1, '2025-12-11 13:33:51', '2025-12-30 14:52:25');
-INSERT INTO `cc_reserva_inventario` VALUES (19, 330, 1, 137, '17', 5, 1.000000, 'CONSUMIDA', '2025-12-11 18:33:51', NULL, 1, '2025-12-11 13:33:51', '2026-01-06 01:38:16');
-INSERT INTO `cc_reserva_inventario` VALUES (20, 330, 1, 137, '38', 33, 1.000000, 'CONSUMIDA', '2025-12-19 16:22:37', NULL, 1, '2025-12-19 11:22:37', '2025-12-19 12:20:30');
-INSERT INTO `cc_reserva_inventario` VALUES (21, 330, 1, 137, '17', 1, 1.000000, 'LIBERADA', '2025-12-19 21:05:26', NULL, 1, '2025-12-19 16:05:26', '2025-12-19 16:24:03');
-INSERT INTO `cc_reserva_inventario` VALUES (22, 333, 1, 136, '17', 1, 4.000000, 'CONSUMIDA', '2025-12-19 21:05:26', NULL, 1, '2025-12-19 16:05:26', '2026-01-06 02:48:23');
-INSERT INTO `cc_reserva_inventario` VALUES (23, 333, 1, 136, '17', 1, 4.000000, 'CONSUMIDA', '2025-12-19 21:24:03', NULL, 1, '2025-12-19 16:24:03', '2025-12-30 15:07:09');
-INSERT INTO `cc_reserva_inventario` VALUES (24, 330, 1, 137, '17', 1, 1.000000, 'CONSUMIDA', '2025-12-19 21:24:03', NULL, 1, '2025-12-19 16:24:03', '2025-12-30 15:07:09');
-INSERT INTO `cc_reserva_inventario` VALUES (25, 331, 2, NULL, '17', 6, 1.000000, 'CONSUMIDA', '2025-12-30 20:12:20', NULL, 1, '2025-12-30 15:12:20', '2025-12-30 15:16:51');
-INSERT INTO `cc_reserva_inventario` VALUES (26, 333, 2, 136, '17', 7, 1.000000, 'CONSUMIDA', '2025-12-30 20:18:50', NULL, 1, '2025-12-30 15:18:50', '2025-12-30 15:19:04');
-INSERT INTO `cc_reserva_inventario` VALUES (27, 330, 2, 137, '17', 8, 3.000000, 'CONSUMIDA', '2025-12-30 20:20:40', NULL, 1, '2025-12-30 15:20:40', '2025-12-30 15:20:50');
-INSERT INTO `cc_reserva_inventario` VALUES (28, 333, 1, 136, '17', 9, 1.000000, 'LIBERADA', '2026-01-02 22:30:47', NULL, 1, '2026-01-02 17:30:47', '2026-01-02 17:45:22');
-INSERT INTO `cc_reserva_inventario` VALUES (29, 331, 1, NULL, '17', 10, 2.000000, 'CONSUMIDA', '2026-01-02 22:31:24', NULL, 1, '2026-01-02 17:31:24', '2026-01-02 17:36:09');
-INSERT INTO `cc_reserva_inventario` VALUES (30, 333, 2, 136, '17', 11, 2.000000, 'LIBERADA', '2026-01-02 22:33:10', NULL, 1, '2026-01-02 17:33:10', '2026-01-02 18:44:43');
-INSERT INTO `cc_reserva_inventario` VALUES (31, 333, 1, 136, '17', 9, 3.000000, 'LIBERADA', '2026-01-02 22:45:23', NULL, 1, '2026-01-02 17:45:23', '2026-01-03 23:09:07');
-INSERT INTO `cc_reserva_inventario` VALUES (32, 333, 1, 136, '17', 12, 1.000000, 'LIBERADA', '2026-01-03 00:19:43', NULL, 1, '2026-01-02 19:19:43', '2026-01-02 19:21:31');
-INSERT INTO `cc_reserva_inventario` VALUES (33, 333, 2, 136, '17', 11, 3.000000, 'CONSUMIDA', '2026-01-03 00:44:59', NULL, 1, '2026-01-02 19:44:59', '2026-01-02 19:45:24');
-INSERT INTO `cc_reserva_inventario` VALUES (34, 333, 1, 136, '38', 35, 1.000000, 'CONSUMIDA', '2026-01-03 01:52:10', NULL, 1, '2026-01-02 20:52:10', '2026-01-02 20:52:42');
-INSERT INTO `cc_reserva_inventario` VALUES (35, 333, 1, 136, '17', 13, 2.000000, 'CONSUMIDA', '2026-01-04 03:13:36', NULL, 1, '2026-01-03 22:13:36', '2026-01-03 22:14:38');
-INSERT INTO `cc_reserva_inventario` VALUES (36, 331, 1, NULL, '17', 13, 4.000000, 'CONSUMIDA', '2026-01-04 03:13:36', NULL, 1, '2026-01-03 22:13:36', '2026-01-03 22:14:38');
-INSERT INTO `cc_reserva_inventario` VALUES (37, 333, 1, 136, '17', 14, 2.000000, 'CONSUMIDA', '2026-01-04 03:28:48', NULL, 1, '2026-01-03 22:28:48', '2026-01-03 22:29:05');
-INSERT INTO `cc_reserva_inventario` VALUES (38, 333, 1, 140, '17', 15, 3.000000, 'CONSUMIDA', '2026-01-04 03:35:30', NULL, 1, '2026-01-03 22:35:30', '2026-01-03 22:35:53');
-INSERT INTO `cc_reserva_inventario` VALUES (39, 333, 1, 136, '17', 15, 2.000000, 'CONSUMIDA', '2026-01-04 03:35:30', NULL, 1, '2026-01-03 22:35:30', '2026-01-03 22:35:53');
-INSERT INTO `cc_reserva_inventario` VALUES (40, 333, 1, 136, '17', 16, 1.000000, 'CONSUMIDA', '2026-01-04 03:37:53', NULL, 1, '2026-01-03 22:37:53', '2026-01-03 22:38:19');
-INSERT INTO `cc_reserva_inventario` VALUES (41, 333, 1, 136, '17', 17, 4.000000, 'LIBERADA', '2026-01-04 04:05:48', NULL, 1, '2026-01-03 23:05:48', '2026-01-03 23:09:54');
-INSERT INTO `cc_reserva_inventario` VALUES (42, 333, 1, 136, '17', 17, 4.000000, 'LIBERADA', '2026-01-04 04:09:54', NULL, 1, '2026-01-03 23:09:54', '2026-01-03 23:10:17');
-INSERT INTO `cc_reserva_inventario` VALUES (43, 333, 1, 136, '17', 12, 2.000000, 'CONSUMIDA', '2026-01-04 04:16:08', NULL, 1, '2026-01-03 23:16:08', '2026-02-28 13:00:27');
-INSERT INTO `cc_reserva_inventario` VALUES (44, 330, 1, 139, '38', 36, 1.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
-INSERT INTO `cc_reserva_inventario` VALUES (45, 332, 1, NULL, '38', 36, 1.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
-INSERT INTO `cc_reserva_inventario` VALUES (46, 69, 1, NULL, '38', 36, 1.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
-INSERT INTO `cc_reserva_inventario` VALUES (47, 333, 1, 140, '38', 36, 4.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
-INSERT INTO `cc_reserva_inventario` VALUES (48, 333, 2, 140, '38', 37, 1.000000, 'ACTIVA', '2026-01-29 00:05:54', NULL, 1, '2026-01-28 19:05:54', '2026-01-28 19:05:54');
-INSERT INTO `cc_reserva_inventario` VALUES (49, 62, 1, 141, '17', 18, 4.000000, 'CONSUMIDA', '2026-02-28 15:48:28', NULL, 1, '2026-02-28 10:48:28', '2026-02-28 10:48:44');
-INSERT INTO `cc_reserva_inventario` VALUES (50, 62, 2, 141, '17', 19, 1.000000, 'CONSUMIDA', '2026-03-22 17:06:31', NULL, 1, '2026-03-22 12:06:31', '2026-03-22 12:06:47');
-INSERT INTO `cc_reserva_inventario` VALUES (51, 62, 1, 43, '17', 20, 1.000000, 'CONSUMIDA', '2026-03-22 17:07:29', NULL, 1, '2026-03-22 12:07:29', '2026-03-22 12:07:40');
-INSERT INTO `cc_reserva_inventario` VALUES (52, 62, 1, 58, '17', 21, 1.000000, 'CONSUMIDA', '2026-03-23 21:49:42', NULL, 1, '2026-03-23 16:49:42', '2026-03-23 16:49:55');
-INSERT INTO `cc_reserva_inventario` VALUES (53, 335, 1, NULL, '17', 22, 5.000000, 'CONSUMIDA', '2026-03-24 15:24:15', NULL, 1, '2026-03-24 10:24:15', '2026-03-24 10:25:02');
-INSERT INTO `cc_reserva_inventario` VALUES (54, 335, 1, NULL, '17', 23, 7.000000, 'CONSUMIDA', '2026-03-24 15:32:25', NULL, 1, '2026-03-24 10:32:25', '2026-03-24 10:32:38');
-INSERT INTO `cc_reserva_inventario` VALUES (55, 336, 2, NULL, '38', 46, 3.000000, 'CONSUMIDA', '2026-03-24 20:42:03', NULL, 1, '2026-03-24 15:42:03', '2026-03-24 15:42:21');
-INSERT INTO `cc_reserva_inventario` VALUES (56, 336, 1, NULL, '17', 24, 3.000000, 'CONSUMIDA', '2026-03-24 21:20:48', NULL, 1, '2026-03-24 16:20:48', '2026-03-24 16:21:00');
-INSERT INTO `cc_reserva_inventario` VALUES (57, 342, 1, NULL, '17', 25, 1.000000, 'CONSUMIDA', '2026-05-01 18:08:51', NULL, 1, '2026-05-01 13:08:51', '2026-05-01 13:09:02');
-INSERT INTO `cc_reserva_inventario` VALUES (58, 342, 1, NULL, '38', 47, 1.000000, 'CONSUMIDA', '2026-05-01 18:09:46', NULL, 1, '2026-05-01 13:09:46', '2026-05-01 13:10:10');
-INSERT INTO `cc_reserva_inventario` VALUES (59, 342, 1, NULL, '17', 26, 1.000000, 'LIBERADA', '2026-05-01 18:10:51', NULL, 1, '2026-05-01 13:10:51', '2026-05-01 13:11:08');
-INSERT INTO `cc_reserva_inventario` VALUES (60, 342, 1, NULL, '17', 26, 1.000000, 'ACTIVA', '2026-05-01 18:11:08', NULL, 1, '2026-05-01 13:11:08', '2026-05-01 13:11:08');
-INSERT INTO `cc_reserva_inventario` VALUES (61, 72, 1, 77, '38', 50, 2.000000, 'CONSUMIDA', '2026-06-22 17:54:21', NULL, 1, '2026-06-22 12:54:21', '2026-06-22 12:55:43');
-INSERT INTO `cc_reserva_inventario` VALUES (62, 72, 1, 78, '17', 27, 1.000000, 'LIBERADA', '2026-06-22 18:23:02', NULL, 1, '2026-06-22 13:23:02', '2026-06-29 09:54:36');
-INSERT INTO `cc_reserva_inventario` VALUES (63, 72, 1, 80, '17', 28, 3.000000, 'CONSUMIDA', '2026-06-22 18:23:53', NULL, 1, '2026-06-22 13:23:53', '2026-06-22 13:24:08');
-INSERT INTO `cc_reserva_inventario` VALUES (64, 72, 1, 78, '17', 27, 1.000000, 'LIBERADA', '2026-06-29 14:54:36', NULL, 1, '2026-06-29 09:54:36', '2026-06-29 09:55:36');
-INSERT INTO `cc_reserva_inventario` VALUES (65, 72, 1, 78, '17', 27, 1.000000, 'LIBERADA', '2026-06-29 14:55:36', NULL, 1, '2026-06-29 09:55:36', '2026-06-29 09:58:06');
-INSERT INTO `cc_reserva_inventario` VALUES (66, 72, 1, 78, '17', 27, 1.000000, 'CONSUMIDA', '2026-06-29 14:58:06', NULL, 1, '2026-06-29 09:58:06', '2026-06-29 09:58:20');
+INSERT INTO `cc_reserva_inventario` VALUES (3, 1, 62, 1, 64, '38', 9, 2.000000, 'CONSUMIDA', '2025-11-30 02:22:18', NULL, 1, '2025-11-29 21:22:18', '2025-11-30 15:10:15');
+INSERT INTO `cc_reserva_inventario` VALUES (4, 1, 332, 1, NULL, '38', 9, 1.000000, 'CONSUMIDA', '2025-11-30 02:22:18', NULL, 1, '2025-11-29 21:22:19', '2025-11-30 15:10:15');
+INSERT INTO `cc_reserva_inventario` VALUES (5, 1, 62, 1, 64, '38', 13, 1.000000, 'CONSUMIDA', '2025-11-30 20:14:08', NULL, 1, '2025-11-30 15:14:08', '2025-11-30 15:35:58');
+INSERT INTO `cc_reserva_inventario` VALUES (6, 1, 332, 1, NULL, '38', 13, 1.000000, 'CONSUMIDA', '2025-11-30 20:14:08', NULL, 1, '2025-11-30 15:14:08', '2025-11-30 15:35:58');
+INSERT INTO `cc_reserva_inventario` VALUES (7, 1, 62, 1, 43, '38', 15, 1.000000, 'CONSUMIDA', '2025-11-30 20:18:38', NULL, 1, '2025-11-30 15:18:38', '2025-11-30 15:35:07');
+INSERT INTO `cc_reserva_inventario` VALUES (8, 1, 332, 1, NULL, '38', 17, 1.000000, 'CONSUMIDA', '2025-11-30 20:20:26', NULL, 1, '2025-11-30 15:20:26', '2025-11-30 15:34:19');
+INSERT INTO `cc_reserva_inventario` VALUES (9, 1, 62, 1, 43, '38', 17, 1.000000, 'CONSUMIDA', '2025-11-30 20:20:26', NULL, 1, '2025-11-30 15:20:26', '2025-11-30 15:34:19');
+INSERT INTO `cc_reserva_inventario` VALUES (10, 1, 330, 1, 137, '38', 21, 2.000000, 'CONSUMIDA', '2025-11-30 20:22:33', NULL, 1, '2025-11-30 15:22:33', '2025-11-30 15:33:20');
+INSERT INTO `cc_reserva_inventario` VALUES (11, 1, 332, 1, NULL, '38', 21, 1.000000, 'CONSUMIDA', '2025-11-30 20:22:33', NULL, 1, '2025-11-30 15:22:33', '2025-11-30 15:33:20');
+INSERT INTO `cc_reserva_inventario` VALUES (12, 1, 332, 2, NULL, '38', 25, 2.000000, 'LIBERADA', '2025-12-03 15:10:11', NULL, 1, '2025-12-03 10:10:11', '2025-12-03 10:12:26');
+INSERT INTO `cc_reserva_inventario` VALUES (13, 1, 333, 1, 136, '17', 1, 2.000000, 'LIBERADA', '2025-12-10 00:51:40', NULL, 1, '2025-12-09 19:51:40', '2025-12-19 16:05:26');
+INSERT INTO `cc_reserva_inventario` VALUES (14, 1, 330, 1, 137, '17', 1, 1.000000, 'LIBERADA', '2025-12-10 00:51:40', NULL, 1, '2025-12-09 19:51:40', '2025-12-19 16:05:26');
+INSERT INTO `cc_reserva_inventario` VALUES (15, 1, 331, 1, NULL, '17', 2, 1.000000, 'CONSUMIDA', '2025-12-10 01:03:31', NULL, 1, '2025-12-09 20:03:31', '2025-12-30 15:06:08');
+INSERT INTO `cc_reserva_inventario` VALUES (16, 1, 69, 1, NULL, '17', 3, 2.000000, 'CONSUMIDA', '2025-12-10 01:06:39', NULL, 1, '2025-12-09 20:06:39', '2025-12-30 14:59:25');
+INSERT INTO `cc_reserva_inventario` VALUES (17, 1, 331, 1, NULL, '17', 4, 1.000000, 'CONSUMIDA', '2025-12-10 03:45:10', NULL, 1, '2025-12-09 22:45:10', '2025-12-30 14:58:03');
+INSERT INTO `cc_reserva_inventario` VALUES (18, 1, 331, 1, NULL, '17', 5, 2.000000, 'CONSUMIDA', '2025-12-11 18:33:51', NULL, 1, '2025-12-11 13:33:51', '2025-12-30 14:52:25');
+INSERT INTO `cc_reserva_inventario` VALUES (19, 1, 330, 1, 137, '17', 5, 1.000000, 'CONSUMIDA', '2025-12-11 18:33:51', NULL, 1, '2025-12-11 13:33:51', '2026-01-06 01:38:16');
+INSERT INTO `cc_reserva_inventario` VALUES (20, 1, 330, 1, 137, '38', 33, 1.000000, 'CONSUMIDA', '2025-12-19 16:22:37', NULL, 1, '2025-12-19 11:22:37', '2025-12-19 12:20:30');
+INSERT INTO `cc_reserva_inventario` VALUES (21, 1, 330, 1, 137, '17', 1, 1.000000, 'LIBERADA', '2025-12-19 21:05:26', NULL, 1, '2025-12-19 16:05:26', '2025-12-19 16:24:03');
+INSERT INTO `cc_reserva_inventario` VALUES (22, 1, 333, 1, 136, '17', 1, 4.000000, 'CONSUMIDA', '2025-12-19 21:05:26', NULL, 1, '2025-12-19 16:05:26', '2026-01-06 02:48:23');
+INSERT INTO `cc_reserva_inventario` VALUES (23, 1, 333, 1, 136, '17', 1, 4.000000, 'CONSUMIDA', '2025-12-19 21:24:03', NULL, 1, '2025-12-19 16:24:03', '2025-12-30 15:07:09');
+INSERT INTO `cc_reserva_inventario` VALUES (24, 1, 330, 1, 137, '17', 1, 1.000000, 'CONSUMIDA', '2025-12-19 21:24:03', NULL, 1, '2025-12-19 16:24:03', '2025-12-30 15:07:09');
+INSERT INTO `cc_reserva_inventario` VALUES (25, 1, 331, 2, NULL, '17', 6, 1.000000, 'CONSUMIDA', '2025-12-30 20:12:20', NULL, 1, '2025-12-30 15:12:20', '2025-12-30 15:16:51');
+INSERT INTO `cc_reserva_inventario` VALUES (26, 1, 333, 2, 136, '17', 7, 1.000000, 'CONSUMIDA', '2025-12-30 20:18:50', NULL, 1, '2025-12-30 15:18:50', '2025-12-30 15:19:04');
+INSERT INTO `cc_reserva_inventario` VALUES (27, 1, 330, 2, 137, '17', 8, 3.000000, 'CONSUMIDA', '2025-12-30 20:20:40', NULL, 1, '2025-12-30 15:20:40', '2025-12-30 15:20:50');
+INSERT INTO `cc_reserva_inventario` VALUES (28, 1, 333, 1, 136, '17', 9, 1.000000, 'LIBERADA', '2026-01-02 22:30:47', NULL, 1, '2026-01-02 17:30:47', '2026-01-02 17:45:22');
+INSERT INTO `cc_reserva_inventario` VALUES (29, 1, 331, 1, NULL, '17', 10, 2.000000, 'CONSUMIDA', '2026-01-02 22:31:24', NULL, 1, '2026-01-02 17:31:24', '2026-01-02 17:36:09');
+INSERT INTO `cc_reserva_inventario` VALUES (30, 1, 333, 2, 136, '17', 11, 2.000000, 'LIBERADA', '2026-01-02 22:33:10', NULL, 1, '2026-01-02 17:33:10', '2026-01-02 18:44:43');
+INSERT INTO `cc_reserva_inventario` VALUES (31, 1, 333, 1, 136, '17', 9, 3.000000, 'LIBERADA', '2026-01-02 22:45:23', NULL, 1, '2026-01-02 17:45:23', '2026-01-03 23:09:07');
+INSERT INTO `cc_reserva_inventario` VALUES (32, 1, 333, 1, 136, '17', 12, 1.000000, 'LIBERADA', '2026-01-03 00:19:43', NULL, 1, '2026-01-02 19:19:43', '2026-01-02 19:21:31');
+INSERT INTO `cc_reserva_inventario` VALUES (33, 1, 333, 2, 136, '17', 11, 3.000000, 'CONSUMIDA', '2026-01-03 00:44:59', NULL, 1, '2026-01-02 19:44:59', '2026-01-02 19:45:24');
+INSERT INTO `cc_reserva_inventario` VALUES (34, 1, 333, 1, 136, '38', 35, 1.000000, 'CONSUMIDA', '2026-01-03 01:52:10', NULL, 1, '2026-01-02 20:52:10', '2026-01-02 20:52:42');
+INSERT INTO `cc_reserva_inventario` VALUES (35, 1, 333, 1, 136, '17', 13, 2.000000, 'CONSUMIDA', '2026-01-04 03:13:36', NULL, 1, '2026-01-03 22:13:36', '2026-01-03 22:14:38');
+INSERT INTO `cc_reserva_inventario` VALUES (36, 1, 331, 1, NULL, '17', 13, 4.000000, 'CONSUMIDA', '2026-01-04 03:13:36', NULL, 1, '2026-01-03 22:13:36', '2026-01-03 22:14:38');
+INSERT INTO `cc_reserva_inventario` VALUES (37, 1, 333, 1, 136, '17', 14, 2.000000, 'CONSUMIDA', '2026-01-04 03:28:48', NULL, 1, '2026-01-03 22:28:48', '2026-01-03 22:29:05');
+INSERT INTO `cc_reserva_inventario` VALUES (38, 1, 333, 1, 140, '17', 15, 3.000000, 'CONSUMIDA', '2026-01-04 03:35:30', NULL, 1, '2026-01-03 22:35:30', '2026-01-03 22:35:53');
+INSERT INTO `cc_reserva_inventario` VALUES (39, 1, 333, 1, 136, '17', 15, 2.000000, 'CONSUMIDA', '2026-01-04 03:35:30', NULL, 1, '2026-01-03 22:35:30', '2026-01-03 22:35:53');
+INSERT INTO `cc_reserva_inventario` VALUES (40, 1, 333, 1, 136, '17', 16, 1.000000, 'CONSUMIDA', '2026-01-04 03:37:53', NULL, 1, '2026-01-03 22:37:53', '2026-01-03 22:38:19');
+INSERT INTO `cc_reserva_inventario` VALUES (41, 1, 333, 1, 136, '17', 17, 4.000000, 'LIBERADA', '2026-01-04 04:05:48', NULL, 1, '2026-01-03 23:05:48', '2026-01-03 23:09:54');
+INSERT INTO `cc_reserva_inventario` VALUES (42, 1, 333, 1, 136, '17', 17, 4.000000, 'LIBERADA', '2026-01-04 04:09:54', NULL, 1, '2026-01-03 23:09:54', '2026-01-03 23:10:17');
+INSERT INTO `cc_reserva_inventario` VALUES (43, 1, 333, 1, 136, '17', 12, 2.000000, 'CONSUMIDA', '2026-01-04 04:16:08', NULL, 1, '2026-01-03 23:16:08', '2026-02-28 13:00:27');
+INSERT INTO `cc_reserva_inventario` VALUES (44, 1, 330, 1, 139, '38', 36, 1.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
+INSERT INTO `cc_reserva_inventario` VALUES (45, 1, 332, 1, NULL, '38', 36, 1.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
+INSERT INTO `cc_reserva_inventario` VALUES (46, 1, 69, 1, NULL, '38', 36, 1.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
+INSERT INTO `cc_reserva_inventario` VALUES (47, 1, 333, 1, 140, '38', 36, 4.000000, 'ACTIVA', '2026-01-29 00:03:18', NULL, 1, '2026-01-28 19:03:18', '2026-01-28 19:03:18');
+INSERT INTO `cc_reserva_inventario` VALUES (48, 1, 333, 2, 140, '38', 37, 1.000000, 'ACTIVA', '2026-01-29 00:05:54', NULL, 1, '2026-01-28 19:05:54', '2026-01-28 19:05:54');
+INSERT INTO `cc_reserva_inventario` VALUES (49, 1, 62, 1, 141, '17', 18, 4.000000, 'CONSUMIDA', '2026-02-28 15:48:28', NULL, 1, '2026-02-28 10:48:28', '2026-02-28 10:48:44');
+INSERT INTO `cc_reserva_inventario` VALUES (50, 1, 62, 2, 141, '17', 19, 1.000000, 'CONSUMIDA', '2026-03-22 17:06:31', NULL, 1, '2026-03-22 12:06:31', '2026-03-22 12:06:47');
+INSERT INTO `cc_reserva_inventario` VALUES (51, 1, 62, 1, 43, '17', 20, 1.000000, 'CONSUMIDA', '2026-03-22 17:07:29', NULL, 1, '2026-03-22 12:07:29', '2026-03-22 12:07:40');
+INSERT INTO `cc_reserva_inventario` VALUES (52, 1, 62, 1, 58, '17', 21, 1.000000, 'CONSUMIDA', '2026-03-23 21:49:42', NULL, 1, '2026-03-23 16:49:42', '2026-03-23 16:49:55');
+INSERT INTO `cc_reserva_inventario` VALUES (53, 1, 335, 1, NULL, '17', 22, 5.000000, 'CONSUMIDA', '2026-03-24 15:24:15', NULL, 1, '2026-03-24 10:24:15', '2026-03-24 10:25:02');
+INSERT INTO `cc_reserva_inventario` VALUES (54, 1, 335, 1, NULL, '17', 23, 7.000000, 'CONSUMIDA', '2026-03-24 15:32:25', NULL, 1, '2026-03-24 10:32:25', '2026-03-24 10:32:38');
+INSERT INTO `cc_reserva_inventario` VALUES (55, 1, 336, 2, NULL, '38', 46, 3.000000, 'CONSUMIDA', '2026-03-24 20:42:03', NULL, 1, '2026-03-24 15:42:03', '2026-03-24 15:42:21');
+INSERT INTO `cc_reserva_inventario` VALUES (56, 1, 336, 1, NULL, '17', 24, 3.000000, 'CONSUMIDA', '2026-03-24 21:20:48', NULL, 1, '2026-03-24 16:20:48', '2026-03-24 16:21:00');
+INSERT INTO `cc_reserva_inventario` VALUES (57, 1, 342, 1, NULL, '17', 25, 1.000000, 'CONSUMIDA', '2026-05-01 18:08:51', NULL, 1, '2026-05-01 13:08:51', '2026-05-01 13:09:02');
+INSERT INTO `cc_reserva_inventario` VALUES (58, 1, 342, 1, NULL, '38', 47, 1.000000, 'CONSUMIDA', '2026-05-01 18:09:46', NULL, 1, '2026-05-01 13:09:46', '2026-05-01 13:10:10');
+INSERT INTO `cc_reserva_inventario` VALUES (59, 1, 342, 1, NULL, '17', 26, 1.000000, 'LIBERADA', '2026-05-01 18:10:51', NULL, 1, '2026-05-01 13:10:51', '2026-05-01 13:11:08');
+INSERT INTO `cc_reserva_inventario` VALUES (60, 1, 342, 1, NULL, '17', 26, 1.000000, 'ACTIVA', '2026-05-01 18:11:08', NULL, 1, '2026-05-01 13:11:08', '2026-05-01 13:11:08');
+INSERT INTO `cc_reserva_inventario` VALUES (61, 1, 72, 1, 77, '38', 50, 2.000000, 'CONSUMIDA', '2026-06-22 17:54:21', NULL, 1, '2026-06-22 12:54:21', '2026-06-22 12:55:43');
+INSERT INTO `cc_reserva_inventario` VALUES (62, 1, 72, 1, 78, '17', 27, 1.000000, 'LIBERADA', '2026-06-22 18:23:02', NULL, 1, '2026-06-22 13:23:02', '2026-06-29 09:54:36');
+INSERT INTO `cc_reserva_inventario` VALUES (63, 1, 72, 1, 80, '17', 28, 3.000000, 'CONSUMIDA', '2026-06-22 18:23:53', NULL, 1, '2026-06-22 13:23:53', '2026-06-22 13:24:08');
+INSERT INTO `cc_reserva_inventario` VALUES (64, 1, 72, 1, 78, '17', 27, 1.000000, 'LIBERADA', '2026-06-29 14:54:36', NULL, 1, '2026-06-29 09:54:36', '2026-06-29 09:55:36');
+INSERT INTO `cc_reserva_inventario` VALUES (65, 1, 72, 1, 78, '17', 27, 1.000000, 'LIBERADA', '2026-06-29 14:55:36', NULL, 1, '2026-06-29 09:55:36', '2026-06-29 09:58:06');
+INSERT INTO `cc_reserva_inventario` VALUES (66, 1, 72, 1, 78, '17', 27, 1.000000, 'CONSUMIDA', '2026-06-29 14:58:06', NULL, 1, '2026-06-29 09:58:06', '2026-06-29 09:58:20');
 
 -- ----------------------------
 -- Table structure for cc_retencion
@@ -12863,6 +13211,7 @@ CREATE TABLE `cc_retencion`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `ret_secuencial` int(0) NULL DEFAULT NULL,
   `ret_documento_id` int(0) NOT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/subempresa de la retencion',
   `ret_tipo_transaccion_cod` int(0) NULL DEFAULT NULL,
   `ret_numero_comprobante` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `ret_numero_emision` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
@@ -12888,31 +13237,38 @@ CREATE TABLE `cc_retencion`  (
   INDEX `idx_ret_estado_sri`(`ret_estado_sri`) USING BTREE,
   INDEX `idx_ret_fecha_emision`(`ret_fecha_emision`) USING BTREE,
   INDEX `idx_ret_fk_user`(`fk_user`) USING BTREE,
-  CONSTRAINT `fk_ret_user` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  INDEX `idx_ret_proyecto`(`fk_proyecto`) USING BTREE,
+  CONSTRAINT `fk_ret_user` FOREIGN KEY (`fk_user`) REFERENCES `cc_empleados` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `fk_ret_proyecto` FOREIGN KEY (`fk_proyecto`) REFERENCES `cc_proyectos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of cc_retencion
 -- ----------------------------
-INSERT INTO `cc_retencion` VALUES (3, 1, 1, 2, '23', '002', '001', '0123456789', '2026-07-06', '2026-07-06 15:37:32', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 3.03, 1, 1, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_retencion` VALUES (4, 2, 2, 2, '25', '002', '001', '0123456789', '2026-07-06', '2026-07-06 15:43:28', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.03, 0, 1, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
-INSERT INTO `cc_retencion` VALUES (5, 3, 3, 2, '653', '002', '001', '0123456789', '2026-07-10', '2026-07-10 09:16:58', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.16, 1, 1, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
-INSERT INTO `cc_retencion` VALUES (6, 4, 4, 2, '456', '002', '001', '0123456789', '2026-07-10', '2026-07-10 10:05:14', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.18, 1, 1, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
-INSERT INTO `cc_retencion` VALUES (7, 5, 5, 2, '657', '002', '001', '0123456789', '2026-07-10', '2026-07-10 10:26:56', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.46, 1, 1, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_retencion` VALUES (8, 6, 6, 2, '546', '002', '001', '0123456789', '2026-07-10', '2026-07-10 10:59:09', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.42, 1, 1, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
-INSERT INTO `cc_retencion` VALUES (9, 7, 7, 2, '458', '002', '001', '0123456789', '2026-07-10', '2026-07-10 11:10:00', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 3.49, 1, 1, '2026-07-10 11:10:00', '2026-07-10 11:10:00');
-INSERT INTO `cc_retencion` VALUES (10, 8, 8, 2, '563', '002', '001', '0123456789', '2026-07-10', '2026-07-10 11:11:55', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.52, 0, 1, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
-INSERT INTO `cc_retencion` VALUES (11, 9, 9, 2, '578', '002', '001', '0123456789', '2026-07-10', '2026-07-10 11:13:38', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.76, 1, 1, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
-INSERT INTO `cc_retencion` VALUES (14, 10, 12, 2, '658', '002', '001', '0123456789', '2026-07-10', '2026-07-10 23:22:54', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 3.64, 1, 1, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
-INSERT INTO `cc_retencion` VALUES (15, 1, 13, 2, '000000001', '001', '001', '123456789', '2026-07-12', '2026-07-12 10:31:46', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.96, 1, 1, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
-INSERT INTO `cc_retencion` VALUES (16, 2, 14, 2, '000000002', '001', '001', '123456789', '2026-07-12', '2026-07-12 10:33:43', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.02, 1, 1, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
-INSERT INTO `cc_retencion` VALUES (17, 3, 15, 2, '000000003', '001', '001', '123456789', '2026-07-12', '2026-07-12 10:35:59', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.90, 1, 1, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
-INSERT INTO `cc_retencion` VALUES (18, 1, 16, 2, '000000001', '002', '001', '1234567890', '2026-07-12', '2026-07-12 10:48:44', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.02, 1, 8, '2026-07-12 10:48:44', '2026-07-12 10:48:44');
-INSERT INTO `cc_retencion` VALUES (19, 4, 17, 2, '000000004', '001', '001', '123456789', '2026-07-12', '2026-07-12 13:28:04', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.54, 1, 1, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_retencion` VALUES (20, 5, 18, 2, '000000005', '001', '001', '123456789', '2026-07-12', '2026-07-12 16:34:47', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.04, 1, 1, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
-INSERT INTO `cc_retencion` VALUES (21, 6, 19, 2, '000000006', '001', '001', '123456789', '2026-07-12', '2026-07-12 16:42:16', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.18, 0, 1, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
-INSERT INTO `cc_retencion` VALUES (22, 7, 20, 2, '000000007', '001', '001', '123456789', '2026-07-12', '2026-07-12 16:53:29', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.69, 1, 1, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_retencion` VALUES (23, 8, 22, 2, '000000008', '001', '001', '123456789', '2026-07-27', '2026-07-27 17:52:44', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.76, 1, 1, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_retencion` VALUES (3, 1, 1, 1, 2, '23', '002', '001', '0123456789', '2026-07-06', '2026-07-06 15:37:32', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 3.03, 1, 1, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_retencion` VALUES (4, 2, 2, 1, 2, '25', '002', '001', '0123456789', '2026-07-06', '2026-07-06 15:43:28', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.03, 0, 1, '2026-07-06 15:43:28', '2026-07-06 16:54:28');
+INSERT INTO `cc_retencion` VALUES (5, 3, 3, 1, 2, '653', '002', '001', '0123456789', '2026-07-10', '2026-07-10 09:16:58', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.16, 1, 1, '2026-07-10 09:16:58', '2026-07-10 09:16:58');
+INSERT INTO `cc_retencion` VALUES (6, 4, 4, 1, 2, '456', '002', '001', '0123456789', '2026-07-10', '2026-07-10 10:05:14', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.18, 1, 1, '2026-07-10 10:05:14', '2026-07-10 10:05:14');
+INSERT INTO `cc_retencion` VALUES (7, 5, 5, 1, 2, '657', '002', '001', '0123456789', '2026-07-10', '2026-07-10 10:26:56', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.46, 1, 1, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_retencion` VALUES (8, 6, 6, 1, 2, '546', '002', '001', '0123456789', '2026-07-10', '2026-07-10 10:59:09', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.42, 1, 1, '2026-07-10 10:59:09', '2026-07-10 10:59:09');
+INSERT INTO `cc_retencion` VALUES (9, 7, 7, 1, 2, '458', '002', '001', '0123456789', '2026-07-10', '2026-07-10 11:10:00', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 3.49, 1, 1, '2026-07-10 11:10:00', '2026-07-10 11:10:00');
+INSERT INTO `cc_retencion` VALUES (10, 8, 8, 1, 2, '563', '002', '001', '0123456789', '2026-07-10', '2026-07-10 11:11:55', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.52, 0, 1, '2026-07-10 11:11:55', '2026-07-10 11:14:30');
+INSERT INTO `cc_retencion` VALUES (11, 9, 9, 1, 2, '578', '002', '001', '0123456789', '2026-07-10', '2026-07-10 11:13:38', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.76, 1, 1, '2026-07-10 11:13:38', '2026-07-10 11:13:38');
+INSERT INTO `cc_retencion` VALUES (14, 10, 12, 1, 2, '658', '002', '001', '0123456789', '2026-07-10', '2026-07-10 23:22:54', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 3.64, 1, 1, '2026-07-10 23:22:54', '2026-07-10 23:22:54');
+INSERT INTO `cc_retencion` VALUES (15, 1, 13, 1, 2, '000000001', '001', '001', '123456789', '2026-07-12', '2026-07-12 10:31:46', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.96, 1, 1, '2026-07-12 10:31:46', '2026-07-12 10:31:46');
+INSERT INTO `cc_retencion` VALUES (16, 2, 14, 1, 2, '000000002', '001', '001', '123456789', '2026-07-12', '2026-07-12 10:33:43', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.02, 1, 1, '2026-07-12 10:33:43', '2026-07-12 10:33:43');
+INSERT INTO `cc_retencion` VALUES (17, 3, 15, 1, 2, '000000003', '001', '001', '123456789', '2026-07-12', '2026-07-12 10:35:59', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.90, 1, 1, '2026-07-12 10:35:59', '2026-07-12 10:35:59');
+INSERT INTO `cc_retencion` VALUES (18, 1, 16, 1, 2, '000000001', '002', '001', '1234567890', '2026-07-12', '2026-07-12 10:48:44', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.02, 1, 8, '2026-07-12 10:48:44', '2026-07-12 10:48:44');
+INSERT INTO `cc_retencion` VALUES (19, 4, 17, 1, 2, '000000004', '001', '001', '123456789', '2026-07-12', '2026-07-12 13:28:04', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.54, 1, 1, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_retencion` VALUES (20, 5, 18, 1, 2, '000000005', '001', '001', '123456789', '2026-07-12', '2026-07-12 16:34:47', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.04, 1, 1, '2026-07-12 16:34:47', '2026-07-12 16:34:47');
+INSERT INTO `cc_retencion` VALUES (21, 6, 19, 1, 2, '000000006', '001', '001', '123456789', '2026-07-12', '2026-07-12 16:42:16', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.18, 0, 1, '2026-07-12 16:42:16', '2026-07-12 16:57:33');
+INSERT INTO `cc_retencion` VALUES (22, 7, 20, 1, 2, '000000007', '001', '001', '123456789', '2026-07-12', '2026-07-12 16:53:29', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 2.69, 1, 1, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_retencion` VALUES (23, 8, 22, 1, 2, '000000008', '001', '001', '123456789', '2026-07-27', '2026-07-27 17:52:44', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.76, 1, 1, '2026-07-27 17:52:44', '2026-07-27 17:52:44');
+INSERT INTO `cc_retencion` VALUES (24, 9, 24, 1, 2, '000000009', '001', '001', '123456789', '2026-07-27', '2026-07-27 18:44:22', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.43, 1, 1, '2026-07-27 18:44:22', '2026-07-27 18:44:22');
+INSERT INTO `cc_retencion` VALUES (25, 10, 27, 1, 2, '000000010', '001', '001', '123456789', '2026-07-28', '2026-07-28 13:53:26', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 1.65, 1, 1, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
+INSERT INTO `cc_retencion` VALUES (26, 1, 28, 2, 2, '000000001', '001', '001', '123456789', '2026-07-28', '2026-07-28 14:00:03', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.06, 1, 1, '2026-07-28 14:00:03', '2026-07-28 14:00:03');
+INSERT INTO `cc_retencion` VALUES (27, 2, 29, 2, 2, '000000002', '001', '001', '123456789', '2026-07-28', '2026-07-28 14:02:03', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.04, 1, 1, '2026-07-28 14:02:03', '2026-07-28 14:02:03');
+INSERT INTO `cc_retencion` VALUES (28, 3, 30, 2, 2, '000000003', '001', '001', '123456789', '2026-07-28', '2026-07-28 14:12:45', NULL, 'PENDIENTE', NULL, NULL, NULL, NULL, NULL, 0.10, 1, 1, '2026-07-28 14:12:45', '2026-07-28 14:12:45');
 
 -- ----------------------------
 -- Table structure for cc_retencion_det
@@ -12969,6 +13325,11 @@ INSERT INTO `cc_retencion_det` VALUES (34, 21, 'RENTA', '312', 1.75, 10.50, 0.18
 INSERT INTO `cc_retencion_det` VALUES (35, 22, 'IVA', '1', 30.00, 4.56, 1.37, 'Retención de IVA Bienes', 57);
 INSERT INTO `cc_retencion_det` VALUES (36, 22, 'RENTA', '312', 1.75, 75.40, 1.32, 'Transferencia de bienes muebles de naturaleza corporal', 7);
 INSERT INTO `cc_retencion_det` VALUES (37, 23, 'RENTA', '312', 1.75, 100.50, 1.76, 'Transferencia de bienes muebles de naturaleza corporal', 7);
+INSERT INTO `cc_retencion_det` VALUES (38, 24, 'RENTA', '312', 1.75, 24.33, 0.43, 'Transferencia de bienes muebles de naturaleza corporal', 7);
+INSERT INTO `cc_retencion_det` VALUES (39, 25, 'RENTA', '312', 1.75, 94.20, 1.65, 'Transferencia de bienes muebles de naturaleza corporal', 7);
+INSERT INTO `cc_retencion_det` VALUES (40, 26, 'RENTA', '312', 1.75, 3.15, 0.06, 'Transferencia de bienes muebles de naturaleza corporal', 7);
+INSERT INTO `cc_retencion_det` VALUES (41, 27, 'RENTA', '312', 1.75, 2.10, 0.04, 'Transferencia de bienes muebles de naturaleza corporal', 7);
+INSERT INTO `cc_retencion_det` VALUES (42, 28, 'RENTA', '312', 1.75, 5.75, 0.10, 'Transferencia de bienes muebles de naturaleza corporal', 7);
 
 -- ----------------------------
 -- Table structure for cc_retencion_sri
@@ -13252,6 +13613,7 @@ INSERT INTO `cc_settings` VALUES (13, 'PERMITIR_MULTIPLE_CONSUMO_SERVICIO', '1',
 DROP TABLE IF EXISTS `cc_stock_bodega`;
 CREATE TABLE `cc_stock_bodega`  (
   `fk_bodega` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/empresa al que pertenece el saldo de stock por bodega',
   `fk_producto` int(0) NULL DEFAULT NULL,
   `stb_stock` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `stb_created_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
@@ -13262,6 +13624,7 @@ CREATE TABLE `cc_stock_bodega`  (
   INDEX `idx_stock_bodega`(`fk_bodega`) USING BTREE,
   INDEX `idx_stock_producto`(`fk_producto`) USING BTREE,
   INDEX `idx_stock_stock`(`stb_stock`) USING BTREE,
+  INDEX `idx_stock_bodega_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_stock_bodega_ibfk_1` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_stock_bodega_ibfk_2` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
@@ -13269,34 +13632,34 @@ CREATE TABLE `cc_stock_bodega`  (
 -- ----------------------------
 -- Records of cc_stock_bodega
 -- ----------------------------
-INSERT INTO `cc_stock_bodega` VALUES (1, 69, '63', '2025-10-19 17:02:39', '2026-07-12 16:53:29');
-INSERT INTO `cc_stock_bodega` VALUES (1, 62, '47', '2025-10-19 17:02:39', '2026-03-24 09:40:29');
-INSERT INTO `cc_stock_bodega` VALUES (2, 69, '4', '2025-10-19 17:15:25', '2025-12-30 14:59:25');
-INSERT INTO `cc_stock_bodega` VALUES (2, 62, '4', '2025-10-19 17:15:25', '2026-03-23 16:49:55');
-INSERT INTO `cc_stock_bodega` VALUES (1, 60, '6', '2025-10-20 10:49:11', '2025-11-01 19:01:14');
-INSERT INTO `cc_stock_bodega` VALUES (1, 72, '48', '2025-11-04 15:39:39', '2026-07-27 18:08:15');
-INSERT INTO `cc_stock_bodega` VALUES (1, 74, '161', '2025-11-04 15:39:39', '2025-11-07 12:16:06');
-INSERT INTO `cc_stock_bodega` VALUES (1, 333, '15', '2025-11-25 20:12:21', '2026-02-28 13:00:27');
-INSERT INTO `cc_stock_bodega` VALUES (1, 332, '2', '2025-11-25 20:12:21', '2026-01-26 16:10:55');
-INSERT INTO `cc_stock_bodega` VALUES (1, 331, '5', '2025-11-25 20:12:21', '2026-01-03 22:14:38');
-INSERT INTO `cc_stock_bodega` VALUES (1, 330, '24', '2025-11-25 20:12:21', '2026-03-05 09:55:50');
-INSERT INTO `cc_stock_bodega` VALUES (2, 333, '22', '2025-11-25 20:18:09', '2026-02-28 13:00:27');
-INSERT INTO `cc_stock_bodega` VALUES (2, 332, '0', '2025-11-25 20:18:09', '2025-12-03 11:51:13');
-INSERT INTO `cc_stock_bodega` VALUES (2, 331, '17', '2025-11-25 20:18:09', '2026-01-03 22:14:38');
-INSERT INTO `cc_stock_bodega` VALUES (2, 330, '8', '2025-11-25 20:18:09', '2025-12-30 15:20:50');
-INSERT INTO `cc_stock_bodega` VALUES (1, 77, '21', '2025-11-27 15:55:12', '2025-11-27 16:05:23');
-INSERT INTO `cc_stock_bodega` VALUES (1, 66, '3', '2026-01-26 16:10:55', '2026-01-26 16:10:55');
-INSERT INTO `cc_stock_bodega` VALUES (1, 64, '2', '2026-03-07 17:47:22', '2026-03-07 17:47:22');
-INSERT INTO `cc_stock_bodega` VALUES (1, 335, '98', '2026-03-24 09:51:12', '2026-03-24 14:54:40');
-INSERT INTO `cc_stock_bodega` VALUES (2, 335, '45', '2026-03-24 10:25:02', '2026-03-24 14:52:23');
-INSERT INTO `cc_stock_bodega` VALUES (1, 336, '50', '2026-03-24 15:33:11', '2026-03-24 16:44:59');
-INSERT INTO `cc_stock_bodega` VALUES (2, 336, '0', '2026-03-24 15:34:51', '2026-03-24 16:34:15');
-INSERT INTO `cc_stock_bodega` VALUES (1, 341, '10', '2026-04-23 16:57:23', '2026-04-23 16:57:23');
-INSERT INTO `cc_stock_bodega` VALUES (1, 342, '12', '2026-05-01 12:54:58', '2026-07-10 10:59:09');
-INSERT INTO `cc_stock_bodega` VALUES (2, 342, '1', '2026-05-01 13:09:02', '2026-05-01 13:09:02');
-INSERT INTO `cc_stock_bodega` VALUES (2, 72, '4', '2026-06-22 13:24:08', '2026-06-29 09:58:20');
-INSERT INTO `cc_stock_bodega` VALUES (1, 338, '228', '2026-07-06 15:37:32', '2026-07-27 17:52:44');
-INSERT INTO `cc_stock_bodega` VALUES (1, 348, '8', '2026-07-10 11:10:00', '2026-07-10 11:14:30');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 69, '63', '2025-10-19 17:02:39', '2026-07-12 16:53:29');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 62, '47', '2025-10-19 17:02:39', '2026-03-24 09:40:29');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 69, '4', '2025-10-19 17:15:25', '2025-12-30 14:59:25');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 62, '4', '2025-10-19 17:15:25', '2026-03-23 16:49:55');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 60, '6', '2025-10-20 10:49:11', '2025-11-01 19:01:14');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 72, '49', '2025-11-04 15:39:39', '2026-07-28 13:53:26');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 74, '161', '2025-11-04 15:39:39', '2025-11-07 12:16:06');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 333, '19', '2025-11-25 20:12:21', '2026-07-27 19:11:05');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 332, '2', '2025-11-25 20:12:21', '2026-01-26 16:10:55');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 331, '5', '2025-11-25 20:12:21', '2026-01-03 22:14:38');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 330, '24', '2025-11-25 20:12:21', '2026-03-05 09:55:50');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 333, '22', '2025-11-25 20:18:09', '2026-02-28 13:00:27');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 332, '0', '2025-11-25 20:18:09', '2025-12-03 11:51:13');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 331, '17', '2025-11-25 20:18:09', '2026-01-03 22:14:38');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 330, '8', '2025-11-25 20:18:09', '2025-12-30 15:20:50');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 77, '21', '2025-11-27 15:55:12', '2025-11-27 16:05:23');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 66, '3', '2026-01-26 16:10:55', '2026-01-26 16:10:55');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 64, '2', '2026-03-07 17:47:22', '2026-03-07 17:47:22');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 335, '98', '2026-03-24 09:51:12', '2026-03-24 14:54:40');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 335, '45', '2026-03-24 10:25:02', '2026-03-24 14:52:23');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 336, '50', '2026-03-24 15:33:11', '2026-03-24 16:44:59');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 336, '0', '2026-03-24 15:34:51', '2026-03-24 16:34:15');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 341, '10', '2026-04-23 16:57:23', '2026-04-23 16:57:23');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 342, '12', '2026-05-01 12:54:58', '2026-07-10 10:59:09');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 342, '1', '2026-05-01 13:09:02', '2026-05-01 13:09:02');
+INSERT INTO `cc_stock_bodega` VALUES (2, 1, 72, '4', '2026-06-22 13:24:08', '2026-06-29 09:58:20');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 338, '246', '2026-07-06 15:37:32', '2026-07-28 14:13:57');
+INSERT INTO `cc_stock_bodega` VALUES (1, 1, 348, '8', '2026-07-10 11:10:00', '2026-07-10 11:14:30');
 
 -- ----------------------------
 -- Table structure for cc_stock_bodega_lote
@@ -13304,6 +13667,7 @@ INSERT INTO `cc_stock_bodega` VALUES (1, 348, '8', '2026-07-10 11:10:00', '2026-
 DROP TABLE IF EXISTS `cc_stock_bodega_lote`;
 CREATE TABLE `cc_stock_bodega_lote`  (
   `fk_bodega` int(0) NULL DEFAULT NULL,
+  `fk_proyecto` int(0) NOT NULL DEFAULT 1 COMMENT 'Proyecto/empresa al que pertenece el saldo de stock por bodega y lote',
   `fk_producto` int(0) NULL DEFAULT NULL,
   `stbl_stock` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `fk_lote` int(0) NULL DEFAULT NULL,
@@ -13312,6 +13676,7 @@ CREATE TABLE `cc_stock_bodega_lote`  (
   INDEX `fk_bodega`(`fk_bodega`) USING BTREE,
   INDEX `fk_producto`(`fk_producto`) USING BTREE,
   INDEX `fk_lote`(`fk_lote`) USING BTREE,
+  INDEX `idx_stock_bodega_lote_proyecto`(`fk_proyecto`) USING BTREE,
   CONSTRAINT `cc_stock_bodega_lote_ibfk_1` FOREIGN KEY (`fk_bodega`) REFERENCES `cc_bodegas` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_stock_bodega_lote_ibfk_2` FOREIGN KEY (`fk_producto`) REFERENCES `cc_productos` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `cc_stock_bodega_lote_ibfk_3` FOREIGN KEY (`fk_lote`) REFERENCES `cc_lotes` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -13320,64 +13685,66 @@ CREATE TABLE `cc_stock_bodega_lote`  (
 -- ----------------------------
 -- Records of cc_stock_bodega_lote
 -- ----------------------------
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 39, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 62, '0', 40, '2025-10-19 17:15:25', '2026-03-22 12:02:11');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '0', 43, '2025-10-19 17:26:34', '2026-03-22 12:07:40');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '0', 58, '2025-10-20 10:49:11', '2026-03-23 16:49:55');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '0', 60, '2025-10-20 11:09:22', '2025-11-29 15:11:23');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 62, '2025-10-22 16:33:33', '2025-10-22 16:33:33');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 63, '2025-10-24 13:07:45', '2025-10-24 13:07:45');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '0', 64, '2025-10-31 16:59:23', '2025-11-30 15:35:58');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '2', 61, '2025-11-01 18:56:15', '2025-11-30 15:21:46');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 65, '2025-11-01 19:01:14', '2025-11-01 19:01:14');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '0', 66, '2025-11-04 15:18:00', '2025-11-04 15:20:50');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '1', 68, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 74, '1', 67, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '0', 69, '2025-11-04 15:44:26', '2025-11-04 16:00:34');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 74, '50', 70, '2025-11-04 15:49:05', '2025-11-04 15:49:05');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '0', 71, '2025-11-04 15:49:05', '2026-05-20 13:50:16');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 72, '2025-11-04 15:59:17', '2026-06-22 12:55:43');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 73, '2025-11-04 16:11:57', '2025-11-04 16:11:57');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '1', 74, '2025-11-04 16:12:58', '2025-11-04 16:12:58');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '6', 75, '2025-11-04 20:16:23', '2025-11-05 14:37:27');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 76, '2025-11-05 15:08:00', '2025-11-05 15:08:00');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 77, '2025-11-05 15:12:25', '2025-11-05 15:12:25');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '0', 78, '2025-11-05 16:45:25', '2026-06-29 09:58:20');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 74, '110', 79, '2025-11-07 11:37:41', '2025-11-07 12:16:06');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '3', 80, '2025-11-07 11:37:41', '2026-06-22 13:24:08');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '0', 118, '2025-11-25 18:12:39', '2025-11-25 18:54:13');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 333, '8', 136, '2025-11-25 20:12:21', '2026-02-28 13:00:27');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 330, '4', 137, '2025-11-25 20:12:21', '2025-12-30 15:20:50');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 333, '19', 136, '2025-11-25 20:18:09', '2026-02-28 13:00:27');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 330, '8', 137, '2025-11-25 20:18:09', '2025-12-30 15:20:50');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '22', 138, '2025-12-01 15:08:50', '2025-12-01 15:50:05');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 330, '10', 139, '2025-12-19 12:22:16', '2025-12-19 12:22:16');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 333, '7', 140, '2026-01-03 22:32:53', '2026-01-03 22:35:52');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 333, '3', 140, '2026-01-03 22:35:52', '2026-01-03 22:35:52');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '7', 141, '2026-02-28 10:47:22', '2026-03-22 12:06:47');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 62, '2', 141, '2026-02-28 10:48:44', '2026-03-22 12:06:47');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '16', 142, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '5', 143, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 330, '10', 144, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 64, '2', 145, '2026-03-07 17:47:22', '2026-03-07 17:47:22');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '2', 146, '2026-03-22 11:59:34', '2026-03-22 11:59:34');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 62, '1', 43, '2026-03-22 12:07:40', '2026-03-22 12:07:40');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 147, '2026-03-22 12:30:24', '2026-03-22 12:30:24');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '2', 148, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 62, '1', 58, '2026-03-23 16:49:55', '2026-03-23 16:49:55');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 62, '1', 149, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 341, '10', 150, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '1', 151, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '0', 152, '2026-06-22 11:33:37', '2026-06-22 11:44:40');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '4', 153, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 154, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 72, '3', 80, '2026-06-22 13:24:08', '2026-06-22 13:24:08');
-INSERT INTO `cc_stock_bodega_lote` VALUES (2, 72, '1', 78, '2026-06-29 09:58:20', '2026-06-29 09:58:20');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 155, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 156, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '2', 157, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '1', 158, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
-INSERT INTO `cc_stock_bodega_lote` VALUES (1, 72, '1', 159, '2026-07-27 17:52:44', '2026-07-27 18:08:15');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 39, '2025-10-19 17:02:39', '2025-10-19 17:02:39');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 62, '0', 40, '2025-10-19 17:15:25', '2026-03-22 12:02:11');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '0', 43, '2025-10-19 17:26:34', '2026-03-22 12:07:40');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '0', 58, '2025-10-20 10:49:11', '2026-03-23 16:49:55');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '0', 60, '2025-10-20 11:09:22', '2025-11-29 15:11:23');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 62, '2025-10-22 16:33:33', '2025-10-22 16:33:33');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 63, '2025-10-24 13:07:45', '2025-10-24 13:07:45');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '0', 64, '2025-10-31 16:59:23', '2025-11-30 15:35:58');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '2', 61, '2025-11-01 18:56:15', '2025-11-30 15:21:46');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 65, '2025-11-01 19:01:14', '2025-11-01 19:01:14');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '0', 66, '2025-11-04 15:18:00', '2025-11-04 15:20:50');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '1', 68, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 74, '1', 67, '2025-11-04 15:39:39', '2025-11-04 15:39:39');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '0', 69, '2025-11-04 15:44:26', '2025-11-04 16:00:34');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 74, '50', 70, '2025-11-04 15:49:05', '2025-11-04 15:49:05');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '0', 71, '2025-11-04 15:49:05', '2026-05-20 13:50:16');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 72, '2025-11-04 15:59:17', '2026-06-22 12:55:43');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 73, '2025-11-04 16:11:57', '2025-11-04 16:11:57');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '1', 74, '2025-11-04 16:12:58', '2025-11-04 16:12:58');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '6', 75, '2025-11-04 20:16:23', '2025-11-05 14:37:27');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 76, '2025-11-05 15:08:00', '2025-11-05 15:08:00');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 77, '2025-11-05 15:12:25', '2025-11-05 15:12:25');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '0', 78, '2025-11-05 16:45:25', '2026-06-29 09:58:20');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 74, '110', 79, '2025-11-07 11:37:41', '2025-11-07 12:16:06');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '3', 80, '2025-11-07 11:37:41', '2026-06-22 13:24:08');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '0', 118, '2025-11-25 18:12:39', '2025-11-25 18:54:13');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 333, '8', 136, '2025-11-25 20:12:21', '2026-02-28 13:00:27');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 330, '4', 137, '2025-11-25 20:12:21', '2025-12-30 15:20:50');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 333, '19', 136, '2025-11-25 20:18:09', '2026-02-28 13:00:27');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 330, '8', 137, '2025-11-25 20:18:09', '2025-12-30 15:20:50');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '22', 138, '2025-12-01 15:08:50', '2025-12-01 15:50:05');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 330, '10', 139, '2025-12-19 12:22:16', '2025-12-19 12:22:16');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 333, '7', 140, '2026-01-03 22:32:53', '2026-01-03 22:35:52');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 333, '3', 140, '2026-01-03 22:35:52', '2026-01-03 22:35:52');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '7', 141, '2026-02-28 10:47:22', '2026-03-22 12:06:47');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 62, '2', 141, '2026-02-28 10:48:44', '2026-03-22 12:06:47');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '16', 142, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '5', 143, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 330, '10', 144, '2026-03-05 09:55:50', '2026-03-05 09:55:50');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 64, '2', 145, '2026-03-07 17:47:22', '2026-03-07 17:47:22');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '2', 146, '2026-03-22 11:59:34', '2026-03-22 11:59:34');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 62, '1', 43, '2026-03-22 12:07:40', '2026-03-22 12:07:40');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 147, '2026-03-22 12:30:24', '2026-03-22 12:30:24');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '2', 148, '2026-03-23 16:49:09', '2026-03-23 16:49:09');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 62, '1', 58, '2026-03-23 16:49:55', '2026-03-23 16:49:55');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 62, '1', 149, '2026-03-24 09:40:29', '2026-03-24 09:40:29');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 341, '10', 150, '2026-04-23 16:57:23', '2026-04-23 16:57:23');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '1', 151, '2026-05-01 13:18:25', '2026-05-01 13:18:25');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '0', 152, '2026-06-22 11:33:37', '2026-06-22 11:44:40');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '4', 153, '2026-06-22 11:44:20', '2026-06-22 11:44:20');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 154, '2026-06-22 12:41:09', '2026-06-22 12:41:09');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 72, '3', 80, '2026-06-22 13:24:08', '2026-06-22 13:24:08');
+INSERT INTO `cc_stock_bodega_lote` VALUES (2, 1, 72, '1', 78, '2026-06-29 09:58:20', '2026-06-29 09:58:20');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 155, '2026-07-06 15:37:32', '2026-07-06 15:37:32');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 156, '2026-07-10 10:26:56', '2026-07-10 10:26:56');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 157, '2026-07-12 13:28:04', '2026-07-12 13:28:04');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '1', 158, '2026-07-12 16:53:29', '2026-07-12 16:53:29');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '0', 159, '2026-07-27 17:52:44', '2026-07-28 12:20:25');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 333, '4', 160, '2026-07-27 18:44:22', '2026-07-27 19:11:05');
+INSERT INTO `cc_stock_bodega_lote` VALUES (1, 1, 72, '2', 161, '2026-07-28 13:53:26', '2026-07-28 13:53:26');
 
 -- ----------------------------
 -- Table structure for cc_subgrupos

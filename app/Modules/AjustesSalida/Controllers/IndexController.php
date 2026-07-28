@@ -94,7 +94,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaMotivos'] = $this->ccm->getData('cc_motivos_ajuste', ['mot_estado' => 1, 'mot_tipo !=' => 'AJUSTES'], 'id, mot_nombre, CONCAT(mot_nombre, " ( ", mot_tipo," )") motivo');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
-        $data['listaServicios'] = $this->ccm->getData('cc_servicios', ['serv_estado' => 1], 'id, serv_nombre');
+        $data['listaServicios'] = $this->ccm->getData('cc_bio_servicios', ['serv_estado' => 1], 'id, serv_nombre');
 
         $bodegaMainUsuario = bodegaMain($this->user->id);
 
@@ -106,7 +106,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['dataCliente'] = null;
 
         if (!empty($ajusteId)) {
-            $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId], '*', null, 1);
+            $data['dataAjuste'] = $this->ccm->getData('cc_ajuste_salida', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
             $data['dataCliente'] = $this->searchModel->searchClientesById($data['dataAjuste']->fk_cliente);
         }
 
@@ -416,7 +416,7 @@ class IndexController extends \App\Controllers\BaseController {
 
         $ajusteId = $dataPostAjuste->ajusteId;
 
-        $estadoAjuste = (int) $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId], 'ajes_estado');
+        $estadoAjuste = (int) $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], 'ajes_estado');
 
         if ($estadoAjuste === 2) {
             return $this->responseSetJSON("warning", "Este ajuste ya ha sido aprobado previamente, Imposible actualizarlo");
@@ -504,7 +504,7 @@ class IndexController extends \App\Controllers\BaseController {
                 }
             }
 
-            $secuencial = $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId], 'ajes_secuencial');
+            $secuencial = $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], 'ajes_secuencial');
 
             $this->db->transCommit();
             $this->ajesCart->destroy();
@@ -637,7 +637,7 @@ class IndexController extends \App\Controllers\BaseController {
                 }
             }
 
-            $secuencial = $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId], 'ajes_secuencial');
+            $secuencial = $this->ccm->getValueWhere('cc_ajuste_salida', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], 'ajes_secuencial');
 
             $this->db->transCommit();
             $this->ajesCart->destroy();

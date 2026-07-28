@@ -32,14 +32,15 @@ class TransferenciasModel extends \CodeIgniter\Model {
         $builder->join('cc_empleados tb4', 'tb4.id =tb1.fk_user_crea');
         $builder->join('cc_empleados tb5', 'tb5.id =tb1.fk_user_confirma','left');
         $builder->join('cc_centroscosto tb6', 'tb6.id =tb1.fk_centro_costo');
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         // Mapeo de filtros a columnas de BD
         $camposBD = [
-            'trbSecuencial' => 'trb_secuencial',
-            'trbBodegaOrigen' => 'fk_bodega_origen',
-            'trbBodegaDestino' => 'fk_bodega_destino',
-            'trbEstado' => 'trb_estado',
-            'trbUsuarioConfirmar' => 'fk_user_confirma'
+            'trbSecuencial' => 'tb1.trb_secuencial',
+            'trbBodegaOrigen' => 'tb1.fk_bodega_origen',
+            'trbBodegaDestino' => 'tb1.fk_bodega_destino',
+            'trbEstado' => 'tb1.trb_estado',
+            'trbUsuarioConfirmar' => 'tb1.fk_user_confirma'
         ];
 
         // Aplicar filtros dinámicamente
@@ -54,12 +55,12 @@ class TransferenciasModel extends \CodeIgniter\Model {
             $rangoFechas = explode(' a ', $filtros['trbFechas']);
             $fDesde = trim($rangoFechas[0]);
             $fHasta = isset($rangoFechas[1]) ? trim($rangoFechas[1]) : trim($rangoFechas[0]);
-            $builder->where(['trb_fecha <=' => $fHasta, 'trb_fecha >= ' => $fDesde]);
+            $builder->where(['tb1.trb_fecha <=' => $fHasta, 'tb1.trb_fecha >= ' => $fDesde]);
         }
 
 
-        $builder->orderBy('trb_fecha', 'ASC');
-        $builder->orderBy('trb_secuencial', 'ASC');
+        $builder->orderBy('tb1.trb_fecha', 'ASC');
+        $builder->orderBy('tb1.trb_secuencial', 'ASC');
 
         $response = $builder->get();
 
@@ -87,6 +88,7 @@ class TransferenciasModel extends \CodeIgniter\Model {
         $builder->join('cc_empleados tb5', 'tb5.id = tb1.fk_user_confirma','left');
         $builder->join('cc_centroscosto tb6', 'tb6.id = tb1.fk_centro_costo');
         $builder->where('tb1.id', $transferenciaId);
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         $ajuste = $builder->get()->getRow();
 
@@ -120,6 +122,7 @@ class TransferenciasModel extends \CodeIgniter\Model {
 
         $builder = $this->db->table('cc_transferencia_bodega tb1');
         $builder->select('tb1.trb_estado, COUNT(*) AS total');
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         if ($trbFechas) {
             $rangoFechas = explode(' a ', $trbFechas);
@@ -243,6 +246,7 @@ class TransferenciasModel extends \CodeIgniter\Model {
     }
 
     private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+        $builder->where("transferencia.fk_proyecto", getProyectoId());
 
         if (!empty($filtros["fechaDesde"])) {
             $builder->where("transferencia.trb_fecha >=", $filtros["fechaDesde"]);

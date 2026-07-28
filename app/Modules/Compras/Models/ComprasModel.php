@@ -51,6 +51,7 @@ class ComprasModel extends Model {
         $builder->join('cc_empleados usuario', 'usuario.id = compra.fk_user', 'left');
         $builder->join('cc_empleados usuarioAnulacion', 'usuarioAnulacion.id = compra.fk_user_anulacion', 'left');
         $builder->where('compra.id', $compraId);
+        $builder->where('compra.fk_proyecto', getProyectoId());
 
         $compra = $builder->get()->getRow();
 
@@ -78,6 +79,7 @@ class ComprasModel extends Model {
         $builderDetalle->join('cc_impuesto_tarifa tarifa', 'tarifa.id = detalle.fk_impuesto_tarifa', 'left');
         $builderDetalle->join('cc_lotes lote', 'lote.id = detalle.fk_lote', 'left');
         $builderDetalle->where('detalle.fk_compra', $compraId);
+        $builderDetalle->where('detalle.fk_proyecto', getProyectoId());
         $builderDetalle->where('detalle.compd_estado', 1);
         $builderDetalle->orderBy('detalle.id', 'ASC');
 
@@ -86,6 +88,7 @@ class ComprasModel extends Model {
         $compra->basesImpuestos = $this->db
                 ->table('cc_compras_bases_impuesto')
                 ->where('fk_compra', $compraId)
+                ->where('fk_proyecto', getProyectoId())
                 ->where('estado', 1)
                 ->orderBy('imp_porcentaje', 'ASC')
                 ->get()
@@ -98,6 +101,33 @@ class ComprasModel extends Model {
         $compra->asientoContable = $this->obtenerAsientoContable($compra);
 
         return $compra;
+    }
+
+    public function getCompraDuplicadaProveedor(
+            int $proveedorId,
+            string $tipoComprobante,
+            string $establecimiento,
+            string $emision,
+            string $numeroComprobante,
+            ?int $compraIdExcluir = null
+    ): ?object {
+        $builder = $this->db->table('cc_compras compra');
+        $builder->select('compra.id, compra.comp_secuencial, compra.comp_estado, proyecto.proy_codigo, proyecto.proy_nombre');
+        $builder->join('cc_proyectos proyecto', 'proyecto.id = compra.fk_proyecto', 'left');
+        $builder->where([
+            'compra.fk_proveedor' => $proveedorId,
+            'compra.comp_tipo_comprobante_cod' => $tipoComprobante,
+            'compra.comp_numero_establecimiento' => $establecimiento,
+            'compra.comp_numero_emision' => $emision,
+            'compra.comp_numero_comprobante' => $numeroComprobante,
+        ]);
+        $builder->whereNotIn('compra.comp_estado', ['ANULADO', 'ANULADO_BORRADOR']);
+
+        if (!empty($compraIdExcluir)) {
+            $builder->where('compra.id !=', $compraIdExcluir);
+        }
+
+        return $builder->get()->getRow();
     }
 
     public function searchCompras(array $filtros): array {
@@ -120,6 +150,7 @@ class ComprasModel extends Model {
         $builder->join('cc_tipo_compra tipoCompra', 'tipoCompra.id = compra.fk_tipo_compra', 'left');
         $builder->join('cc_tipos_comprobante tipoComprobante', 'tipoComprobante.comp_codigo = compra.comp_tipo_comprobante_cod', 'left');
         $builder->join('cc_empleados usuario', 'usuario.id = compra.fk_user', 'left');
+        $builder->where('compra.fk_proyecto', getProyectoId());
 
         $campos = [
             'compSecuencial' => 'compra.comp_secuencial',
@@ -161,6 +192,7 @@ class ComprasModel extends Model {
     public function contadoresCompras(?string $fechasEmision, ?string $fechasArchivado): array {
         $builder = $this->db->table('cc_compras compra');
         $builder->select('compra.comp_estado, COUNT(*) AS total');
+        $builder->where('compra.fk_proyecto', getProyectoId());
 
         $this->aplicarRangoFechas($builder, $fechasEmision, 'compra.comp_fecha_emision');
         $this->aplicarRangoFechas($builder, $fechasArchivado, 'compra.comp_fecha_archivada', true);
@@ -191,6 +223,7 @@ class ComprasModel extends Model {
 
         $builderCxp = $this->db->table("cc_cxp cxp");
         $builderCxp->select("SUM(cxp_saldo) AS saldo_pendiente", false);
+        $builderCxp->where("cxp.fk_proyecto", getProyectoId());
         $builderCxp->whereIn("cxp_estado", ["PENDIENTE", "PARCIAL"]);
 
         if (!empty($filtros['proveedorId']) || !empty($filtros['bodegaId']) || !empty($filtros['centroCostoId']) || !empty($filtros['tipoComprobante']) || !empty($filtros['fechaDesde']) || !empty($filtros['fechaHasta'])) {
@@ -270,6 +303,7 @@ class ComprasModel extends Model {
     }
 
     private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+        $builder->where("compra.fk_proyecto", getProyectoId());
 
         if (!empty($filtros['fechaDesde'])) {
             $builder->where("compra.comp_fecha_emision >=", $filtros['fechaDesde']);
@@ -300,7 +334,7 @@ class ComprasModel extends Model {
         $builder = $this->db->table("cc_compras_det detalle");
         $builder->select("detalle.id, detalle.compd_cantidad, detalle.compd_centro_costo, producto.prod_codigo, producto.prod_nombre");
         $builder->join("cc_productos producto", "producto.id = detalle.fk_producto");
-        $builder->where(["detalle.fk_compra" => $compraId, "detalle.compd_estado" => 1]);
+        $builder->where(["detalle.fk_compra" => $compraId, "detalle.fk_proyecto" => getProyectoId(), "detalle.compd_estado" => 1]);
         $builder->orderBy("detalle.id", "ASC");
         return $builder->get()->getResult();
     }
@@ -315,7 +349,7 @@ class ComprasModel extends Model {
         );
         $builder->join("cc_productos producto", "producto.id = detalle.fk_producto");
         $builder->join("cc_lotes lote", "lote.id = detalle.fk_lote", "left");
-        $builder->where(["detalle.fk_compra" => $compraId, "detalle.compd_estado" => 1, "producto.prod_ctrllote" => 1]);
+        $builder->where(["detalle.fk_compra" => $compraId, "detalle.fk_proyecto" => getProyectoId(), "detalle.compd_estado" => 1, "producto.prod_ctrllote" => 1]);
         $builder->orderBy("detalle.id", "ASC");
         return $builder->get()->getResult();
     }
@@ -335,7 +369,7 @@ class ComprasModel extends Model {
         $builder = $this->db->table("cc_puntos_venta tb1");
         $builder->select("tb1.id, tb1.pv_establecimiento, tb1.pv_emision, tb1.pv_auth_sri, tb1.pv_fecha_vence_auth, tb1.pv_sec_inicial, tb1.pv_sec_actual, tb1.pv_sec_final, tb1.pv_is_electronica");
         $builder->join("cc_puntoventa_empleado tb2", "tb2.fk_punto_venta = tb1.id");
-        $builder->where(["tb1.fk_comprobante" => $codigoComprobante, "tb1.pv_estado" => "1", "tb2.fk_empleado" => $empleadoId]);
+        $builder->where(["tb1.fk_comprobante" => $codigoComprobante, "tb1.fk_proyecto" => getProyectoId(), "tb1.pv_estado" => "1", "tb2.fk_empleado" => $empleadoId]);
         $builder->orderBy("tb1.id", "ASC");
         return $builder->get()->getRow();
     }
@@ -346,13 +380,14 @@ class ComprasModel extends Model {
 
     public function obtenerPuntoEmisionRetencion(string $establecimiento, string $emision): ?object {
         $builder = $this->db->table("cc_puntos_venta");
-        $builder->where(["fk_comprobante" => "07", "pv_establecimiento" => $establecimiento, "pv_emision" => $emision, "pv_estado" => "1"]);
+        $builder->where(["fk_comprobante" => "07", "fk_proyecto" => getProyectoId(), "pv_establecimiento" => $establecimiento, "pv_emision" => $emision, "pv_estado" => "1"]);
         return $builder->get()->getRow();
     }
 
     public function usuarioPuedeEmitirEnPuntoRetencion(int $puntoEmisionId, int $empleadoId): bool {
-        $builder = $this->db->table("cc_puntoventa_empleado");
-        $builder->where(["fk_punto_venta" => $puntoEmisionId, "fk_empleado" => $empleadoId]);
+        $builder = $this->db->table("cc_puntoventa_empleado tb1");
+        $builder->join("cc_puntos_venta tb2", "tb2.id = tb1.fk_punto_venta");
+        $builder->where(["tb1.fk_punto_venta" => $puntoEmisionId, "tb1.fk_empleado" => $empleadoId, "tb2.fk_proyecto" => getProyectoId(), "tb2.pv_estado" => "1"]);
         return $builder->countAllResults() > 0;
     }
 
@@ -362,6 +397,7 @@ class ComprasModel extends Model {
                         ->select('compraAts.fk_forma_pago_ats AS codigo, forma.fp_nombre_sri AS nombre')
                         ->join('cc_formas_pago_sri forma', 'forma.codigo = compraAts.fk_forma_pago_ats')
                         ->where('compraAts.fk_compra', $compraId)
+                        ->where('compraAts.fk_proyecto', getProyectoId())
                         ->orderBy('compraAts.id', 'ASC')
                         ->get()
                         ->getResult();
@@ -377,6 +413,7 @@ class ComprasModel extends Model {
                 ->select('retencion.*, CONCAT(usuario.emp_nombre, " ", usuario.emp_apellido) AS usuario_registra')
                 ->join('cc_empleados usuario', 'usuario.id = retencion.fk_user', 'left')
                 ->where('retencion.id', $compra->fk_retencion)
+                ->where('retencion.fk_proyecto', getProyectoId())
                 ->where('retencion.ret_estado', 1)
                 ->get()
                 ->getRow();
@@ -402,6 +439,7 @@ class ComprasModel extends Model {
                 ->select('cxp.*, CONCAT(usuario.emp_nombre, " ", usuario.emp_apellido) AS usuario_registra')
                 ->join('cc_empleados usuario', 'usuario.id = cxp.fk_user', 'left')
                 ->where('cxp.fk_compra', $compraId)
+                ->where('cxp.fk_proyecto', getProyectoId())
                 ->orderBy('cxp.id', 'DESC')
                 ->get()
                 ->getRow();
@@ -412,6 +450,7 @@ class ComprasModel extends Model {
 
         $cxp->cuotas = $this->db->table('cc_cxp_cuotas cuota')
                 ->where('cuota.fk_cxp', $cxp->id)
+                ->where('cuota.fk_proyecto', getProyectoId())
                 ->orderBy('cuota.cxpc_numero', 'ASC')
                 ->get()
                 ->getResult();
@@ -430,6 +469,8 @@ class ComprasModel extends Model {
                 ->join('cc_bancos_list banco', 'banco.id = pago.fk_banco', 'left')
                 ->join('cc_cuenta_contabledet cuenta', 'cuenta.ctad_codigo = pago.fk_cuenta_contable', 'left')
                 ->where('aplicacion.fk_cxp', $cxp->id)
+                ->where('aplicacion.fk_proyecto', getProyectoId())
+                ->where('pago.fk_proyecto', getProyectoId())
                 ->orderBy('pago.pg_fecha', 'ASC')
                 ->orderBy('pago.id', 'ASC')
                 ->get()
@@ -448,6 +489,7 @@ class ComprasModel extends Model {
                         ->select('compra.id, compra.comp_secuencial, compra.comp_numero_establecimiento, compra.comp_numero_emision, compra.comp_numero_comprobante, compra.comp_fecha_emision, tipoComprobante.comp_nombre AS comprobante_nombre')
                         ->join('cc_tipos_comprobante tipoComprobante', 'tipoComprobante.comp_codigo = compra.comp_tipo_comprobante_cod', 'left')
                         ->where('compra.id', (int) $compra->fk_compra_relacionada)
+                        ->where('compra.fk_proyecto', getProyectoId())
                         ->get()
                         ->getRow();
     }
@@ -461,6 +503,7 @@ class ComprasModel extends Model {
                 ->join('cc_empleados usuario', 'usuario.id = asiento.fk_user_id', 'left')
                 ->where('asiento.ac_codigo_transaccion', $codigoTransaccion)
                 ->where('asiento.ac_documento_id', (int) $compra->id)
+                ->where('asiento.fk_proyecto', getProyectoId())
                 ->orderBy('asiento.id', 'DESC')
                 ->get()
                 ->getRow();
@@ -475,6 +518,7 @@ class ComprasModel extends Model {
                 ->join('cc_cuenta_contabledet cuenta', 'cuenta.ctad_codigo = detalle.codigo_cuenta_contable', 'left')
                 ->join('cc_centroscosto centro', 'centro.id = detalle.fk_centro_costos', 'left')
                 ->where('detalle.fk_asiento_contable', $asiento->id)
+                ->where('detalle.fk_proyecto', getProyectoId())
                 ->orderBy('detalle.id', 'ASC')
                 ->get()
                 ->getResult();

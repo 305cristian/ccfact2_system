@@ -45,4 +45,24 @@ class LoginModel extends \CodeIgniter\Model {
 
     }
 
+    public function getProyectosEmpleado(int $empleadoId): array {
+
+        $builder = $this->db->table("cc_empleado_proyecto tb1");
+        $builder->select("tb2.id, tb2.proy_codigo, tb2.proy_nombre");
+        $builder->join("cc_proyectos tb2", "tb2.id = tb1.fk_proyecto");
+        $builder->where([ "tb1.fk_empleado" => $empleadoId, "tb1.estado" => 1, "tb2.proy_estado" => 1]);
+        $builder->orderBy("tb2.proy_nombre", "ASC");
+        return $builder->get()->getResult();
+    }
+
+    public function getProyectoEmpleado(int $empleadoId, int $proyectoId): ?object {
+
+        $builder = $this->db->table("cc_empleado_proyecto tb1");
+        $builder->select("tb2.id, tb2.proy_codigo, tb2.proy_nombre");
+        $builder->join("cc_proyectos tb2", "tb2.id = tb1.fk_proyecto");
+        $builder->where([ "tb1.fk_empleado" => $empleadoId,"tb1.fk_proyecto" => $proyectoId,"tb1.estado" => 1, "tb2.proy_estado" => 1,
+        ]);
+        return $builder->get()->getRow();
+    }
+
 }

@@ -21,6 +21,7 @@ $routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function 
     $subroutes->post('employee/saveEmpleado', 'EmployeeController::saveEmpleado');
     $subroutes->post('employee/updateEmpleado', 'EmployeeController::updateEmpleado');
     $subroutes->post('employee/getBodegas', 'EmployeeController::getBodegas');
+    $subroutes->post('employee/getProyectos', 'EmployeeController::getProyectos');
     $subroutes->post('employee/resetPassword', 'EmployeeController::resetPassword');
 
     $subroutes->post('empleado', 'AdminController::getDataEmpleado');

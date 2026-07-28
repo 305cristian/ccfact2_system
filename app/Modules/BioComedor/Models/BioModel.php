@@ -25,6 +25,7 @@ class BioModel extends Model {
         $builder = $this->db->table("cc_bio_equipos tb1");
         $builder->select("tb1.*, tb2.com_codigo, tb2.com_nombre");
         $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where("tb2.fk_proyecto_sistema", getProyectoId());
         $builder->orderBy("tb1.id", "DESC");
         return $builder->get()->getResult();
     }
@@ -36,6 +37,7 @@ class BioModel extends Model {
         $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
         $builder->where("tb1.eq_estado", 1);
         $builder->where("tb2.com_estado", 1);
+        $builder->where("tb2.fk_proyecto_sistema", getProyectoId());
         $builder->orderBy("tb2.com_nombre", "ASC");
         $builder->orderBy("tb1.eq_nombre", "ASC");
         return $builder->get()->getResult();
@@ -127,6 +129,8 @@ class BioModel extends Model {
         $builder->join("cc_bio_servicios tb5", "tb5.id = tb1.fk_servicio");
         $builder->join("cc_bio_contratistas tb6", "tb6.id = tb1.fk_contratista");
         $builder->join("cc_bio_proyectos tb7", "tb7.id = tb1.fk_proyecto");
+        $builder->where("tb1.fk_proyecto_sistema", getProyectoId());
+        $builder->where("tb3.fk_proyecto_sistema", getProyectoId());
 
         if (!empty($filtros['fechaDesde'])) {
             $builder->where("tb1.marc_fecha >=", $filtros['fechaDesde']);
@@ -225,6 +229,7 @@ class BioModel extends Model {
             "tb1.fk_comedor" => $comedorId,
             "tb1.eq_estado" => 1,
             "tb2.com_estado" => 1,
+            "tb2.fk_proyecto_sistema" => getProyectoId(),
         ]);
         return $builder->get()->getRow();
     }
@@ -238,7 +243,28 @@ class BioModel extends Model {
             "tb1.id" => $equipoId,
             "tb1.eq_estado" => 1,
             "tb2.com_estado" => 1,
+            "tb2.fk_proyecto_sistema" => getProyectoId(),
         ]);
+        return $builder->get()->getRow();
+    }
+
+    public function getEquipoPorCodigoProyecto(string $codigoEquipo): ?object {
+
+        $builder = $this->db->table("cc_bio_equipos tb1");
+        $builder->select("tb1.id, tb1.eq_codigo");
+        $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where("tb1.eq_codigo", $codigoEquipo);
+        $builder->where("tb2.fk_proyecto_sistema", getProyectoId());
+        return $builder->get()->getRow();
+    }
+
+    public function getEquipoPorIdProyecto(int $equipoId): ?object {
+
+        $builder = $this->db->table("cc_bio_equipos tb1");
+        $builder->select("tb1.id");
+        $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where("tb1.id", $equipoId);
+        $builder->where("tb2.fk_proyecto_sistema", getProyectoId());
         return $builder->get()->getRow();
     }
 
@@ -299,6 +325,7 @@ class BioModel extends Model {
         $builder->where([
             "fk_comensal" => $comensalId,
             "fk_servicio" => $servicioId,
+            "fk_proyecto_sistema" => getProyectoId(),
             "marc_fecha" => $fecha,
             "marc_estado" => "VALIDA",
         ]);
@@ -311,6 +338,7 @@ class BioModel extends Model {
         $builder = $this->db->table("cc_bio_marcaciones");
         $builder->select("id, marc_fecha_hora");
         $builder->where("fk_comensal", $comensalId);
+        $builder->where("fk_proyecto_sistema", getProyectoId());
         $builder->where("marc_estado", "VALIDA");
         $builder->where("marc_fecha_hora >=", $fechaHoraDesde);
         $builder->where("marc_fecha_hora <=", $fechaHoraHasta);
@@ -411,6 +439,8 @@ class BioModel extends Model {
         $builder->join("cc_bio_servicios tb5", "tb5.id = tb1.fk_servicio");
         $builder->join("cc_bio_contratistas tb6", "tb6.id = tb1.fk_contratista");
         $builder->join("cc_bio_proyectos tb7", "tb7.id = tb1.fk_proyecto");
+        $builder->where("tb1.fk_proyecto_sistema", getProyectoId());
+        $builder->where("tb3.fk_proyecto_sistema", getProyectoId());
 
         if (!empty($filtros['fechaDesde'])) {
             $builder->where("tb1.marc_fecha >=", $filtros['fechaDesde']);

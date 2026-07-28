@@ -46,9 +46,10 @@ class TransferenciasLib {
     */
     public function saveTransferencia(object $cartData, object $dataPostTrb):int {
 
-        $secuencial = $this->ccm->getData('cc_transferencia_bodega', null, 'trb_secuencial', ['trb_secuencial' => 'DESC'], 1);
+        $secuencial = $this->ccm->getData('cc_transferencia_bodega', ['fk_proyecto' => getProyectoId()], 'trb_secuencial', ['trb_secuencial' => 'DESC'], 1);
 
         $datos = [
+            'fk_proyecto' => getProyectoId(),
             'trb_secuencial' => (isset($secuencial) ? $secuencial->trb_secuencial + 1 : 1),
             'fk_bodega_origen' => $dataPostTrb->trbBodegaOrigen,
             'fk_bodega_destino' => $dataPostTrb->trbBodegaDestino,
@@ -95,7 +96,7 @@ class TransferenciasLib {
             'fk_user_crea' => $this->user->id
         ];
 
-        return $this->ccm->actualizar('cc_transferencia_bodega', $datos, ['id' => $transferenciaId]);
+        return $this->ccm->actualizar('cc_transferencia_bodega', $datos, ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()]);
     }
 
 
@@ -432,7 +433,7 @@ class TransferenciasLib {
     public function anularTransferencia(int $transferenciaId, string $motivoAnulacion): array {
 
 
-        $transfer = $this->ccm->getData('cc_transferencia_bodega', ['id' => $transferenciaId], '*', null, 1);
+        $transfer = $this->ccm->getData('cc_transferencia_bodega', ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$transfer) {
             return ['status' => 'error', 'msg' => 'Transferencia no encontrada'];
@@ -455,7 +456,7 @@ class TransferenciasLib {
                 'trb_observaciones' => "Transferencia anulada en estado {$text}"
             ];
 
-            $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $transferenciaId]);
+            $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()]);
 
             return [
                 'status' => 'success',
@@ -500,7 +501,7 @@ class TransferenciasLib {
                 'trb_fecha_anulacion' => date('Y-m-d H:i:s'),
                 'fk_user_anula' => $this->user->id
             ];
-            $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $transferenciaId]);
+            $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()]);
 
             return [
                 'status' => 'success',

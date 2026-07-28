@@ -50,7 +50,7 @@ class DashboardController extends BaseController {
         $data['title'] = "Reportes Bio Comedor";
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['user'] = $this->user;
-        $data['listaComedores'] = $this->ccm->getData('cc_bio_comedores', ['com_estado' => 1], 'id, com_codigo, com_nombre');
+        $data['listaComedores'] = $this->ccm->getData('cc_bio_comedores', ['com_estado' => 1, 'fk_proyecto_sistema' => getProyectoId()], 'id, com_codigo, com_nombre');
         $data['listaServicios'] = $this->ccm->getData('cc_bio_servicios', ['serv_estado' => 1], 'id, serv_codigo, serv_nombre');
         $data['listaContratistas'] = $this->ccm->getData('cc_bio_contratistas', ['cont_estado' => 1], 'id, cont_ruc, cont_nombre');
         $data['listaProyectos'] = $this->ccm->getData('cc_bio_proyectos', ['proy_estado' => 1], 'id, proy_codigo, proy_nombre');

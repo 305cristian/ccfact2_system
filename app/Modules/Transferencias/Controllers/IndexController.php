@@ -102,7 +102,7 @@ class IndexController extends \App\Controllers\BaseController {
         $data['dataTransferencia'] = null;
 
         if (!empty($transferenciaId)) {
-            $data['dataTransferencia'] = $this->ccm->getData('cc_transferencia_bodega', ['id' => $transferenciaId], '*', null, 1);
+            $data['dataTransferencia'] = $this->ccm->getData('cc_transferencia_bodega', ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
         }
 
         $send['view'] = view($this->dirViewModule . '\viewNewTransferencia', $data);
@@ -338,7 +338,7 @@ class IndexController extends \App\Controllers\BaseController {
                 }
             }
 
-            $secuencial = $this->ccm->getValueWhere('cc_transferencia_bodega', ['id' => $transferenciaId], 'trb_secuencial');
+            $secuencial = $this->ccm->getValueWhere('cc_transferencia_bodega', ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()], 'trb_secuencial');
 
             $this->db->transCommit();
             $this->transferenciaCart->destroy();
@@ -442,7 +442,7 @@ class IndexController extends \App\Controllers\BaseController {
                 }
             }
 
-            $secuencial = $this->ccm->getValueWhere('cc_transferencia_bodega', ['id' => $transferenciaId], 'trb_secuencial');
+            $secuencial = $this->ccm->getValueWhere('cc_transferencia_bodega', ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()], 'trb_secuencial');
 
             $this->db->transCommit();
             $this->transferenciaCart->destroy();
@@ -618,7 +618,7 @@ class IndexController extends \App\Controllers\BaseController {
         // ===============================
         // 1. Obtenemos la transferencia
         // ===============================
-        $transfer = $this->ccm->getData('cc_transferencia_bodega', ['id' => $dataPost->transferenciaId], '*', null, 1);
+        $transfer = $this->ccm->getData('cc_transferencia_bodega', ['id' => $dataPost->transferenciaId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$transfer) {
             return $this->responseSetJSON('error', 'Transferencia no encontrada');
@@ -643,7 +643,7 @@ class IndexController extends \App\Controllers\BaseController {
                 'trb_estado' => 0, // RECHAZADA
                 'trb_motivo_anulacion' => $dataPost->motivo,
             ];
-            $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $dataPost->transferenciaId]);
+            $this->ccm->actualizar('cc_transferencia_bodega', $dataUpdate, ['id' => $dataPost->transferenciaId, 'fk_proyecto' => getProyectoId()]);
             return $this->responseSetJSON('success', '⚠️ Transferencia rechazada y enviada a corrección');
         } catch (\Exception $exc) {
             log_message('error', 'Error rechazarTransferencia: ' . $exc->getMessage());
@@ -668,7 +668,7 @@ class IndexController extends \App\Controllers\BaseController {
         try {
             $this->db->transBegin();
 
-            $transfer = $this->ccm->getData('cc_transferencia_bodega', ['id' => $transferenciaId], '*', null, 1);
+            $transfer = $this->ccm->getData('cc_transferencia_bodega', ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
             if (!$transfer || $transfer->trb_estado != 2) {
                 return $this->responseSetJSON('warning', 'La transferencia no está en estado POR CONFIRMAR');
@@ -713,7 +713,7 @@ class IndexController extends \App\Controllers\BaseController {
                 'trb_fecha_confirmacion' => date('Y-m-d H:i:s'),
                 'fk_user_confirma' => $this->user->id
             ];
-            $this->ccm->actualizar('cc_transferencia_bodega', $whereData, ['id' => $transferenciaId]);
+            $this->ccm->actualizar('cc_transferencia_bodega', $whereData, ['id' => $transferenciaId, 'fk_proyecto' => getProyectoId()]);
 
             $this->db->transCommit();
             $this->logs->logSuccess('Transferencia confirmada exitosamente ID: ' . $transferenciaId);

@@ -54,6 +54,7 @@ class ComprasFinanzasLib {
             $formData = [
                 'ret_secuencial' => $secuencial,
                 'ret_documento_id' => $compraId,
+                'fk_proyecto' => getProyectoId(),
                 'ret_tipo_transaccion_cod' => $this->tipoTransaccionRetencion,
                 'ret_numero_comprobante' => $numeroComprobante,
                 'ret_numero_emision' => $puntoEmision->pv_emision,
@@ -72,8 +73,8 @@ class ComprasFinanzasLib {
                 $this->guardarDetalleRetencion($retencionId, $detalle);
             }
 
-            $this->ccm->actualizar('cc_compras', ['fk_retencion' => $retencionId], ['id' => $compraId]);
-            $this->ccm->actualizar('cc_puntos_venta', ['pv_sec_actual' => $secuencial + 1], ['id' => $puntoEmision->id]);
+            $this->ccm->actualizar('cc_compras', ['fk_retencion' => $retencionId], ['id' => $compraId, 'fk_proyecto' => getProyectoId()]);
+            $this->ccm->actualizar('cc_puntos_venta', ['pv_sec_actual' => $secuencial + 1], ['id' => $puntoEmision->id, 'fk_proyecto' => getProyectoId()]);
 
             return $retencionId;
         } catch (\Throwable $e) {
@@ -82,7 +83,7 @@ class ComprasFinanzasLib {
     }
 
     public function crearCuentaPorPagar(int $compraId): int {
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], '*', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$compra) {
             throw new \RuntimeException('No se encontró la compra para generar la cuenta por pagar.');
@@ -95,7 +96,7 @@ class ComprasFinanzasLib {
         $totalRetenido = 0;
 
         if (!empty($compra->fk_retencion)) {
-            $totalRetenido = (float) $this->ccm->getValueWhere('cc_retencion', ['id' => $compra->fk_retencion], 'ret_total_retenido');
+            $totalRetenido = (float) $this->ccm->getValueWhere('cc_retencion', ['id' => $compra->fk_retencion, 'fk_proyecto' => getProyectoId()], 'ret_total_retenido');
         }
 
         $totalPagar = round((float) $compra->comp_total - $totalRetenido, 4);
@@ -108,6 +109,7 @@ class ComprasFinanzasLib {
 
         $formData = [
             'fk_compra' => $compraId,
+            'fk_proyecto' => getProyectoId(),
             'fk_proveedor' => $compra->fk_proveedor,
             'cxp_tipo_transaccion_cod' => '02',
             'cxp_numero_documento' => $compra->comp_numero_comprobante,
@@ -127,7 +129,7 @@ class ComprasFinanzasLib {
 
     public function guardarPagoContado(int $cxpId, object $pago): int {
 
-        $cxp = $this->ccm->getData('cc_cxp', ['id' => $cxpId], '*', null, 1);
+        $cxp = $this->ccm->getData('cc_cxp', ['id' => $cxpId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$cxp || $cxp->cxp_tipo_pago !== 'CONTADO') {
             throw new \RuntimeException('La cuenta por pagar no corresponde a una compra de contado.');
@@ -178,12 +180,13 @@ class ComprasFinanzasLib {
                 break;
         }
 
-        $ultimoPago = $this->ccm->getData('cc_pagos', null, 'pg_numero_secuencial', ['id' => 'DESC'], 1);
+        $ultimoPago = $this->ccm->getData('cc_pagos', ['fk_proyecto' => getProyectoId()], 'pg_numero_secuencial', ['id' => 'DESC'], 1);
 
         $secuencial = $ultimoPago ? (int) $ultimoPago->pg_numero_secuencial + 1 : 1;
 
         $formData = [
             'fk_proveedor' => $cxp->fk_proveedor,
+            'fk_proyecto' => getProyectoId(),
             'pg_numero_secuencial' => (string) $secuencial,
             'pg_fecha' => $fechaPago,
             'fk_forma_pago' => $formaPago,
@@ -209,6 +212,7 @@ class ComprasFinanzasLib {
 
         $formDataDet = [
             'fk_pago' => $pagoId,
+            'fk_proyecto' => getProyectoId(),
             'fk_cxp' => $cxpId,
             'fk_cuota' => null,
             'pgd_valor' => $cxp->cxp_total,
@@ -220,7 +224,7 @@ class ComprasFinanzasLib {
 
     public function guardarCuotas(int $cxpId, array $cuotas): int {
 
-        $cxp = $this->ccm->getData('cc_cxp', ['id' => $cxpId], '*', null, 1);
+        $cxp = $this->ccm->getData('cc_cxp', ['id' => $cxpId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$cxp) {
             throw new \RuntimeException('No se encontró la cuenta por pagar.');
@@ -266,6 +270,7 @@ class ComprasFinanzasLib {
 
             $formData = [
                 'fk_cxp' => $cxpId,
+                'fk_proyecto' => getProyectoId(),
                 'cxpc_numero' => (int) $cuota->numero,
                 'cxpc_fecha_vencimiento' => $cuota->fecha,
                 'cxpc_valor' => $valor,
@@ -281,13 +286,13 @@ class ComprasFinanzasLib {
     }
 
     public function anularRetencionCompra(int $compraId): void {
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, fk_retencion', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, fk_retencion', null, 1);
 
         if (!$compra || empty($compra->fk_retencion)) {
             return;
         }
 
-        $actualizado = $this->ccm->actualizar('cc_retencion', ['ret_estado' => 0], ['id' => $compra->fk_retencion]);
+        $actualizado = $this->ccm->actualizar('cc_retencion', ['ret_estado' => 0], ['id' => $compra->fk_retencion, 'fk_proyecto' => getProyectoId()]);
 
         if (!$actualizado) {
             throw new \RuntimeException('No se pudo anular la retencion de la compra.');
@@ -295,16 +300,16 @@ class ComprasFinanzasLib {
     }
 
     public function validarSinPagosActivosCredito(int $compraId): void {
-        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId], 'id, cxp_tipo_pago', null, 1);
+        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, cxp_tipo_pago', null, 1);
 
         if (!$cxp || $cxp->cxp_tipo_pago !== 'CREDITO') {
             return;
         }
 
-        $pagosDet = $this->ccm->getData('cc_pagos_det', ['fk_cxp' => $cxp->id], 'fk_pago');
+        $pagosDet = $this->ccm->getData('cc_pagos_det', ['fk_cxp' => $cxp->id, 'fk_proyecto' => getProyectoId()], 'fk_pago');
 
         foreach ($pagosDet as $pagoDet) {
-            $pago = $this->ccm->getData('cc_pagos', ['id' => (int) $pagoDet->fk_pago, 'pg_estado' => 'ACTIVO'], 'id, pg_numero_secuencial', null, 1);
+            $pago = $this->ccm->getData('cc_pagos', ['id' => (int) $pagoDet->fk_pago, 'fk_proyecto' => getProyectoId(), 'pg_estado' => 'ACTIVO'], 'id, pg_numero_secuencial', null, 1);
 
             if ($pago) {
                 throw new \RuntimeException("No se puede anular la compra porque tiene pagos activos registrados. Primero anule el pago #{$pago->pg_numero_secuencial}.");
@@ -313,13 +318,13 @@ class ComprasFinanzasLib {
     }
 
     public function validarRetencionAnulableCompra(int $compraId): void {
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, fk_retencion', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, fk_retencion', null, 1);
 
         if (!$compra || empty($compra->fk_retencion)) {
             return;
         }
 
-        $retencion = $this->ccm->getData( 'cc_retencion', ['id' => $compra->fk_retencion, 'ret_estado' => 1],'id, ret_numero_comprobante, ret_estado_sri', null, 1);
+        $retencion = $this->ccm->getData( 'cc_retencion', ['id' => $compra->fk_retencion, 'fk_proyecto' => getProyectoId(), 'ret_estado' => 1],'id, ret_numero_comprobante, ret_estado_sri', null, 1);
 
         if (!$retencion) {
             return;
@@ -331,13 +336,13 @@ class ComprasFinanzasLib {
     }
 
     public function anularPagosCompra(int $compraId): void {
-        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId], 'id', null, 1);
+        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId()], 'id', null, 1);
 
         if (!$cxp) {
             return;
         }
 
-        $pagosDet = $this->ccm->getData('cc_pagos_det', ['fk_cxp' => $cxp->id], 'fk_pago');
+        $pagosDet = $this->ccm->getData('cc_pagos_det', ['fk_cxp' => $cxp->id, 'fk_proyecto' => getProyectoId()], 'fk_pago');
         $pagosIds = [];
 
         foreach ($pagosDet as $pagoDet) {
@@ -349,7 +354,7 @@ class ComprasFinanzasLib {
         }
 
         foreach ($pagosIds as $pagoId) {
-            $actualizado = $this->ccm->actualizar('cc_pagos', ['pg_estado' => 'ANULADO'], ['id' => $pagoId]);
+            $actualizado = $this->ccm->actualizar('cc_pagos', ['pg_estado' => 'ANULADO'], ['id' => $pagoId, 'fk_proyecto' => getProyectoId()]);
 
             if (!$actualizado) {
                 throw new \RuntimeException('No se pudo anular uno de los pagos de la compra.');
@@ -358,15 +363,15 @@ class ComprasFinanzasLib {
     }
 
     public function anularCuentaPorPagarCompra(int $compraId): void {
-        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId], 'id', null, 1);
+        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId()], 'id', null, 1);
 
         if (!$cxp) {
             return;
         }
 
-        $this->ccm->actualizar('cc_cxp_cuotas', ['cxpc_estado' => 'ANULADO'], ['fk_cxp' => $cxp->id]);
+        $this->ccm->actualizar('cc_cxp_cuotas', ['cxpc_estado' => 'ANULADO'], ['fk_cxp' => $cxp->id, 'fk_proyecto' => getProyectoId()]);
 
-        $actualizado = $this->ccm->actualizar('cc_cxp', ['cxp_estado' => 'ANULADO', 'cxp_saldo' => 0,], ['id' => $cxp->id]);
+        $actualizado = $this->ccm->actualizar('cc_cxp', ['cxp_estado' => 'ANULADO', 'cxp_saldo' => 0,], ['id' => $cxp->id, 'fk_proyecto' => getProyectoId()]);
 
         if (!$actualizado) {
             throw new \RuntimeException('No se pudo anular la cuenta por pagar de la compra.');

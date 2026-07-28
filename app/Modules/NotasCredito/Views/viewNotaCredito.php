@@ -880,7 +880,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     if (data.status === 'success') {
                         this.modalDestinoFinancieroInstance.hide();
-                        sweet_msg_dialog('success', data.msg || 'Nota de credito procesada correctamente.');
+                        sweet_msg_dialog('success', data.msg || 'Nota de credito procesada correctamente.', `${this.url}/compras/gestionCompras`);
                     } else if (data.status === 'warning') {
                         sweet_msg_dialog('warning', data.msg || 'Revise los datos de la nota de credito.');
                     } else {

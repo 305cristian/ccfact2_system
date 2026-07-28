@@ -90,7 +90,7 @@ class GestionController extends BaseController {
             return $this->responseSetJSON('warning', 'No se recibió la compra que se desea actualizar.');
         }
 
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], '*', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$compra) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -129,11 +129,11 @@ class GestionController extends BaseController {
         $this->db->transBegin();
 
         try {
-            $this->ccm->actualizar('cc_compras', $datosCompra, ['id' => $compraId, 'comp_estado' => 'ARCHIVADO']);
+            $this->ccm->actualizar('cc_compras', $datosCompra, ['id' => $compraId, 'fk_proyecto' => getProyectoId(), 'comp_estado' => 'ARCHIVADO']);
 
-            $this->ccm->actualizar('cc_cxp', ['cxp_numero_documento' => $numeroComprobante], ['fk_compra' => $compraId]);
+            $this->ccm->actualizar('cc_cxp', ['cxp_numero_documento' => $numeroComprobante], ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId()]);
 
-            $this->ccm->actualizar('cc_asiento_contable', ['ac_detalle' => 'COMPRA NRO. ' . $numeroDocumento], ['ac_codigo_transaccion' => '02', 'ac_documento_id' => $compraId, 'ac_estado' => 1]);
+            $this->ccm->actualizar('cc_asiento_contable', ['ac_detalle' => 'COMPRA NRO. ' . $numeroDocumento], ['ac_codigo_transaccion' => '02', 'ac_documento_id' => $compraId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1]);
 
             if ($this->db->transStatus() === false) {
                 throw new \RuntimeException('No se pudo completar la actualización.');
@@ -153,7 +153,7 @@ class GestionController extends BaseController {
 
         $this->user->validateSession();
 
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_estado, fk_centro_costo, comp_secuencial', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_estado, fk_centro_costo, comp_secuencial', null, 1);
 
         if (!$compra) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -190,7 +190,7 @@ class GestionController extends BaseController {
             return $this->responseSetJSON('warning', 'Debe existir al menos un detalle para actualizar.');
         }
 
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_estado', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_estado', null, 1);
 
         if (!$compra) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -200,7 +200,7 @@ class GestionController extends BaseController {
             return $this->responseSetJSON('warning', 'Solo se pueden editar centros de costo de compras archivadas.');
         }
 
-        $detallesActuales = $this->ccm->getData('cc_compras_det', ['fk_compra' => $compraId, 'compd_estado' => 1], 'id');
+        $detallesActuales = $this->ccm->getData('cc_compras_det', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId(), 'compd_estado' => 1], 'id');
         $detalleIds = array_map(static fn($detalle) => (int) $detalle->id, $detallesActuales ?? []);
 
         foreach ($detalles as $detalle) {
@@ -219,16 +219,16 @@ class GestionController extends BaseController {
         $this->db->transBegin();
 
         try {
-            $this->ccm->actualizar('cc_compras', ['fk_centro_costo' => $centroCostoId], ['id' => $compraId, 'comp_estado' => 'ARCHIVADO']);
+            $this->ccm->actualizar('cc_compras', ['fk_centro_costo' => $centroCostoId], ['id' => $compraId, 'fk_proyecto' => getProyectoId(), 'comp_estado' => 'ARCHIVADO']);
 
             foreach ($detalles as $detalle) {
-                $this->ccm->actualizar('cc_compras_det', ['compd_centro_costo' => (int) $detalle->centroCostoId], ['id' => (int) $detalle->id, 'fk_compra' => $compraId, 'compd_estado' => 1]);
+                $this->ccm->actualizar('cc_compras_det', ['compd_centro_costo' => (int) $detalle->centroCostoId], ['id' => (int) $detalle->id, 'fk_compra' => $compraId, 'fk_proyecto' => getProyectoId(), 'compd_estado' => 1]);
             }
 
-            $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_codigo_transaccion' => '02', 'ac_documento_id' => $compraId, 'ac_estado' => 1], 'id');
+            $asientoId = $this->ccm->getValueWhere('cc_asiento_contable', ['ac_codigo_transaccion' => '02', 'ac_documento_id' => $compraId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1], 'id');
 
             if ($asientoId) {
-                $this->ccm->actualizar('cc_asiento_contable_det', ['fk_centro_costos' => $centroCostoId], ['fk_asiento_contable' => $asientoId]);
+                $this->ccm->actualizar('cc_asiento_contable_det', ['fk_centro_costos' => $centroCostoId], ['fk_asiento_contable' => $asientoId, 'fk_proyecto' => getProyectoId()]);
             }
 
             if ($this->db->transStatus() === false) {
@@ -249,7 +249,7 @@ class GestionController extends BaseController {
 
         $this->user->validateSession();
 
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_estado, comp_secuencial', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_estado, comp_secuencial', null, 1);
 
         if (!$compra) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -281,7 +281,7 @@ class GestionController extends BaseController {
             return $this->responseSetJSON('warning', 'Debe existir al menos un lote para actualizar.');
         }
 
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], 'id, comp_estado', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'id, comp_estado', null, 1);
 
         if (!$compra) {
             return $this->responseSetJSON('warning', 'La compra no se encuentra registrada.');
@@ -359,7 +359,7 @@ class GestionController extends BaseController {
                     'compd_fecha_elaboracion' => $fechaElaboracion,
                     'compd_fecha_caducidad' => $fechaCaducidad,
                 ];
-                $this->ccm->actualizar('cc_compras_det', $dataSet2, ['id' => (int) $detalle->id, 'fk_compra' => $compraId, 'compd_estado' => 1]);
+                $this->ccm->actualizar('cc_compras_det', $dataSet2, ['id' => (int) $detalle->id, 'fk_compra' => $compraId, 'fk_proyecto' => getProyectoId(), 'compd_estado' => 1]);
             }
 
             if ($this->db->transStatus() === false) {

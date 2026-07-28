@@ -32,7 +32,7 @@ class ComprasAsientosLib {
     }
 
     public function generarAsiento(int $compraId): int {
-        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId], '*', null, 1);
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
         if (!$compra) {
             throw new \RuntimeException('No se encontró la compra registrada.');
@@ -42,13 +42,13 @@ class ComprasAsientosLib {
             throw new \RuntimeException('Solo las compras archivadas generan asientos contables.');
         }
 
-        $asientoExistente = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccion, 'ac_documento_id' => $compraId, 'ac_estado' => 1,], 'id', null, 1);
+        $asientoExistente = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccion, 'ac_documento_id' => $compraId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1,], 'id', null, 1);
 
         if ($asientoExistente) {
             throw new \RuntimeException('La compra ya tiene un asiento contable registrado.');
         }
 
-        $detalles = $this->ccm->getData('cc_compras_det', ['fk_compra' => $compraId, 'compd_estado' => 1], '*');
+        $detalles = $this->ccm->getData('cc_compras_det', ['fk_compra' => $compraId, 'fk_proyecto' => getProyectoId(), 'compd_estado' => 1], '*');
 
         if (empty($detalles)) {
             throw new \RuntimeException('La compra no tiene detalles para generar el asiento.');
@@ -92,7 +92,7 @@ class ComprasAsientosLib {
     }
 
     public function anularAsientoCompra(int $compraId): void {
-        $asiento = $this->ccm->getData( 'cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccion, 'ac_documento_id' => $compraId, 'ac_estado' => 1,], 'id', null, 1 );
+        $asiento = $this->ccm->getData( 'cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccion, 'ac_documento_id' => $compraId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1,], 'id', null, 1 );
 
         if (!$asiento) {
             return;
@@ -168,7 +168,7 @@ class ComprasAsientosLib {
     }
 
     protected function guardarDebitosIva(int $asientoId, object $compra): void {
-        $bases = $this->ccm->getData('cc_compras_bases_impuesto', ['fk_compra' => $compra->id, 'tipo_impuesto' => 'IVA', 'estado' => 1,], '*');
+        $bases = $this->ccm->getData('cc_compras_bases_impuesto', ['fk_compra' => $compra->id, 'fk_proyecto' => getProyectoId(), 'tipo_impuesto' => 'IVA', 'estado' => 1,], '*');
 
         $cuentasIva = [];
         $totalBasesIva = 0.0;
@@ -290,7 +290,7 @@ class ComprasAsientosLib {
 
     protected function guardarCreditosRetencion(int $asientoId, object $compra): float {
 
-        $retencion = $this->ccm->getData('cc_retencion', ['id' => $compra->fk_retencion, 'ret_documento_id' => $compra->id, 'ret_estado' => 1,], '*', null, 1);
+        $retencion = $this->ccm->getData('cc_retencion', ['id' => $compra->fk_retencion, 'ret_documento_id' => $compra->id, 'fk_proyecto' => getProyectoId(), 'ret_estado' => 1,], '*', null, 1);
 
         if (!$retencion) {
             throw new \RuntimeException('No se encontró la retención activa de la compra.');

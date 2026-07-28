@@ -73,3 +73,27 @@ function bodegaMain($userId) {
     $bodegaUsuario = $ccm->getValueWhere('cc_empleados', ['id' => $userId], 'fk_bodega_main');
     return $bodegaUsuario;
 }
+
+function getProyectoId() {
+    $session = Services::session();
+    return $session->get('fk_proyecto') ? (int) $session->get('fk_proyecto') : null;
+}
+
+function getProyectoNombre() {
+    $session = Services::session();
+    return $session->get('proy_nombre');
+}
+
+function getProyectoCodigo() {
+    $session = Services::session();
+    return $session->get('proy_codigo');
+}
+
+function getProyectosEmpleadoSistema(int $empleadoId): array {
+    if ($empleadoId <= 0) {
+        return [];
+    }
+
+    $loginModel = new \Modules\Login\Models\LoginModel();
+    return $loginModel->getProyectosEmpleado($empleadoId);
+}

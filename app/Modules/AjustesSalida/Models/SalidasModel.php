@@ -32,16 +32,17 @@ class SalidasModel extends \CodeIgniter\Model {
         $builder->join('cc_clientes tb3', 'tb3.id =tb1.fk_cliente');
         $builder->join('cc_empleados tb4', 'tb4.id =tb1.fk_user_id');
         $builder->join('cc_centroscosto tb5', 'tb5.id =tb1.fk_centro_costo');
-        $builder->join('cc_servicios tb6', 'tb6.id =tb1.fk_servicio');
+        $builder->join('cc_bio_servicios tb6', 'tb6.id =tb1.fk_servicio');
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         // Mapeo de filtros a columnas de BD
         $camposBD = [
-            'ajesSecuencial' => 'ajes_secuencial',
-            'ajesBodega' => 'fk_bodega',
-            'ajesMotivo' => 'fk_motivo_ajuste',
-            'ajesCentrocosto' => 'fk_centro_costo',
-            'ajesEstado' => 'ajes_estado',
-            'ajesTipo' => 'ajes_tipo'
+            'ajesSecuencial' => 'tb1.ajes_secuencial',
+            'ajesBodega' => 'tb1.fk_bodega',
+            'ajesMotivo' => 'tb1.fk_motivo_ajuste',
+            'ajesCentrocosto' => 'tb1.fk_centro_costo',
+            'ajesEstado' => 'tb1.ajes_estado',
+            'ajesTipo' => 'tb1.ajes_tipo'
         ];
 
         // Aplicar filtros dinámicamente
@@ -56,12 +57,12 @@ class SalidasModel extends \CodeIgniter\Model {
             $rangoFechas = explode(' a ', $filtros['ajesFechas']);
             $fDesde = trim($rangoFechas[0]);
             $fHasta = isset($rangoFechas[1]) ? trim($rangoFechas[1]) : trim($rangoFechas[0]);
-            $builder->where(['ajes_fecha <=' => $fHasta, 'ajes_fecha >= ' => $fDesde]);
+            $builder->where(['tb1.ajes_fecha <=' => $fHasta, 'tb1.ajes_fecha >= ' => $fDesde]);
         }
 
 
-        $builder->orderBy('ajes_fecha', 'ASC');
-        $builder->orderBy('ajes_secuencial', 'ASC');
+        $builder->orderBy('tb1.ajes_fecha', 'ASC');
+        $builder->orderBy('tb1.ajes_secuencial', 'ASC');
 
         $response = $builder->get();
 
@@ -87,8 +88,9 @@ class SalidasModel extends \CodeIgniter\Model {
         $builder->join('cc_empleados tb4', 'tb4.id = tb1.fk_user_id');
         $builder->join('cc_centroscosto tb5', 'tb5.id = tb1.fk_centro_costo');
         $builder->join('cc_motivos_ajuste tb6', 'tb6.id = tb1.fk_motivo_ajuste');
-        $builder->join('cc_servicios tb7', 'tb7.id = tb1.fk_servicio');
+        $builder->join('cc_bio_servicios tb7', 'tb7.id = tb1.fk_servicio');
         $builder->where('tb1.id', $idAjuste);
+        $builder->where('tb1.fk_proyecto', getProyectoId());
 
         $ajuste = $builder->get()->getRow();
 
@@ -206,7 +208,7 @@ class SalidasModel extends \CodeIgniter\Model {
 
         $builder = $this->db->table("cc_ajuste_salida ajuste");
         $builder->select("servicio.serv_nombre AS servicio, COUNT(*) AS total, SUM(ajuste.ajes_total) AS valor");
-        $builder->join("cc_servicios servicio", "servicio.id = ajuste.fk_servicio", "left");
+        $builder->join("cc_bio_servicios servicio", "servicio.id = ajuste.fk_servicio", "left");
         $this->aplicarFiltrosDashboard($builder, $filtros);
         $builder->where("ajuste.ajes_estado", 2);
         $builder->groupBy("servicio.id, servicio.serv_nombre");
@@ -215,6 +217,7 @@ class SalidasModel extends \CodeIgniter\Model {
     }
 
     private function aplicarFiltrosDashboard(BaseBuilder $builder, array $filtros): void {
+        $builder->where("ajuste.fk_proyecto", getProyectoId());
 
         if (!empty($filtros["fechaDesde"])) {
             $builder->where("ajuste.ajes_fecha >=", $filtros["fechaDesde"]);

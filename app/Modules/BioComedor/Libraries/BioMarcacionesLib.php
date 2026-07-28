@@ -86,6 +86,7 @@ class BioMarcacionesLib {
         $esRetraso = $estado === 'VALIDA' && !$this->horaEstaDentroDelRango($horario->hor_hora_inicio, $hora, $horario->hor_hora_fin_normal) ? 1 : 0;
 
         $dataSave = [
+            'fk_proyecto_sistema' => getProyectoId(),
             'fk_comensal' => $comensal->id,
             'fk_comedor' => $comedorId,
             'fk_equipo' => $equipoId,

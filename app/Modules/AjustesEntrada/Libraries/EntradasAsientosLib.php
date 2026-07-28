@@ -48,7 +48,7 @@ class EntradasAsientosLib {
     public function generarAsiento(int $ajusteId) {
         try {
             // Obtener datos del ajuste
-            $ajuste = $this->ccm->getData('cc_ajuste_entrada', ['id' => $ajusteId], '*', null, 1);
+            $ajuste = $this->ccm->getData('cc_ajuste_entrada', ['id' => $ajusteId, 'fk_proyecto' => getProyectoId()], '*', null, 1);
 
             if (!$ajuste) {
                 throw new \Exception('Ajuste de entrada no encontrado');
@@ -60,7 +60,7 @@ class EntradasAsientosLib {
             }
 
             // Validamos que no exista ya un asiento contable
-            $asientoExiste = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipotransaccionCod, 'ac_documento_id' => $ajusteId], 'id');
+            $asientoExiste = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipotransaccionCod, 'ac_documento_id' => $ajusteId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1], 'id');
             if (!empty($asientoExiste)) {
                 throw new \Exception('Ya existe un asiento contable para este ajuste');
             }

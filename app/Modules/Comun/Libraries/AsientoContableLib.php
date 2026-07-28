@@ -55,6 +55,11 @@ class AsientoContableLib {
             $anio = $fechaArray[0];
             $mes = $fechaArray[1];
 
+            $proyectoId = (int) getProyectoId();
+            if ($proyectoId <= 0) {
+                throw new \Exception('Debe seleccionar un proyecto para generar el asiento contable.');
+            }
+
             // Usuario
             $usuarioId = $userId ?? $this->user->id;
 
@@ -65,15 +70,16 @@ class AsientoContableLib {
             }
 
             // Obtener siguiente número de asiento en el periodo actual
-            $nroAsiento = getNumeroAsiento(date('Y-m-d'));
+            $nroAsiento = $this->getSiguienteNumeroAsiento((int) $periodoContable, $proyectoId);
+            
 
             // Obtener numero secuencial
-            $dataSecuencial = $this->ccm->getData('cc_asiento_contable', null, 'ac_secuencial', ['ac_secuencial' => 'DESC'], 1);
-            $secuencial = (isset($dataSecuencial) ? $dataSecuencial->ac_secuencial + 1 : 1);
+            $secuencial = $this->getSiguienteSecuencialAsiento($proyectoId);
 
             // Datos del asiento
             $datosAsiento = [
                 'fk_periodo' => $periodoContable,
+                'fk_proyecto' => $proyectoId,
                 'ac_num_asiento' => $nroAsiento,
                 'ac_secuencial' => $secuencial,
                 'ac_anio' => $anio,
@@ -93,6 +99,8 @@ class AsientoContableLib {
                 throw new \Exception('Error al guardar el asiento contable');
             }
 
+            $this->incrementarContadorPeriodo((int) $periodoContable);
+
             return $asientoId;
         } catch (\Throwable $exc) {
             log_message('error', '[AsientoContableLib::guardarAsiento] ' . $exc->getMessage() . PHP_EOL . $exc->getTraceAsString());
@@ -100,6 +108,40 @@ class AsientoContableLib {
             throw new \Exception('Error al generar asiento contable<br> ' . $exc->getMessage());
 
         }
+    }
+
+    private function getSiguienteNumeroAsiento(int $periodoContable, int $proyectoId): int {
+        $ultimo = $this->ccm->getData(
+                'cc_asiento_contable',
+                ['fk_periodo' => $periodoContable, 'fk_proyecto' => $proyectoId],
+                'ac_num_asiento',
+                ['ac_num_asiento' => 'DESC'],
+                1
+        );
+
+        return $ultimo ? (int) $ultimo->ac_num_asiento + 1 : 1;
+    }
+
+    private function getSiguienteSecuencialAsiento(int $proyectoId): int {
+        $ultimo = $this->ccm->getData(
+                'cc_asiento_contable',
+                ['fk_proyecto' => $proyectoId],
+                'ac_secuencial',
+                ['ac_secuencial' => 'DESC'],
+                1
+        );
+
+        return $ultimo ? (int) $ultimo->ac_secuencial + 1 : 1;
+    }
+
+    private function incrementarContadorPeriodo(int $periodoContable): void {
+        $periodo = $this->ccm->getData('cc_periodos_contables', ['id' => $periodoContable], 'id, pc_valor', null, 1);
+
+        if (!$periodo) {
+            throw new \Exception('No se encontro el periodo contable para actualizar el contador mensual.');
+        }
+
+        $this->ccm->actualizar( 'cc_periodos_contables',['pc_valor' => (int) $periodo->pc_valor + 1],['id' => $periodoContable]);
     }
 
     /**
@@ -137,6 +179,7 @@ class AsientoContableLib {
             }
             $datosDetalle = [
                 'fk_asiento_contable' => $asientoId,
+                'fk_proyecto' => getProyectoId(),
                 'codigo_cuenta_contable' => $cuentaContable,
                 'acd_valor' => $valor,
                 'acd_tipo' => $tipo,
@@ -169,6 +212,7 @@ class AsientoContableLib {
         try {
             $whereData = [
                 'fk_asiento_contable' => $asientoId,
+                'fk_proyecto' => getProyectoId(),
                 'acd_estado' => 1
             ];
             $asientosDet = $this->ccm->getData('cc_asiento_contable_det', $whereData, 'acd_tipo, acd_valor');
@@ -203,7 +247,7 @@ class AsientoContableLib {
         try {
             $resultado = $this->ccm->actualizar( 'cc_asiento_contable',
                     ['ac_estado' => -1, 'ac_fecha_anulacion' => date('Y-m-d H:i:s')],
-                    ['ac_codigo_transaccion' => $tipoTransaccion, 'ac_documento_id' => $docId],
+                    ['ac_codigo_transaccion' => $tipoTransaccion, 'ac_documento_id' => $docId, 'fk_proyecto' => getProyectoId()],
                    
             );
 
