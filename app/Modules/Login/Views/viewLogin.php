@@ -110,6 +110,3 @@
 </html>
 <script src="<?php echo base_url(); ?>/resources/plugins/materialMDB5/js/mdb.min.js"></script>
 <script src="<?php echo base_url(); ?>/resources/plugins/fontawesome/js/all.js"></script>
-
-<script src="https://app.chatgptbuilder.io/webchat/plugin.js?v=6">
-</script><script>ktt10.setup({id:"5fkOudDZ9wEEf2",accountId:"1757528",color:"#36D6B5"})</script>

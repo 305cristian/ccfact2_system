@@ -94,7 +94,8 @@ class ComprasModel extends Model {
         $compra->formasPagoAts = $this->obtenerFormasPagoAts($compraId);
         $compra->retencion = $this->obtenerRetencionCompra($compra);
         $compra->cuentaPorPagar = $this->obtenerCuentaPorPagar($compraId);
-        $compra->asientoContable = $this->obtenerAsientoContable($compraId);
+        $compra->compraRelacionada = $this->obtenerCompraRelacionada($compra);
+        $compra->asientoContable = $this->obtenerAsientoContable($compra);
 
         return $compra;
     }
@@ -437,13 +438,29 @@ class ComprasModel extends Model {
         return $cxp;
     }
 
-    private function obtenerAsientoContable(int $compraId): ?object {
+    private function obtenerCompraRelacionada(object $compra): ?object {
+
+        if (empty($compra->fk_compra_relacionada)) {
+            return null;
+        }
+
+        return $this->db->table('cc_compras compra')
+                        ->select('compra.id, compra.comp_secuencial, compra.comp_numero_establecimiento, compra.comp_numero_emision, compra.comp_numero_comprobante, compra.comp_fecha_emision, tipoComprobante.comp_nombre AS comprobante_nombre')
+                        ->join('cc_tipos_comprobante tipoComprobante', 'tipoComprobante.comp_codigo = compra.comp_tipo_comprobante_cod', 'left')
+                        ->where('compra.id', (int) $compra->fk_compra_relacionada)
+                        ->get()
+                        ->getRow();
+    }
+
+    private function obtenerAsientoContable(object $compra): ?object {
+
+        $codigoTransaccion = $compra->comp_tipo_comprobante_cod === '04' ? '11' : '02';
 
         $asiento = $this->db->table('cc_asiento_contable asiento')
                 ->select('asiento.*, CONCAT(usuario.emp_nombre, " ", usuario.emp_apellido) AS usuario_registra')
                 ->join('cc_empleados usuario', 'usuario.id = asiento.fk_user_id', 'left')
-                ->where('asiento.ac_codigo_transaccion', '02')
-                ->where('asiento.ac_documento_id', $compraId)
+                ->where('asiento.ac_codigo_transaccion', $codigoTransaccion)
+                ->where('asiento.ac_documento_id', (int) $compra->id)
                 ->orderBy('asiento.id', 'DESC')
                 ->get()
                 ->getRow();

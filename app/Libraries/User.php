@@ -14,10 +14,13 @@
 
 namespace App\Libraries;
 
+use App\Controllers\BaseController;
 use App\Models\Roles;
 use Config\Services;
+use function redirect;
+use function site_url;
 
-class User extends \App\Controllers\BaseController {
+class User extends BaseController {
 
     //put your code here
     public $id;
@@ -91,6 +94,6 @@ class User extends \App\Controllers\BaseController {
             $this->session->set('message', '!Atencion, su sesión ha caducado');
             echo '<script>window.location.replace("' . site_url() . '") </script>';
             die();
+            }
         }
     }
-}

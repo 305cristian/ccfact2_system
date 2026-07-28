@@ -1,0 +1,64 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 26 jul 2026, 1:16:30 p.m.
+    Author     : CRISTIAN R. PAZ
+*/
+
+    .ndc-label {
+        font-weight: 700;
+        color: #52616b;
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+
+    .ndc-value {
+        border: 1px solid #dce3e8;
+        border-radius: 4px;
+        padding: 7px 9px;
+        background: #f8fafb;
+        min-height: 36px;
+    }
+
+    .ndc-total-box {
+        border: 1px solid #dce3e8;
+        border-left: 4px solid #6aa1d8;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+
+    .ndc-total-wrapper {
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+    .ndc-total-wrapper .ndc-total-box {
+        width: auto;
+    }
+
+    .ndc-total-box td {
+        padding: 7px 10px;
+    }
+
+    .ndc-total-box .total-row td {
+        background: #e7f4ec;
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .ndc-mode-option {
+        border: 1px solid #dce3e8;
+        border-radius: 6px;
+        cursor: pointer;
+        padding: 8px 12px;
+    }
+
+    .ndc-mode-option.active {
+        background: #e7f4ec;
+        border-color: #6ca881;
+        color: #14532d;
+        font-weight: 800;
+    }

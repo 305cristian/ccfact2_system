@@ -30,69 +30,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 /** @var bool $permitirDuplicados */
 ?>
 
-<style>
-    .multiselect__tags {
-        border-radius: 5px 0px 0px 5px
-    }
-
-    .cart-product-link-cell {
-        position: relative;
-        z-index: 50;
-    }
-
-    .cart .table-responsive,
-    .cart table,
-    .cart tbody,
-    .cart tr,
-    .cart td {
-        overflow: visible;
-    }
-
-    .cart-product-link-select {
-        min-width: 115px;
-        max-width: 125px;
-    }
-
-    .cart-product-link-select.vs--open {
-        z-index: 4000;
-    }
-
-    .cart-product-link-select .vs__dropdown-toggle {
-        min-height: 30px;
-        padding: 0 4px;
-    }
-
-    .cart-product-link-select .vs__selected-options {
-        min-width: 0;
-        flex-wrap: nowrap;
-    }
-
-    .cart-product-link-select .vs__selected,
-    .cart-product-link-select .vs__search {
-        font-size: 12px;
-        margin: 0;
-        padding: 0;
-    }
-
-    .cart-product-link-select .vs__dropdown-menu {
-        position: absolute;
-        min-width: 360px;
-        width: max-content;
-        max-width: 520px;
-        max-height: 360px;
-        overflow-y: auto;
-        z-index: 5000;
-    }
-
-    .cart-product-link-select .vs__dropdown-option {
-        white-space: nowrap;
-    }
-
-    .cart-product-link-select .producto-option-row {
-        min-width: 330px;
-    }
-</style>
 <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
+<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/modules/compras/style.css">
 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">

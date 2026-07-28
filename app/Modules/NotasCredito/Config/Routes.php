@@ -27,4 +27,6 @@ if (!isset($routes)) {
 $routes->group('notacredito', ['namespace' => '\Modules\NotasCredito\Controllers'], function ($subroutes) {
 
     $subroutes->get('nuevaNdc/(:num)', 'IndexController::index/$1');
+    $subroutes->post('saveNotaCredito', 'IndexController::saveNotaCredito');
+    $subroutes->post('anularNotaCredito', 'IndexController::anularNotaCredito');
 });

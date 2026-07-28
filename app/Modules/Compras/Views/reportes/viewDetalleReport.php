@@ -15,6 +15,16 @@ $estados = [
 
 [$estadoClase, $estadoTexto] = $estados[$compra->comp_estado] ?? ['bg-secondary', 'DESCONOCIDO'];
 $tituloComprobante = trim( ($compra->comprobante_nombre ?? 'COMPRA'));
+$esNotaCredito = ($compra->comp_tipo_comprobante_cod ?? '') === '04';
+$numeroCompraRelacionada = '';
+
+if ($esNotaCredito && !empty($compra->compraRelacionada)) {
+    $numeroCompraRelacionada = implode('-', array_filter([
+        $compra->compraRelacionada->comp_numero_establecimiento,
+        $compra->compraRelacionada->comp_numero_emision,
+        $compra->compraRelacionada->comp_numero_comprobante,
+    ]));
+}
 ?>
 
 <div class="border p-3" id="contentExport">
@@ -51,6 +61,11 @@ $tituloComprobante = trim( ($compra->comprobante_nombre ?? 'COMPRA'));
             <td style="width:50%">
                 <strong>Comprobante:</strong> <?= esc($numeroComprobante) ?><br>
                 <strong>Tipo:</strong> <?= esc($compra->comprobante_nombre) ?><br>
+                <?php if ($esNotaCredito): ?>
+                    <strong>Tipo NDC:</strong> <?= esc($compra->comp_tipo_nota_credito ?: '-') ?><br>
+                    <strong>Compra relacionada:</strong>
+                    <?= !empty($compra->compraRelacionada) ? '#' . str_pad($compra->compraRelacionada->comp_secuencial, 5, '0', STR_PAD_LEFT) . ' / ' . esc($numeroCompraRelacionada) : '-' ?><br>
+                <?php endif; ?>
                 <strong>Sustento:</strong> <?= esc($compra->sus_nombre) ?><br>
                 <strong>Bodega:</strong> <?= esc($compra->bod_nombre) ?><br>
                 <strong>Centro de costo:</strong> <?= esc($compra->cc_nombre) ?>

@@ -294,14 +294,21 @@
                                                 <i class="fas fa-clone me-2"></i> Clonar compra
                                             </button>
                                         </li>
-                                        <li v-if="compra.comp_estado === 'ARCHIVADO'">
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO' && ['01', '02', '03'].includes(String(compra.comp_tipo_comprobante_cod))">
                                             <button
                                                 class="dropdown-item"
                                                 @click="generarNotaCredito(compra)">
                                                 <i class="fas fa-file-invoice me-2"></i> Generar nota de crédito
                                             </button>
                                         </li>
-                                        <li v-if="['BORRADOR', 'ARCHIVADO'].includes(compra.comp_estado)">
+                                        <li v-if="compra.comp_estado === 'ARCHIVADO' && compra.comp_tipo_comprobante_cod === '04'">
+                                            <button
+                                                class="dropdown-item text-danger"
+                                                @click="anularNotaCredito(compra)">
+                                                <i class="fas fa-ban me-2"></i> Anular nota de crédito
+                                            </button>
+                                        </li>
+                                        <li v-if="['BORRADOR', 'ARCHIVADO'].includes(compra.comp_estado) && compra.comp_tipo_comprobante_cod !== '04'">
                                             <button
                                                 class="dropdown-item text-danger"
                                                 @click="anularCompra(compra)">
@@ -313,7 +320,11 @@
                             </td>
                             <td>{{ zFill(compra.comp_secuencial, 5) }}</td>
                             <td>{{ compra.comp_fecha_emision }}</td>
-                            <td>{{ compra.comp_tipo_comprobante_cod }} - {{ compra.tipo_comprobante ?? '-' }}</td>
+                            <td>
+                                <span class="badge rounded-pill border" :style="styleTipoComprobante(compra.comp_tipo_comprobante_cod)">
+                                     {{ compra.tipo_comprobante ?? '-' }}
+                                </span>
+                            </td>
                             <td>{{ numeroComprobante(compra) }}</td>
                             <td>{{ compra.proveedor }}</td>
                             <td>{{ compra.prov_ruc }}</td>
@@ -330,6 +341,16 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                    <span class="small fw-bold text-muted me-1">Leyenda:</span>
+                    <span
+                        v-for="tipo in leyendaTiposComprobante"
+                        :key="tipo.codigo"
+                        class="badge rounded-pill border"
+                        :style="tipo.style">
+                        {{ tipo.codigo }} - {{ tipo.label }}
+                    </span>
+                </div>
             </div>
 
             <div v-else class="text-center text-muted py-5">
@@ -466,6 +487,12 @@
                 listaTiposCostos: [
                     {value: 'DIRECTOS', label: 'DIRECTOS'},
                     {value: 'INDIRECTOS', label: 'INDIRECTOS'}
+                ],
+                leyendaTiposComprobante: [
+                    {codigo: '01', label: 'Factura', style: {backgroundColor: '#e8f1fb', color: '#1f5f99', borderColor: '#b8d5ee'}},
+                    {codigo: '02', label: 'Nota de venta', style: {backgroundColor: '#e8f6f3', color: '#176f5d', borderColor: '#b7ded5'}},
+                    {codigo: '03', label: 'Liquidacion de compra', style: {backgroundColor: '#fff4db', color: '#8a5a00', borderColor: '#efd38c'}},
+                    {codigo: '04', label: 'Nota de credito', style: {backgroundColor: '#f1ecfb', color: '#5b3f91', borderColor: '#d3c4ee'}}
                 ],
                 listaProveedores: [],
                 listaCompras: [],
@@ -720,6 +747,51 @@
                         return;
                     }
                     sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo anular la compra.');
+                } catch (e) {
+                    Swal.close();
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                }
+            },
+            async anularNotaCredito(compra) {
+                const {value: motivo} = await Swal.fire({
+                    title: `Anular NDC #${this.zFill(compra.comp_secuencial, 5)}`,
+                    input: 'textarea',
+                    inputLabel: 'Motivo de anulacion',
+                    inputPlaceholder: 'Ingrese el motivo de anulacion...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Anular',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#dc3545',
+                    preConfirm: (value) => {
+                        if (!value || !value.trim()) {
+                            Swal.showValidationMessage('Debe ingresar un motivo de anulacion');
+                            return false;
+                        }
+
+                        return value.trim();
+                    }
+                });
+
+                if (!motivo) {
+                    return;
+                }
+
+                try {
+                    swalLoading('Anulando nota de credito');
+                    const datos = {
+                        notaCreditoId: compra.id,
+                        motivoAnulacion: motivo
+                    };
+                    const {data} = await axios.post(`${this.url}/notacredito/anularNotaCredito`, datos);
+
+                    Swal.close();
+
+                    if (data.status === 'success') {
+                        sweet_msg_dialog('success', data.msg);
+                        await this.searchCompras();
+                        return;
+                    }
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo anular la nota de credito.');
                 } catch (e) {
                     Swal.close();
                     sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
@@ -1153,6 +1225,16 @@
                     ANULADA_EN_ARCHIVADA: 'ANULADA ARCHIVADA'
                 };
                 return mapa[estado] || estado;
+            },
+            styleTipoComprobante(codigo) {
+                const mapa = {
+                    '01': {backgroundColor: '#e8f1fb', color: '#1f5f99', borderColor: '#b8d5ee'},
+                    '02': {backgroundColor: '#e8f6f3', color: '#176f5d', borderColor: '#b7ded5'},
+                    '03': {backgroundColor: '#fff4db', color: '#8a5a00', borderColor: '#efd38c'},
+                    '04': {backgroundColor: '#f1ecfb', color: '#5b3f91', borderColor: '#d3c4ee'}
+                };
+
+                return mapa[String(codigo)] || {backgroundColor: '#eef0f2', color: '#495057', borderColor: '#d4d8dc'};
             },
             formatToUSD(amount) {
                 return formatToUSD(amount);
