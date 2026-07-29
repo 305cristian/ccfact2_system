@@ -89,7 +89,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
     window.appProveedores = Vue.createApp({
         components: {
-            "vue-multiselect": window['vue-multiselect'].Multiselect
+            "vue-multiselect": window['vue-multiselect'].Multiselect,
+            "vue-select": window['vue-select']
         },
         data() {
             return {
@@ -151,7 +152,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
         mounted() {
             panelMain.style.display = "none";
-            $(".selectpicker").selectpicker();
         },
         methods: {
 
@@ -304,9 +304,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.provincia = prov.id_provincia;
                 this.rucAux = prov.prov_ruc;
                 this.idEdit = prov.id;
-                $("#provProvincia").selectpicker('val', prov.id_provincia);
-                $("#provCtaContable").selectpicker('val', prov.fk_codigo_cuenta_contable);
-
                 await this.getCantones();
                 await this.getParroquias();
 

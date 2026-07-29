@@ -87,7 +87,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     window.appClientes = Vue.createApp({
 
         components: {
-            "vue-multiselect": window['vue-multiselect'].Multiselect
+            "vue-multiselect": window['vue-multiselect'].Multiselect,
+            "vue-select": window['vue-select']
         },
         data() {
             return {
@@ -142,7 +143,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
         mounted() {
             panelMain.style.display = "none";
-            $(".selectpicker").selectpicker();
         },
         methods: {
             async searchClientes(dataSerach) {
@@ -256,8 +256,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.provincia = clie.id_provincia;
                 this.ciRucAux = clie.clie_dni;
                 this.idEdit = clie.id;
-
-                $("#clieProvincia").selectpicker('val', clie.id_provincia);
 
                 await this.getCantones();
                 await this.getParroquias();

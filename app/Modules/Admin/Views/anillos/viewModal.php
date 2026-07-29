@@ -54,7 +54,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" @click="saveUpdateAnillo()">
+                <button class="btn btn-primary" @click="saveUpdateAnillo()" :disabled="loading">
                     <span v-if="estadoSave">
                         <span v-if='loading'><i class="loading-spin"></i> Creando...</span>
                         <span v-else><i class="fas fa-save"></i> Crear</span>
@@ -64,7 +64,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
                     </span>
                 </button>
-                <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal">
+                <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loading">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>

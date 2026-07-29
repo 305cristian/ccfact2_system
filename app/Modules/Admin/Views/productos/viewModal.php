@@ -226,16 +226,26 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="row">
                         <div class="mb-3 col-md-6">                             
                             <label for="prodCtaCompras" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span> Cta. Contable Compras</label>
-                            <select v-model="newProducto.prodCtaCompras"  class="form-select border" id="prodCtaCompras">
-                                <option v-for="lcc of listaCtaContable" v-bind:value="lcc.ctad_codigo">{{lcc.cuentadet}}</option>
-                            </select>
+                            <vue-select
+                                class="flex-grow-1 border rounded"
+                                :options="listaCtaContable"
+                                label="cuentadet"
+                                :reduce="cuenta => cuenta.ctad_codigo"
+                                v-model="newProducto.prodCtaCompras"
+                                placeholder="Seleccione una cuenta contable de compras">
+                            </vue-select>
                             <div class="text-danger" v-html="formValidacion.prodCtaCompras"></div>
                         </div>
                         <div class="mb-3 col-md-6">                             
                             <label for="prodCtaVentas" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span> Cta. contable Ventas</label>
-                            <select v-model="newProducto.prodCtaVentas"  class="form-select border" id="prodCtaVentas">
-                                <option v-for="lcc of listaCtaContable" v-bind:value="lcc.ctad_codigo">{{lcc.cuentadet}}</option>
-                            </select>
+                            <vue-select
+                                class="flex-grow-1 border rounded"
+                                :options="listaCtaContable"
+                                label="cuentadet"
+                                :reduce="cuenta => cuenta.ctad_codigo"
+                                v-model="newProducto.prodCtaVentas"
+                                placeholder="Seleccione una cuenta contable de ventas">
+                            </vue-select>
                             <div class="text-danger" v-html="formValidacion.prodCtaVentas"></div>
                         </div>
                     </div>
@@ -307,7 +317,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <div class="modal-footer">
-                    <button  class="btn btn-primary" @click="saveUpdateProducto()">
+                    <button  class="btn btn-primary" @click="saveUpdateProducto()" :disabled="loading">
                         <span v-if="estadoSave">
                             <span v-if='loading'><i class="loading-spin"></i> Creando...</span>
                             <span v-else ><i class="fas fa-save"></i> Crear</span>
@@ -317,7 +327,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
                         </span>
                     </button>
-                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>
+                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loading"><i class="fas fa-stop"></i> Cancelar</button>
                 </div>
             </div>
         </div>

@@ -74,9 +74,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                         <div class="mb-3">
                             <label for="modulo" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> Módulo</label>
-                            <select id="selectModulo" @change='loadSubModulo()' title="Seleccione un módulo" v-model="newAccion.moduloAccion" class="form-control border selectpicker show-tick" id="modulo">
-                                <option v-for="lom of listaOnlyModulos" v-bind:value="lom.id">{{lom.md_nombre}}</option>                             
-                            </select>
+                            <vue-select class="border rounded" v-model="newAccion.moduloAccion" :options="listaOnlyModulos" label="md_nombre" :reduce="modulo => modulo.id" placeholder="Seleccione un modulo" @update:model-value="loadSubModulo"></vue-select>
                             <!--validaciones-->
                             <div v-html="formValidacion2.moduloAccion" class="text-danger"></div>
                         </div>
@@ -101,11 +99,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button  class="btn btn-primary" @click="saveUpdateAccion()">
-                        <span v-if="estadoSave2"><i class="fas fa-save"></i> Crear</span>
-                        <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                    <button  class="btn btn-primary" @click="saveUpdateAccion()" :disabled="loadingAccion">
+                        <span v-if="estadoSave2">
+                            <span v-if="loadingAccion"><i class="loading-spin"></i> Creando...</span>
+                            <span v-else><i class="fas fa-save"></i> Crear</span>
+                        </span>
+                        <span v-else>
+                            <span v-if="loadingAccion"><i class="loading-spin"></i> Actualizando...</span>
+                            <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                        </span>
                     </button>
-                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button> 
+                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingAccion"><i class="fas fa-stop"></i> Cancelar</button> 
                 </div>
             </div>
         </div>

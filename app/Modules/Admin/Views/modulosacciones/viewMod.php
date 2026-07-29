@@ -129,11 +129,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button  class="btn btn-primary" @click="saveUpdateModulo()">
-                        <span v-if="estadoSave"><i class="fas fa-save"></i> Crear</span>
-                        <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                    <button  class="btn btn-primary" @click="saveUpdateModulo()" :disabled="loadingModulo">
+                        <span v-if="estadoSave">
+                            <span v-if="loadingModulo"><i class="loading-spin"></i> Creando...</span>
+                            <span v-else><i class="fas fa-save"></i> Crear</span>
+                        </span>
+                        <span v-else>
+                            <span v-if="loadingModulo"><i class="loading-spin"></i> Actualizando...</span>
+                            <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                        </span>
                     </button>
-                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
+                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingModulo"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
             </div>
         </div>
     </div>

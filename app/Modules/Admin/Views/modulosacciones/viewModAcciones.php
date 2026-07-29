@@ -51,6 +51,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
     window.appModulos = Vue.createApp({
 
+        components: {
+            "vue-select": window['vue-select']
+        },
         data() {
             return {
                 url: siteUrl,
@@ -61,6 +64,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 //TODO: VARIABLES
                 estadoSave: true,
                 estadoSave2: true,
+                loadingModulo: false,
+                loadingAccion: false,
 
                 //TODO: V-MODELS
                 idEdit: '',
@@ -103,7 +108,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
         mounted() {
             document.getElementById('parent').style.display = 'none';
-            $('#selectModulo').selectpicker();
         },
         methods: {
 
@@ -143,6 +147,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 try {
+                    this.loadingModulo = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -163,6 +168,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                } finally {
+                    this.loadingModulo = false;
                 }
 
             },
@@ -222,6 +229,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     url = this.url + '/admin/modacc/updateAccion';
                 }
                 try {
+                    this.loadingAccion = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -241,6 +249,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                } finally {
+                    this.loadingAccion = false;
                 }
 
             },
@@ -255,7 +265,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
                 this.nameAux = accion.ac_nombre;
                 this.idEdit2 = accion.id;
-                $('#selectModulo').selectpicker('val', accion.fk_modulo);
                 this.loadSubModulo();
             },
 

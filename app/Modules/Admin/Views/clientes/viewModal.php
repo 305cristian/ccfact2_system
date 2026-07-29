@@ -126,9 +126,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="row">
                         <div class="mb-2 col-md-4">
                             <label for="clieProvincia" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px ">*</span> Provincia</label>
-                            <select title="Seleccione una provincia" @change="getCantones()" v-model="provincia" class="form-control border  selectpicker" id="clieProvincia" data-live-search="true" data-style="btn-white">
-                                <option v-for="lprv of listaProvincia" v-bind:value="lprv.id">{{lprv.prv_nombre}}</option>
-                            </select>
+                            <vue-select class="border rounded" v-model="provincia" :options="listaProvincia" label="prv_nombre" :reduce="provincia => provincia.id" placeholder="Seleccione una provincia" @update:model-value="getCantones"></vue-select>
                         </div>
                         <div class="mb-2 col-md-4">
                             <label for="clieCanton" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px ">*</span> Cantón</label>
@@ -161,7 +159,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
 
                 <div class="modal-footer">
-                    <button  class="btn btn-system-2" @click="saveUpdateCliente()">
+                    <button  class="btn btn-system-2" @click="saveUpdateCliente()" :disabled="loading">
                         <span v-if="estadoSave">
                             <span v-if='loading'><i class="loading-spin"></i> Creando...</span>
                             <span v-else><i class="fas fa-save"></i> Crear Cliente</span>
@@ -171,7 +169,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <span  v-else><i class="fas fa-refresh"></i> Actualizar Cliente</span>
                         </span>
                     </button>
-                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>
+                    <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loading"><i class="fas fa-stop"></i> Cancelar</button>
                 </div>
             </div>
         </div>

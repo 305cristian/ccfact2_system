@@ -113,6 +113,7 @@ class EmployeeController extends \App\Controllers\BaseController {
             if (count($existe) > 0) {
                 $response['status'] = 'existe';
                 $response['msg'] = '<h5>Ya existe un empleado registrado con el DNI ' . $dni . '</h5>';
+                $this->db->transRollback();
                 return $this->response->setJson($response);
             }
 
@@ -132,6 +133,16 @@ class EmployeeController extends \App\Controllers\BaseController {
                 'fk_departamento' => $departamento,
                 'fk_bodega_main' => $bodegaMain,
             ];
+
+            $fotoEmpleado = $this->procesarFotoEmpleado($dni);
+            if ($fotoEmpleado['error']) {
+                $this->db->transRollback();
+                return $this->response->setJson($fotoEmpleado['error']);
+            }
+
+            if ($fotoEmpleado['nombre']) {
+                $datos['emp_foto'] = $fotoEmpleado['nombre'];
+            }
 
             $idEmp = $this->ccm->guardar($datos, 'cc_empleados');
 
@@ -228,6 +239,7 @@ class EmployeeController extends \App\Controllers\BaseController {
             if (count($existe) > 0 && $existe[0]->emp_dni != $dniAux) {
                 $response['status'] = 'existe';
                 $response['msg'] = '<h5>Ya existe un empleado registrado con el DNI ' . $dni . '</h5>';
+                $this->db->transRollback();
                 return $this->response->setJson($response);
             }
 
@@ -245,6 +257,17 @@ class EmployeeController extends \App\Controllers\BaseController {
                 'fk_departamento' => $departamento,
                 'fk_bodega_main' => $bodegaMain,
             ];
+
+            $empleadoActual = $this->ccm->getData('cc_empleados', ['id' => $idEmp], 'emp_foto', null, 1);
+            $fotoEmpleado = $this->procesarFotoEmpleado($dni, $empleadoActual->emp_foto ?? null);
+            if ($fotoEmpleado['error']) {
+                $this->db->transRollback();
+                return $this->response->setJson($fotoEmpleado['error']);
+            }
+
+            if ($fotoEmpleado['nombre']) {
+                $datos['emp_foto'] = $fotoEmpleado['nombre'];
+            }
 
             $this->ccm->actualizar('cc_empleados', $datos, ['id' => $idEmp]);
 
@@ -310,5 +333,60 @@ class EmployeeController extends \App\Controllers\BaseController {
         $response['msg'] = 'Contraseña actualizada exitosamente.';
 
         return $this->response->setJSON($response);
+    }
+
+    private function procesarFotoEmpleado(string $dni, ?string $fotoActual = null): array {
+
+        $file = $this->request->getFile('fotoEmpleado');
+        if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            return ['nombre' => null, 'error' => null];
+        }
+
+        if (!$file->isValid()) {
+            return [
+                'nombre' => null,
+                'error' => [
+                    'status' => 'error',
+                    'msg' => 'No se pudo cargar la foto del empleado.',
+                ],
+            ];
+        }
+
+        $extension = strtolower($file->getClientExtension());
+        $extensionesPermitidas = ['jpg', 'jpeg', 'png', 'webp'];
+
+        if (!in_array($extension, $extensionesPermitidas, true)) {
+            return [
+                'nombre' => null,
+                'error' => [
+                    'status' => 'vacio',
+                    'msg' => [
+                        'fotoEmpleado' => 'La foto debe ser una imagen JPG, PNG o WEBP.',
+                    ],
+                ],
+            ];
+        }
+
+        $nombreFoto = $dni . '.' . $extension;
+        $rutaUpload = FCPATH . 'uploads/img/employee';
+
+        if (!is_dir($rutaUpload)) {
+            mkdir($rutaUpload, 0775, true);
+        }
+
+        if (file_exists($rutaUpload . DIRECTORY_SEPARATOR . $nombreFoto)) {
+            unlink($rutaUpload . DIRECTORY_SEPARATOR . $nombreFoto);
+        }
+
+        $file->move($rutaUpload, $nombreFoto);
+
+        if ($fotoActual && $fotoActual !== $nombreFoto && $fotoActual !== 'user.png') {
+            $rutaFotoActual = $rutaUpload . DIRECTORY_SEPARATOR . $fotoActual;
+            if (file_exists($rutaFotoActual)) {
+                unlink($rutaFotoActual);
+            }
+        }
+
+        return ['nombre' => $nombreFoto, 'error' => null];
     }
 }

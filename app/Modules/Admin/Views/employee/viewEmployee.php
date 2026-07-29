@@ -41,7 +41,12 @@
                         <tr v-for="lemp of listaEmpleados">
                             <td>{{zfill(lemp.id)}}</td>
                             <td>
-                                <button @click='setFoto(lemp.emp_foto)' class="btn btn-info btn-sm" data-bs-target="#foto" data-bs-toggle="modal"><i class="fas fa-image"></i></button>
+                                <img
+                                    :src="fotoEmpleado(lemp.emp_foto)"
+                                    class="rounded-circle border"
+                                    style="width: 34px; height: 34px; object-fit: cover;"
+                                    alt="Foto empleado"
+                                    >
                             </td>
                             <td>{{lemp.emp_nombre}}</td>
                             <td>{{lemp.emp_apellido}}</td>
@@ -68,25 +73,6 @@
                 </table>
             </div>
         </div>
-
-        <!--MODAL FOTO-->
-        <div id="foto" class="modal fade">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class=""><i class="fad fa-image"></i> Foto</h5>
-                    </div>
-                    <div class="modal-body">
-                        <div class="text-center">
-                            <img :src="this.pathUrl+'/uploads/img/employee/'+fotoPerfil " alt='foto empleado'>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-        <!--CIERRA MODAL FOTO-->
-
         <!--MODAL PASSWORD RESET-->
         <div id="modalPasswordReset" class="modal fade" data-bs-backdrop="static" dat-bs-keyboard="false">
             <div class="modal-dialog">
@@ -128,6 +114,22 @@
                         <button @click="clear()" class="btn btn-danger btn-sm" data-bs-dismiss="modal">X</button>
                     </div>
                     <div class="modal-body">
+                        <div class="mb-3 p-3 border rounded bg-light">
+                            <div class="d-flex align-items-center gap-3">
+                                <img
+                                    :src="fotoPreview"
+                                    class="rounded-circle border bg-white"
+                                    style="width: 72px; height: 72px; object-fit: cover;"
+                                    alt="Foto empleado"
+                                    >
+                                <div class="flex-grow-1">
+                                    <label class="col-form-label col-form-label-sm fw-bold pt-0"><i class="fal fa-image"></i> Foto del empleado</label>
+                                    <input ref="inputFotoEmpleado" type="file" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp" @change="onFotoEmpleadoChange">
+                                    <small class="text-muted">Opcional. Formatos permitidos: JPG, PNG o WEBP.</small>
+                                    <div v-html="formValidacion.fotoEmpleado" class="text-danger"></div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="col-md-12 d-flex">
                             <div class="col-md-6">
                                 <input type="hidden" v-model="idEdit">
@@ -175,9 +177,7 @@
 
                                 <div class="mb-3">
                                     <label for="cargo" class="col-form-label col-form-label-sm"><i class="fal fa-caravan"></i> Cargo</label>
-                                    <select id="selectCargo" v-model="newEmpleado.cargo" title="Seleccione un Cargo" class="form-control border selectpicker show-tick" data-live-search="true" id="cargo">
-                                        <option v-for="lc of listaCargos" v-bind:value="lc.id">{{lc.carg_nombre}}</option>
-                                    </select>
+                                    <vue-select class="border rounded" v-model="newEmpleado.cargo" :options="listaCargos" label="carg_nombre" :reduce="cargo => cargo.id" placeholder="Seleccione un cargo"></vue-select>
                                     <!--validaciones-->
                                     <div v-html="formValidacion.cargo" class="text-danger"></div>
                                 </div>
@@ -190,9 +190,7 @@
 
                                 <div class="mb-3">
                                     <label for="departamento" class="col-form-label col-form-label-sm"><i class="fal fa-caravan-alt"></i> Departamento</label>
-                                    <select id="selectDep" v-model="newEmpleado.departamento" title="Seleccione un Departamento" class="form-control border selectpicker show-tick" data-live-search="true" id="departamento">
-                                        <option v-for="ld of listaDepartamentos" v-bind:value="ld.id">{{ld.dep_nombre}}</option>
-                                    </select>
+                                    <vue-select class="border rounded" v-model="newEmpleado.departamento" :options="listaDepartamentos" label="dep_nombre" :reduce="departamento => departamento.id" placeholder="Seleccione un departamento"></vue-select>
                                     <!--validaciones-->
                                     <div v-html="formValidacion.departamento" class="text-danger"></div>
                                 </div>
@@ -212,37 +210,14 @@
 
                                 <div class="mb-3">
                                     <label for="bodega_main" class="col-form-label col-form-label-sm"><i class="fal fa-building"></i> Bodega Principal</label>
-                                    <select id="selectBodMain" v-model="newEmpleado.bodegaMain" title="Seleccione una bodega principal" class="form-control border selectpicker show-tick" data-live-search="true" id="bodega_main">
-                                        <option v-for="lb of listaBodegas" v-bind:value="lb.id">{{lb.bod_nombre}}</option>
-                                    </select>
+                                    <vue-select class="border rounded" v-model="newEmpleado.bodegaMain" :options="listaBodegas" label="bod_nombre" :reduce="bodega => bodega.id" placeholder="Seleccione una bodega principal"></vue-select>
                                     <!--validaciones-->
                                     <div v-html="formValidacion.bodegaMain" class="text-danger"></div>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="col-form-label col-form-label-sm"><i class="fal fa-buildings"></i> Bodegas</label>
-                                    <vue-multiselect 
-                                        v-model="bodegas"
-                                        tag-placeholder="Bodega no encontrado"
-                                        placeholder="Buscar y agregar bodega"
-                                        label="bod_nombre"
-                                        track-by="id"
-                                        :multiple="true"
-                                        :searchable="true"
-                                        :options-limit="10"
-                                        :show-no-results="true"
-                                        :options="listaBodegas"                                    
-                                        >
-                                    </vue-multiselect>
-                                    <!--validaciones-->
-                                    <div v-html="formValidacion.bodegas" class="text-danger"></div>
-                                </div>
-
-                                <div class="mb-3">
                                     <label for="rol" class="col-form-label col-form-label-sm"><i class="fal fa-user-tie"></i> Rol</label>
-                                    <select id="selectRol" v-model="newEmpleado.rol" title="Seleccione un rol" class="form-control border selectpicker show-tick" data-live-search="true" id="rol">
-                                        <option v-for="lr of listaRoles" v-bind:value="lr.id">{{lr.rol_nombre}}</option>
-                                    </select>
+                                    <vue-select class="border rounded" v-model="newEmpleado.rol" :options="listaRoles" label="rol_nombre" :reduce="rol => rol.id" placeholder="Seleccione un rol"></vue-select>
                                     <!--validaciones-->
                                     <div v-html="formValidacion.rol" class="text-danger"></div>
                                 </div>
@@ -259,6 +234,25 @@
 
 
                             </div>
+                        </div>
+
+                        <div class="mt-3 p-3 border rounded bg-light">
+                            <label class="col-form-label col-form-label-sm fw-bold pt-0"><i class="fal fa-buildings"></i> Bodegas asignadas</label>
+                            <vue-multiselect
+                                v-model="bodegas"
+                                tag-placeholder="Bodega no encontrada"
+                                placeholder="Buscar y agregar bodegas"
+                                label="bod_nombre"
+                                track-by="id"
+                                :multiple="true"
+                                :searchable="true"
+                                :options-limit="10"
+                                :show-no-results="true"
+                                :options="listaBodegas"
+                                >
+                            </vue-multiselect>
+                            <small class="text-muted">Define las bodegas a las que el empleado tendra acceso dentro del sistema.</small>
+                            <div v-html="formValidacion.bodegas" class="text-danger"></div>
                         </div>
 
                         <div class="mt-3 p-3 border rounded bg-light">
@@ -287,9 +281,15 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button v-if="estadoSave" class="btn btn-primary" @click="saveEmpleado()"><i class="fas fa-save"></i> Crear</button>
-                        <button v-else class="btn btn-primary" @click="updateEmpleado()"><i class="fas fa-refresh"></i> Actualizar</button>
-                        <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>
+                        <button v-if="estadoSave" class="btn btn-primary" @click="saveEmpleado()" :disabled="loading">
+                            <span v-if="loading"><i class="fas fa-spinner fa-spin"></i> Guardando...</span>
+                            <span v-else><i class="fas fa-save"></i> Crear</span>
+                        </button>
+                        <button v-else class="btn btn-primary" @click="updateEmpleado()" :disabled="loading">
+                            <span v-if="loading"><i class="fas fa-spinner fa-spin"></i> Actualizando...</span>
+                            <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                        </button>
+                        <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loading"><i class="fas fa-stop"></i> Cancelar</button>
                     </div>
 
                 </div>
@@ -328,12 +328,13 @@
                 editEmployee: editEmployee,
                 admin: admin,
                 //TODO: variables
-                fotoPerfil: 'user.png',
                 pathUrl: baseUrl,
                 url: siteUrl,
                 estadoSave: true,
                 dniAux: '',
                 loading: false,
+                fotoArchivo: null,
+                fotoPreview: baseUrl + '/uploads/img/employee/user.png',
 
                 //TODO: V-MODELS
                 bodegas: '',
@@ -377,9 +378,7 @@
         created() {
             this.getEmpleados();
         },
-        mounted() {
-            $('.selectpicker').selectpicker();
-        },
+        mounted() {},
         methods: {
 
             setIdPaswordReset(idEmp) {
@@ -443,6 +442,7 @@
             async saveEmpleado() {
 
                 try {
+                    this.loading = true;
                     let datos = this.formData(this.newEmpleado);
 
                     if (this.bodegas) {
@@ -457,6 +457,10 @@
                         datos.append('proyectos', proyectos_id);
                     } else {
                         datos.append('proyectos', "");
+                    }
+
+                    if (this.fotoArchivo) {
+                        datos.append('fotoEmpleado', this.fotoArchivo);
                     }
 
                     let response = await axios.post(this.url + '/admin/employee/saveEmpleado', datos);
@@ -478,12 +482,15 @@
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                } finally {
+                    this.loading = false;
                 }
 
             },
             async updateEmpleado() {
 
                 try {
+                    this.loading = true;
                     let datos = this.formData(this.newEmpleado);
                     datos.append('idEmp', this.idEdit);
                     datos.append('dniAux', this.dniAux);
@@ -499,6 +506,10 @@
                         datos.append('proyectos', proyectos_id);
                     } else {
                         datos.append('proyectos', "");
+                    }
+
+                    if (this.fotoArchivo) {
+                        datos.append('fotoEmpleado', this.fotoArchivo);
                     }
 
 
@@ -523,6 +534,8 @@
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                } finally {
+                    this.loading = false;
                 }
 
             },
@@ -544,11 +557,11 @@
                 };
                 this.dniAux = emp.emp_dni;
                 this.idEdit = emp.id;
-                $('#selectBodMain').selectpicker('val', emp.fk_bodega_main);
-                $('#selectCargo').selectpicker('val', emp.fk_cargo);
-                $('#selectDep').selectpicker('val', emp.fk_departamento);
-                $('#selectRol').selectpicker('val', emp.fk_rol);
-
+                this.fotoArchivo = null;
+                this.fotoPreview = this.fotoEmpleado(emp.emp_foto);
+                if (this.$refs.inputFotoEmpleado) {
+                    this.$refs.inputFotoEmpleado.value = '';
+                }
                 let datos = {idEmp: emp.id}
                 let response = await axios.post(this.url + '/admin/employee/getBodegas', datos);
                 if (response.data) {
@@ -582,11 +595,12 @@
                 };
                 this.bodegas = '';
                 this.proyectos = '';
+                this.fotoArchivo = null;
+                this.fotoPreview = this.pathUrl + '/uploads/img/employee/user.png';
+                if (this.$refs.inputFotoEmpleado) {
+                    this.$refs.inputFotoEmpleado.value = '';
+                }
                 this.formValidacion = [];
-                $('#selectBodMain').selectpicker('val', '');
-                $('#selectCargo').selectpicker('val', '');
-                $('#selectDep').selectpicker('val', '');
-                $('#selectRol').selectpicker('val', '');
                 //TODO: PARTE CLAVE PARA IDENTIFICAR SI INSERTA O ACTUALIZA
                 this.estadoSave = true;
                 this.idEdit = '';
@@ -599,13 +613,13 @@
                 }
                 return formData;
             },
-            setFoto(foto) {
-                if (foto) {
-                    this.fotoPerfil = foto;
-                } else {
-                    this.fotoPerfil = 'user.png';
-                }
-
+            fotoEmpleado(foto) {
+                return this.pathUrl + '/uploads/img/employee/' + (foto || 'user.png');
+            },
+            onFotoEmpleadoChange(event) {
+                const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+                this.fotoArchivo = file;
+                this.fotoPreview = file ? URL.createObjectURL(file) : this.pathUrl + '/uploads/img/employee/user.png';
             },
             zfill(val) {
                 return zFill(val, 3);

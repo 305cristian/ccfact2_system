@@ -66,10 +66,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 <div class="col-md-2 mb-2">
                     <label for="selectStock" class="col-form-label col-form-label-sm"><i class="fal fa-group"></i> Grupo</label>
-                    <select v-model="selectGrupo" id="selectGrupo" title="Seleccione un Grupo" class="form-control selectpicker border" data-live-search="true" data-style="btn-white">                  
-                        <option value="-1">TODOS</option>
-                        <option v-for="lg of listaGrupos" v-bind:value="lg.id">{{lg.gr_nombre}}</option>                  
-                    </select>
+                    <vue-select class="border rounded" v-model="selectGrupo" :options="listaGruposFiltro" label="gr_nombre" :reduce="grupo => grupo.id" placeholder="Seleccione un grupo"></vue-select>
 
                 </div>
                 <div class="col-md-2  mb-2">
@@ -248,7 +245,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             this.aplicaIrbpnr();
         },
         mounted() {
-            $(".selectpicker").selectpicker();
             this.aplicaIce();
             this.aplicaIrbpnr();
             panelMain.style.display = "none";
@@ -266,6 +262,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 if (!grupoId)
                     return;
                 this.getSubgrupo(grupoId);
+            },
+            'newProducto.prodTipoProducto'(tipoProductoId) {
+                this.sincronizarTipoProductoServicio(tipoProductoId);
+            }
+        },
+        computed: {
+            listaGruposFiltro() {
+                return [{id: "-1", gr_nombre: "TODOS"}, ...this.listaGrupos];
             }
         },
         methods: {
@@ -294,6 +298,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     sweet_msg_toast('success', 'Marca creado exitosamente');
                 }
 
+            },
+            sincronizarTipoProductoServicio(tipoProductoId) {
+                const tipoProducto = this.listaTipoProducto.find(
+                        tipo => parseInt(tipo.id) === parseInt(tipoProductoId)
+                );
+
+                if (!tipoProducto) {
+                    this.newProducto.prodIsServicio = false;
+                    return;
+                }
+
+                this.newProducto.prodIsServicio = tipoProducto.tp_nombre.toUpperCase().includes('SERVICIO');
             },
             async crearGrupo(grupo) {
 

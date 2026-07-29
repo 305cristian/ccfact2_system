@@ -99,14 +99,19 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </div>
             </div>
             <div class="modal-footer">
-                <button  class="btn btn-primary" @click="saveUpdateSubGrupo()">
-                    <span v-if="estadoSave2"><i class="fas fa-save"></i> Crear</span>
-                    <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                <button  class="btn btn-primary" @click="saveUpdateSubGrupo()" :disabled="loadingSubGrupo">
+                    <span v-if="estadoSave2">
+                        <span v-if="loadingSubGrupo"><i class="loading-spin"></i> Creando...</span>
+                        <span v-else><i class="fas fa-save"></i> Crear</span>
+                    </span>
+                    <span v-else>
+                        <span v-if="loadingSubGrupo"><i class="loading-spin"></i> Actualizando...</span>
+                        <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                    </span>
                 </button>
-                <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>
+                <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingSubGrupo"><i class="fas fa-stop"></i> Cancelar</button>
             </div>
         </div>
     </div>
     <!--CLOSE MODAL GRUPOS-->
 </div>
-

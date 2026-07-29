@@ -75,9 +75,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </div>
                         <div class="mb-3 col-md-6">
                             <label for="provCtaContable" class="col-form-label col-form-label-sm"> Cuenta Contable</label>
-                            <select title="Seleccione una cuenta" v-model="newProveedor.provCtaContable" class="form-control border selectpicker" id="provCtaContable" data-live-search="true">
-                                <option v-for="lcta of listaCuentasContable" v-bind:value="lcta.ctad_codigo">{{lcta.ctad_codigo +" "+ lcta.ctad_nombre_cuenta}}</option>
-                            </select>
+                            <vue-select class="border rounded" v-model="newProveedor.provCtaContable" :options="listaCuentasContable" label="ctad_nombre_cuenta" :reduce="cuenta => cuenta.ctad_codigo" placeholder="Seleccione una cuenta">
+                                <template #option="{ ctad_codigo, ctad_nombre_cuenta }">
+                                    <span class="badge bg-primary me-2">{{ ctad_codigo }}</span>
+                                    <span>{{ ctad_nombre_cuenta }}</span>
+                                </template>
+                                <template #selected-option="{ ctad_codigo, ctad_nombre_cuenta }">
+                                    <span>{{ ctad_codigo }} - {{ ctad_nombre_cuenta }}</span>
+                                </template>
+                            </vue-select>
                         </div>
 
                     </div>
@@ -124,9 +130,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="row">
                         <div class="mb-2 col-md-4">
                             <label for="provProvincia" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px ">*</span> Provincia</label>
-                            <select title="Seleccione una provincia" @change="getCantones()" v-model="provincia" class="form-control border selectpicker" id="provProvincia" data-live-search="true" data-style="btn-white">
-                                <option v-for="lprv of listaProvincia" v-bind:value="lprv.id">{{lprv.prv_nombre}}</option>
-                            </select>
+                            <vue-select class="border rounded" v-model="provincia" :options="listaProvincia" label="prv_nombre" :reduce="provincia => provincia.id" placeholder="Seleccione una provincia" @update:model-value="getCantones"></vue-select>
                         </div>
                         <div class="mb-2 col-md-4">
                             <label for="provCanton" class="col-form-label col-form-label-sm"> <span style="color: red; font-size:15px ">*</span> Cantón</label>

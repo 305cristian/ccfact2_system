@@ -78,9 +78,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button v-if="estadoSave" class="btn btn-primary" @click="saveRol()"><i class="fas fa-save"></i> Crear</button>
-                            <button v-else class="btn btn-primary" @click="updateRol()"><i class="fas fa-refresh"></i> Actualizar</button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
+                            <button v-if="estadoSave" class="btn btn-primary" @click="saveRol()" :disabled="loadingRol">
+                                <span v-if="loadingRol"><i class="loading-spin"></i> Creando...</span>
+                                <span v-else><i class="fas fa-save"></i> Crear</span>
+                            </button>
+                            <button v-else class="btn btn-primary" @click="updateRol()" :disabled="loadingRol">
+                                <span v-if="loadingRol"><i class="loading-spin"></i> Actualizando...</span>
+                                <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                            </button>
+                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingRol"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
                     </div>
                 </div>
             </div>
@@ -102,7 +108,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-if="loading"><i class="fas fa-spinner fa-spin"></i> Asignando...</span>
                                 <span v-else><i class="fas fa-file-check"></i> Asignar</span>
                             </button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
+                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loading"><i class="fas fa-stop"></i> Cancelar</button>                        </div>
                     </div>
                 </div>
             </div>
@@ -163,6 +169,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 formValidacion: [],
 
                 modalAsignacion: null,
+                loadingRol:false,
                 loading:false
 
             };
@@ -226,6 +233,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let datos = this.formData(this.newRol);
 
                 try {
+                    this.loadingRol = true;
                     let response = await axios.post(this.url + '/admin/roles/saveRol', datos);
                     if (response.data.status === 'success') {
 
@@ -244,11 +252,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                } finally {
+                    this.loadingRol = false;
                 }
 
             },
             async updateRol() {
                 try {
+                    this.loadingRol = true;
                     let datos = this.formData(this.newRol);
                     datos.append('idRol', this.idEdit);
                     datos.append('nameAux', this.nameAux);
@@ -274,6 +285,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e);
+                } finally {
+                    this.loadingRol = false;
                 }
 
             },

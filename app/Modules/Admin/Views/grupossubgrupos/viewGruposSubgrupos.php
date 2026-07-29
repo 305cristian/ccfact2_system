@@ -56,6 +56,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 //TODO: VARIABLES
                 estadoSave: true,
+                loadingGrupo: false,
                 //TODO: V-MODELS
                 idEdit: '',
                 newGrupo: {
@@ -71,6 +72,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 //TODO: VARIABLES PARA SUBGRUPOS
                 estadoSave2: true,
+                loadingSubGrupo: false,
                 //TODO: V-MODELS
                 idEdit2: '',
                 newSubGrupo: {
@@ -133,6 +135,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 try {
+                    this.loadingGrupo = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -153,6 +156,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    this.loadingGrupo = false;
                 }
             },
             clear() {
@@ -221,6 +226,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 try {
+                    this.loadingSubGrupo = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -241,6 +247,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    this.loadingSubGrupo = false;
                 }
             },
 

@@ -95,11 +95,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button  class="btn btn-primary" @click="saveUpdateSustento()">
-                                <span v-if="estadoSave"><i class="fas fa-save"></i> Crear</span>
-                                <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                            <button  class="btn btn-primary" @click="saveUpdateSustento()" :disabled="loading">
+                                <span v-if="estadoSave">
+                                    <span v-if="loading"><i class="loading-spin"></i> Creando...</span>
+                                    <span v-else><i class="fas fa-save"></i> Crear</span>
+                                </span>
+                                <span v-else>
+                                    <span v-if="loading"><i class="loading-spin"></i> Actualizando...</span>
+                                    <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
+                                </span>
                             </button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loading"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -128,6 +134,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 //TODO: VARIABLES
                 estadoSave: true,
+                loading: false,
 
                 //TODO: V-MODELS
                 idEdit: '',
@@ -188,6 +195,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 try {
+                    this.loading = true;
                     let response = await axios.post(url, datos);
                     if (response.data.status === 'success') {
 
@@ -208,6 +216,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     }
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response.data.message);
+                } finally {
+                    this.loading = false;
                 }
             },
             clear() {
