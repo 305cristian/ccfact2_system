@@ -113,7 +113,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <label for="prodIvaPorcentajeId" class="col-form-label col-form-label-sm"><i class="fal fa-file-check"></i> <span style="color: red; font-size:15px ">*</span>Tipo de Impuesto</label>
                             <select @change="desglosarIva2()" v-model="editProducto.prodIvaPorcentajeId"  class="form-select border" id="prodIvaPorcentajeId">
                                 <option  v-for="lti of listaImpuestosTarifa" v-bind:value="lti.id">
-                                <template v-if="lti.impt_codigo == 2">{{lti.impt_detalle}} {{ivaActual}}%</template>
+                                <template v-if="lti.impt_porcentage > 0">{{lti.impt_detalle}} {{lti.impt_porcentage}}%</template>
                                 <template v-else>{{lti.impt_detalle}}</template>
                                 </option>
                             </select>

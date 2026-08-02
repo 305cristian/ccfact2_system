@@ -169,6 +169,17 @@ $routes->group('admin', ['namespace' => '\Modules\Admin\Controllers'], function 
     $subroutes->post('retenciones/saveRetenciones', 'RetencionesController::saveRetenciones');
     $subroutes->post('retenciones/updateRetenciones', 'RetencionesController::updateRetenciones');
 
+    //TODO: Impuestos / Tarifas
+    $subroutes->get('impuestos/managamentImpuestos', 'ImpuestosController::index');
+    $subroutes->get('impuestos/getTarifas', 'ImpuestosController::getTarifas');
+    $subroutes->post('impuestos/saveTarifa', 'ImpuestosController::saveTarifa');
+    $subroutes->post('impuestos/updateTarifa', 'ImpuestosController::updateTarifa');
+    $subroutes->post('impuestos/aplicarCambioMasivo', 'ImpuestosController::aplicarCambioMasivo');
+    $subroutes->post('impuestos/aplicarCambioMasivoCuentas', 'ImpuestosController::aplicarCambioMasivoCuentas');
+    $subroutes->get('impuestos/getCuentasTarifaContable', 'ImpuestosController::getCuentasTarifaContable');
+    $subroutes->post('impuestos/saveCuentaTarifaContable', 'ImpuestosController::saveCuentaTarifaContable');
+    $subroutes->post('impuestos/updateCuentaTarifaContable', 'ImpuestosController::updateCuentaTarifaContable');
+
     //TODO: Cuentas contables
     $subroutes->get('cuentascontables/managamentCuentas', 'CuentasContablesController::index');
     $subroutes->get('cuentascontables/getCuentasContables', 'CuentasContablesController::getCuentasContables');

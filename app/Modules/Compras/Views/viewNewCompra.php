@@ -534,6 +534,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 idCompra: dataCompra?.id ?? null,
                 isEdit: false,
                 ivaPrdeterminado: ivaPrdeterminado,
+                fechaEmisionAnterior: fechaActual,
+                validandoCambioFechaEmision: false,
 
                 // =========================
                 // FORM HEADER
@@ -831,6 +833,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.validarCuotas();
                 }
             },
+            'formCompra.compFechaEmision'(nuevo, anterior) {
+                this.validarCambioFechaEmision(nuevo, anterior);
+            },
             'formCompra.compTipoComprobante'(nuevo, anterior) {
                 if (this.isEdit) {
                     return;
@@ -857,12 +862,64 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
         methods: {
 
+            esItemIvaHistorico(item) {
+                const tarifa = this.listaImpuestosTarifa.find(tarifa => Number(tarifa.id) === Number(item.impuestoSelect));
+                return tarifa?.impt_estado === 'HISTORIAL';
+            },
+
+            async validarCambioFechaEmision(nuevaFecha, fechaAnterior) {
+                if (this.validandoCambioFechaEmision || !nuevaFecha || nuevaFecha === fechaAnterior || !this.listaCartData.length) {
+                    this.fechaEmisionAnterior = nuevaFecha;
+                    return;
+                }
+
+                try {
+                    this.validandoCambioFechaEmision = true;
+
+                    const {data} = await axios.post(this.url + '/compras/validarCambioFechaEmisionCart', {
+                        fechaEmision: nuevaFecha
+                    });
+
+                    if (data.status !== 'success' || !data.data?.requiereLimpiar) {
+                        this.fechaEmisionAnterior = nuevaFecha;
+                        return;
+                    }
+
+                    const respuesta = await Swal.fire({
+                        icon: 'warning',
+                        title: 'Cambio de IVA detectado',
+                        html: '<h6>La nueva fecha de emision esta fuera de la vigencia del IVA actual. Para evitar inconsistencias se limpiara el carrito.</h6>',
+                        showCancelButton: true,
+                        confirmButtonText: 'Aceptar y limpiar',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#0d6efd',
+                        cancelButtonColor: '#dc3545'
+                    });
+
+                    if (!respuesta.isConfirmed) {
+                        this.formCompra.compFechaEmision = fechaAnterior;
+                        this.fechaEmisionAnterior = fechaAnterior;
+                        return;
+                    }
+
+                    await axios.post(this.url + '/compras/cancelarCompra');
+                    await this.showDetailCart();
+                    this.fechaEmisionAnterior = nuevaFecha;
+                } catch (e) {
+                    this.formCompra.compFechaEmision = fechaAnterior;
+                    this.fechaEmisionAnterior = fechaAnterior;
+                } finally {
+                    this.validandoCambioFechaEmision = false;
+                }
+            },
+
             cargarDatosCompra() {
                 this.isEdit = true;
 
                 const buscarPorId = (lista, id) => lista.find(item => String(item.id) === String(id));
 
                 this.formCompra.compFechaEmision = dataCompra.comp_fecha_emision;
+                this.fechaEmisionAnterior = dataCompra.comp_fecha_emision || fechaActual;
 
                 this.formCompra.compTipoComprobante = this.listaTiposComprobantes.find(item => String(item.comp_codigo) === String(dataCompra.comp_tipo_comprobante_cod));
 
@@ -1504,6 +1561,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     };
 
                     const basesImpuestos = this.basesImpuestoVista.map(base => ({
+                            impuestoTarifaId: base.impuesto_tarifa_id ?? null,
                             codigo: base.codigo,
                             detalle: base.detalle,
                             porcentaje: Number(base.porcentaje || 0),
@@ -1683,6 +1741,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 const datos = new FormData();
                 datos.append('file', this.selectedExcelFile);
+                datos.append('fechaEmision', this.formCompra.compFechaEmision);
                 datos.append('centroCostoId', this.formCompra.compCentroCosto?.id ?? '');
                 datos.append('permitirDuplicados', this.formCompra.compPermitirDuplicados ? 1 : 0);
 
@@ -1817,7 +1876,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let datos = {
                     id: item.id,
                     qty: 1,
-                    permitirDuplicados: this.formCompra.compPermitirDuplicados
+                    permitirDuplicados: this.formCompra.compPermitirDuplicados,
+                    fechaEmision: this.formCompra.compFechaEmision
 
                 };
 
@@ -1854,7 +1914,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 let datos = {
                     ...item,
-                    actualizarLote: actualizarLote
+                    actualizarLote: actualizarLote,
+                    fechaEmision: this.formCompra.compFechaEmision
                 };
 
                 try {
@@ -2035,7 +2096,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.isEdit = false;
                 this.formCompra = {
                     compFechaEmision: fechaActual,
-                    compTipoComprobante: '',
+                    compTipoComprobante: this.listaTiposComprobantes.find(val => String(val.comp_codigo) === '01'),
                     compNumeroComprobante: '',
                     compNumeroEstablecimiento: '',
                     compNumeroEmision: '',

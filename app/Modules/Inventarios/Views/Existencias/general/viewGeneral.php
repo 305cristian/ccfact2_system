@@ -376,7 +376,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaSubGruposModal = <?php echo json_encode($listaSubgrupos); ?>;
     var listaCtaContable = <?php echo json_encode($listaCtaContable); ?>;
     var listaTiposPvp = <?php echo json_encode($listaTiposPvp); ?>;
-//    var ivaActual =<?php echo getSettings("IVA"); ?>;
 
     //PERMISOS
 
@@ -431,7 +430,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 formValidacion: [],
                 listaSubGruposModal: listaSubGruposModal,
                 listaSubGruposModalFilter: [],
-//                ivaActual: ivaActual,
                 price: [],
                 tipoPrecioVal: [],
                 tipoPrecioId: [],

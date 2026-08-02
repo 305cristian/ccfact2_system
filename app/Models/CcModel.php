@@ -71,6 +71,40 @@ class CcModel extends \CodeIgniter\Model {
     }
 
     /**
+     * @param string $tableName
+     * @param array $dataSet
+     * @param array $whereData
+     * @param array $whereIn
+     */
+    public function actualizarIn($tableName, $dataSet, $whereData, $whereIn = []) {
+        $builder = $this->db->table($tableName);
+
+        // WHERE normales
+        if (!empty($whereData)) {
+            $builder->where($whereData);
+        }
+
+        // WHERE IN opcionales
+        foreach ($whereIn as $campo => $valores) {
+            if (!empty($valores)) {
+                $builder->whereIn($campo, $valores);
+            }
+        }
+
+        $builder->update($dataSet);
+
+//        $sql = $this->db->getLastQuery();
+//        echo $sql;
+
+        $error = $this->db->error();
+        if ($error['message']) {
+            throw new \Exception('Error al actualizar en la tabla ' . $tableName . ': ' . $error['message']);
+        }
+
+        return $this->db->affectedRows();
+    }
+
+    /**
      * @param string $table_name
      * @param array $where_data
      * @param string $fields
@@ -117,10 +151,8 @@ class CcModel extends \CodeIgniter\Model {
         $query = $builder->get();
 
         if ($query === false) {
-//            $sql = $this->db->getLastQuery();
             $error = $this->db->error();
             throw new \Exception('Error en la consulta: ' . $error['message']);
-//            throw new \Exception('Error en la consulta: ' . $error['message'].$sql);
         }
 
         if ($rows_num == 1) {

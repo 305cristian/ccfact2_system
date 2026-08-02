@@ -140,7 +140,7 @@ class SalidasAsientosLib {
                     'HABER', // CRÉDITO
                     $this->tipotransaccionCod,
                     $ajusteId,
-                    'Ajuste Salida - Inventario Tarifa ' . getSettings('IVA') . ' % + IVA',
+                    'Ajuste Salida - Inventario Tarifa ' . (float) $ajuste->iva_porcentaje . ' % + IVA',
                     null,
                     null,
                     $ajuste->fk_centro_costo

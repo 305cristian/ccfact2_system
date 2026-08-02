@@ -188,6 +188,12 @@
                         <p>Retenciones</p>
                     </a>
                 </li>
+                <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/impuestos/managamentImpuestos' }">
+                    <a @click.prevent="navigate('<?= site_url() ?>/admin/impuestos/managamentImpuestos')" class="nav-link"  style="cursor: pointer">
+                        <i class="far fa-circle nav-icon sidebarColorIcon"></i>
+                        <p>Impuestos / Tarifas</p>
+                    </a>
+                </li>
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/admin/bancos/managamentBancos' }">
                     <a @click.prevent="navigate('<?= site_url() ?>/admin/bancos/managamentBancos')" class="nav-link"  style="cursor: pointer">
                         <i class="far fa-circle nav-icon sidebarColorIcon"></i>

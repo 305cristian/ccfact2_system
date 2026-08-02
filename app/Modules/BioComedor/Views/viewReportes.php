@@ -78,14 +78,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <h6 class="text-system fw-bold mb-3"><i class="fas fa-filter"></i> Filtros</h6>
 
                 <div class="row align-items-end">
-                    <div class="col-md-2 mb-3">
-                        <label class="col-form-label col-form-label-sm">Desde</label>
-                        <input v-model="filtros.fechaDesde" type="date" class="form-control" />
-                    </div>
-
-                    <div class="col-md-2 mb-3">
-                        <label class="col-form-label col-form-label-sm">Hasta</label>
-                        <input v-model="filtros.fechaHasta" type="date" class="form-control" />
+                    <div class="col-md-4 mb-3">
+                        <label class="col-form-label col-form-label-sm">Fecha</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i> Rango de fechas</span>
+                            <input
+                                ref="dateRangeReportes"
+                                v-model="filtros.fechas"
+                                type="text"
+                                class="form-control"
+                                placeholder="Seleccione rango de fechas">
+                        </div>
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -128,6 +131,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
 
                     <div class="col-md-2 mb-3">
+                        <label class="col-form-label col-form-label-sm">Costo base</label>
+                        <input v-model="filtros.costoBase" type="number" step="0.0001" min="0" class="form-control" placeholder="Ej. 4.20" />
+                    </div>
+
+                    <div class="col-md-2 mb-3">
                         <button class="btn btn-primary w-100" :disabled="loadingReporte" @click="getReportes()">
                             <span v-if="loadingReporte"><i class="fas fa-spinner fa-spin"></i> Consultando...</span>
                             <span v-else><i class="fas fa-search"></i> Consultar</span>
@@ -153,6 +161,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <button type="button" class="nav-link" :class="{active: panelActivo === 'detalle'}" @click="activarPanel('detalle')">
                         <i class="fas fa-table me-1"></i> Tabla
                         <span class="badge bg-secondary ms-1">{{ numero(detalle.length) }}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button type="button" class="nav-link" :class="{active: panelActivo === 'costos'}" @click="activarPanel('costos')">
+                        <i class="fas fa-dollar-sign me-1"></i> Costos
+                        <span class="badge bg-secondary ms-1">{{ numero(costosPorServicio.length) }}</span>
                     </button>
                 </li>
             </ul>
@@ -254,6 +268,75 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </table>
                 </div>
             </div>
+
+            <div v-show="panelActivo === 'costos'">
+                <div class="alert alert-warning small py-2">
+                    <strong>Lectura:</strong> el costo diario se calcula con salidas archivadas por servicio dividido para consumos validos del mismo dia y servicio.
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-xl-3 col-md-6" v-for="card in cardsCostos" :key="card.label">
+                        <div class="bio-report-card">
+                            <div class="bio-report-label">
+                                <i :class="card.icon"></i> {{ card.label }}
+                            </div>
+                            <div class="bio-report-value">{{ card.value }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <div class="bio-report-box">
+                            <h6 class="fw-bold text-system mb-2"><i class="fas fa-chart-line"></i> Costo global diario</h6>
+                            <div id="chartReporteCostosGlobal" style="height: 360px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="bio-report-box">
+                            <h6 class="fw-bold text-system mb-2"><i class="fas fa-chart-line"></i> Costo diario por servicio</h6>
+                            <div id="chartReporteCostosServicio" style="height: 360px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto">
+                    <table id="tblReporteCostosServicio" class="table table-striped nowrap display" style="width: 100%">
+                        <thead class="bg-system text-white">
+                            <tr>
+                                <td>FECHA</td>
+                                <td>SERVICIO</td>
+                                <td>DESPACHOS</td>
+                                <td>COSTO DESPACHADO</td>
+                                <td>CONSUMOS</td>
+                                <td>COSTO DIA</td>
+                                <td>COSTO BASE</td>
+                                <td>DIFERENCIA</td>
+                                <td>ESTADO</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="row of costosPorServicio" :key="`${row.fecha}-${row.fk_servicio}`">
+                                <td>{{ row.fecha }}</td>
+                                <td>{{ row.servicio }}</td>
+                                <td>{{ numero(row.despachos) }}</td>
+                                <td>{{ moneda(row.costo_total) }}</td>
+                                <td>{{ numero(row.consumos) }}</td>
+                                <td class="fw-bold">{{ moneda(row.costo_unitario) }}</td>
+                                <td>{{ moneda(row.costo_base) }}</td>
+                                <td :class="Number(row.diferencia || 0) > 0 ? 'text-danger fw-bold' : 'text-success fw-bold'">
+                                    {{ moneda(row.diferencia) }}
+                                </td>
+                                <td>
+                                    <span v-if="row.estado_costo === 'SOBRE_BASE'" class="badge bg-danger">SOBRE BASE</span>
+                                    <span v-else class="badge bg-success">DENTRO BASE</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -288,6 +371,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 porContratista: [],
                 porProyecto: [],
                 porFecha: [],
+                costosPorServicio: [],
                 detalle: [],
             };
         },
@@ -302,15 +386,42 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     {label: 'Retrasos', value: this.numero(this.resumen.total_retrasos), icon: 'fas fa-clock me-1'},
                 ];
             },
+            cardsCostos() {
+                const totalCosto = this.costosPorServicio.reduce((total, row) => total + Number(row.costo_total || 0), 0);
+                const totalConsumos = this.costosPorServicio.reduce((total, row) => total + Number(row.consumos || 0), 0);
+                const costoPromedio = totalConsumos > 0 ? totalCosto / totalConsumos : 0;
+                const sobreBase = this.costosPorServicio.filter(row => row.estado_costo === 'SOBRE_BASE').length;
+
+                return [
+                    {label: 'Costo despachado', value: this.moneda(totalCosto), icon: 'fas fa-boxes me-1'},
+                    {label: 'Consumos base', value: this.numero(totalConsumos), icon: 'fas fa-utensils me-1'},
+                    {label: 'Costo promedio', value: this.moneda(costoPromedio), icon: 'fas fa-chart-line me-1'},
+                    {label: 'Dias sobre base', value: this.numero(sobreBase), icon: 'fas fa-exclamation-triangle me-1'},
+                ];
+            },
         },
         created() {
             this.filtros.fechaDesde = this.fechaActual();
             this.filtros.fechaHasta = this.fechaActual();
+            this.filtros.fechas = `${this.filtros.fechaDesde} a ${this.filtros.fechaHasta}`;
             this.getReportes();
+        },
+        mounted() {
+            flatpickr(this.$refs.dateRangeReportes, {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                locale: 'es',
+                allowInput: true,
+                defaultDate: [this.filtros.fechaDesde, this.filtros.fechaHasta],
+                onChange: (_, dateStr) => {
+                    this.filtros.fechas = dateStr;
+                }
+            });
         },
         methods: {
             emptyFiltros() {
                 return {
+                    fechas: '',
                     fechaDesde: '',
                     fechaHasta: '',
                     fkComedor: '',
@@ -319,11 +430,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     fkProyecto: '',
                     marcEstado: 'VALIDA',
                     marcRetraso: '',
+                    costoBase: '4.20',
                 };
             },
             async getReportes() {
                 this.loadingReporte = true;
                 try {
+                    const fechas = this.getFechasFiltro();
+                    this.filtros.fechaDesde = fechas.fechaDesde;
+                    this.filtros.fechaHasta = fechas.fechaHasta;
                     let datos = this.formData(this.filtros);
                     let response = await axios.post(this.url + '/biocomedor/reportes/getReportes', datos);
                     let data = response.data.data || {};
@@ -334,9 +449,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.porContratista = data.porContratista || [];
                     this.porProyecto = data.porProyecto || [];
                     this.porFecha = data.porFecha || [];
+                    this.costosPorServicio = data.costosPorServicio || [];
 
                     if ($.fn.DataTable.isDataTable('#tblReporteMarcaciones')) {
                         $('#tblReporteMarcaciones').DataTable().destroy();
+                    }
+
+                    if ($.fn.DataTable.isDataTable('#tblReporteCostosServicio')) {
+                        $('#tblReporteCostosServicio').DataTable().destroy();
                     }
 
                     this.detalle = data.detalle || [];
@@ -345,6 +465,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         this.renderCharts();
                         if (this.panelActivo === 'detalle') {
                             this.renderTablaReporte();
+                        }
+
+                        if (this.panelActivo === 'costos') {
+                            this.renderCostos();
                         }
                     });
                 } catch (e) {
@@ -357,7 +481,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.filtros = this.emptyFiltros();
                 this.filtros.fechaDesde = this.fechaActual();
                 this.filtros.fechaHasta = this.fechaActual();
+                this.filtros.fechas = `${this.filtros.fechaDesde} a ${this.filtros.fechaHasta}`;
+
+                if (this.$refs.dateRangeReportes && this.$refs.dateRangeReportes._flatpickr) {
+                    this.$refs.dateRangeReportes._flatpickr.setDate([this.filtros.fechaDesde, this.filtros.fechaHasta], false);
+                }
+
                 this.getReportes();
+            },
+            getFechasFiltro() {
+                const fechas = String(this.filtros.fechas || '').split(' a ');
+
+                return {
+                    fechaDesde: fechas[0] || this.fechaActual(),
+                    fechaHasta: fechas[1] || fechas[0] || this.fechaActual()
+                };
             },
             activarPanel(panel) {
                 this.panelActivo = panel;
@@ -369,6 +507,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     if (panel === 'detalle') {
                         this.renderTablaReporte();
                     }
+
+                    if (panel === 'costos') {
+                        this.renderCostos();
+                    }
                 });
             },
             renderTablaReporte() {
@@ -377,6 +519,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 dataTable('#tblReporteMarcaciones', 'Reporte de marcaciones');
+            },
+            renderTablaCostos() {
+                if ($.fn.DataTable.isDataTable('#tblReporteCostosServicio')) {
+                    $('#tblReporteCostosServicio').DataTable().destroy();
+                }
+
+                dataTable('#tblReporteCostosServicio', 'Reporte de costos por servicio');
             },
             renderCharts() {
                 if (typeof Highcharts === 'undefined') {
@@ -388,6 +537,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.renderColumnChart('chartReporteComedores', this.porComedor, 'Consumos');
                 this.renderBarChart('chartReporteContratistas', this.porContratista.slice(0, 8), 'Consumos');
                 this.renderBarChart('chartReporteProyectos', this.porProyecto.slice(0, 8), 'Consumos');
+            },
+            renderCostos() {
+                if (typeof Highcharts === 'undefined') {
+                    return;
+                }
+
+                this.renderCostosGlobalChart();
+                this.renderCostosServicioChart();
+                this.renderTablaCostos();
             },
             renderLineChart(container, rows) {
                 Highcharts.chart(container, {
@@ -430,6 +588,154 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     credits: {enabled: false}
                 });
             },
+            getCostosGlobalPorFecha() {
+                const rows = this.costosPorServicio || [];
+                const agrupado = {};
+
+                rows.forEach(row => {
+                    const fecha = row.fecha || '-';
+
+                    if (!agrupado[fecha]) {
+                        agrupado[fecha] = {
+                            fecha: fecha,
+                            costo_total: 0,
+                            consumos: 0
+                        };
+                    }
+
+                    agrupado[fecha].costo_total += Number(row.costo_total || 0);
+                    agrupado[fecha].consumos += Number(row.consumos || 0);
+                });
+
+                return Object.values(agrupado).map(row => ({
+                        ...row,
+                        costo_unitario: row.consumos > 0 ? Number((row.costo_total / row.consumos).toFixed(4)) : 0
+                    }));
+            },
+            renderCostosGlobalChart() {
+                const rows = this.getCostosGlobalPorFecha();
+                const costoBase = Number(this.filtros.costoBase || 0);
+                const series = [
+                    {
+                        name: 'Costo global diario',
+                        data: rows.map(row => Number(row.costo_unitario || 0)),
+                        color: '#5f6f7f',
+                        dataLabels: {
+                            enabled: true,
+                            format: '${y:.2f}',
+                            style: {
+                                fontWeight: 'bold',
+                                textOutline: 'none'
+                            }
+                        }
+                    }
+                ];
+
+                if (costoBase > 0) {
+                    series.push({
+                        name: 'Costo base',
+                        type: 'line',
+                        dashStyle: 'ShortDash',
+                        color: '#dc3545',
+                        marker: {enabled: false},
+                        data: rows.map(() => costoBase),
+                        dataLabels: {enabled: false}
+                    });
+                }
+
+                Highcharts.chart('chartReporteCostosGlobal', {
+                    chart: {type: 'spline'},
+                    title: {text: ''},
+                    xAxis: {
+                        categories: rows.map(row => row.fecha || '-'),
+                        labels: {
+                            rotation: -55
+                        }
+                    },
+                    yAxis: {
+                        title: {text: 'Costo por consumo'},
+                        labels: {format: '${value}'}
+                    },
+                    tooltip: {
+                        shared: true,
+                        valuePrefix: '$',
+                        valueDecimals: 4
+                    },
+                    plotOptions: {
+                        spline: {
+                            marker: {
+                                enabled: true,
+                                radius: 4
+                            }
+                        }
+                    },
+                    series: series,
+                    credits: {enabled: false}
+                });
+            },
+            renderCostosServicioChart() {
+                const rows = this.costosPorServicio || [];
+                const fechas = [...new Set(rows.map(row => row.fecha || '-'))];
+                const servicios = [...new Set(rows.map(row => row.servicio || 'SIN SERVICIO'))];
+                const costoBase = Number(this.filtros.costoBase || 0);
+                const series = servicios.map(servicio => ({
+                        name: servicio,
+                        data: fechas.map(fecha => {
+                            const row = rows.find(item => item.fecha === fecha && item.servicio === servicio);
+                            return row ? Number(row.costo_unitario || 0) : null;
+                        }),
+                        dataLabels: {
+                            enabled: true,
+                            format: '${y:.2f}',
+                            style: {
+                                fontWeight: 'bold',
+                                textOutline: 'none'
+                            }
+                        }
+                    }));
+
+                if (costoBase > 0) {
+                    series.push({
+                        name: 'Costo base',
+                        type: 'line',
+                        dashStyle: 'ShortDash',
+                        color: '#dc3545',
+                        marker: {enabled: false},
+                        data: fechas.map(() => costoBase),
+                        dataLabels: {enabled: false}
+                    });
+                }
+
+                Highcharts.chart('chartReporteCostosServicio', {
+                    chart: {type: 'spline'},
+                    title: {text: ''},
+                    xAxis: {
+                        categories: fechas,
+                        labels: {
+                            rotation: -55
+                        }
+                    },
+                    yAxis: {
+                        title: {text: 'Costo por consumo'},
+                        labels: {format: '${value}'}
+                    },
+                    tooltip: {
+                        shared: true,
+                        valuePrefix: '$',
+                        valueDecimals: 4
+                    },
+                    plotOptions: {
+                        spline: {
+                            marker: {
+                                enabled: true,
+                                radius: 4
+                            }
+                        }
+                    },
+                    series: series,
+                    credits: {enabled: false}
+                });
+            },
             fechaActual(fecha = new Date()) {
                 let year = fecha.getFullYear();
                 let month = String(fecha.getMonth() + 1).padStart(2, '0');
@@ -445,6 +751,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             numero(value) {
                 return Number(value || 0);
+            },
+            moneda(value) {
+                return new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 4
+                }).format(Number(value || 0));
             },
             zfill(num) {
                 return zFill(num, 3);

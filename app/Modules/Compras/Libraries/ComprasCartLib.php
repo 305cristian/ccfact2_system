@@ -284,6 +284,7 @@ class ComprasCartLib {
             if (!isset($meta["bases_impuesto"][$taxKey])) {
 
                 $meta["bases_impuesto"][$taxKey] = [
+                    "impuesto_tarifa_id" => $item["impuestoSelect"] ?? null,
                     "codigo" => $codigoImpuestoSelect ?? null,
                     "detalle" => $item["detalleImpuestoSelect"] ?? '',
                     "porcentaje" => $ivaPercent,

@@ -64,11 +64,11 @@ class ComprasAsientosLib {
         $this->guardarDebitosItems($asientoId, $compra, $detalles);
         $this->guardarDebitosIva($asientoId, $compra);
 
-        if ((float) $compra->comp_totalice != 0.0|| (float) $compra->comp_totalirbpnr != 0.0 ) {
+        if ((float) $compra->comp_totalice != 0.0 || (float) $compra->comp_totalirbpnr != 0.0) {
             $this->guardarDebitosOtrosImpuestos($asientoId, $compra);
         }
 
-        if ((float) $compra->comp_recargo != 0.0 || (float) $compra->comp_servicios_adicionales != 0.0 ) {
+        if ((float) $compra->comp_recargo != 0.0 || (float) $compra->comp_servicios_adicionales != 0.0) {
             $this->guardarDebitosAdicionales($asientoId, $compra);
         }
 
@@ -92,7 +92,7 @@ class ComprasAsientosLib {
     }
 
     public function anularAsientoCompra(int $compraId): void {
-        $asiento = $this->ccm->getData( 'cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccion, 'ac_documento_id' => $compraId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1,], 'id', null, 1 );
+        $asiento = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccion, 'ac_documento_id' => $compraId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1,], 'id', null, 1);
 
         if (!$asiento) {
             return;
@@ -181,13 +181,13 @@ class ComprasAsientosLib {
             }
 
             $porcentaje = (float) $base->imp_porcentaje;
-            $codigoConfig = $this->obtenerConfiguracionIva( (int) $base->fk_impuesto_tarifa );
+            $cuentaIva = $this->obtenerCuentaContableIva((int) $base->fk_impuesto_tarifa, (string) $compra->comp_fecha_emision);
 
-            if (!isset($cuentasIva[$codigoConfig])) {
-                $cuentasIva[$codigoConfig] = ['porcentaje' => $porcentaje, 'valor' => 0.0];
+            if (!isset($cuentasIva[$cuentaIva])) {
+                $cuentasIva[$cuentaIva] = ['porcentaje' => $porcentaje, 'valor' => 0.0];
             }
 
-            $cuentasIva[$codigoConfig]['valor'] += $valorIva;
+            $cuentasIva[$cuentaIva]['valor'] += $valorIva;
             $totalBasesIva += $valorIva;
         }
 
@@ -197,9 +197,7 @@ class ComprasAsientosLib {
             throw new \RuntimeException('El IVA de las bases no coincide con el total del IVA de la compra.');
         }
 
-        foreach ($cuentasIva as $codigoConfig => $datosIva) {
-            $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoConfig);
-
+        foreach ($cuentasIva as $cuenta => $datosIva) {
             if (!$cuenta) {
                 throw new \RuntimeException("No está configurada la cuenta para IVA {$datosIva['porcentaje']}%.");
             }
@@ -253,15 +251,15 @@ class ComprasAsientosLib {
         ];
 
         foreach ($adicionales as $adicional) {
-            $this->guardarDebitoConfigurado( $asientoId, $compra, $adicional['codigo'], $adicional['valor'], $adicional['detalle'] );
+            $this->guardarDebitoConfigurado($asientoId, $compra, $adicional['codigo'], $adicional['valor'], $adicional['detalle']);
         }
     }
 
-    protected function guardarDebitoConfigurado( int $asientoId, object $compra, string $codigoConfig, float $valor, string $detalle ): void {
+    protected function guardarDebitoConfigurado(int $asientoId, object $compra, string $codigoConfig, float $valor, string $detalle): void {
         $valor = round($valor, 4);
 
         if ($valor < 0) {
-            throw new \RuntimeException("El valor de {$detalle} no puede ser negativo." );
+            throw new \RuntimeException("El valor de {$detalle} no puede ser negativo.");
         }
 
         if ($valor === 0.0) {
@@ -271,7 +269,7 @@ class ComprasAsientosLib {
         $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoConfig);
 
         if (!$cuenta) {
-            throw new \RuntimeException( "No está configurada la cuenta contable para {$detalle}." );
+            throw new \RuntimeException("No está configurada la cuenta contable para {$detalle}.");
         }
 
         $this->asientoLib->guardarDetalleAsiento(
@@ -383,12 +381,64 @@ class ComprasAsientosLib {
         );
     }
 
-    protected function obtenerConfiguracionIva(int $tarifaId): string {
-
-        $tarifa = $this->ccm->getData( 'cc_impuesto_tarifa', ['id' => $tarifaId, 'fk_impuesto' => 1], 'id, impt_porcentage, impt_grupo, impt_estado', null, 1);
+    protected function obtenerCuentaContableIva(int $tarifaId, string $fechaEmision): string {
+        $tarifa = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $tarifaId, 'fk_impuesto' => 1], 'id, impt_porcentage, impt_estado, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia', null, 1);
 
         if (!$tarifa || (float) $tarifa->impt_porcentage <= 0) {
-            throw new \RuntimeException( "La tarifa IVA {$tarifaId} no existe o no genera IVA." );
+            throw new \RuntimeException("La tarifa IVA {$tarifaId} no existe o no genera IVA.");
+        }
+
+        if ($this->esTarifaHistoricaParaFecha($tarifa, $fechaEmision)) {
+            $whereData = [
+                'fk_impuesto_tarifa' => $tarifaId,
+                'tipo_movimiento' => 'COMPRA',
+                'tipo_cuenta' => 'IVA',
+                'estado' => 1,
+            ];
+            $cuentaHistorica = $this->ccm->getValueWhere('cc_impuesto_tarifa_cuenta_contable', $whereData, 'fk_cuentacontable_det' );
+
+            if ($cuentaHistorica) {
+                return (string) $cuentaHistorica;
+            }
+
+            throw new \RuntimeException("La tarifa IVA {$tarifa->impt_porcentage}% historica no tiene configurada la cuenta contable de IVA para compras.");
+        }
+
+        $codigoConfig = $this->obtenerConfiguracionIva($tarifaId);
+        $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoConfig);
+
+        if (!$cuenta) {
+            throw new \RuntimeException("No estÃ¡ configurada la cuenta contable {$codigoConfig} para IVA {$tarifa->impt_porcentage}%.");
+        }
+
+        return $cuenta;
+    }
+
+    protected function esTarifaHistoricaParaFecha(object $tarifa, string $fechaEmision): bool {
+        if (($tarifa->impt_estado ?? '') !== 'HISTORIAL') {
+            return false;
+        }
+
+        $fechaInicio = $tarifa->impt_fecha_inicio_vigencia ?? null;
+        $fechaFin = $tarifa->impt_fecha_fin_vigencia ?? null;
+
+        if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio > $fechaEmision) {
+            return false;
+        }
+
+        if ($fechaFin && $fechaFin !== '0000-00-00' && $fechaFin < $fechaEmision) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function obtenerConfiguracionIva(int $tarifaId): string {
+
+        $tarifa = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $tarifaId, 'fk_impuesto' => 1], 'id, impt_porcentage, impt_grupo, impt_estado', null, 1);
+
+        if (!$tarifa || (float) $tarifa->impt_porcentage <= 0) {
+            throw new \RuntimeException("La tarifa IVA {$tarifaId} no existe o no genera IVA.");
         }
 
         $porcentaje = (float) $tarifa->impt_porcentage;

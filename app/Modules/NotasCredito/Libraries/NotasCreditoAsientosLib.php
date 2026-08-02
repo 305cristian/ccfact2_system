@@ -95,7 +95,7 @@ class NotasCreditoAsientosLib {
 
     public function anularAsientoNotaCredito(int $notaCreditoId): void {
 
-        $asiento = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccionNotaCredito,'ac_documento_id' => $notaCreditoId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1, ],'id', null, 1 );
+        $asiento = $this->ccm->getData('cc_asiento_contable', ['ac_codigo_transaccion' => $this->tipoTransaccionNotaCredito, 'ac_documento_id' => $notaCreditoId, 'fk_proyecto' => getProyectoId(), 'ac_estado' => 1,], 'id', null, 1);
 
         if (!$asiento) {
             return;
@@ -276,13 +276,13 @@ class NotasCreditoAsientosLib {
             }
 
             $porcentaje = (float) $base->imp_porcentaje;
-            $codigoConfig = $this->obtenerConfiguracionIvaNdc((int) $base->fk_impuesto_tarifa);
+            $cuentaIva = $this->obtenerCuentaContableIvaNdc((int) $base->fk_impuesto_tarifa);
 
-            if (!isset($cuentasIva[$codigoConfig])) {
-                $cuentasIva[$codigoConfig] = ['porcentaje' => $porcentaje, 'valor' => 0.0];
+            if (!isset($cuentasIva[$cuentaIva])) {
+                $cuentasIva[$cuentaIva] = ['porcentaje' => $porcentaje, 'valor' => 0.0];
             }
 
-            $cuentasIva[$codigoConfig]['valor'] += $valorIva;
+            $cuentasIva[$cuentaIva]['valor'] += $valorIva;
             $totalBasesIva += $valorIva;
         }
 
@@ -292,9 +292,7 @@ class NotasCreditoAsientosLib {
             throw new \RuntimeException('El IVA de las bases no coincide con el total del IVA de la nota de credito.');
         }
 
-        foreach ($cuentasIva as $codigoConfig => $datosIva) {
-            $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoConfig);
-
+        foreach ($cuentasIva as $cuenta => $datosIva) {
             if (!$cuenta) {
                 throw new \RuntimeException("No esta configurada la cuenta para IVA {$datosIva['porcentaje']}%.");
             }
@@ -314,12 +312,45 @@ class NotasCreditoAsientosLib {
         }
     }
 
+    private function obtenerCuentaContableIvaNdc(int $tarifaId): string {
+        $tarifa = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $tarifaId, 'fk_impuesto' => 1], 'id, impt_porcentage, impt_estado, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia', null, 1);
+
+        if (!$tarifa || (float) $tarifa->impt_porcentage <= 0) {
+            throw new \RuntimeException("La tarifa IVA {$tarifaId} no existe o no genera IVA.");
+        }
+
+        $whereData = [
+            'fk_impuesto_tarifa' => $tarifaId,
+            'tipo_movimiento' => 'COMPRA',
+            'tipo_cuenta' => 'IVA',
+            'estado' => 1,
+        ];
+        $cuentaTarifa = $this->ccm->getValueWhere('cc_impuesto_tarifa_cuenta_contable', $whereData, 'fk_cuentacontable_det');
+
+        if ($cuentaTarifa) {
+            return (string) $cuentaTarifa;
+        }
+
+        if (($tarifa->impt_estado ?? '') === 'HISTORIAL') {
+            throw new \RuntimeException("La tarifa IVA {$tarifa->impt_porcentage}% del documento origen no tiene configurada la cuenta contable de IVA para NDC.");
+        }
+
+        $codigoConfig = $this->obtenerConfiguracionIvaNdc($tarifaId);
+        $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoConfig);
+
+        if (!$cuenta) {
+            throw new \RuntimeException("No esta configurada la cuenta contable {$codigoConfig} para IVA {$tarifa->impt_porcentage}%.");
+        }
+
+        return $cuenta;
+    }
+
     private function obtenerConfiguracionIvaNdc(int $tarifaId): string {
 
         $tarifa = $this->ccm->getData(
                 'cc_impuesto_tarifa',
                 ['id' => $tarifaId, 'fk_impuesto' => 1],
-                'id, impt_porcentage, impt_grupo',
+                'id, impt_porcentage, impt_grupo, impt_estado',
                 null,
                 1
         );

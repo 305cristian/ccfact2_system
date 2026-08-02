@@ -125,7 +125,7 @@ class EntradasAsientosLib {
                         'DEBE', // DÉBITO
                         $this->tipotransaccionCod,
                         $ajusteId,
-                        'Ajuste Entrada - Inventario Tarifa ' . getSettings('IVA') . ' % + IVA',
+                        'Ajuste Entrada - Inventario Tarifa ' . (float) $ajuste->iva_porcentaje . ' % + IVA',
                         null,
                         null,
                         $ajuste->fk_centro_costo

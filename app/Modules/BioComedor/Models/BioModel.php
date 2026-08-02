@@ -430,6 +430,89 @@ class BioModel extends Model {
         return $builder->get()->getResult();
     }
 
+    public function getReporteCostosPorServicio(array $filtros = []): array {
+        $costos = $this->getCostosDespachoPorServicioFecha($filtros);
+        $consumos = $this->getConsumosValidosPorServicioFecha($filtros);
+        $costoBase = (float) ($filtros['costoBase'] ?? 0);
+        $rows = [];
+
+        foreach ($costos as $costo) {
+            $key = $costo->fecha . '_' . $costo->fk_servicio;
+            $consumo = $consumos[$key] ?? 0;
+            $costoTotal = (float) ($costo->costo_total ?? 0);
+            $costoUnitario = $consumo > 0 ? round($costoTotal / $consumo, 4) : 0;
+
+            $rows[] = (object) [
+                'fecha' => $costo->fecha,
+                'fk_servicio' => (int) $costo->fk_servicio,
+                'servicio' => $costo->servicio,
+                'despachos' => (int) ($costo->despachos ?? 0),
+                'costo_total' => round($costoTotal, 4),
+                'consumos' => $consumo,
+                'costo_unitario' => $costoUnitario,
+                'costo_base' => $costoBase,
+                'diferencia' => round($costoUnitario - $costoBase, 4),
+                'estado_costo' => $costoBase > 0 && $costoUnitario > $costoBase ? 'SOBRE_BASE' : 'DENTRO_BASE',
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function getCostosDespachoPorServicioFecha(array $filtros = []): array {
+        $builder = $this->db->table("cc_ajuste_salida tb1");
+        $builder->select("
+            tb1.ajes_fecha AS fecha,
+            tb1.fk_servicio,
+            tb2.serv_nombre AS servicio,
+            COUNT(tb1.id) AS despachos,
+            SUM(tb1.ajes_total) AS costo_total
+        ");
+        $builder->join("cc_bio_servicios tb2", "tb2.id = tb1.fk_servicio");
+        $builder->where("tb1.fk_proyecto", getProyectoId());
+        $builder->where("tb1.ajes_estado", 2);
+        $builder->where("tb1.fk_servicio IS NOT NULL");
+
+        if (!empty($filtros['fechaDesde'])) {
+            $builder->where("tb1.ajes_fecha >=", $filtros['fechaDesde']);
+        }
+
+        if (!empty($filtros['fechaHasta'])) {
+            $builder->where("tb1.ajes_fecha <=", $filtros['fechaHasta']);
+        }
+
+        if (!empty($filtros['fkServicio'])) {
+            $builder->where("tb1.fk_servicio", $filtros['fkServicio']);
+        }
+
+        $builder->groupBy("tb1.ajes_fecha, tb1.fk_servicio, tb2.serv_nombre");
+        $builder->orderBy("tb1.ajes_fecha", "ASC");
+        $builder->orderBy("tb2.serv_orden", "ASC");
+        return $builder->get()->getResult();
+    }
+
+    private function getConsumosValidosPorServicioFecha(array $filtros = []): array {
+        unset($filtros['marcEstado'], $filtros['marcRetraso']);
+
+        $builder = $this->baseQueryReporteMarcaciones($filtros);
+        $builder->select("
+            tb1.marc_fecha AS fecha,
+            tb1.fk_servicio,
+            COUNT(tb1.id) AS consumos
+        ");
+        $builder->where("tb1.marc_estado", "VALIDA");
+        $builder->where("tb1.marc_genera_consumo", 1);
+        $builder->groupBy("tb1.marc_fecha, tb1.fk_servicio");
+        $result = $builder->get()->getResult();
+        $rows = [];
+
+        foreach ($result as $row) {
+            $rows[$row->fecha . '_' . $row->fk_servicio] = (int) $row->consumos;
+        }
+
+        return $rows;
+    }
+
     private function baseQueryReporteMarcaciones(array $filtros) {
 
         $builder = $this->db->table("cc_bio_marcaciones tb1");

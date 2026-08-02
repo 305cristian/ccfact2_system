@@ -562,7 +562,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             itemsDescuentoGlobalDisponibles() {
                 const idsAgregados = this.itemsNdc.map(item => String(item.id));
                 return this.tarifasFactura.map(tarifa => {
-                    let productoDescuento = this.productoDescuentoPorPorcentaje(tarifa.porcentaje);
+                    let productoDescuento = this.productoDescuentoPorTarifa(tarifa.fk_impuesto_tarifa, tarifa.porcentaje);
                     if (!productoDescuento) {
                         return null;
                     }
@@ -880,7 +880,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     if (data.status === 'success') {
                         this.modalDestinoFinancieroInstance.hide();
-                        sweet_msg_dialog('success', data.msg || 'Nota de credito procesada correctamente.', `${this.url}/compras/gestionCompras`);
+                        sweet_msg_dialog('success', data.msg || 'Nota de credito procesada correctamente.', '/compras/gestionCompras');
                     } else if (data.status === 'warning') {
                         sweet_msg_dialog('warning', data.msg || 'Revise los datos de la nota de credito.');
                     } else {
@@ -931,13 +931,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return Math.abs(porcentajeProducto - Number(porcentaje || 0)) < 0.0001;
                 }) || null;
             },
+            productoDescuentoPorTarifa(tarifaId, porcentaje) {
+                let productoPorTarifa = this.listaProductosDescuento.find(producto =>
+                    Number(producto.fk_impuestotarifa || 0) === Number(tarifaId || 0)
+                );
+                return productoPorTarifa || this.productoDescuentoPorPorcentaje(porcentaje);
+            },
             cuentaContableParaItemNdc(item) {
+
                 if (item.esDescuentoGlobal) {
                     return item.ctaContableNdc || item.compd_cta_entrada || '';
                 }
 
                 if (this.esNotaDescuento) {
-                    let productoDescuento = this.productoDescuentoPorPorcentaje(item.compd_impt_porcentaje);
+                    let productoDescuento = this.productoDescuentoPorTarifa(item.fk_impuesto_tarifa, item.compd_impt_porcentaje);
                     return productoDescuento ? productoDescuento.fk_cuentacontablecompras : '';
                 }
 
@@ -949,7 +956,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 if (this.esNotaDescuento) {
-                    let productoDescuento = this.productoDescuentoPorPorcentaje(item.compd_impt_porcentaje);
+                    let productoDescuento = this.productoDescuentoPorTarifa(item.fk_impuesto_tarifa, item.compd_impt_porcentaje);
                     return productoDescuento ? (productoDescuento.ctad_nombre_cuenta || '') : '';
                 }
 

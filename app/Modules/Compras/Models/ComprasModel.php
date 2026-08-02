@@ -21,6 +21,58 @@ use CodeIgniter\Model;
 
 class ComprasModel extends Model {
 
+    public function obtenerTarifaIvaVigentePorFecha(?int $tarifaActualId, string $fechaEmision): ?object {
+        if (!$tarifaActualId || trim($fechaEmision) === '') {
+            return null;
+        }
+
+        $tarifaActual = $this->getTarifaIvaById($tarifaActualId);
+
+        if (!$tarifaActual) {
+            return null;
+        }
+
+        if ($this->tarifaEstaVigenteEnFecha($tarifaActual, $fechaEmision)) {
+            return $tarifaActual;
+        }
+
+        $builder = $this->db->table('cc_impuesto_tarifa');
+        $builder->select('id, impt_codigo, impt_porcentage, impt_detalle, impt_grupo, impt_estado, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia');
+        $builder->where(['fk_impuesto' => 1,'impt_grupo' => $tarifaActual->impt_grupo ]);
+        $builder->where('impt_fecha_inicio_vigencia <=', $fechaEmision);
+        $builder->groupStart();
+        $builder->where('impt_fecha_fin_vigencia >=', $fechaEmision);
+        $builder->orWhere('impt_fecha_fin_vigencia', null);
+        $builder->groupEnd();
+        $builder->orderBy('impt_fecha_inicio_vigencia', 'DESC');
+        return $builder->get()->getRow();
+    }
+
+    private function getTarifaIvaById(int $tarifaId): ?object {
+        $builder = $this->db->table('cc_impuesto_tarifa');
+        $builder->select('id, impt_codigo, impt_porcentage, impt_detalle, impt_grupo, impt_estado, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia');
+        $builder->where([
+            'id' => $tarifaId,
+            'fk_impuesto' => 1,
+        ]);
+        return $builder->get()->getRow();
+    }
+
+    private function tarifaEstaVigenteEnFecha(object $tarifa, string $fechaEmision): bool {
+        $fechaInicio = $tarifa->impt_fecha_inicio_vigencia ?? null;
+        $fechaFin = $tarifa->impt_fecha_fin_vigencia ?? null;
+
+        if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio > $fechaEmision) {
+            return false;
+        }
+
+        if ($fechaFin && $fechaFin !== '0000-00-00' && $fechaFin < $fechaEmision) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getDataDetalle(int $compraId): object|false {
 
         $builder = $this->db->table('cc_compras compra');

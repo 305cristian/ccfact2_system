@@ -310,7 +310,11 @@ class ComprasLib {
         $registrosGuardados = 0;
 
         foreach ($basesIva as $base) {
-            $tarifaId = $this->ccm->getValueWhere('cc_impuesto_tarifa', ['impt_codigo' => (string) $base->codigo, 'impt_porcentage' => (float) $base->porcentaje, 'fk_impuesto' => 1,], 'id');
+            $tarifaId = (int) ($base->impuestoTarifaId ?? $base->impuesto_tarifa_id ?? 0);
+
+            if ($tarifaId <= 0) {
+                $tarifaId = (int) $this->ccm->getValueWhere('cc_impuesto_tarifa', ['impt_codigo' => (string) $base->codigo, 'impt_porcentage' => (float) $base->porcentaje, 'fk_impuesto' => 1,], 'id');
+            }
 
             if (!$tarifaId) {
                 throw new \RuntimeException("No se encontró la tarifa de impuesto " . "{$base->codigo} - {$base->porcentaje}%.");

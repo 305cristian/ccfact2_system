@@ -202,7 +202,17 @@ class IndexController extends BaseController {
         $tiposComprobantes = $this->ccm->getData('cc_tipos_comprobante', ['comp_estado' => 1], 'comp_codigo, comp_nombre, id');
         $data['listaTiposComprobantes'] = array_values(array_filter($tiposComprobantes, static fn($comprobante) => in_array((string) $comprobante->comp_codigo, ['01', '02', '03'], true)));
         $data['listaCuentasContables'] = $this->ccm->getData('cc_cuenta_contabledet', ['ctad_estado' => 1], 'ctad_codigo, ctad_nombre_cuenta, CONCAT_WS(" ",ctad_codigo,ctad_nombre_cuenta)cuenta ');
-        $data['listaImpuestosTarifa'] = $this->ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 1, 'impt_estado' => 'ACTIVO'], '*');
+
+        $permiteIvaHistorico = $this->user->validatePermisos('usar_iva_historico_compra', $this->user->id);
+        $whereTarifasIva = ['fk_impuesto' => 1];
+
+        if (!$permiteIvaHistorico) {
+            $whereTarifasIva['impt_estado'] = 'ACTIVO';
+        }
+
+        $data['permiteIvaHistorico'] = $permiteIvaHistorico;
+        $data['listaImpuestosTarifa'] = $this->ccm->getData('cc_impuesto_tarifa', $whereTarifasIva, '*', ['impt_estado' => 'ASC', 'impt_porcentage' => 'ASC']);
+
         $data['listaSustentos'] = $this->ccm->getData('cc_sustentos', ['sus_estado' => 1], 'sus_codigo, sus_nombre');
         $data['listaBodegas'] = $this->ccm->getData('cc_bodegas', ['bod_estado' => 1], 'id, bod_nombre');
         $data['listaCentroCostos'] = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id, cc_nombre');
@@ -270,6 +280,45 @@ class IndexController extends BaseController {
         return '011';
     }
 
+    private function obtenerCuentaHistoricaItemCompra(?int $impuestoTarifaId, string $fechaEmision): ?string {
+        if (!$impuestoTarifaId || trim($fechaEmision) === '') {
+            return null;
+        }
+
+        $tarifa = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $impuestoTarifaId, 'fk_impuesto' => 1], 'id, impt_estado, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia', null, 1);
+
+        if (!$tarifa || !$this->esTarifaHistoricaParaFecha($tarifa, $fechaEmision)) {
+            return null;
+        }
+
+        $whereData = [
+            'fk_impuesto_tarifa' => $impuestoTarifaId,
+            'tipo_movimiento' => 'COMPRA',
+            'tipo_cuenta' => 'INVENTARIO',
+            'estado' => 1,
+        ];
+        return $this->ccm->getValueWhere('cc_impuesto_tarifa_cuenta_contable', $whereData, 'fk_cuentacontable_det');
+    }
+
+    private function esTarifaHistoricaParaFecha(object $tarifa, string $fechaEmision): bool {
+        if (($tarifa->impt_estado ?? '') !== 'HISTORIAL') {
+            return false;
+        }
+
+        $fechaInicio = $tarifa->impt_fecha_inicio_vigencia ?? null;
+        $fechaFin = $tarifa->impt_fecha_fin_vigencia ?? null;
+
+        if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio > $fechaEmision) {
+            return false;
+        }
+
+        if ($fechaFin && $fechaFin !== '0000-00-00' && $fechaFin < $fechaEmision) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Función para agregar un producto al carrito de compras, validando la información del producto y calculando los impuestos correspondientes
      * @return JSON Respuesta con el estado de la operación, mensaje descriptivo y detalles del producto agregado al carrito
@@ -281,6 +330,7 @@ class IndexController extends BaseController {
         $idProd = $dataPost->id ?? null;
         $cantidad = $dataPost->qty ?? 1;
         $permitirDuplicados = $dataPost->permitirDuplicados ?? false;
+        $fechaEmision = $dataPost->fechaEmision ?? date('Y-m-d');
 
         if (empty($idProd) || !is_numeric($idProd) || $idProd <= 0) {
             return $this->responseSetJSON('warning', 'No puede agregarse un producto nulo.');
@@ -319,6 +369,27 @@ class IndexController extends BaseController {
             }
         }
 
+        $tarifaVigenteFecha = null;
+
+        if ($porcentajeSelect) {
+            $tarifaVigenteFecha = $this->comprasModel->obtenerTarifaIvaVigentePorFecha((int) $porcentajeSelect, (string) $fechaEmision);
+        }
+
+        if (!$tarifaVigenteFecha && $porcentajeSelect) {
+            return $this->responseSetJSON('warning', 'No existe una tarifa IVA vigente para la fecha de emisión ' . $fechaEmision . '. Revise la configuración de impuestos.');
+        }
+
+        if ($tarifaVigenteFecha && (int) $tarifaVigenteFecha->id !== (int) $porcentajeSelect && !$this->user->validatePermisos('usar_iva_historico_compra', $this->user->id)) {
+            return $this->responseSetJSON('warning', 'La fecha de emisión requiere una tarifa histórica de IVA, pero su usuario no tiene habilitado el permiso para usar IVA histórico en compras.');
+        }
+
+        if ($tarifaVigenteFecha && (int) $tarifaVigenteFecha->id !== (int) $porcentajeSelect) {
+            $ivaPorcent = (float) $tarifaVigenteFecha->impt_porcentage;
+            $porcentajeSelect = (int) $tarifaVigenteFecha->id;
+            $codigoPorcentajeSelect = $tarifaVigenteFecha->impt_codigo;
+            $detallePorcentajeSelect = $tarifaVigenteFecha->impt_detalle;
+        }
+
         $centroCostoData = $this->ccm->getData('cc_centroscosto', ['cc_estado' => 1], 'id', null, 1);
         if (!$centroCostoData) {
             return $this->responseSetJSON('warning', 'Debe existir al menos un centro de costos en el proyecto');
@@ -355,7 +426,13 @@ class IndexController extends BaseController {
             'codigoProductoReemplazo' => null,
         ];
 
-        if (!empty($dataProducto->fk_cuentacontablecompras)) {
+        $cuentaHistorica = $this->obtenerCuentaHistoricaItemCompra($porcentajeSelect, (string) $fechaEmision);
+
+        if ($cuentaHistorica) {
+            $item['ctaContableProducto'] = $cuentaHistorica;
+        } elseif (($tarifaVigenteFecha->impt_estado ?? '') === 'HISTORIAL') {
+            return $this->responseSetJSON('warning', 'La tarifa IVA historica seleccionada no tiene configurada la cuenta contable de inventario para compras.');
+        } elseif (!empty($dataProducto->fk_cuentacontablecompras)) {
             $item['ctaContableProducto'] = $dataProducto->fk_cuentacontablecompras;
         } else {
             $codigoCuenta = $this->obtenerCodigoCuentaCompraPorProducto($dataProducto, $porcentajeSelect, $ivaPorcent);
@@ -369,12 +446,12 @@ class IndexController extends BaseController {
         return $this->responseSetJSON('success', 'Producto agregado al carrito', $item);
     }
 
-
     public function importarExcel() {
         try {
             $file = $this->request->getFile('file');
             $permitirDuplicados = $this->request->getPost('permitirDuplicados');
             $centroCostoId = $this->request->getPost('centroCostoId');
+            $fechaEmision = $this->request->getPost('fechaEmision') ?: date('Y-m-d');
 
             if (!$file || !$file->isValid()) {
                 return $this->responseSetJSON('error', 'Debe seleccionar un archivo Excel valido.');
@@ -478,6 +555,29 @@ class IndexController extends BaseController {
                     }
                 }
 
+                $tarifaVigenteFecha = null;
+
+                if ($impuestoSelect) {
+                    $tarifaVigenteFecha = $this->comprasModel->obtenerTarifaIvaVigentePorFecha((int) $impuestoSelect, (string) $fechaEmision);
+                }
+
+                if (!$tarifaVigenteFecha && $impuestoSelect) {
+                    $errores[] = "Fila {$i}: no existe una tarifa IVA vigente para la fecha de emision {$fechaEmision}.";
+                    continue;
+                }
+
+                if ($tarifaVigenteFecha && (int) $tarifaVigenteFecha->id !== (int) $impuestoSelect && !$this->user->validatePermisos('usar_iva_historico_compra', $this->user->id)) {
+                    $errores[] = "Fila {$i}: la fecha de emision requiere una tarifa historica de IVA, pero su usuario no tiene habilitado el permiso para usar IVA historico en compras.";
+                    continue;
+                }
+
+                if ($tarifaVigenteFecha && (int) $tarifaVigenteFecha->id !== (int) $impuestoSelect) {
+                    $ivaPorcent = (float) $tarifaVigenteFecha->impt_porcentage;
+                    $impuestoSelect = (int) $tarifaVigenteFecha->id;
+                    $codigoPorcentajeSelect = $tarifaVigenteFecha->impt_codigo;
+                    $detallePorcentajeSelect = $tarifaVigenteFecha->impt_detalle;
+                }
+
                 $discountValue = $descuento;
                 $discountPercent = $precio > 0 ? ($discountValue / $precio) * 100 : 0;
 
@@ -512,7 +612,14 @@ class IndexController extends BaseController {
                     'codigoProductoReemplazo' => null,
                 ];
 
-                if (empty($item['ctaContableProducto'])) {
+                $cuentaHistorica = $this->obtenerCuentaHistoricaItemCompra($impuestoSelect, (string) $fechaEmision);
+
+                if ($cuentaHistorica) {
+                    $item['ctaContableProducto'] = $cuentaHistorica;
+                } elseif (($tarifaVigenteFecha->impt_estado ?? '') === 'HISTORIAL') {
+                    $errores[] = "Fila {$i}: la tarifa IVA historica seleccionada no tiene configurada la cuenta contable de inventario para compras.";
+                    continue;
+                } elseif (empty($item['ctaContableProducto'])) {
                     $codigoCuenta = $this->obtenerCodigoCuentaCompraPorProducto($dataProducto, $impuestoSelect, $ivaPorcent);
 
                     if ($codigoCuenta) {
@@ -545,8 +652,8 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('error', 'Error al procesar el archivo: ' . $e->getMessage());
         }
     }
-    
-        /**
+
+    /**
      * Función para mostrar los detalles del carrito de compras, incluyendo los productos agregados, totales y cálculos de impuestos
      * @return JSON Respuesta con los detalles del carrito de compras, como los productos agregados, totales, impuestos y otros cálculos relacionados
      * El método obtiene el contenido actual del carrito de compras utilizando la biblioteca ComprasCartLib, calcula los totales, impuestos y otros valores relacionados, y luego devuelve una respuesta JSON con toda esta información para ser utilizada en la interfaz de usuario del módulo de compras.
@@ -556,7 +663,6 @@ class IndexController extends BaseController {
      * Es importante destacar que esta función se espera que sea llamada a través de una solicitud AJAX desde la interfaz de usuario del módulo de compras, para actualizar dinámicamente la información del carrito sin necesidad de recargar la página completa. La respuesta JSON proporcionada por esta función debe ser manejada adecuadamente en el frontend para reflejar los cambios en el carrito de compras y proporcionar una experiencia de usuario fluida y eficiente.
      * En resumen, esta función es responsable de proporcionar una visión detallada y actualizada del carrito de compras, incluyendo los productos agregados, totales, impuestos y otros cálculos relevantes, a través de una respuesta JSON que puede ser utilizada para actualizar la interfaz de usuario del módulo de compras de manera dinámica.
      */
-
     public function showDetailCart(int $key = 0) {
         $cartContent = array_values($this->comprasCart->getContent() ?? []);
 
@@ -598,6 +704,49 @@ class IndexController extends BaseController {
         return $this->response->setJSON($dataCart);
     }
 
+    public function validarCambioFechaEmisionCart() {
+        $this->user->validateSession();
+
+        $dataPost = json_decode(file_get_contents('php://input'));
+        $fechaEmision = (string) ($dataPost->fechaEmision ?? '');
+
+        if (trim($fechaEmision) === '') {
+            return $this->responseSetJSON('warning', 'Debe seleccionar la fecha de emision.');
+        }
+        $whereData = [
+            'fk_impuesto' => 1,
+            'impt_estado' => 'ACTIVO',
+            'impt_predeterminado' => 1,
+        ];
+        $tarifaActual = $this->ccm->getData('cc_impuesto_tarifa', $whereData, 'id, impt_porcentage, impt_detalle, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia', null, 1);
+
+        if (!$tarifaActual) {
+            return $this->responseSetJSON('warning', 'No existe una tarifa IVA actual predeterminada. Revise la configuracion de impuestos.');
+        }
+
+        $fechaInicio = $tarifaActual->impt_fecha_inicio_vigencia ?? null;
+        $fechaFin = $tarifaActual->impt_fecha_fin_vigencia ?? null;
+        $fechaDentroIvaActual = true;
+
+        if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio > $fechaEmision) {
+            $fechaDentroIvaActual = false;
+        }
+
+        if ($fechaFin && $fechaFin !== '0000-00-00' && $fechaFin < $fechaEmision) {
+            $fechaDentroIvaActual = false;
+        }
+
+        if (!$fechaDentroIvaActual) {
+            return $this->responseSetJSON(
+                            'success',
+                            'La nueva fecha de emision esta fuera de la vigencia del IVA actual. Para evitar inconsistencias debe limpiar el carrito.',
+                            ['requiereLimpiar' => true]
+            );
+        }
+
+        return $this->responseSetJSON('success', 'La fecha de emision esta dentro de la vigencia del IVA actual.', ['requiereLimpiar' => false]);
+    }
+
     /**
      * Función para actualizar la información de un producto específico en el carrito de compras, incluyendo cantidad, precio, impuestos y descuentos
      * @return JSON Respuesta con el estado de la operación, mensaje descriptivo y detalles del producto actualizado en el carrito
@@ -633,7 +782,31 @@ class IndexController extends BaseController {
         }
 
         $impuestoSelect = $dataPost->impuestoSelect;
-        $impuesto = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $impuestoSelect], 'impt_porcentage, impt_codigo, impt_detalle', null, 1);
+        $impuesto = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $impuestoSelect], 'impt_porcentage, impt_codigo, impt_detalle, impt_estado', null, 1);
+
+        if (!$impuesto) {
+            return $this->responseSetJSON('warning', 'La tarifa de IVA seleccionada no existe.');
+        }
+
+        if (($impuesto->impt_estado ?? '') === 'HISTORIAL' && !$this->user->validatePermisos('usar_iva_historico_compra', $this->user->id)) {
+            return $this->responseSetJSON('warning', 'Su usuario no tiene habilitado el permiso para usar IVA histórico en compras.');
+        }
+
+        $fechaEmision = $dataPost->fechaEmision ?? date('Y-m-d');
+        $tarifaVigenteFecha = $this->comprasModel->obtenerTarifaIvaVigentePorFecha((int) $impuestoSelect, (string) $fechaEmision);
+
+        if (!$tarifaVigenteFecha) {
+            return $this->responseSetJSON('warning', 'No existe una tarifa IVA vigente para la fecha de emision ' . $fechaEmision . '. Revise la configuracion de impuestos.');
+        }
+
+        if ((int) $tarifaVigenteFecha->id !== (int) $impuestoSelect && !$this->user->validatePermisos('usar_iva_historico_compra', $this->user->id)) {
+            return $this->responseSetJSON('warning', 'La fecha de emision requiere una tarifa historica de IVA, pero su usuario no tiene habilitado el permiso para usar IVA historico en compras.');
+        }
+
+        if ((int) $tarifaVigenteFecha->id !== (int) $impuestoSelect) {
+            $impuestoSelect = (int) $tarifaVigenteFecha->id;
+            $impuesto = $tarifaVigenteFecha;
+        }
 
         //CALCULO DESCUENTO UNITARIO
         $descuento = (float) ($dataPost->descuento ?? 0);
@@ -663,6 +836,15 @@ class IndexController extends BaseController {
             }
         }
 
+        $ctaContableProducto = $dataPost->ctaContableProducto ?? null;
+        $cuentaHistorica = $this->obtenerCuentaHistoricaItemCompra((int) $impuestoSelect, (string) $fechaEmision);
+
+        if ($cuentaHistorica) {
+            $ctaContableProducto = $cuentaHistorica;
+        } elseif (($tarifaVigenteFecha->impt_estado ?? '') === 'HISTORIAL') {
+            return $this->responseSetJSON('warning', 'La tarifa IVA historica seleccionada no tiene configurada la cuenta contable de inventario para compras.');
+        }
+
         $item = [
             'id' => $idProd,
             'qty' => $cantidad,
@@ -687,7 +869,7 @@ class IndexController extends BaseController {
             'servicio' => $dataPost->servicio ?? null,
             'irbpnrUnitario' => $dataPost->irbpnrUnitario ?? 0,
             'centroCosto' => $dataPost->centroCosto ?? null,
-            'ctaContableProducto' => $dataPost->ctaContableProducto ?? null,
+            'ctaContableProducto' => $ctaContableProducto,
             'codigoImport' => $dataPost->codigoImport ?? null,
             'isNewProduct' => (int) ($dataPost->isNewProduct ?? 0),
             'productoTemporal' => (int) ($dataPost->productoTemporal ?? 0),
@@ -796,8 +978,8 @@ class IndexController extends BaseController {
             } else {
                 $estadoAnulado = 'ANULADA_EN_ARCHIVADA';
 
-                $this->comprasFinanzasLib->validarSinPagosActivosCredito($compraId);//Valido que la compra no tenga pagos aplicados
-                $this->comprasFinanzasLib->validarRetencionAnulableCompra($compraId);//Primero valido que la retencion no este autorizada por el SRI
+                $this->comprasFinanzasLib->validarSinPagosActivosCredito($compraId); //Valido que la compra no tenga pagos aplicados
+                $this->comprasFinanzasLib->validarRetencionAnulableCompra($compraId); //Primero valido que la retencion no este autorizada por el SRI
                 $this->comprasLib->revertirKardexCompra($compraId);
                 $this->comprasFinanzasLib->anularRetencionCompra($compraId);
                 $this->comprasFinanzasLib->anularPagosCompra($compraId);
@@ -1154,8 +1336,21 @@ class IndexController extends BaseController {
             }
         }
 
+        $permiteIvaHistorico = $this->user->validatePermisos('usar_iva_historico_compra', $this->user->id);
+
         foreach ($cartData->cartContent as $item) {
             $nombreProducto = $item->name ?? 'producto';
+
+            if (!$permiteIvaHistorico) {
+                $estadoTarifaIva = $this->ccm->getValueWhere('cc_impuesto_tarifa', ['id' => (int) ($item->impuestoSelect ?? 0), 'fk_impuesto' => 1], 'impt_estado');
+
+                if ($estadoTarifaIva === 'HISTORIAL') {
+                    return [
+                        'status' => true,
+                        'msg' => "El producto {$nombreProducto} usa una tarifa histórica de IVA. Su usuario no tiene habilitado el permiso para guardar compras con IVA histórico.",
+                    ];
+                }
+            }
 
             if ((int) ($item->productoTemporal ?? 0) === 1) {
                 return [

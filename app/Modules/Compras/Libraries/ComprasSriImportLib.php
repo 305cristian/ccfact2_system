@@ -34,9 +34,11 @@ class ComprasSriImportLib {
     protected SearchsModel $searchModel;
     protected CuentasConfigLib $cuentasConfigLib;
     protected ComprasModel $compModel;
+    protected $user;
 
     public function __construct() {
         $this->ccm = service('ccModel');
+        $this->user = service('userSecion');
         $this->comprasCart = new ComprasCartLib();
         $this->prodModel = new ProductoModel();
         $this->searchModel = new SearchsModel();
@@ -171,6 +173,7 @@ class ComprasSriImportLib {
         $errores = [];
         $importados = 0;
         $rucEmisor = (string) ($xmlData->rucEmisor ?? '');
+        $fechaEmisionXml = $this->normalizarFechaXml($xmlData->fechaEmision ?? date('Y-m-d'));
 
         if ($rucEmisor === '') {
             throw new RuntimeException('El XML no contiene RUC del emisor.');
@@ -199,15 +202,17 @@ class ComprasSriImportLib {
 
             $codigoIva = $impuestoIva ? (string) $impuestoIva->codigoPorcentaje : null;
             $tarifaIva = $impuestoIva ? (float) $impuestoIva->tarifa : 0;
-
-            $tarifaData = $this->ccm->getData('cc_impuesto_tarifa', [
-                'fk_impuesto' => 1,
-                'impt_codigo' => $codigoIva,
-                'impt_porcentage' => $tarifaIva,
-                    ], 'id, impt_codigo, impt_detalle, impt_porcentage', null, 1);
+            
+            $whereData=[ 'fk_impuesto' => 1, 'impt_codigo' => $codigoIva, 'impt_porcentage' => $tarifaIva];
+            $tarifaData = $this->ccm->getData('cc_impuesto_tarifa', $whereData, 'id, impt_codigo, impt_detalle, impt_porcentage, impt_estado', null, 1);
 
             if (!$tarifaData) {
                 $errores[] = "Detalle " . ($i + 1) . ": no existe tarifa IVA codigo {$codigoIva} porcentaje {$tarifaIva}.";
+                continue;
+            }
+
+            if (($tarifaData->impt_estado ?? '') === 'HISTORIAL' && !$this->user->validatePermisos('usar_iva_historico_compra', $this->user->id)) {
+                $errores[] = "Detalle " . ($i + 1) . ": el XML contiene una tarifa historica de IVA, pero su usuario no tiene habilitado el permiso para usar IVA historico en compras.";
                 continue;
             }
 
@@ -254,9 +259,17 @@ class ComprasSriImportLib {
                 'isNewProduct' => $productoTemporal,
                 'productoTemporal' => $productoTemporal,
                 'codigoProductoReemplazo' => null,
+                'fechaEmisionXml' => $fechaEmisionXml,
             ];
 
-            if (empty($item['ctaContableProducto'])) {
+            $cuentaHistorica = $this->obtenerCuentaHistoricaItemCompra((int) $tarifaData->id, $fechaEmisionXml);
+
+            if ($cuentaHistorica) {
+                $item['ctaContableProducto'] = $cuentaHistorica;
+            } elseif (($tarifaData->impt_estado ?? '') === 'HISTORIAL') {
+                $errores[] = "Detalle " . ($i + 1) . ": la tarifa IVA historica no tiene configurada la cuenta contable de inventario para compras.";
+                continue;
+            } elseif (empty($item['ctaContableProducto'])) {
                 $codigoCuenta = $this->obtenerCodigoCuentaCompraPorProducto($dataProducto, (int) $tarifaData->id, (float) $tarifaData->impt_porcentage);
                 if ($codigoCuenta) {
                     $item['ctaContableProducto'] = $this->cuentasConfigLib->obtenerSettingCuentaContable($codigoCuenta);
@@ -270,9 +283,6 @@ class ComprasSriImportLib {
         if ($importados === 0) {
             throw new RuntimeException('No se importaron items validos.<br>' . implode('<br>', $errores));
         }
-
-        $fechaEmision_ = str_replace('/', '-', (string) ($xmlData->fechaEmision ?? ''));
-        $fechaEmision = date('Y-m-d', strtotime($fechaEmision_));
 
         $msg = "Factura SRI importada: {$importados} item(s) agregado(s).";
         if ($errores) {
@@ -294,7 +304,7 @@ class ComprasSriImportLib {
                 'claveAcceso' => (string) ($xmlData->claveAcceso ?? ''),
                 'numeroAutorizacion' => (string) ($xmlData->numeroAutorizacion ?? ''),
                 'fechaAutorizacion' => $xmlData->fechaAutorizacion ?? null,
-                'fechaEmision' => $fechaEmision,
+                'fechaEmision' => $fechaEmisionXml,
                 'importeTotal' => (float) ($xmlData->importeTotal ?? 0),
             ],
         ];
@@ -533,7 +543,13 @@ class ComprasSriImportLib {
         $itemActual['isNewProduct'] = 1;
         $itemActual['codigoProductoReemplazo'] = null;
 
-        if (!empty($producto->fk_cuentacontablecompras)) {
+        $cuentaHistorica = $this->obtenerCuentaHistoricaItemCompra((int) ($itemActual['impuestoSelect'] ?? 0), (string) ($itemActual['fechaEmisionXml'] ?? date('Y-m-d')));
+
+        if ($cuentaHistorica) {
+            $itemActual['ctaContableProducto'] = $cuentaHistorica;
+        } elseif ($this->esTarifaHistorica((int) ($itemActual['impuestoSelect'] ?? 0))) {
+            throw new RuntimeException('La tarifa IVA historica no tiene configurada la cuenta contable de inventario para compras.');
+        } elseif (!empty($producto->fk_cuentacontablecompras)) {
             $itemActual['ctaContableProducto'] = $producto->fk_cuentacontablecompras;
         } else {
             $codigoCuenta = $this->obtenerCodigoCuentaCompraPorProducto($producto, (int) ($itemActual['impuestoSelect'] ?? 0), (float) ($itemActual['ivaPorcent'] ?? 0));
@@ -543,6 +559,59 @@ class ComprasSriImportLib {
         }
 
         $this->comprasCart->update($itemActual, $rowId);
+    }
+
+    private function normalizarFechaXml(mixed $fecha): string {
+        $fechaNormalizada = str_replace('/', '-', (string) $fecha);
+        return date('Y-m-d', strtotime($fechaNormalizada));
+    }
+
+    private function obtenerCuentaHistoricaItemCompra(?int $impuestoTarifaId, string $fechaEmision): ?string {
+        if (!$impuestoTarifaId || trim($fechaEmision) === '') {
+            return null;
+        }
+
+        $tarifa = $this->ccm->getData('cc_impuesto_tarifa', ['id' => $impuestoTarifaId, 'fk_impuesto' => 1], 'id, impt_estado, impt_fecha_inicio_vigencia, impt_fecha_fin_vigencia', null, 1);
+
+        if (!$tarifa || !$this->esTarifaHistoricaParaFecha($tarifa, $fechaEmision)) {
+            return null;
+        }
+
+        $whereData = [
+            'fk_impuesto_tarifa' => $impuestoTarifaId,
+            'tipo_movimiento' => 'COMPRA',
+            'tipo_cuenta' => 'INVENTARIO',
+            'estado' => 1,
+        ];
+
+        return $this->ccm->getValueWhere('cc_impuesto_tarifa_cuenta_contable', $whereData, 'fk_cuentacontable_det');
+    }
+
+    private function esTarifaHistorica(int $impuestoTarifaId): bool {
+        if (!$impuestoTarifaId) {
+            return false;
+        }
+
+        return $this->ccm->getValueWhere('cc_impuesto_tarifa', ['id' => $impuestoTarifaId, 'fk_impuesto' => 1], 'impt_estado') === 'HISTORIAL';
+    }
+
+    private function esTarifaHistoricaParaFecha(object $tarifa, string $fechaEmision): bool {
+        if (($tarifa->impt_estado ?? '') !== 'HISTORIAL') {
+            return false;
+        }
+
+        $fechaInicio = $tarifa->impt_fecha_inicio_vigencia ?? null;
+        $fechaFin = $tarifa->impt_fecha_fin_vigencia ?? null;
+
+        if ($fechaInicio && $fechaInicio !== '0000-00-00' && $fechaInicio > $fechaEmision) {
+            return false;
+        }
+
+        if ($fechaFin && $fechaFin !== '0000-00-00' && $fechaFin < $fechaEmision) {
+            return false;
+        }
+
+        return true;
     }
 
     private function generarCodigoUnico(): string {

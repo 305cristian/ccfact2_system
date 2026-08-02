@@ -131,7 +131,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaGrupos = <?php echo json_encode($listaGrupos); ?>;
     var listaCtaContable = <?php echo json_encode($listaCtaContable); ?>;
     var listaTiposPvp = <?php echo json_encode($listaTiposPvp); ?>;
-    var ivaActual =<?php echo getSettings("IVA"); ?>;
     var autocodigo = '<?php echo $autocodigo; ?>';
     var valorIrbpnr =<?= getImpuestoIrbpnr() ?>
 
@@ -153,7 +152,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 //TODO: VARIABLES
                 estadoSave: true,
-//                ivaActual: ivaActual,
                 loading: false,
 
                 //TODO: V-MODELS

@@ -57,9 +57,13 @@ function getNumeroAsiento($fecha) {
 
 function ivaPredeterminado() {
     $ccm = Services::ccModel();
-    $respuesta = $ccm->getData('cc_impuesto_tarifa', ['impt_predeterminado' => 1], 'impt_porcentage', null, 1);
-    $val = $ccm->getValue('cc_settings', 'IVA', 'st_value', 'st_nombre');
-    return $respuesta ? $respuesta->impt_porcentage : $val;
+    $respuesta = $ccm->getData('cc_impuesto_tarifa', ['fk_impuesto' => 1, 'impt_estado' => 'ACTIVO', 'impt_predeterminado' => 1], 'impt_porcentage', null, 1);
+    
+    if (!$respuesta) {
+        throw new RuntimeException('No existe una tarifa de IVA activa configurada como predeterminada.');
+    }
+
+    return (float) $respuesta->impt_porcentage;
 }
 
 function getImpuestoIrbpnr() {

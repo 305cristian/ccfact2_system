@@ -124,6 +124,7 @@ class NotaCreditoLib {
         $precioUnitarioCredito = $cantidad > 0 ? round($subtotal / $cantidad, 6) : 0;
         $ivaUnitario = $cantidad > 0 ? round($iva / $cantidad, 6) : 0;
         $totalUnitario = $cantidad > 0 ? round($total / $cantidad, 6) : 0;
+        $cuentaContable = $this->resolverCuentaContableDetalleNotaCredito($item, $compra);
 
         $datos = [
             'fk_compra' => $compraId,
@@ -154,7 +155,7 @@ class NotaCreditoLib {
             'compd_irbpnr' => 0,
             'compd_irbpnr_total' => 0,
             'compd_total' => $total,
-            'compd_cta_entrada' => $item->cuentaContable,
+            'compd_cta_entrada' => $cuentaContable,
             'compd_cod_sustento' => $compra->compSustento,
             'compd_centro_costo' => $compra->compCentroCosto ?? null,
             'fk_lote' => $item->loteId ?? null,
@@ -167,6 +168,34 @@ class NotaCreditoLib {
         ];
 
         return (int) $this->ccm->guardar($datos, 'cc_compras_det');
+    }
+
+    private function resolverCuentaContableDetalleNotaCredito(object $item, object $compra): string {
+        $cuentaContable = trim((string) ($item->cuentaContable ?? ''));
+
+        if (($compra->compTipoNotaCredito ?? '') !== 'DESCUENTO') {
+            return $cuentaContable;
+        }
+
+        $tarifaId = (int) ($item->impuestoTarifaId ?? 0);
+
+        if (!$tarifaId) {
+            throw new \RuntimeException('No se encontro la tarifa de IVA del documento origen para la NDC por descuento.');
+        }
+
+        $whereData = [
+            'fk_impuesto_tarifa' => $tarifaId,
+            'tipo_movimiento' => 'COMPRA',
+            'tipo_cuenta' => 'DESCUENTO',
+            'estado' => 1,
+        ];
+        $cuentaDescuento = $this->ccm->getValueWhere('cc_impuesto_tarifa_cuenta_contable', $whereData, 'fk_cuentacontable_det');
+
+        if (!$cuentaDescuento) {
+            throw new \RuntimeException('La tarifa IVA del documento origen no tiene configurada la cuenta contable de descuento para NDC.');
+        }
+
+        return (string) $cuentaDescuento;
     }
 
     public function guardarBasesImpuesto(int $compraId, array $basesImpuesto): int {

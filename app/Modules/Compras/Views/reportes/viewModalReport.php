@@ -19,7 +19,7 @@
 
                 <div v-else id="detalleCompraModal" class="p-3 p-md-4" v-html="detalleHtml">
                     
-                    <!--CUERPO DEL REPORTE-->
+                  
                     
                 </div>
 

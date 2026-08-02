@@ -38,6 +38,7 @@ $routes->group('compras', ['namespace' => '\Modules\Compras\Controllers'], funct
     $subroutes->get('deleteProduct/(:segment)', 'IndexController::deleteProduct/$1');
     $subroutes->get('changeBodega/(:num)', 'IndexController::changeBodega/$1');
     $subroutes->post('showDetailCart', 'IndexController::showDetailCart');
+    $subroutes->post('validarCambioFechaEmisionCart', 'IndexController::validarCambioFechaEmisionCart');
     $subroutes->post('cancelarCompra', 'IndexController::cancelarCompra');
     $subroutes->post('saveCompra', 'IndexController::saveCompra');
     $subroutes->post('updateCompra', 'IndexController::updateCompra');

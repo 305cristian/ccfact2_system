@@ -120,14 +120,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             <div class="border rounded p-3 mb-3">
                 <h6 class="text-system fw-bold mb-3"><i class="fas fa-filter"></i> Filtros</h6>
                 <div class="row align-items-end">
-                    <div class="col-md-2 mb-3">
-                        <label class="col-form-label col-form-label-sm">Desde</label>
-                        <input v-model="filtros.fechaDesde" type="date" class="form-control" />
-                    </div>
-
-                    <div class="col-md-2 mb-3">
-                        <label class="col-form-label col-form-label-sm">Hasta</label>
-                        <input v-model="filtros.fechaHasta" type="date" class="form-control" />
+                    <div class="col-md-4 mb-3">
+                        <label class="col-form-label col-form-label-sm">Fecha</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-cris-system"><i class="fas fa-calendar me-2"></i> Rango de fechas</span>
+                            <input
+                                ref="dateRangeMarcaciones"
+                                v-model="filtros.fechas"
+                                type="text"
+                                class="form-control"
+                                placeholder="Seleccione rango de fechas">
+                        </div>
                     </div>
 
                     <div class="col-md-3 mb-3">
@@ -451,7 +454,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             this.setFechaHoraActual();
             this.filtros.fechaDesde = this.fechaActual();
             this.filtros.fechaHasta = this.fechaActual();
+            this.filtros.fechas = `${this.filtros.fechaDesde} a ${this.filtros.fechaHasta}`;
             this.getMarcaciones();
+        },
+        mounted() {
+            flatpickr(this.$refs.dateRangeMarcaciones, {
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                locale: 'es',
+                allowInput: true,
+                defaultDate: [this.filtros.fechaDesde, this.filtros.fechaHasta],
+                onChange: (_, dateStr) => {
+                    this.filtros.fechas = dateStr;
+                }
+            });
         },
         methods: {
             emptyMarcacion() {
@@ -483,6 +499,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             emptyFiltros() {
                 return {
+                    fechas: '',
                     fechaDesde: '',
                     fechaHasta: '',
                     fkComedor: '',
@@ -495,6 +512,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             async getMarcaciones() {
                 this.loadingList = true;
                 try {
+                    const fechas = this.getFechasFiltro();
+                    this.filtros.fechaDesde = fechas.fechaDesde;
+                    this.filtros.fechaHasta = fechas.fechaHasta;
                     let datos = this.formData(this.filtros);
                     let response = await axios.post(this.url + '/biocomedor/marcaciones/getMarcaciones', datos);
 
@@ -653,7 +673,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.filtros = this.emptyFiltros();
                 this.filtros.fechaDesde = this.fechaActual();
                 this.filtros.fechaHasta = this.fechaActual();
+                this.filtros.fechas = `${this.filtros.fechaDesde} a ${this.filtros.fechaHasta}`;
+
+                if (this.$refs.dateRangeMarcaciones && this.$refs.dateRangeMarcaciones._flatpickr) {
+                    this.$refs.dateRangeMarcaciones._flatpickr.setDate([this.filtros.fechaDesde, this.filtros.fechaHasta], false);
+                }
+
                 this.getMarcaciones();
+            },
+            getFechasFiltro() {
+                const fechas = String(this.filtros.fechas || '').split(' a ');
+
+                return {
+                    fechaDesde: fechas[0] || this.fechaActual(),
+                    fechaHasta: fechas[1] || fechas[0] || this.fechaActual()
+                };
             },
             clearEdit() {
                 this.editMarcacion = this.emptyEditMarcacion();

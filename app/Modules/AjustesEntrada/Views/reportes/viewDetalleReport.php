@@ -191,8 +191,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
             <!-- Columna: Total general -->
             <td style="width: 30%; vertical-align: middle; text-align: center; border-radius: 10px; background-color: #DFDFDF">
-                <small style="display: block; color: #fff;">TOTAL GENERAL</small>
-                <h3 style="margin: 4px 0 0; color: #fff;"> $<?= number_format($totalGeneral, 2) ?> </h3> 
+                <small style="display: block; color: #000;">TOTAL GENERAL</small>
+                <h3 style="margin: 4px 0 0; color: #000;"> $<?= number_format($totalGeneral, 2) ?> </h3> 
             </td>
         </tr>
     </table>

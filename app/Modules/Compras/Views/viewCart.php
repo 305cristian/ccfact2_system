@@ -175,16 +175,21 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <!-- IMPUESTO PORCENTAJE-->
                         <td >
                             <select v-model="item.impuestoSelect"  class="form-select form-select-sm border" @change="updateProductCart(item)">
-                                <option  v-for="lti of listaImpuestosTarifa" v-bind:value="lti.id"  :key="lti.id">
+                                <option  v-for="lti of listaImpuestosTarifa" v-bind:value="lti.id"  :key="lti.id" :class="lti.impt_estado === 'HISTORIAL' ? 'text-warning fw-bold' : ''">
                                     {{ lti.impt_detalle }}
                                     {{ lti.impt_porcentage > 0 ? ` ${lti.impt_porcentage}%` : '' }}
+                                    {{ lti.impt_estado === 'HISTORIAL' ? ' (HISTORIAL)' : '' }}
                                 </option>
                             </select>
                         </td>
 
                         <!--  CUENTA CONTABLE-->
                         <td>
-                            <select class="form-select form-select-sm" v-model="item.ctaContableProducto" @change="updateProductCart(item)">
+                            <select class="form-select form-select-sm"
+                                    v-model="item.ctaContableProducto"
+                                    @change="updateProductCart(item)"
+                                    :disabled="esItemIvaHistorico(item)"
+                                    :title="esItemIvaHistorico(item) ? 'Cuenta bloqueada por IVA historico' : ''">
                                 <option v-for="lcc in listaCuentasContables" v-bind:value="lcc.ctad_codigo">{{lcc.ctad_codigo+' - '}}{{lcc.ctad_nombre_cuenta}}</option>
                             </select>
                         </td>

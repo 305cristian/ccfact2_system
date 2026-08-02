@@ -74,6 +74,7 @@ class DashboardController extends BaseController {
             'fkProyecto' => $this->request->getPost('fkProyecto'),
             'marcEstado' => $this->request->getPost('marcEstado'),
             'marcRetraso' => $this->request->getPost('marcRetraso'),
+            'costoBase' => $this->request->getPost('costoBase'),
         ];
 
         return $this->response->setJSON([
@@ -85,6 +86,7 @@ class DashboardController extends BaseController {
                         'porContratista' => $this->bioModel->getReportePorContratista($filtros),
                         'porProyecto' => $this->bioModel->getReportePorProyecto($filtros),
                         'porFecha' => $this->bioModel->getReportePorFecha($filtros),
+                        'costosPorServicio' => $this->bioModel->getReporteCostosPorServicio($filtros),
                         'detalle' => $this->bioModel->getListaMarcaciones($filtros),
                     ],
         ]);
