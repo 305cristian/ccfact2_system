@@ -106,15 +106,28 @@ class IndexController extends BaseController {
 
             $this->notaCreditoLib->guardarBasesImpuesto($compraId, $dataPostNotaCredito->basesImpuestos ?? []);
 
-            if ($dataPostNotaCredito->compra->destinoFinanciero === 'CXP') {
-                $this->notasCreditoCxpLib->aplicarNotaCreditoCuentaPorPagar($compraId, $dataPostNotaCredito);
+            // Anulo la retencion directamente si el check viene marcado, esto solo se dara siempre y cuando la retencion no haya sido autorizada por el SRI osea este la retencion en estado PENDIENTE
+            if ($dataPostNotaCredito->compra->destinoFinanciero === 'CXP' && !empty($dataPostNotaCredito->compra->anularRetencionPendiente)) {
+                $this->anularRetencionPendienteNotaCredito((int) $dataPostNotaCredito->compra->compraRelacionadaId);
             }
-            
+
+            if ($dataPostNotaCredito->compra->destinoFinanciero === 'CXP') {
+                $excedenteAnticipo = $this->notasCreditoCxpLib->aplicarNotaCreditoCuentaPorPagar($compraId, $dataPostNotaCredito);
+
+                if ($excedenteAnticipo > 0 && empty($dataPostNotaCredito->compra->anularRetencionPendiente)) {
+                    $this->notasCreditoAnticipoProveedorLib->guardarAnticipoProveedorNotaCredito($compraId, $dataPostNotaCredito, $excedenteAnticipo);
+                }
+            }
+
             if ($dataPostNotaCredito->compra->destinoFinanciero === 'ANTICIPO_PROVEEDOR') {
                 $this->notasCreditoAnticipoProveedorLib->guardarAnticipoProveedorNotaCredito($compraId, $dataPostNotaCredito);
             }
-            
+
             $this->notasCreditoAsientosLib->generarAsientoNotaCredito($compraId);
+
+            if ($dataPostNotaCredito->compra->destinoFinanciero === 'CXP' && !empty($dataPostNotaCredito->compra->anularRetencionPendiente)) {
+                $this->limpiarRetencionCompraRelacionadaNotaCredito((int) $dataPostNotaCredito->compra->compraRelacionadaId);
+            }
 
             $secuencial = $this->ccm->getValueWhere('cc_compras', ['id' => $compraId, 'fk_proyecto' => getProyectoId()], 'comp_secuencial');
 
@@ -156,7 +169,7 @@ class IndexController extends BaseController {
             return $this->responseSetJSON('warning', 'Debe especificar el motivo de la anulacion.');
         }
 
-        $notaCredito = $this->ccm->getData('cc_compras', ['id' => $notaCreditoId, 'fk_proyecto' => getProyectoId()], 'id, comp_secuencial, comp_estado, comp_tipo_comprobante_cod, comp_tipo_nota_credito', null, 1);
+        $notaCredito = $this->ccm->getData('cc_compras', ['id' => $notaCreditoId, 'fk_proyecto' => getProyectoId()], 'id, comp_secuencial, comp_estado, comp_tipo_comprobante_cod, comp_tipo_nota_credito, comp_total, fk_compra_relacionada', null, 1);
 
         if (!$notaCredito) {
             return $this->responseSetJSON('warning', 'La nota de credito no se encuentra registrada.');
@@ -177,9 +190,10 @@ class IndexController extends BaseController {
         $this->db->transBegin();
 
         try {
+            $this->restaurarRetencionPendienteAnuladaPorNotaCredito($notaCredito);
             $this->notasCreditoCxpLib->anularAplicacionCuentaPorPagarNotaCredito($notaCreditoId);
             $this->notasCreditoAnticipoProveedorLib->anularAnticipoProveedorNotaCredito($notaCreditoId, $motivoAnulacion);
-            
+
             if ($notaCredito->comp_tipo_nota_credito === 'DEVOLUCION') {
                 $this->notaCreditoLib->revertirKardexNotaCredito($notaCreditoId);
             }
@@ -251,9 +265,17 @@ class IndexController extends BaseController {
         if (!in_array($compra->destinoFinanciero, ['CXP', 'ANTICIPO_PROVEEDOR'], true)) {
             return ['status' => true, 'msg' => 'El destino financiero de la nota de credito no es valido.'];
         }
-        
-        if ($compra->destinoFinanciero === 'ANTICIPO_PROVEEDOR' && empty(getProyectoId())) {
-            return ['status' => true, 'msg' => 'Debe seleccionar el proyecto de trabajo para generar el anticipo a proveedor.'];
+
+        if (empty(getProyectoId())) {
+            return ['status' => true, 'msg' => 'Debe seleccionar el proyecto de trabajo para registrar la nota de credito.'];
+        }
+
+        if ($compra->destinoFinanciero === 'CXP') {
+            $validacionExcedente = $this->validarConfirmacionExcedenteAnticipo($compra);
+
+            if ($validacionExcedente['status']) {
+                return $validacionExcedente;
+            }
         }
 
         foreach ($dataPostNotaCredito->detalle as $item) {
@@ -271,6 +293,172 @@ class IndexController extends BaseController {
         }
 
         return ['status' => false, 'msg' => ''];
+    }
+
+    private function validarConfirmacionExcedenteAnticipo(object $compra): array {
+
+        $compraRelacionada = $this->ccm->getData('cc_compras', ['id' => (int) $compra->compraRelacionadaId, 'fk_proyecto' => getProyectoId()], 'id, comp_total, fk_retencion', null, 1);
+
+        if (!$compraRelacionada) {
+            return ['status' => true, 'msg' => 'No se encontro la factura relacionada para validar el excedente financiero.'];
+        }
+
+        $cxp = $this->ccm->getData('cc_cxp', ['fk_compra' => (int) $compraRelacionada->id, 'fk_proyecto' => getProyectoId()], 'id, cxp_saldo', null, 1);
+
+        if (!$cxp) {
+            return ['status' => false, 'msg' => ''];
+        }
+
+        $totalFactura = round((float) $compraRelacionada->comp_total, 4);
+        $totalNdc = round((float) ($compra->compTotal ?? 0), 4);
+        $saldoCxp = round((float) $cxp->cxp_saldo, 4);
+        $excedente = round($totalNdc - $saldoCxp, 4);
+        $ndcTotalFactura = abs($totalNdc - $totalFactura) <= 0.01;
+
+        if (!$ndcTotalFactura || $excedente <= 0.0001) {
+            return ['status' => false, 'msg' => ''];
+        }
+
+        if (empty($compraRelacionada->fk_retencion)) {
+            return [
+                'status' => true,
+                'msg' => 'La nota de credito supera el saldo de la CxP y la compra no tiene retencion activa que justifique el excedente. Revise pagos o aplicaciones previas.',
+            ];
+        }
+
+        $retencion = $this->ccm->getData('cc_retencion', ['id' => (int) $compraRelacionada->fk_retencion, 'fk_proyecto' => getProyectoId(), 'ret_estado' => 1], 'id, ret_numero_comprobante, ret_estado_sri, ret_total_retenido', null, 1);
+
+        if (!$retencion) {
+            return [
+                'status' => true,
+                'msg' => 'La nota de credito supera el saldo de la CxP, pero no se encontro una retencion activa para validar el excedente.',
+            ];
+        }
+
+        if (abs($excedente - round((float) $retencion->ret_total_retenido, 4)) > 0.02) {
+            return [
+                'status' => true,
+                'msg' => 'El excedente de la NDC no coincide con el valor retenido. Revise la CxP, la retencion o pagos aplicados antes de continuar.',
+            ];
+        }
+
+        if (!in_array($retencion->ret_estado_sri, ['ENVIADO', 'AUTORIZADO'], true)) {
+            if (empty($compra->anularRetencionPendiente)) {
+                return [
+                    'status' => true,
+                    'msg' => "La retencion #{$retencion->ret_numero_comprobante} esta {$retencion->ret_estado_sri}. Debe confirmar la anulacion de la retencion para continuar.",
+                ];
+            }
+
+            return ['status' => false, 'msg' => ''];
+        }
+
+        if (empty($compra->abonarExcedenteAnticipo)) {
+            return [
+                'status' => true,
+                'msg' => 'Debe confirmar que el excedente de la nota de credito sera abonado como anticipo a proveedor.',
+            ];
+        }
+
+        return ['status' => false, 'msg' => ''];
+    }
+
+    private function anularRetencionPendienteNotaCredito(int $compraRelacionadaId): void {
+
+        $compra = $this->ccm->getData('cc_compras', ['id' => $compraRelacionadaId, 'fk_proyecto' => getProyectoId()], 'id, fk_retencion', null, 1);
+
+        if (!$compra || empty($compra->fk_retencion)) {
+            return;
+        }
+
+        $retencion = $this->ccm->getData('cc_retencion', ['id' => (int) $compra->fk_retencion, 'fk_proyecto' => getProyectoId(), 'ret_estado' => 1], 'id, ret_numero_comprobante, ret_estado_sri', null, 1);
+
+        if (!$retencion) {
+            return;
+        }
+
+        if (in_array($retencion->ret_estado_sri, ['ENVIADO', 'AUTORIZADO'], true)) {
+            throw new \RuntimeException("No se puede anular la retencion #{$retencion->ret_numero_comprobante} porque esta {$retencion->ret_estado_sri}.");
+        }
+
+        $anulado = $this->ccm->actualizar('cc_retencion', ['ret_estado' => 0], ['id' => (int) $retencion->id, 'fk_proyecto' => getProyectoId()]);
+
+        if (!$anulado) {
+            throw new \RuntimeException('No se pudo anular la retencion pendiente de la compra relacionada.');
+        }
+    }
+
+    private function limpiarRetencionCompraRelacionadaNotaCredito(int $compraRelacionadaId): void {
+        $dataSet = [
+            'fk_retencion' => null,
+            'comp_aplica_retencion' => 0,
+        ];
+        $this->ccm->actualizar('cc_compras', $dataSet, ['id' => $compraRelacionadaId, 'fk_proyecto' => getProyectoId()]);
+    }
+
+    private function restaurarRetencionPendienteAnuladaPorNotaCredito(object $notaCredito): void {
+
+        if (empty($notaCredito->fk_compra_relacionada)) {
+            return;
+        }
+
+        $whereData = [
+            'pg_tipo_movimiento' => 'NDC_COMPRA',
+            'fk_compra_nota_credito' => (int) $notaCredito->id,
+            'pg_estado' => 'ACTIVO',
+            'fk_proyecto' => getProyectoId(),
+        ];
+        $pagoNdc = $this->ccm->getData('cc_pagos', $whereData, 'id, pg_valor', null, 1);
+
+        if (!$pagoNdc) {
+            return;
+        }
+
+        $whereData2 = [
+            'fk_ndc' => (int) $notaCredito->id,
+            'fk_proyecto' => getProyectoId(),
+            'antp_estado' => 'ACTIVO',
+        ];
+        $anticipoActivo = $this->ccm->getData('cc_anticipo_proveedor', $whereData2, 'id', null, 1);
+
+        if ($anticipoActivo) {
+            return;
+        }
+
+        $diferenciaRetencion = round((float) $notaCredito->comp_total - (float) $pagoNdc->pg_valor, 4);
+
+        if ($diferenciaRetencion <= 0.0001) {
+            return;
+        }
+
+        $compraRelacionada = $this->ccm->getData('cc_compras', ['id' => (int) $notaCredito->fk_compra_relacionada, 'fk_proyecto' => getProyectoId(),], 'id, fk_retencion', null, 1);
+
+        if (!$compraRelacionada || !empty($compraRelacionada->fk_retencion)) {
+            return;
+        }
+
+        $whereData3 = [
+            'ret_documento_id' => (int) $compraRelacionada->id,
+            'fk_proyecto' => getProyectoId(),
+            'ret_estado' => 0,
+        ];
+        $retencionesAnuladas = $this->ccm->getData('cc_retencion', $whereData3, 'id, ret_estado_sri, ret_total_retenido',['id' => 'DESC']);
+
+        foreach ($retencionesAnuladas ?? [] as $retencion) {
+            if (in_array($retencion->ret_estado_sri, ['ENVIADO', 'AUTORIZADO'], true)) {
+                continue;
+            }
+
+            if (abs($diferenciaRetencion - round((float) $retencion->ret_total_retenido, 4)) > 0.02) {
+                continue;
+            }
+
+            $this->ccm->actualizar('cc_retencion', ['ret_estado' => 1], ['id' => (int) $retencion->id, 'fk_proyecto' => getProyectoId()]);
+            $this->ccm->actualizar('cc_compras',['fk_retencion' => (int) $retencion->id, 'comp_aplica_retencion' => 1],[ 'id' => (int) $compraRelacionada->id, 'fk_proyecto' => getProyectoId()]);
+            return;
+        }
+
+        throw new \RuntimeException('No se encontro la retencion pendiente anulada para restaurar la compra relacionada.');
     }
 
     public function responseSetJSON(string $status, string $mensaje, mixed $data = null) {

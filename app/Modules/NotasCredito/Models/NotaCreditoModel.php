@@ -46,7 +46,9 @@ class NotaCreditoModel extends Model{
                 "compra.*, "
                 . "proveedor.prov_ruc, proveedor.prov_razon_social, proveedor.prov_direccion, proveedor.prov_telefono, proveedor.prov_email, "
                 . "bodega.bod_nombre, centro.cc_nombre, tipoComprobante.comp_nombre AS comprobante_nombre, "
-                . "sustento.sus_nombre, tipoCompra.tc_codigo, tipoCompra.tc_nombre"
+                . "sustento.sus_nombre, tipoCompra.tc_codigo, tipoCompra.tc_nombre, "
+                . "cxp.id AS cxp_id, cxp.cxp_total AS cxp_total, cxp.cxp_valor_pagado, cxp.cxp_saldo, cxp.cxp_estado, "
+                . "retencion.id AS retencion_id, retencion.ret_numero_comprobante, retencion.ret_estado_sri, retencion.ret_total_retenido"
         );
         $builder->join("cc_proveedores proveedor", "proveedor.id = compra.fk_proveedor");
         $builder->join("cc_bodegas bodega", "bodega.id = compra.fk_bodega", "left");
@@ -54,6 +56,8 @@ class NotaCreditoModel extends Model{
         $builder->join("cc_tipos_comprobante tipoComprobante", "tipoComprobante.comp_codigo = compra.comp_tipo_comprobante_cod", "left");
         $builder->join("cc_sustentos sustento", "sustento.sus_codigo = compra.cod_sustento", "left");
         $builder->join("cc_tipo_compra tipoCompra", "tipoCompra.id = compra.fk_tipo_compra", "left");
+        $builder->join("cc_cxp cxp", "cxp.fk_compra = compra.id AND cxp.fk_proyecto = compra.fk_proyecto", "left");
+        $builder->join("cc_retencion retencion", "retencion.id = compra.fk_retencion AND retencion.fk_proyecto = compra.fk_proyecto AND retencion.ret_estado = 1", "left");
         $builder->where("compra.id", $compraId);
         $builder->where("compra.fk_proyecto", getProyectoId());
         $builder->where("compra.comp_estado", "ARCHIVADO");

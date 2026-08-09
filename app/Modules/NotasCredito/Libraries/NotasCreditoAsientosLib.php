@@ -110,17 +110,45 @@ class NotasCreditoAsientosLib {
 
     private function guardarDebitoDestinoFinancieroNdc(int $asientoId, object $notaCredito): void {
 
-        $anticipo = $this->ccm->getData('cc_anticipo_proveedor', ['fk_ndc' => (int) $notaCredito->id, 'fk_proyecto' => getProyectoId()], 'id, antp_estado', null, 1);
+        $pagoNdc = $this->ccm->getData('cc_pagos', ['pg_tipo_movimiento' => 'NDC_COMPRA', 'fk_compra_nota_credito' => (int) $notaCredito->id, 'pg_estado' => 'ACTIVO', 'fk_proyecto' => getProyectoId()], 'id, pg_valor', null, 1);
+        $anticipo = $this->ccm->getData('cc_anticipo_proveedor', ['fk_ndc' => (int) $notaCredito->id, 'fk_proyecto' => getProyectoId()], 'id, antp_valor, antp_estado', null, 1);
+        $totalDebitos = 0.0;
+
+        if ($pagoNdc) {
+            $valorCxp = round((float) $pagoNdc->pg_valor, 4);
+
+            if ($valorCxp > 0) {
+                $this->guardarDebitoCuentaPorPagarNdc($asientoId, $notaCredito, $valorCxp);
+                $totalDebitos += $valorCxp;
+            }
+        }
 
         if ($anticipo && $anticipo->antp_estado !== 'ANULADO') {
-            $this->guardarDebitoAnticipoProveedorNdc($asientoId, $notaCredito);
+            $valorAnticipo = round((float) $anticipo->antp_valor, 4);
+
+            if ($valorAnticipo > 0) {
+                $this->guardarDebitoAnticipoProveedorNdc($asientoId, $notaCredito, $valorAnticipo);
+                $totalDebitos += $valorAnticipo;
+            }
+        }
+
+        if ($totalDebitos <= 0) {
+            $this->guardarDebitoCuentaPorPagarNdc($asientoId, $notaCredito, round((float) $notaCredito->comp_total, 4));
             return;
         }
 
-        $this->guardarDebitoCuentaPorPagarNdc($asientoId, $notaCredito);
+        $diferenciaRetencion = round((float) $notaCredito->comp_total - $totalDebitos, 4);
+
+        if ($diferenciaRetencion > 0.0001) {
+            $totalDebitos += $this->guardarDebitosRetencionAnuladaNdc($asientoId, $notaCredito, $diferenciaRetencion);
+        }
+
+        if (abs(round((float) $notaCredito->comp_total, 4) - round($totalDebitos, 4)) > 0.01) {
+            throw new \RuntimeException('El destino financiero de la nota de credito no coincide con el total del documento.');
+        }
     }
 
-    private function guardarDebitoAnticipoProveedorNdc(int $asientoId, object $notaCredito): void {
+    private function guardarDebitoAnticipoProveedorNdc(int $asientoId, object $notaCredito, float $valor): void {
 
         $cuenta = $this->cuentasConfigLib->obtenerSettingCuentaContable('024');
 
@@ -128,7 +156,7 @@ class NotasCreditoAsientosLib {
             throw new \RuntimeException('No esta configurada la cuenta contable 024 para anticipos a proveedores.');
         }
 
-        $valor = round((float) $notaCredito->comp_total, 4);
+        $valor = round($valor, 4);
 
         if ($valor <= 0) {
             throw new \RuntimeException('El valor de la nota de credito debe ser mayor a cero para generar el asiento.');
@@ -148,7 +176,68 @@ class NotasCreditoAsientosLib {
         );
     }
 
-    private function guardarDebitoCuentaPorPagarNdc(int $asientoId, object $notaCredito): void {
+    private function guardarDebitosRetencionAnuladaNdc(int $asientoId, object $notaCredito, float $valorEsperado): float {
+        
+        $compraRelacionada = $this->ccm->getData('cc_compras', ['id' => (int) $notaCredito->fk_compra_relacionada, 'fk_proyecto' => getProyectoId()], 'id, fk_retencion', null, 1);
+
+        if (!$compraRelacionada || empty($compraRelacionada->fk_retencion)) {
+            throw new \RuntimeException('No se encontro la retencion relacionada para completar el asiento de la NDC.');
+        }
+
+        $retencion = $this->ccm->getData('cc_retencion', ['id' => (int) $compraRelacionada->fk_retencion, 'fk_proyecto' => getProyectoId()], 'id, ret_total_retenido', null, 1);
+
+        if (!$retencion) {
+            throw new \RuntimeException('No se encontro la retencion de la compra relacionada.');
+        }
+
+        $detalles = $this->ccm->getData('cc_retencion_det', ['fk_retencion' => (int) $retencion->id], '*');
+
+        if (!$detalles) {
+            throw new \RuntimeException('La retencion relacionada no tiene detalles para generar el asiento de la NDC.');
+        }
+
+        $totalRetenido = round((float) $retencion->ret_total_retenido, 4);
+
+        if (abs($totalRetenido - round($valorEsperado, 4)) > 0.02) {
+            throw new \RuntimeException('La diferencia financiera de la NDC no coincide con la retencion anulada.');
+        }
+
+        $totalRegistrado = 0.0;
+
+        foreach ($detalles as $detalle) {
+            $valorRetenido = round((float) $detalle->retd_valor_retenido, 4);
+
+            if ($valorRetenido <= 0) {
+                continue;
+            }
+
+            $retencionSri = $this->ccm->getData('cc_retencion_sri', ['id' => (int) $detalle->fk_sri_retencion, 'ret_estado' => 1], 'ret_cta_compras, ret_nombre', null, 1);
+            $cuenta = trim((string) ($retencionSri->ret_cta_compras ?? ''));
+
+            if ($cuenta === '') {
+                throw new \RuntimeException("La retencion {$detalle->retd_codigo_sri} no tiene configurada cuenta contable de compras.");
+            }
+
+            $this->asientoLib->guardarDetalleAsiento(
+                    $asientoId,
+                    $cuenta,
+                    $valorRetenido,
+                    'DEBE',
+                    $this->tipoTransaccionNotaCredito,
+                    (int) $notaCredito->id,
+                    'Anulacion de retencion pendiente por NDC',
+                    null,
+                    null,
+                    $notaCredito->fk_centro_costo
+            );
+
+            $totalRegistrado += $valorRetenido;
+        }
+
+        return round($totalRegistrado, 4);
+    }
+
+    private function guardarDebitoCuentaPorPagarNdc(int $asientoId, object $notaCredito, float $valor): void {
 
         $proveedor = $this->ccm->getData(
                 'cc_proveedores',
@@ -172,7 +261,7 @@ class NotasCreditoAsientosLib {
             }
         }
 
-        $valor = round((float) $notaCredito->comp_total, 4);
+        $valor = round($valor, 4);
 
         if ($valor <= 0) {
             throw new \RuntimeException('El valor de la nota de credito debe ser mayor a cero para generar el asiento.');

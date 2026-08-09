@@ -25,10 +25,10 @@ class NotasCreditoAnticipoProveedorLib {
         $this->user = service('userSecion');
     }
 
-    public function guardarAnticipoProveedorNotaCredito(int $notaCreditoId, object $dataPostNotaCredito): int {
+    public function guardarAnticipoProveedorNotaCredito(int $notaCreditoId, object $dataPostNotaCredito, ?float $valorAnticipo = null): int {
 
         $compra = $dataPostNotaCredito->compra;
-        $valorNotaCredito = round((float) ($dataPostNotaCredito->totales->total ?? 0), 6);
+        $valorNotaCredito = round((float) ($valorAnticipo ?? ($dataPostNotaCredito->totales->total ?? 0)), 6);
         $proveedorId = (int) ($compra->compProveedor ?? 0);
         $proyectoId = (int) getProyectoId();
 
@@ -59,7 +59,7 @@ class NotasCreditoAnticipoProveedorLib {
             'antp_saldo' => $valorNotaCredito,
             'antp_fecha' => $compra->compFechaEmision,
             'antp_hora' => date('H:i:s'),
-            'antp_detalle' => trim((string) ($compra->observacionFinanciera ?? '')) ?: "Anticipo generado por NDC #{$notaCreditoId}",
+            'antp_detalle' => $this->resolverDetalleAnticipo($notaCreditoId, $compra, $valorAnticipo),
             'antp_estado' => 'ACTIVO',
             'fk_user' => $this->user->id,
         ];
@@ -73,6 +73,21 @@ class NotasCreditoAnticipoProveedorLib {
         $this->actualizarSaldoAnticipoProveedor($proveedorId, $proyectoId, $valorNotaCredito);
 
         return $anticipoId;
+    }
+
+    private function resolverDetalleAnticipo(int $notaCreditoId, object $compra, ?float $valorAnticipo): string {
+
+        $detalle = trim((string) ($compra->observacionFinanciera ?? ''));
+
+        if ($detalle !== '') {
+            return $detalle;
+        }
+
+        if ($valorAnticipo !== null) {
+            return "Anticipo generado por excedente de NDC #{$notaCreditoId}";
+        }
+
+        return "Anticipo generado por NDC #{$notaCreditoId}";
     }
 
     public function anularAnticipoProveedorNotaCredito(int $notaCreditoId, string $motivoAnulacion): void {

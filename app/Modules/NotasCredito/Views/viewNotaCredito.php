@@ -427,6 +427,58 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </select>
                         <div v-html="formValidacion.destinoFinanciero" class="text-danger"></div>
                     </div>
+
+                    <div v-if="mostrarAvisoRetencionPendiente" class="col-12">
+                        <div class="alert alert-danger py-2 mb-2">
+                            <div class="fw-bold mb-1">
+                                <i class="fas fa-ban me-1"></i> Retencion pendiente detectada.
+                            </div>
+                            <div class="small">
+                                La NDC cubre el total de la factura, pero la retencion
+                                <b>#{{ compra.ret_numero_comprobante || compra.retencion_id }}</b>
+                                esta en estado <b>{{ compra.ret_estado_sri || 'PENDIENTE' }}</b>.
+                                Como aun no esta enviada/aprobada por el SRI, puede anularse junto con esta NDC.
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <input
+                                id="anularRetencionPendiente"
+                                class="form-check-input"
+                                type="checkbox"
+                                v-model="formFinanciero.anularRetencionPendiente">
+                            <label class="form-check-label fw-bold" for="anularRetencionPendiente">
+                                Permitir anulacion de la retencion y continuar
+                            </label>
+                        </div>
+                        <div v-html="formValidacion.anularRetencionPendiente" class="text-danger"></div>
+                    </div>
+
+                    <div v-if="mostrarAvisoExcedenteAnticipo" class="col-12">
+                        <div class="alert alert-warning py-2 mb-2">
+                            <div class="fw-bold mb-1">
+                                <i class="fas fa-exclamation-triangle me-1"></i> La NDC cubre el total de la factura.
+                            </div>
+                            <div class="small">
+                                La cuenta por pagar tiene saldo de {{ formatToUSD(saldoCxpFactura) }}.
+                                El excedente de {{ formatToUSD(excedenteAnticipoNdc) }} se abonara como anticipo a proveedor
+                                para aplicarlo en otra factura, porque la retencion ya esta {{ compra.ret_estado_sri }} en el SRI.
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <input
+                                id="abonarExcedenteAnticipo"
+                                class="form-check-input"
+                                type="checkbox"
+                                v-model="formFinanciero.abonarExcedenteAnticipo">
+                            <label class="form-check-label fw-bold" for="abonarExcedenteAnticipo">
+                                Abonar excedente a anticipo a proveedor
+                            </label>
+                        </div>
+                        <div v-html="formValidacion.abonarExcedenteAnticipo" class="text-danger"></div>
+                    </div>
+
                     <div class="col-12">
                         <label class="form-label fw-bold">Observacion financiera</label>
                         <textarea
@@ -487,6 +539,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 formValidacion: [],
                 formFinanciero: {
                     destino: '',
+                    abonarExcedenteAnticipo: false,
+                    anularRetencionPendiente: false,
                     observacion: ''
                 },
                 form: {
@@ -646,6 +700,39 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 });
 
                 return Object.values(bases);
+            },
+            saldoCxpFactura() {
+                return Number(this.compra.cxp_saldo || 0);
+            },
+            totalFacturaOriginal() {
+                return Number(this.compra.comp_total || 0);
+            },
+            excedenteAnticipoNdc() {
+                return Math.max(0, Number((Number(this.totales.total || 0) - this.saldoCxpFactura).toFixed(4)));
+            },
+            ndcAlTotalFactura() {
+                return Math.abs(Number(this.totales.total || 0) - this.totalFacturaOriginal) <= 0.01;
+            },
+            retencionActivaFactura() {
+                return Number(this.compra.retencion_id || 0) > 0;
+            },
+            retencionEnviadaSri() {
+                return ['ENVIADO', 'AUTORIZADO'].includes(String(this.compra.ret_estado_sri || '').toUpperCase());
+            },
+            requiereValidarExcedenteCxp() {
+                return this.formFinanciero.destino === 'CXP'
+                        && this.ndcAlTotalFactura
+                        && this.excedenteAnticipoNdc > 0.0001;
+            },
+            mostrarAvisoRetencionPendiente() {
+                return this.requiereValidarExcedenteCxp
+                        && this.retencionActivaFactura
+                        && !this.retencionEnviadaSri;
+            },
+            mostrarAvisoExcedenteAnticipo() {
+                return this.requiereValidarExcedenteCxp
+                        && this.retencionActivaFactura
+                        && this.retencionEnviadaSri;
             }
         },
         watch: {
@@ -787,6 +874,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     compObservaciones: this.form.compObservacion?.trim() || '',
                     compTotal: Number(this.totales.total || 0),
                     destinoFinanciero: this.formFinanciero.destino,
+                    abonarExcedenteAnticipo: Boolean(this.formFinanciero.abonarExcedenteAnticipo),
+                    anularRetencionPendiente: Boolean(this.formFinanciero.anularRetencionPendiente),
                     observacionFinanciera: this.formFinanciero.observacion?.trim() || null
                 };
 
@@ -860,15 +949,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 this.formFinanciero.destino = '';
+                this.formFinanciero.abonarExcedenteAnticipo = false;
+                this.formFinanciero.anularRetencionPendiente = false;
                 this.formFinanciero.observacion = '';
                 this.setErrorCampo('destinoFinanciero', '');
+                this.setErrorCampo('abonarExcedenteAnticipo', '');
+                this.setErrorCampo('anularRetencionPendiente', '');
                 this.modalDestinoFinancieroInstance.show();
             },
             async confirmarGuardarNotaCredito() {
                 this.setErrorCampo('destinoFinanciero', '');
+                this.setErrorCampo('abonarExcedenteAnticipo', '');
+                this.setErrorCampo('anularRetencionPendiente', '');
 
                 if (!this.formFinanciero.destino) {
                     this.setErrorCampo('destinoFinanciero', 'Seleccione si la NDC se aplicara a CxP o anticipo a proveedor.');
+                    return;
+                }
+
+                if (this.mostrarAvisoRetencionPendiente && !this.formFinanciero.anularRetencionPendiente) {
+                    this.setErrorCampo('anularRetencionPendiente', 'Debe confirmar que la retencion pendiente sera anulada para continuar.');
+                    return;
+                }
+
+                if (this.mostrarAvisoExcedenteAnticipo && !this.formFinanciero.abonarExcedenteAnticipo) {
+                    this.setErrorCampo('abonarExcedenteAnticipo', 'Debe confirmar que el excedente sera abonado como anticipo a proveedor.');
                     return;
                 }
 

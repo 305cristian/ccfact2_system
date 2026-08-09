@@ -25,7 +25,7 @@ class NotasCreditoCxpLib {
         $this->user = service('userSecion');
     }
 
-    public function aplicarNotaCreditoCuentaPorPagar(int $notaCreditoId, object $dataPostNotaCredito): void {
+    public function aplicarNotaCreditoCuentaPorPagar(int $notaCreditoId, object $dataPostNotaCredito): float {
 
         $compra = $dataPostNotaCredito->compra;
         $valorNotaCredito = round((float) ($dataPostNotaCredito->totales->total ?? 0), 4);
@@ -46,17 +46,25 @@ class NotasCreditoCxpLib {
 
         $saldoActual = round((float) $cxp->cxp_saldo, 4);
 
-        if ($valorNotaCredito > $saldoActual) {
-            throw new \RuntimeException('El valor de la nota de credito no puede superar el saldo pendiente de la cuenta por pagar.');
+        $valorAplicarCxp = min($valorNotaCredito, $saldoActual);
+        $valorExcedente = round($valorNotaCredito - $valorAplicarCxp, 4);
+
+        if ($valorAplicarCxp <= 0) {
+            throw new \RuntimeException('La cuenta por pagar relacionada no tiene saldo pendiente aplicable.');
         }
 
-        $pagoNdcId = $this->guardarMovimientoPagoNotaCredito($notaCreditoId, $cxp, $compra, $valorNotaCredito);
+        $pagoNdcId = $this->guardarMovimientoPagoNotaCredito($notaCreditoId, $cxp, $compra, $valorAplicarCxp);
 
-        $nuevoSaldo = round($saldoActual - $valorNotaCredito, 4);
-        $nuevoPagado = round((float) $cxp->cxp_valor_pagado + $valorNotaCredito, 4);
+        $nuevoSaldo = round($saldoActual - $valorAplicarCxp, 4);
+        $nuevoPagado = round((float) $cxp->cxp_valor_pagado + $valorAplicarCxp, 4);
         $nuevoEstado = $nuevoSaldo <= 0 ? 'PAGADO' : 'PARCIAL';
         $observacion_ = trim((string) ($cxp->cxp_observacion ?? ''));
-        $observacionNdc = "NDC #{$notaCreditoId} aplicada por " . number_format($valorNotaCredito, 4, '.', '');
+        $observacionNdc = "NDC #{$notaCreditoId} aplicada por " . number_format($valorAplicarCxp, 4, '.', '');
+
+        if ($valorExcedente > 0) {
+            $observacionNdc .= " | Excedente a anticipo " . number_format($valorExcedente, 4, '.', '');
+        }
+
         $observacion = trim($observacion_ . ($observacion_ !== '' ? ' | ' : '') . $observacionNdc);
 
         $dataSet = [
@@ -68,7 +76,9 @@ class NotasCreditoCxpLib {
         ];
         $this->ccm->actualizar('cc_cxp', $dataSet, ['id' => (int) $cxp->id, 'fk_proyecto' => getProyectoId()]);
 
-        $this->aplicarNotaCreditoCuotas((int) $cxp->id, $valorNotaCredito, $notaCreditoId, $pagoNdcId);
+        $this->aplicarNotaCreditoCuotas((int) $cxp->id, $valorAplicarCxp, $notaCreditoId, $pagoNdcId);
+
+        return $valorExcedente;
     }
 
     public function anularAplicacionCuentaPorPagarNotaCredito(int $notaCreditoId): void {
