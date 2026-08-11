@@ -278,6 +278,12 @@ class IndexController extends BaseController {
             }
         }
 
+        $validacionDisponibilidad = $this->validarDisponibilidadDetalleNotaCredito($dataPostNotaCredito);
+
+        if ($validacionDisponibilidad['status']) {
+            return $validacionDisponibilidad;
+        }
+
         foreach ($dataPostNotaCredito->detalle as $item) {
             if ((float) ($item->cantidadNdc ?? 0) <= 0) {
                 return ['status' => true, 'msg' => 'Todos los items deben tener cantidad mayor a cero.'];
@@ -289,6 +295,47 @@ class IndexController extends BaseController {
 
             if (empty($item->cuentaContable)) {
                 return ['status' => true, 'msg' => 'Todos los items deben tener cuenta contable.'];
+            }
+        }
+
+        return ['status' => false, 'msg' => ''];
+    }
+
+    private function validarDisponibilidadDetalleNotaCredito(object $dataPostNotaCredito): array {
+
+        $compra = $dataPostNotaCredito->compra;
+        $compraBase = $this->notaCreditoModel->getCompraBaseNotaCredito((int) $compra->compraRelacionadaId);
+
+        if (!$compraBase) {
+            return ['status' => true, 'msg' => 'No se encontro la factura relacionada para validar la disponibilidad de items.'];
+        }
+
+        $detalleFactura = [];
+
+        foreach ($compraBase->detalle ?? [] as $detalle) {
+            $detalleFactura[(int) $detalle->id] = $detalle;
+        }
+
+        foreach ($dataPostNotaCredito->detalle as $item) {
+            if (!empty($item->esDescuentoGlobal)) {
+                continue;
+            }
+
+            $detalleId = (int) ($item->compraDetalleRelacionadaId ?? 0);
+
+            if ($detalleId <= 0 || !isset($detalleFactura[$detalleId])) {
+                return ['status' => true, 'msg' => 'Uno de los items no pertenece a la factura relacionada.'];
+            }
+
+            $detalleOriginal = $detalleFactura[$detalleId];
+            $cantidadNdc = round((float) ($item->cantidadNdc ?? 0), 6);
+            $cantidadDisponible = round((float) ($detalleOriginal->cantidad_disponible_ndc ?? 0), 6);
+
+            if ($cantidadNdc - $cantidadDisponible > 0.000001) {
+                return [
+                    'status' => true,
+                    'msg' => "La cantidad de la NDC para {$detalleOriginal->prod_nombre} supera la cantidad disponible de la factura.",
+                ];
             }
         }
 

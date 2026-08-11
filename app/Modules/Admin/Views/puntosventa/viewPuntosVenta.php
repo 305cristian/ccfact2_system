@@ -23,6 +23,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 <table id="tblPuntoVenta" class="table table-striped nowrap display" style="width: 100%">
                     <thead class="bg-system text-white">
                         <tr>
+                            <td>ACCIONES</td>
+                            <td>EMPLEADOS</td>
                             <td>ID</td>
                             <td>PROYECTO</td>
                             <td>COMPROBANTE</td>
@@ -35,13 +37,20 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <td>SEC. FINAL</td>
                             <td>ELECTRONICO</td>
                             <td>BODEGA</td>
-                            <td>EMPLEADOS</td>
+
                             <td>ESTADO</td>
-                            <td>ACCIONES</td>
+
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="lpv of listaPuntoVenta">
+                            <td>
+                                <template v-if="admin">
+                                    <button @click="loadPuntoVenta(lpv), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalPuntoVenta"><i class="fas fa-edit"></i> </button>
+                                </template>
+                            </td>
+                            <td class="text-center"><button @click="showEmpleados(lpv.id)" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalEmpleados"><span><i class="fas fa-user"></i></span></button></td>                           
+
                             <td>{{zfill(lpv.id)}}</td>
                             <td>{{lpv.proy_codigo}} - {{lpv.proy_nombre}}</td>
                             <td>{{lpv.comp_nombre}}</td>
@@ -58,17 +67,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                             <td>{{lpv.bod_nombre}}</td>
 
-                            <td class="text-center"><button @click="showEmpleados(lpv.id)" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalEmpleados"><span><i class="fas fa-user"></i></span></button></td>                           
 
                             <td v-if="lpv.pv_estado == 1 "><span class="badge bg-success"><i class="fas fa-check-double"></i>  Activo</span></td>
                             <td v-else><span class="badge bg-danger"><i class="fas fa-stop-circle"></i> Inactivo</span></td>
 
 
-                            <td>
-                                <template v-if="admin">
-                                    <button @click="loadPuntoVenta(lpv), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalPuntoVenta"><i class="fas fa-edit"></i> </button>
-                                </template>
-                            </td>
+
                         </tr>
                     </tbody>
                 </table>

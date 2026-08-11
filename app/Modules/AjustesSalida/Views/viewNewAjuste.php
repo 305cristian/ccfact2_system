@@ -680,7 +680,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     return;
                 }
 
-                let datos = item;
+                let datos = {...item};
                 datos.ajusteId = this.isEdit ? dataAjuste.id : '';
 
                 try {

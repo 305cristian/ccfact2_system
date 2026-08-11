@@ -77,7 +77,7 @@ class NotaCreditoModel extends Model{
                 . "COALESCE(lote.lot_lote, detalle.compd_lote) AS lote, "
                 . "COALESCE(lote.lot_fecha_elaboracion, detalle.compd_fecha_elaboracion) AS fecha_elaboracion, "
                 . "COALESCE(lote.lot_fecha_caducidad, detalle.compd_fecha_caducidad) AS fecha_caducidad, "
-                . "COALESCE(SUM(CASE WHEN ndc.comp_estado != 'ANULADA' THEN ndcDetalle.compd_cantidad ELSE 0 END), 0) AS cantidad_usada_ndc"
+                . "COALESCE(SUM(CASE WHEN ndc.comp_estado NOT IN ('ANULADA', 'ANULADA_EN_ARCHIVADA', 'ANULADA_EN_PENDIENTE') THEN ndcDetalle.compd_cantidad ELSE 0 END), 0) AS cantidad_usada_ndc"
         );
         $builderDetalle->join("cc_productos producto", "producto.id = detalle.fk_producto");
         $builderDetalle->join("cc_impuesto_tarifa tarifa", "tarifa.id = detalle.fk_impuesto_tarifa", "left");

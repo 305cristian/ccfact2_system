@@ -42,7 +42,7 @@ class DashboardController extends BaseController{
                     'fechaHasta' => $fechaHasta,
         ]);
 
-        $data['title'] = "Compras";
+        $data['title'] = "Dashboard Compras";
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $data['fechaDesdeDashboard'] = $fechaDesde;
         $data['fechaHastaDashboard'] = $fechaHasta;

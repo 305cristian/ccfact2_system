@@ -814,11 +814,18 @@ class IndexController extends BaseController {
         $discountPercent = 0;
 
         if ($dataPost->tipoDescuento === 'VALOR') {
+            if ($descuento > $precio) {
+                return $this->responseSetJSON('warning', 'El descuento no puede superar el precio unitario del producto.');
+            }
             $discountValue = $descuento;
             if ($precio > 0) {
                 $discountPercent = ($discountValue / $precio) * 100;
             }
         } else { // PORCENTAJE
+            if ($descuento > 100) {
+                return $this->responseSetJSON('warning', 'El descuento porcentual no puede superar el 100%.');
+            }
+
             $discountPercent = $descuento;
             $discountValue = ($precio * $discountPercent) / 100;
         }

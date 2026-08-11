@@ -427,9 +427,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <span class="fw-bold fs-4 me-4"> TOTAL </span>
                     <span class="fw-bold fs-4">{{ formatToUSD(totales.totalGeneral) }} </span>
                 </div>
-
-                <!--                 {{totales.totalBienes}}
-                        {{totales.totalServicios}}-->
             </div>
 
         </div>

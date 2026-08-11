@@ -43,7 +43,6 @@ $routes->group('ventas', ['namespace' => '\Modules\Ventas\Controllers'], functio
     $subroutes->post('saveVenta', 'IndexController::saveVenta');
     $subroutes->post('updateVenta', 'IndexController::updateVenta');
     $subroutes->post('anularVenta', 'IndexController::anularVenta');
-//    $subroutes->post('updateValoresGlobales', 'IndexController::updateValoresGlobales');
     $subroutes->get('clonarVenta/(:num)', 'IndexController::clonarVenta/$1');
     $subroutes->post('importarExcel', 'IndexController::importarExcel');
     $subroutes->get('loadVentaEdit/(:num)', 'IndexController::loadVentaEdit/$1');

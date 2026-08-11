@@ -224,7 +224,7 @@ class ModulosAcController extends \App\Controllers\BaseController {
             'nombreAccion' => ['label' => 'Nombre de Acción', 'rules' => 'trim|required'],
             'detalleAccion' => ['label' => 'Detalle de Acción', 'rules' => 'trim|required'],
             'moduloAccion' => ['label' => 'Módulo de Acción', 'rules' => 'trim|required'],
-            'subModuloAccion' => ['label' => ' SubMódulo de Acción', 'rules' => 'trim|required'],
+//            'subModuloAccion' => ['label' => ' SubMódulo de Acción', 'rules' => 'trim|required'],
         ]);
 
         /*         * VALIDAMOS LA VALIDACION SI LOS CAMPOS SON CORRECTOS CONTINUAMOS CON EL REGISTRO * */
@@ -242,7 +242,7 @@ class ModulosAcController extends \App\Controllers\BaseController {
                 'ac_estado' => $estado,
                 'ac_detalle' => $detalleAccion,
                 'fk_modulo' => $moduloAccion,
-                'fk_submodulo' => $subModuloAccion,
+                'fk_submodulo' => !empty($subModuloAccion)?$subModuloAccion:$moduloAccion,
                 'ac_fecha_create' => date('Y-m-d'),
             ];
 

@@ -36,8 +36,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
-            <h5 v-if="isEdit" class="card-title text-system"><i class="fas fa-folder-blank"></i> Actualizar Compra</h5>
-            <h5 v-else class="card-title text-system"><i class="fas fa-folder-blank"></i> Nueva Campra</h5>
+            <h5 v-if="isEdit" class="card-title text-system"><i class="far fa-folder-blank"></i> COMPRAS / Actualizar Compra</h5>
+            <h5 v-else class="card-title text-system"><i class="far fa-folder-blank"></i> COMPRAS / Nueva Campra</h5>
         </div>
         <div class="card-body">
 
@@ -515,7 +515,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaBancos = <?php echo json_encode($listaBancos); ?>;
     var puntoEmisionRetencion = <?php echo json_encode($puntoEmisionRetencion); ?>;
     var puntoEmisionLiquidacionCompra = <?php echo json_encode($puntoEmisionLiquidacionCompra); ?>;
-
+    
     if (window.appCompra) {
         window.appCompra.unmount();
     }
@@ -530,7 +530,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         data() {
             return {
 
-                url: siteUrl,
+                url: siteUrl,               
                 idCompra: dataCompra?.id ?? null,
                 isEdit: false,
                 ivaPrdeterminado: ivaPrdeterminado,

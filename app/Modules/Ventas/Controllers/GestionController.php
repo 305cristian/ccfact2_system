@@ -10,19 +10,19 @@ use App\Controllers\BaseController;
  */
 
 /**
- * Description of GestionControllers
+ * Description of GestionController
  *
   /**
  * @author CRISTIAN R. PAZ
  * @date 9 ago 2026
  * @time 8:26:14 a.m.
  */
-class GestionControllers extends BaseController {
+class GestionController extends BaseController {
 
     //put your code here
     protected $dirViewModule;
 
     public function __construct() {
-        $this->dirViewModule = 'Modules\Compras\Views';
+        $this->dirViewModule = 'Modules\Ventas\Views';
     }
 }
