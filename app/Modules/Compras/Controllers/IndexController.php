@@ -195,7 +195,7 @@ class IndexController extends BaseController {
         $data['listaModulos'] = $this->modMod->getModulosUser($this->user);
         $send['sidebar'] = view($this->dirViewModule . '\sidebar', $data);
 
-        $data['title'] = "Nueva Compra";
+        $data['title'] = empty($compraId) ? "Nueva Compra" : "Actualizar Compra";
         $data['listaTiposCompra'] = $this->ccm->getData('cc_tipo_compra', ['tc_estado' => 1], 'id, tc_nombre, tc_codigo');
         $data['listaFormasPago'] = $this->ccm->getData('cc_formas_pago', ['fp_estado' => 1], 'cod, fp_nombre');
         $data['listaFormasPagoSRI'] = $this->ccm->getData('cc_formas_pago_sri', ['fp_estado' => 1], 'codigo, fp_nombre_sri');

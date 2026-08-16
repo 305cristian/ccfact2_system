@@ -149,7 +149,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <td>{{ Number(tarifa.impt_porcentage || 0).toFixed(2) }}%</td>
                             <td>{{ tarifa.impt_detalle }}</td>
                             <td>{{ mostrarFecha(tarifa.impt_fecha_inicio_vigencia, '__/__/____') }}</td>
-                            <td>{{ mostrarFecha(tarifa.impt_fecha_fin_vigencia, '-') }}</td>
+                            <td>{{ mostrarFecha(tarifa.impt_fecha_fin_vigencia, '__/__/____') }}</td>
                             <td>
                                 <span v-if="tarifa.impt_estado === 'ACTIVO'" class="badge bg-success">ACTIVO</span>
                                 <span v-else class="badge bg-secondary">HISTORIAL</span>

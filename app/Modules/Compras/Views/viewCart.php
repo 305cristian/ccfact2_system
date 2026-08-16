@@ -114,9 +114,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                         <!--CODIGO DE PRODUCTO-->
                         <td>
-                            <span class="badge bg-cris-system text-wrap w-100 d-inline-block text-start"
-                                  style="font-size: 12px;  white-space: normal; line-height: 1.2; "
-                                  v-tooltip:top=" item.id ">{{ item.codigo }}</span>
+                            <span class="badge bg-cris-system" v-tooltip:top=" item.id ">{{ item.codigo }}</span>
                         </td>
 
                         <!--ITEM-->

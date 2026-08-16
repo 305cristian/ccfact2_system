@@ -31,7 +31,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 ?>
 
 <link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
-<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/modules/compras/style.css">
+<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/modules/compras/styles.css">
 
 <div id="app" class="container-fluid">
     <div class="card card-system card-outline">

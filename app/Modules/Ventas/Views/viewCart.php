@@ -75,9 +75,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         </button>
                     </td>
                     <td>
-                        <span class="badge bg-success">{{ item.codigo }}</span>
+                        <span class="badge bg-cris-system" v-tooltip:top="item.id">{{ item.codigo }}</span>
                     </td>
                     <td>
+                        <span
+                            v-if="Number(item.ivaPorcent || 0) > 0"
+                            class="d-inline-block rounded-circle bg-success me-1"
+                            style="width:12px;height:12px"
+                            :title="'IVA ' + item.ivaPorcent + '%'">
+                        </span>
+
+                        <span
+                            v-else-if="Number(item.codigoImpuestoSelect) === 0"
+                            class="d-inline-block rounded-circle bg-dark me-1"
+                            style="width:12px;height:12px"
+                            title="Tarifa 0%">
+                        </span>
+
+                        <span
+                            v-else-if="Number(item.codigoImpuestoSelect) === 7"
+                            class="d-inline-block rounded-circle bg-info me-1"
+                            style="width:12px;height:12px"
+                            title="Exento IVA">
+                        </span>
+
+                        <span
+                            v-else-if="Number(item.codigoImpuestoSelect) === 6"
+                            class="d-inline-block rounded-circle bg-warning me-1"
+                            style="width:12px;height:12px"
+                            title="No objeto de impuesto">
+                        </span>
+
                         <strong>{{ item.name }}</strong>
                         <small class="text-muted d-block">{{ item.unidadMedida }}</small>
                     </td>
@@ -241,10 +269,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <td class="summary-value text-end">{{ formatToUSD(totales.totalDescuentoItems) }}</td>
                             </tr>
 
-                            <tr>
+<!--                            <tr>
                                 <td class="summary-label text-end"><strong>Descuento global</strong></td>
                                 <td :class="{'text-warning':totales.totalDescuentoGlobal > 0 }" class="summary-value text-end">{{ formatToUSD(totales.totalDescuentoGlobal) }}</td>
-                            </tr>
+                            </tr>-->
 
                             <tr>
                                 <td class="summary-label text-end fw-bold"><strong>Subtotal neto</strong></td>
@@ -312,14 +340,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </tr>
                         </template>
 
-                        <tr>
+<!--                        <tr>
                             <td class="summary-label text-end"><strong>Recargo</strong></td>
                             <td :class="{'text-warning':global.recargo > 0 }" class="summary-value text-end">{{ formatToUSD(global.recargo) }}</td>
                         </tr>
                         <tr>
                             <td class="summary-label text-end"><strong>Servicios Adc</strong></td>
                             <td :class="{'text-warning':global.serviciosAdc > 0 }" class="summary-value text-end">{{ formatToUSD(global.serviciosAdc) }}</td>
-                        </tr>
+                        </tr>-->
 
                         </tbody>
                     </table>

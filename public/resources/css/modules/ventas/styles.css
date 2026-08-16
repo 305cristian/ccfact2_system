@@ -1,0 +1,40 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : 16 ago 2026, 10:48:36 a.m.
+    Author     : CRISTIAN R. PAZ
+*/
+
+    .venta-precio-select {
+        width: 95px;
+        min-width: 95px;
+        text-align: left;
+    }
+
+    .venta-precio-select .vs__dropdown-toggle {
+        min-height: 30px;
+        padding: 0 4px;
+        background: #fff;
+    }
+
+    .venta-precio-select .vs__selected {
+        margin: 2px 0 0 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .venta-precio-select .vs__actions {
+        padding: 2px 4px 0 2px;
+    }
+
+    .venta-precio-select .vs__dropdown-menu {
+        min-width: 180px;
+        text-align: left;
+    }
+
+
+    .multiselect__tags {
+        border-radius: 0px 0px 0px 0px
+    }

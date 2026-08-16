@@ -12,47 +12,17 @@
 Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to edit this template
 -->
-<style>
-    .venta-precio-select {
-        width: 95px;
-        min-width: 95px;
-        text-align: left;
-    }
 
-    .venta-precio-select .vs__dropdown-toggle {
-        min-height: 30px;
-        padding: 0 4px;
-        background: #fff;
-    }
+<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/styleModalPosition.css">
+<link rel="stylesheet" href="<?php echo base_url(); ?>/resources/css/modules/ventas/styles.css">
 
-    .venta-precio-select .vs__selected {
-        margin: 2px 0 0 4px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .venta-precio-select .vs__actions {
-        padding: 2px 4px 0 2px;
-    }
-
-    .venta-precio-select .vs__dropdown-menu {
-        min-width: 180px;
-        text-align: left;
-    }
-
-
-    .multiselect__tags {
-        border-radius: 0px 0px 0px 0px
-    }
-
-</style>
 <div id="appVenta" class="container-fluid">
     <div class="card card-system card-outline">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-system fw-bold">
-                    <i class="far fa-cash-register"></i> VENTAS / Nueva Venta
-                </h6>            
+                    <i class="far fa-cash-register"></i> VENTAS / {{ isEdit ? 'Actualizar Venta' : 'Nueva Venta' }}
+                </h6>
             </div>
         </div>
 
@@ -287,8 +257,37 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             </fieldset>
 
             <?php echo view('Modules\Ventas\Views\viewCart') ?>
+            <?php echo view('Modules\Ventas\Views\viewAnexoATS') ?>
+
+            <div v-if="!emptyCar" class="d-flex justify-content-end gap-2 mt-4">
+                <button
+                    type="button"
+                    class="btngr btn-danger-gradiant"
+                    style="min-width: 150px;"
+                    :disabled="loadingProcess"
+                    @click="cancelarVenta">
+                    <i class="fas fa-times-circle me-2"></i>Cancelar
+                </button>
+
+                <button
+                    type="button"
+                    class="btngr btn-primary-gradiant"
+                    :disabled="emptyCar"
+                    style="min-width: 150px;"
+                    :disabled="loadingProcess"
+                    @click="abrirModalFinalizar">
+                    <span v-if="loadingProcess" class="spinner-border spinner-border-sm me-2"></span>
+                    <i v-else class="fas fa-save me-2"></i>{{ isEdit ? 'Actualizar' : 'Guardar' }}
+                </button>
+            </div>
         </div>
     </div>
+
+    <!--MODAL FINALIZAR VENTA-->
+    <?php echo view('\Modules\Ventas\Views\viewPagos') ?>
+    <!--CLOSE MODAL FINALIZAR VENTA-->
+
+    <?php echo view('\Modules\Ventas\Views\reportes\viewModalReport') ?>
 </div>
 
 <script>
@@ -299,13 +298,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     var listaTiposComprobantes = <?= json_encode($listaTiposComprobantes ?? []) ?>;
     var listaPuntosEmision = <?= json_encode($listaPuntosEmision ?? []) ?>;
     var listaTipoVenta = <?= json_encode($listaTipoVenta ?? []) ?>;
+    var listaFormasPago = <?= json_encode(!empty($listaFormasPago) ? $listaFormasPago : []) ?>;
     var listaFormasPagoSri = <?= json_encode($listaFormasPagoSri ?? []) ?>;
+    var listaCuentasContables = <?= json_encode(!empty($listaCuentasContables) ? $listaCuentasContables : []) ?>;
+    var listaBancos = <?= json_encode(!empty($listaBancos) ? $listaBancos : []) ?>;
     var bodegaMainUsuario = <?= json_encode($bodegaMainUsuario ?? null) ?>;
     var permitirDuplicados = <?= getSettings('PERMITIR_ITEMS_DUPLICADOS'); ?>;
+    var valorMaximoATSSRI = <?= getSettings('VALOR_MAXIMO_ANEXO_ATS_SRI') ?>;
 
     var permitirCambioPrecio = <?= !empty($permitirCambioPrecio) ? $permitirCambioPrecio : 0; ?>;
-    
-     var dataVenta = <?= json_encode($dataVenta??null); ?>;
+
+    var dataVenta = <?= json_encode($dataVenta ?? null); ?>;
+    var dataCliente = <?= json_encode($dataCliente ?? null); ?>;
 
 
     var appVenta = Vue.createApp({
@@ -316,6 +320,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         data() {
             return {
                 url: siteUrl,
+                isEdit: !!dataVenta,
+                idVenta: dataVenta?.id ?? null,
+                cargandoVentaEdit: false,
 
                 //PERMISOS
                 permitirCambioPrecio: permitirCambioPrecio,
@@ -326,7 +333,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaTiposComprobantes: listaTiposComprobantes,
                 listaPuntosEmision: listaPuntosEmision,
                 listaTipoVenta: listaTipoVenta,
+                listaFormasPago: listaFormasPago,
                 listaFormasPagoSri: listaFormasPagoSri,
+                listaCuentasContables: listaCuentasContables,
+                listaBancosSimulados: listaBancos,
+                valorMaximoATSSRI: valorMaximoATSSRI,
                 bodegaMainUsuario: bodegaMainUsuario,
                 listaSearchClientes: [],
                 clienteSearch: '',
@@ -360,6 +371,42 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaCartData: [],
                 codeSearch: '',
                 loading: false,
+                loadingProcess: false,
+                idVentaReporte: null,
+                secuencialVenta: null,
+                cargandoDetalle: false,
+                detalleHtml: '',
+                modalTitulo: 'Detalle de Venta',
+                mostrarBotonesReporte: true,
+                modalReporteInstance: null,
+                modalFinalizarInstance: null,
+                erroresPago: {},
+                ats: {
+                    formaPago: []
+                },
+                pagos: {
+                    tipoPago: 'CONTADO',
+                    formaPago: null,
+                    cuentaContablePago: null,
+                    valorRecibido: 0,
+                    fechaCobro: fechaActual,
+                    referencia: '',
+                    nota: '',
+                    banco: null,
+                    numeroTransferencia: '',
+                    fechaTransferencia: '',
+                    numeroCheque: '',
+                    fechaCheque: '',
+                    marcaTarjeta: '',
+                    loteTarjeta: '',
+                    autorizacionTarjeta: '',
+                    ultimosDigitos: '',
+                    fechaVoucher: '',
+                    cuotas: 1,
+                    dias: 0,
+                    fechaVenceCredito: fechaActual,
+                    listaCuotas: []
+                },
                 emptyCar: true,
                 ivaPrdeterminado: 0,
                 basesImpuesto: [],
@@ -390,16 +437,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     venBodega: null,
                     venCentroCosto: null,
                     venTipoVenta: null,
-                    venEstado: 'BORRADOR',
+                    venEstado: 'ARCHIVADO',
                     venPermitirDuplicados: permitirDuplicados,
                     venObservacion: ''
                 }
             };
         },
         mounted() {
-            this.formVenta.venTipoComprobante = this.listaTiposComprobantes.find(item => String(item.comp_codigo) === '01') ?? null;
-            this.formVenta.venTipoVenta = this.listaTipoVenta.find(item => String(item.id) === '1') ?? null;
-            this.formVenta.venCentroCosto = this.listaCentroCostos.find(item => String(item.cc_facturacion_elect) === '1') ?? null;
+            this.modalReporteInstance = new bootstrap.Modal(this.$refs.modalReport);
+            this.modalFinalizarInstance = new bootstrap.Modal(this.$refs.modalFinalizarVenta);
+
+            if (this.isEdit) {
+                this.cargarDatosVenta();
+            } else {
+                this.formVenta.venTipoComprobante = this.listaTiposComprobantes.find(item => String(item.comp_codigo) === '01') ?? null;
+                this.formVenta.venTipoVenta = this.listaTipoVenta.find(item => String(item.id) === '1') ?? null;
+                this.formVenta.venCentroCosto = this.listaCentroCostos.find(item => String(item.cc_facturacion_elect) === '1') ?? null;
+            }
+
             this.showDetailCart();
         },
         computed: {
@@ -429,15 +484,270 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
 
                 return this.basesImpuesto.filter(tax => Number(tax.porcentaje || 0) > 0);
+            },
+            cambioVenta() {
+                const cambio = Number(this.pagos.valorRecibido || 0) - Number(this.totales.totalGeneral || 0);
+                return cambio > 0 ? cambio : 0;
+            },
+            requiereFormaPagoAts() {
+                return this.formVenta.venEstado === 'ARCHIVADO'
+                        && Number(this.totales.totalGeneral || 0) >= Number(this.valorMaximoATSSRI || 0);
+            },
+            listaCuentasFormaPago() {
+                if (!this.pagos.formaPago) {
+                    return [];
+                }
+
+                let codigo = '';
+
+                switch (this.pagos.formaPago.cod) {
+                    case '01':
+                        codigo = '1.01.01';
+                        break;
+                    case '02':
+                    case '03':
+                    case '04':
+                        codigo = '1.01.02';
+                        break;
+                    default:
+                        codigo = '';
+                        break;
+                }
+
+                return this.listaCuentasContables.filter(cuenta => String(cuenta.ctad_codigo || '').startsWith(codigo));
             }
         },
         watch: {
             'formVenta.venTipoComprobante'() {
+                if (this.cargandoVentaEdit) {
+                    return;
+                }
+
                 this.aplicarPuntoEmisionVenta();
             }
         },
         methods: {
 
+            abrirModalFinalizar() {
+                if (this.formVenta.venEstado === 'BORRADOR') {
+                    this.guardarVenta();
+                    return;
+                }
+
+                if (!this.clienteDetalle) {
+                    sweet_msg_dialog('warning', 'El campo Cliente esta vacio, campo obligatorio.');
+                    return;
+                }
+
+                this.resetPagoDetalle();
+                this.pagos.valorRecibido = Number(this.totales.totalGeneral || 0);
+                this.modalFinalizarInstance.show();
+            },
+            resetPagoDetalle() {
+                this.erroresPago = {};
+                this.pagos.formaPago = null;
+                this.pagos.cuentaContablePago = null;
+                this.pagos.valorRecibido = this.pagos.tipoPago === 'CONTADO' ? Number(this.totales.totalGeneral || 0) : 0;
+                this.pagos.fechaCobro = this.formVenta.venFechaEmision || fechaActual;
+                this.changeFormaPago();
+                this.pagos.cuotas = 1;
+                this.pagos.dias = Number(this.clienteDetalle?.clie_dias_credito || 0);
+                this.pagos.fechaVenceCredito = this.sumarDiasFecha(this.formVenta.venFechaEmision || fechaActual, this.pagos.dias);
+                this.pagos.listaCuotas = [];
+            },
+            changeFormaPago() {
+                this.pagos.nota = '';
+                this.pagos.referencia = '';
+                this.pagos.cuentaContablePago = null;
+                this.pagos.banco = null;
+                this.pagos.numeroTransferencia = '';
+                this.pagos.fechaTransferencia = '';
+                this.pagos.numeroCheque = '';
+                this.pagos.fechaCheque = '';
+                this.pagos.marcaTarjeta = '';
+                this.pagos.loteTarjeta = '';
+                this.pagos.autorizacionTarjeta = '';
+                this.pagos.ultimosDigitos = '';
+                this.pagos.fechaVoucher = '';
+
+                this.$nextTick(() => {
+                    this.pagos.cuentaContablePago = this.listaCuentasFormaPago[0] ?? null;
+                });
+            },
+            calcularFechaCreditoVenta() {
+                this.pagos.fechaVenceCredito = this.sumarDiasFecha(this.formVenta.venFechaEmision || fechaActual, Number(this.pagos.dias || 0));
+            },
+            generarCuotasVenta() {
+                this.erroresPago = {};
+
+                const cuotas = Number(this.pagos.cuotas || 0);
+                const total = Number(this.totales.totalGeneral || 0);
+
+                if (cuotas <= 0) {
+                    this.erroresPago.cuotas = 'Debe ingresar un numero de cuotas valido';
+                    return;
+                }
+
+                if (total <= 0) {
+                    this.erroresPago.listaCuotas = 'El total de la venta debe ser mayor a cero';
+                    return;
+                }
+
+                const valorCuota = Number((total / cuotas).toFixed(4));
+                const cuotasArray = [];
+                const fechaBase = this.formVenta.venFechaEmision || fechaActual;
+                const diasCredito = Number(this.pagos.dias || 0);
+
+                for (let i = 1; i <= cuotas; i++) {
+                    cuotasArray.push({
+                        numero: i,
+                        fecha: this.sumarDiasFecha(fechaBase, diasCredito * i),
+                        valor: valorCuota,
+                        saldo: valorCuota
+                    });
+                }
+
+                const suma = cuotasArray.reduce((totalCuotas, cuota) => totalCuotas + Number(cuota.valor || 0), 0);
+                const diferencia = Number((total - suma).toFixed(4));
+
+                if (cuotasArray.length && Math.abs(diferencia) > 0) {
+                    const ultimaCuota = cuotasArray[cuotasArray.length - 1];
+                    ultimaCuota.valor = Number((Number(ultimaCuota.valor) + diferencia).toFixed(4));
+                    ultimaCuota.saldo = ultimaCuota.valor;
+                }
+
+                this.pagos.listaCuotas = cuotasArray;
+            },
+            validarPagoVenta() {
+                this.erroresPago = {};
+                const total = Number(this.totales.totalGeneral || 0);
+
+                if (this.formVenta.venEstado !== 'ARCHIVADO') {
+                    return true;
+                }
+
+                if (!this.pagos.tipoPago) {
+                    this.erroresPago.tipoPago = 'Seleccione el tipo de pago';
+                }
+
+                if (this.pagos.tipoPago === 'CONTADO') {
+                    if (!this.pagos.formaPago) {
+                        this.erroresPago.formaPago = 'Seleccione el metodo de pago';
+                    }
+
+                    if (!this.pagos.cuentaContablePago) {
+                        this.erroresPago.cuentaContablePago = 'Seleccione la cuenta contable del cobro';
+                    }
+
+                    if (Number(this.pagos.valorRecibido || 0) < total) {
+                        this.erroresPago.valorRecibido = 'El valor recibido no puede ser menor al total de la venta';
+                    }
+
+                    if (!this.pagos.fechaCobro) {
+                        this.erroresPago.fechaCobro = 'Ingrese la fecha del cobro';
+                    }
+
+                    const formaPago = this.pagos.formaPago?.cod;
+                    const camposPagoContado = [];
+
+                    if (formaPago === '01') {
+                        camposPagoContado.push({campo: 'nota', valor: this.pagos.nota, mensaje: 'Ingrese una nota para el cobro en efectivo'});
+                    } else if (formaPago === '02') {
+                        camposPagoContado.push(
+                                {campo: 'banco', valor: this.pagos.banco, mensaje: 'Seleccione el banco de la transferencia'},
+                                {campo: 'numeroTransferencia', valor: this.pagos.numeroTransferencia, mensaje: 'Ingrese el numero de transferencia'},
+                                {campo: 'fechaTransferencia', valor: this.pagos.fechaTransferencia, mensaje: 'Seleccione la fecha de transferencia'},
+                                {campo: 'nota', valor: this.pagos.nota, mensaje: 'Ingrese una nota para la transferencia'}
+                        );
+                    } else if (formaPago === '03') {
+                        camposPagoContado.push(
+                                {campo: 'banco', valor: this.pagos.banco, mensaje: 'Seleccione el banco del cheque'},
+                                {campo: 'numeroCheque', valor: this.pagos.numeroCheque, mensaje: 'Ingrese el numero de cheque'},
+                                {campo: 'fechaCheque', valor: this.pagos.fechaCheque, mensaje: 'Seleccione la fecha del cheque'}
+                        );
+                    } else if (formaPago === '04') {
+                        camposPagoContado.push(
+                                {campo: 'marcaTarjeta', valor: this.pagos.marcaTarjeta, mensaje: 'Seleccione la marca de la tarjeta'},
+                                {campo: 'loteTarjeta', valor: this.pagos.loteTarjeta, mensaje: 'Ingrese el lote de la tarjeta'},
+                                {campo: 'autorizacionTarjeta', valor: this.pagos.autorizacionTarjeta, mensaje: 'Ingrese la autorizacion de la tarjeta'},
+                                {campo: 'ultimosDigitos', valor: this.pagos.ultimosDigitos, mensaje: 'Ingrese los ultimos cuatro digitos de la tarjeta'},
+                                {campo: 'fechaVoucher', valor: this.pagos.fechaVoucher, mensaje: 'Seleccione la fecha del voucher'},
+                                {campo: 'nota', valor: this.pagos.nota, mensaje: 'Ingrese una nota para el cobro con tarjeta'}
+                        );
+                    }
+
+                    camposPagoContado.forEach(campo => {
+                        const estaVacio = campo.valor === null || campo.valor === undefined || (typeof campo.valor === 'string' && campo.valor.trim() === '');
+
+                        if (estaVacio) {
+                            this.erroresPago[campo.campo] = campo.mensaje;
+                        }
+                    });
+
+                    if (formaPago === '04' && this.pagos.ultimosDigitos && !/^\d{4}$/.test(String(this.pagos.ultimosDigitos))) {
+                        this.erroresPago.ultimosDigitos = 'Ingrese exactamente cuatro numeros';
+                    }
+                }
+
+                if (this.pagos.tipoPago === 'CREDITO') {
+                    if (Number(this.pagos.cuotas || 0) <= 0) {
+                        this.erroresPago.cuotas = 'Debe ingresar un numero de cuotas valido';
+                    }
+
+                    if (!this.pagos.fechaVenceCredito) {
+                        this.erroresPago.fechaVenceCredito = 'Ingrese la fecha de vencimiento';
+                    }
+
+                    if (!this.pagos.listaCuotas.length) {
+                        this.erroresPago.listaCuotas = 'Debe generar al menos una cuota';
+                    }
+
+                    const sumaCuotas = this.pagos.listaCuotas.reduce((totalCuotas, cuota) => totalCuotas + Number(cuota.valor || 0), 0);
+
+                    if (this.pagos.listaCuotas.length && Math.abs(sumaCuotas - total) > 0.01) {
+                        this.erroresPago.totalCuotas = 'La suma de las cuotas debe ser igual al total de la venta';
+                    }
+
+                    this.pagos.listaCuotas.forEach((cuota, i) => {
+                        if (!cuota.fecha) {
+                            this.erroresPago['cuotaFecha_' + i] = 'Ingrese fecha';
+                        }
+
+                        if (Number(cuota.valor || 0) <= 0) {
+                            this.erroresPago['cuotaValor_' + i] = 'Valor invalido';
+                        }
+                    });
+                }
+
+                if (this.requiereFormaPagoAts && (!Array.isArray(this.ats.formaPago) || !this.ats.formaPago.length)) {
+                    sweet_msg_toast('warning', 'Debe seleccionar al menos una forma de pago ATS.');
+                    return false;
+                }
+
+                return Object.keys(this.erroresPago).length === 0;
+            },
+            cargarDatosVenta() {
+                this.cargandoVentaEdit = true;
+
+                this.formVenta.venTipoComprobante = this.listaTiposComprobantes.find(item => String(item.comp_codigo) === String(dataVenta.ven_tipo_comprobante_cod)) ?? null;
+                this.formVenta.venPuntoEmision = this.listaPuntosEmision.find(item => Number(item.id) === Number(dataVenta.fk_punto_venta)) ?? null;
+                this.formVenta.venNumeroEstablecimiento = dataVenta.ven_numero_establecimiento || '';
+                this.formVenta.venNumeroEmision = dataVenta.ven_numero_emision || '';
+                this.formVenta.venNumeroComprobante = dataVenta.ven_numero_comprobante || '';
+                this.formVenta.venFechaEmision = dataVenta.ven_fecha_emision || fechaActual;
+                this.formVenta.venBodega = this.listaBodegas.find(item => Number(item.id) === Number(dataVenta.fk_bodega)) ?? null;
+                this.formVenta.venCentroCosto = this.listaCentroCostos.find(item => Number(item.id) === Number(dataVenta.fk_centro_costo)) ?? null;
+                this.formVenta.venTipoVenta = this.listaTipoVenta.find(item => Number(item.id) === Number(dataVenta.fk_tipo_venta)) ?? null;
+                this.formVenta.venEstado = dataVenta.ven_estado || 'BORRADOR';
+                this.formVenta.venPermitirDuplicados = String(dataVenta.ven_items_duplicados) === 'true';
+                this.formVenta.venObservacion = dataVenta.ven_observacion || '';
+
+                if (dataCliente) {
+                    this.setClienteDetalle(dataCliente);
+                }
+
+                this.cargandoVentaEdit = false;
+            },
             aplicarPuntoEmisionVenta() {
                 if (this.tieneItemsCart) {
                     sweet_msg_toast('warning', 'Existen productos cargados al carrito. No puede cambiar el comprobante ni el punto de emisión.');
@@ -712,7 +1022,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.loading = true;
 
                     let datos = {...item};
-                    datos.ventaId = this.isEdit ? dataVenta.id : '';
+                    datos.ventaId = this.isEdit ? this.idVenta : '';
 
                     const {data} = await axios.post(this.url + '/ventas/updateProduct', datos);
                     sweet_msg_toast(data.status, data.msg);
@@ -776,6 +1086,164 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.emptyCar = !(Number(data.totalArticles || 0) > 0);
                 } catch (e) {
                     sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                }
+            },
+            construirDataVenta() {
+                return {
+                    idVenta: this.idVenta,
+                    venta: {
+                        venTipoComprobante: this.formVenta.venTipoComprobante?.comp_codigo ?? null,
+                        venPuntoEmision: this.formVenta.venPuntoEmision?.id ?? null,
+                        venNumeroEstablecimiento: this.formVenta.venNumeroEstablecimiento,
+                        venNumeroEmision: this.formVenta.venNumeroEmision,
+                        venNumeroComprobante: this.formVenta.venNumeroComprobante,
+                        venFechaEmision: this.formVenta.venFechaEmision,
+                        venCliente: this.formVenta.venCliente?.id ?? null,
+                        venBodega: this.formVenta.venBodega?.id ?? null,
+                        venCentroCosto: this.formVenta.venCentroCosto?.id ?? null,
+                        venTipoVenta: this.formVenta.venTipoVenta?.id ?? null,
+                        venEstado: this.formVenta.venEstado,
+                        venPermitirDuplicados: this.formVenta.venPermitirDuplicados,
+                        venObservacion: this.formVenta.venObservacion
+                    },
+                    basesImpuestos: (this.basesImpuesto || []).map(base => ({
+                            impuesto_tarifa_id: base.impuesto_tarifa_id,
+                            codigo: base.codigo,
+                            detalle: base.detalle,
+                            porcentaje: Number(base.porcentaje || 0),
+                            subtotal_bruto: Number(base.subtotal_bruto || 0),
+                            subtotal_neto: Number(base.subtotal_neto || 0),
+                            iva: Number(base.iva || 0)
+                        })),
+                    pago: {
+                        tipoPago: this.pagos.tipoPago,
+                        formaPago: this.pagos.formaPago?.cod ?? null,
+                        cuentaContable: this.pagos.cuentaContablePago?.ctad_codigo ?? null,
+                        banco: this.pagos.banco ? {
+                            codigo: this.pagos.banco.codigo,
+                            nombre: this.pagos.banco.nombre
+                        } : null,
+                        valorRecibido: Number(this.pagos.valorRecibido || 0),
+                        valorCobrado: this.pagos.tipoPago === 'CONTADO' ? Number(this.totales.totalGeneral || 0) : 0,
+                        cambio: this.cambioVenta,
+                        fechaCobro: this.pagos.fechaCobro,
+                        diasCredito: Number(this.pagos.dias || 0),
+                        referencia: this.pagos.referencia,
+                        nota: this.pagos.nota,
+                        numeroTransferencia: this.pagos.numeroTransferencia?.trim() || null,
+                        fechaTransferencia: this.pagos.fechaTransferencia || null,
+                        numeroCheque: this.pagos.numeroCheque?.trim() || null,
+                        fechaCheque: this.pagos.fechaCheque || null,
+                        marcaTarjeta: this.pagos.marcaTarjeta || null,
+                        loteTarjeta: this.pagos.loteTarjeta?.trim() || null,
+                        autorizacionTarjeta: this.pagos.autorizacionTarjeta?.trim() || null,
+                        ultimosDigitos: this.pagos.ultimosDigitos?.trim() || null,
+                        fechaVoucher: this.pagos.fechaVoucher || null
+                    },
+                    ats: {
+                        formasPago: this.requiereFormaPagoAts ? (this.ats.formaPago || []).map(forma => forma.codigo) : []
+                    },
+                    cuotas: this.pagos.tipoPago === 'CREDITO' ? this.pagos.listaCuotas.map(cuota => ({
+                            numero: Number(cuota.numero || 0),
+                            fecha: cuota.fecha,
+                            valor: Number(cuota.valor || 0),
+                            saldo: Number(cuota.valor || 0)
+                        })) : []
+                };
+            },
+            async guardarVenta() {
+                try {
+
+                    if (this.emptyCar) {
+                        sweet_msg_toast('warning', 'Debe agregar al menos un item para guardar la venta.');
+                        return;
+                    }
+
+                    if (!this.validarPagoVenta()) {
+                        return;
+                    }
+
+                    this.loadingProcess = true;
+                    const dataPostVenta = this.construirDataVenta();
+                    const formData = new FormData();
+                    formData.append('data', JSON.stringify(dataPostVenta));
+
+                    const urlGuardar = this.isEdit ? '/ventas/updateVenta' : '/ventas/saveVenta';
+                    const {data} = await axios.post(this.url + urlGuardar, formData);
+
+                    if (data.status === 'success') {
+                        const urlRedirect = data.data?.redirect || (this.isEdit ? this.url + '/ventas/gestionVentas' : this.url + '/ventas/nuevaVenta');
+                        this.modalFinalizarInstance?.hide();
+                        sweetMsgDialogConfirm(data.msg || 'Venta guardada correctamente.', this.verDetalle, data.data, urlRedirect);
+                        return;
+                    }
+
+                    this.modalFinalizarInstance?.hide();
+                    sweet_msg_dialog(data.status || 'warning', data.msg || 'No se pudo guardar la venta.');
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingProcess = false;
+                }
+            },
+            async verDetalle(venta) {
+                this.idVentaReporte = venta.id;
+                this.secuencialVenta = venta.ven_secuencial;
+                this.modalTitulo = 'Detalle de Venta #' + this.zFill(venta.ven_secuencial, 5);
+                this.detalleHtml = '';
+                this.mostrarBotonesReporte = true;
+                this.cargandoDetalle = true;
+                this.modalReporteInstance.show();
+
+                try {
+                    const {data} = await axios.get(`${this.url}/ventas/getDataDetalle/${venta.id}`);
+                    this.detalleHtml = data;
+                } catch (e) {
+                    this.modalReporteInstance.hide();
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.cargandoDetalle = false;
+                }
+            },
+            generarExcel() {
+                const contenido = document.querySelector('#contentExport');
+                const titulo = 'Detalle venta ' + this.zFill(this.secuencialVenta, 5);
+                return generarExcelContent(contenido, titulo);
+            },
+            generarPDF() {
+                window.open(`${this.url}/ventas/generarPDF/${this.idVentaReporte}?download=1`, '_blank');
+            },
+            sumarDiasFecha(fecha, dias) {
+                return DateTime.fromISO(fecha || fechaActual).plus({days: Number(dias || 0)}).toFormat('yyyy-MM-dd');
+            },
+            async cancelarVenta() {
+                const respuesta = await Swal.fire({
+                    icon: 'warning',
+                    title: 'Cancelar venta',
+                    width: '35%',
+                    html: '<h6>Se limpiara todo el carrito de venta. Esta accion no se puede deshacer.</h6>',
+                    showCancelButton: true,
+                    confirmButtonText: 'Si, cancelar',
+                    cancelButtonText: 'No',
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6e7881'
+                });
+
+                if (!respuesta.isConfirmed) {
+                    return;
+                }
+
+                try {
+                    this.loadingProcess = true;
+                    const {data} = await axios.post(this.url + '/ventas/cancelarVenta');
+                    sweet_msg_toast(data.status, data.msg);
+                    this.productoSeleccionado = null;
+                    this.codeSearch = '';
+                    await this.showDetailCart();
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingProcess = false;
                 }
             },
             zFill(value, width) {

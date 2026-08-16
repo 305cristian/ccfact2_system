@@ -51,7 +51,7 @@
         <li class="nav-header">MÓDULOS</li>
         <?php foreach ($listaModulos as $mod) { ?> 
             <li class="nav-item sidebarSubMenuColor">
-                <a href="<?= site_url() . $mod->md_url ?>/<?= $mod->id ?> " class="nav-link">
+                <a href="<?= site_url() . $mod->md_url . ($mod->tiene_submodulos ? '/' . $mod->id : '') ?>" class="nav-link">
                     <i class="nav-icon <?= $mod->md_icon ?> sidebarColorIcon"></i>
                     <p><?= $mod->md_nombre ?></p>
                 </a>
