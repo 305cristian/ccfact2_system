@@ -147,7 +147,7 @@ class PuntoVentaController extends \App\Controllers\BaseController {
                     $datosPvEmp = [
                         'fk_punto_venta' => $pvSave,
                         'fk_empleado' => $val,
-                        'pvemp_fecha_registro' => $val,
+                        'pvemp_fecha_registro' => date('Y-m-d'),
                     ];
                     $this->ccm->guardar($datosPvEmp, 'cc_puntoventa_empleado');
                 }
