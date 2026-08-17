@@ -11,7 +11,7 @@
  Target Server Version : 80403
  File Encoding         : 65001
 
- Date: 17/08/2026 17:00:20
+ Date: 17/08/2026 17:05:15
 */
 
 SET NAMES utf8mb4;
@@ -567,8 +567,7 @@ CREATE TABLE `cc_bio_comedores`  (
 -- ----------------------------
 -- Records of cc_bio_comedores
 -- ----------------------------
-INSERT INTO `cc_bio_comedores` VALUES (1, 1, 'BS', 'BASE', 'BASE CENTRAL', 'COMEDOR PRINCIPAL DEL PORYECTO 1', 1, '2026-07-23 22:53:06', '2026-07-23 22:53:18');
-INSERT INTO `cc_bio_comedores` VALUES (2, 2, '001', 'COMEDOR MAIN', 'CAMPO', 'TEST', 1, '2026-07-28 17:49:52', '2026-07-28 17:49:52');
+INSERT INTO `cc_bio_comedores` VALUES (1, 1, 'COM-001', 'COMEDOR PRINCIPAL', 'UBICACION PRINCIPAL', 'Comedor principal de la operacion', 1, '2026-08-17 17:04:48', '2026-08-17 17:04:48');
 
 -- ----------------------------
 -- Table structure for cc_bio_comensales
@@ -627,7 +626,6 @@ CREATE TABLE `cc_bio_contratistas`  (
 -- ----------------------------
 -- Records of cc_bio_contratistas
 -- ----------------------------
-INSERT INTO `cc_bio_contratistas` VALUES (1, '1900256585001', 'BOGA', 'LOS ENCUENTROS', '0992094789', 'boga@gmail.com', 1, '2026-07-23 23:19:48', '2026-07-24 00:01:12');
 
 -- ----------------------------
 -- Table structure for cc_bio_departamentos
@@ -675,9 +673,7 @@ CREATE TABLE `cc_bio_equipos`  (
 -- ----------------------------
 -- Records of cc_bio_equipos
 -- ----------------------------
-INSERT INTO `cc_bio_equipos` VALUES (1, 1, '001', 'EQUIPO_IZQ', 'TEST', '02322', '192.168.10.6', 3005, 'COMEDOR ZONA IZQUIERDA', 1, '2026-07-23 23:11:33', '2026-07-23 23:11:42');
-INSERT INTO `cc_bio_equipos` VALUES (2, 1, '002', 'EQUIPO_DER', 'DELL', '524', '192.168.10.23', 5663, 'TEST', 1, '2026-07-24 12:44:28', '2026-07-24 12:44:28');
-INSERT INTO `cc_bio_equipos` VALUES (3, 2, '001', 'EQP-MAIN', 'HP', '4555', '192.168.10.2', 3662, 'TEST', 1, '2026-07-28 17:50:26', '2026-07-28 17:50:26');
+INSERT INTO `cc_bio_equipos` VALUES (1, 1, '001', 'EQUIPO PRINCIPAL', '', '', '', NULL, 'Acceso principal del comedor', 1, '2026-08-17 17:04:48', '2026-08-17 17:04:48');
 
 -- ----------------------------
 -- Table structure for cc_bio_marcaciones
