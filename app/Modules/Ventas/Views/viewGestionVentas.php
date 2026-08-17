@@ -229,6 +229,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                                 <i class="fas fa-eye me-2"></i> Ver detalle
                                             </button>
                                         </li>
+                                        <li>
+                                            <button class="dropdown-item" @click="openModalEmail(venta)">
+                                                <i class="fas fa-envelope me-2"></i> Enviar por email
+                                            </button>
+                                        </li>
                                         <li v-if="venta.ven_estado === 'ARCHIVADO'">
                                             <button class="dropdown-item" @click="verAsientoContable(venta)">
                                                 <i class="fas fa-balance-scale me-2"></i> Ver asiento contable
@@ -286,6 +291,75 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
     </div>
 
     <?php echo view('\Modules\Ventas\Views\reportes\viewModalReport') ?>
+
+    <div ref="modalSendEmail" class="modal fade" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-fullscreen-md-down modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header text-dark">
+                    <h5 class="modal-title mb-0">
+                        <i class="fas fa-envelope me-2"></i> Enviar venta por email
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Para <span class="text-danger">*</span></label>
+                            <input
+                                type="text"
+                                v-model.trim="emailData.para"
+                                class="form-control"
+                                placeholder="correo@empresa.com">
+                            <small class="text-muted">Puede ingresar varios correos separados por coma.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">CC</label>
+                            <input
+                                type="text"
+                                v-model.trim="emailData.cc"
+                                class="form-control"
+                                placeholder="(opcional)">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Asunto <span class="text-danger">*</span></label>
+                            <input
+                                type="text"
+                                v-model.trim="emailData.asunto"
+                                class="form-control"
+                                placeholder="Reporte de Venta #00001">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Mensaje</label>
+                            <textarea
+                                v-model="emailData.mensaje"
+                                class="form-control"
+                                rows="5"
+                                placeholder="Escriba un mensaje adicional..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <div v-if="errorSendMail" class="text-danger fw-semibold me-auto" v-html="errorSendMail"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i> Cerrar
+                    </button>
+                    <button type="button" class="btn btn-primary" :disabled="loadingEmail" @click="sendEmailReport">
+                        <span v-if="loadingEmail">
+                            <i class="fas fa-spinner fa-spin me-2"></i> Enviando...
+                        </span>
+                        <span v-else>
+                            <i class="fas fa-paper-plane me-2"></i> Enviar Email
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -341,7 +415,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 detalleHtml: '',
                 modalTitulo: 'Detalle de Venta',
                 mostrarBotonesReporte: true,
-                modalInstance: null
+                modalInstance: null,
+                modalInstanceEmail: null,
+                loadingEmail: false,
+                errorSendMail: '',
+                emailData: {
+                    para: '',
+                    cc: '',
+                    asunto: '',
+                    mensaje: ''
+                }
             };
         },
         mounted() {
@@ -367,6 +450,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             });
 
             this.modalInstance = new bootstrap.Modal(this.$refs.modalReport);
+            this.modalInstanceEmail = new bootstrap.Modal(this.$refs.modalSendEmail);
             this.searchVentas();
         },
         methods: {
@@ -563,6 +647,48 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             generarPDF() {
                 window.open(`${this.url}/ventas/generarPDF/${this.idVenta}?download=1`, '_blank');
+            },
+            openModalEmail(venta) {
+                this.idVenta = venta.id;
+                this.secuencialVenta = venta.ven_secuencial;
+                this.errorSendMail = '';
+                this.emailData = {
+                    para: venta.clie_email || '',
+                    cc: '',
+                    asunto: `Reporte de Venta #${this.zFill(venta.ven_secuencial, 5)}`,
+                    mensaje: 'Estimado(a), adjunto el reporte solicitado.'
+                };
+                this.modalInstanceEmail.show();
+            },
+            async sendEmailReport() {
+                this.errorSendMail = '';
+
+                if (!this.emailData.para || !this.emailData.asunto) {
+                    this.errorSendMail = 'Debe completar los campos obligatorios (Para y Asunto).';
+                    return;
+                }
+
+                const datos = {
+                    ...this.emailData,
+                    idVenta: this.idVenta
+                };
+
+                try {
+                    this.loadingEmail = true;
+                    const {data} = await axios.post(`${this.url}/ventas/sendEmailReport`, datos);
+
+                    if (data.status === 'success') {
+                        this.modalInstanceEmail.hide();
+                        sweet_msg_dialog('success', data.msg);
+                        return;
+                    }
+
+                    this.errorSendMail = data.msg || 'No se pudo enviar el correo.';
+                } catch (e) {
+                    this.errorSendMail = 'Error al enviar email: ' + (e.response?.data?.message || e.message);
+                } finally {
+                    this.loadingEmail = false;
+                }
             },
             numeroComprobante(venta) {
                 return `${venta.ven_numero_establecimiento || ''}-${venta.ven_numero_emision || ''}-${venta.ven_numero_comprobante || ''}`;

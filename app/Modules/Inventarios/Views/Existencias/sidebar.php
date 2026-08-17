@@ -22,7 +22,7 @@
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inventarios/existencias' }">
                     <a @click.prevent="navigate('<?= site_url() ?>/inventarios/existencias')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-dashboard nav-icon sidebarColorIcon"></i>
-                        <p> Dashboard</p>
+                        <p> Inicio</p>
                     </a>
                 </li>
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/inventarios/viewInventarioGeneral' }">

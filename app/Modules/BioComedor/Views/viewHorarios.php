@@ -59,7 +59,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </td>
                             <td>
                                 <template v-if="admin">
-                                    <button @click="loadHorario(horario), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalHorario">
+                                    <button @click="loadHorario(horario)" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </template>
@@ -69,13 +69,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </table>
             </div>
 
-            <div id="modalHorario" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div id="modalHorario" ref="modalHorario" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 v-if="estadoSave"><i class="fas fa-file-alt"></i> Crear Horario</h5>
                             <h5 v-else><i class="fas fa-file-alt"></i> Actualizar Horario</h5>
-                            <button @click="clear()" class="btn btn-danger btn-sm" data-bs-dismiss="modal" :disabled="loadingSave">X</button>
+                            <button @click="cerrarModalHorario()" class="btn btn-danger btn-sm" :disabled="loadingSave">X</button>
                         </div>
 
                         <div class="modal-body">
@@ -141,7 +141,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-else-if="estadoSave"><i class="fas fa-save"></i> Crear</span>
                                 <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
                             </button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="cerrarModalHorario()" class="btn btn-danger" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -176,6 +176,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaHorarios: [],
                 listaServicios: listaServicios,
                 formValidacion: [],
+                modalHorario: null,
             };
         },
         computed: {
@@ -192,6 +193,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         },
         created() {
             this.getHorarios();
+        },
+        mounted() {
+            this.modalHorario = new bootstrap.Modal(this.$refs.modalHorario);
         },
         methods: {
             emptyHorario() {
@@ -234,8 +238,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     horHoraFin: this.formatHora(horario.hor_hora_fin),
                     horEstado: horario.hor_estado,
                 };
+                this.estadoSave = false;
                 this.idEdit = horario.id;
                 this.formValidacion = [];
+                this.modalHorario.show();
             },
             async saveUpdateHorario() {
                 if (this.loadingSave) {
@@ -256,10 +262,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
-                        this.clear();
+                        this.cerrarModalHorario();
                         this.getHorarios();
-                        $('#modalHorario').modal('hide');
-                        $('.modal-backdrop').remove();
                     } else if (response.data.status === 'vacio') {
                         this.formValidacion = response.data.msg;
                     } else if (response.data.status === 'error') {
@@ -276,6 +280,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.estadoSave = true;
                 this.idEdit = '';
                 this.formValidacion = [];
+            },
+            cerrarModalHorario() {
+                this.clear();
+                this.modalHorario.hide();
             },
             formatHora(hora) {
                 return hora ? hora.substring(0, 8) : '';

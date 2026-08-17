@@ -184,4 +184,108 @@ $tituloComprobante = trim($venta->comprobante_nombre ?? 'VENTA');
             </tr>
         </tbody>
     </table>
+
+    <?php if (!empty($venta->ven_tipo_pago) || !empty($venta->cxc)): ?>
+        <h5 style="border-bottom: 2px solid #34495e;color: #34495e;font-size: 1rem;font-weight: 700;margin-bottom: 1rem;margin-top: 0;padding-bottom: .4rem; text-transform: uppercase">Datos financieros</h5>
+        <table class="table table-bordered mb-4">
+            <tr>
+                <td style="width:25%">
+                    <strong>Tipo de pago:</strong><br>
+                    <?= esc($venta->ven_tipo_pago ?: '-') ?>
+                </td>
+                <td style="width:25%">
+                    <strong>Total CxC:</strong><br>
+                    $<?= number_format((float) ($venta->cxc->cxc_total ?? 0), 2) ?>
+                </td>
+                <td style="width:25%">
+                    <strong>Cobrado:</strong><br>
+                    $<?= number_format((float) ($venta->cxc->cxc_valor_cobrado ?? 0), 2) ?>
+                </td>
+                <td style="width:25%">
+                    <strong>Saldo:</strong><br>
+                    $<?= number_format((float) ($venta->cxc->cxc_saldo ?? 0), 2) ?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong>Estado CxC:</strong><br>
+                    <?= esc($venta->cxc->cxc_estado ?? '-') ?>
+                </td>
+                <td>
+                    <strong>Fecha emision:</strong><br>
+                    <?= !empty($venta->cxc->cxc_fecha_emision) ? date('d/m/Y', strtotime($venta->cxc->cxc_fecha_emision)) : '-' ?>
+                </td>
+                <td>
+                    <strong>Fecha vencimiento:</strong><br>
+                    <?= !empty($venta->cxc->cxc_fecha_vencimiento) ? date('d/m/Y', strtotime($venta->cxc->cxc_fecha_vencimiento)) : '-' ?>
+                </td>
+                <td>
+                    <strong>Dias credito:</strong><br>
+                    <?= esc($venta->ven_dias_credito ?? '-') ?>
+                </td>
+            </tr>
+        </table>
+
+        <?php if (!empty($venta->cuotas)): ?>
+            <h6 class="fw-bold text-system">Cuotas</h6>
+            <table class="table table-sm table-bordered mb-4">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nro.</th>
+                        <th>Vencimiento</th>
+                        <th class="text-end">Valor</th>
+                        <th class="text-end">Cobrado</th>
+                        <th class="text-end">Saldo</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($venta->cuotas as $cuota): ?>
+                        <tr>
+                            <td><?= esc($cuota->cxcc_numero) ?></td>
+                            <td><?= date('d/m/Y', strtotime($cuota->cxcc_fecha_vencimiento)) ?></td>
+                            <td class="text-end">$<?= number_format((float) $cuota->cxcc_valor, 2) ?></td>
+                            <td class="text-end">$<?= number_format((float) $cuota->cxcc_cobrado, 2) ?></td>
+                            <td class="text-end">$<?= number_format((float) $cuota->cxcc_saldo, 2) ?></td>
+                            <td><?= esc($cuota->cxcc_estado) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <?php if (!empty($venta->cobros)): ?>
+            <h6 class="fw-bold text-system">Cobros</h6>
+            <table class="table table-sm table-bordered mb-4">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nro.</th>
+                        <th>Fecha</th>
+                        <th>Forma pago</th>
+                        <th>Referencia</th>
+                        <th>Banco</th>
+                        <th class="text-end">Valor</th>
+                        <th class="text-end">Recibido</th>
+                        <th class="text-end">Cambio</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($venta->cobros as $cobro): ?>
+                        <tr>
+                            <td><?= esc(str_pad((string) $cobro->cob_numero_secuencial, 5, '0', STR_PAD_LEFT)) ?></td>
+                            <td><?= date('d/m/Y', strtotime($cobro->cob_fecha)) ?></td>
+                            <td><?= esc($cobro->forma_pago ?: $cobro->fk_forma_pago) ?></td>
+                            <td><?= esc($cobro->cob_referencia ?: '-') ?></td>
+                            <td><?= esc($cobro->banco ?: '-') ?></td>
+                            <td class="text-end">$<?= number_format((float) $cobro->cob_valor, 2) ?></td>
+                            <td class="text-end">$<?= number_format((float) $cobro->cob_valor_recibido, 2) ?></td>
+                            <td class="text-end">$<?= number_format((float) $cobro->cob_cambio, 2) ?></td>
+                            <td><?= esc($cobro->cob_estado) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    <?php endif; ?>
 </div>

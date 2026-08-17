@@ -135,7 +135,7 @@ class GestionController extends BaseController {
             return $this->response->setJSON(['status' => 'warning', 'msg' => 'La venta no tiene asientos contables registrados.']);
         }
 
-        $view = view('\Modules\Ventas\Views\reportes\viewAsientoContable', ['venta' => $venta,'asientos' => $asientos,]);
+        $view = view('\Modules\Ventas\Views\reportes\viewAsientoContable', ['venta' => $venta, 'asientos' => $asientos,]);
 
         return $this->response->setJSON([
                     'status' => 'success',
@@ -157,11 +157,12 @@ class GestionController extends BaseController {
                                 'message' => 'No se encontro la venta solicitada.',
             ]);
         }
-
-        $view = view('\Modules\Ventas\Views\reportes\viewDetalleReport', [
+        $send = [
             'venta' => $venta,
             'empresa' => enterprice(),
-        ]);
+        ];
+
+        $view = view('\Modules\Ventas\Views\reportes\viewDetalleReport', $send);
 
         $cssPath = FCPATH . 'resources/css/stylesMpdf.css';
         $css = is_file($cssPath) ? file_get_contents($cssPath) : '';
@@ -195,10 +196,90 @@ class GestionController extends BaseController {
                             ->setHeader('Content-Type', 'application/pdf')
                             ->setHeader('Content-Disposition', 'attachment; filename="' . $nombreArchivo . '"')
                             ->setBody($mpdf->Output('', 'S'));
+        } else {
+            $directorio = WRITEPATH . 'uploads/pdfs/ventas/';
+            $pdfPath = $directorio . $nombreArchivo;
+
+            if (!is_dir($directorio)) {
+                mkdir($directorio, 0755, true);
+            }
+
+            file_put_contents($pdfPath, $mpdf->Output($nombreArchivo, 'S'));
+
+            return [
+                'success' => true,
+                'path' => $pdfPath,
+                'fileName' => $nombreArchivo,
+            ];
         }
 
-        return $this->response
-                        ->setHeader('Content-Type', 'application/pdf')
-                        ->setBody($mpdf->Output('', 'S'));
+    }
+
+    public function sendEmailReport() {
+
+        $this->user->validateSession();
+        $dataPost = json_decode(file_get_contents("php://input")) ?? (object) [];
+
+        $para = trim((string) ($dataPost->para ?? ''));
+        $cc = trim((string) ($dataPost->cc ?? ''));
+        $asunto = trim((string) ($dataPost->asunto ?? ''));
+        $mensaje = (string) ($dataPost->mensaje ?? '');
+        $ventaId = (int) ($dataPost->idVenta ?? 0);
+
+        if ($ventaId <= 0) {
+            return $this->responseSetJSON('warning', 'No se recibio la venta para enviar por email.');
+        }
+
+        if ($para === '' || $asunto === '') {
+            return $this->responseSetJSON('warning', 'Debe completar los campos obligatorios (Para y Asunto).');
+        }
+
+        $paraArray = array_filter(array_map('trim', explode(',', $para)));
+        $ccArray = array_filter(array_map('trim', explode(',', $cc)));
+
+        if (empty($paraArray)) {
+            return $this->responseSetJSON('warning', 'Debe ingresar al menos un correo de destino.');
+        }
+
+        foreach (array_merge($paraArray, $ccArray) as $correo) {
+            if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+                return $this->responseSetJSON('warning', "El correo {$correo} no es valido.");
+            }
+        }
+
+        $email = \Config\Services::email();
+        $email->clear(true);
+        $email->setFrom('no-reply@ccomputers.com', 'CCFACT - Sistema ERP');
+        $email->setTo($paraArray);
+
+        if (!empty($ccArray)) {
+            $email->setCC($ccArray);
+        }
+
+        $email->setSubject($asunto);
+        $email->setMailType('text');
+        $email->setMessage($mensaje);
+
+        $pdfData = $this->generarPDF($ventaId);
+
+        if (!is_array($pdfData) || empty($pdfData['path']) || !file_exists($pdfData['path'])) {
+            return $this->responseSetJSON('warning', 'No se pudo generar el PDF de la venta.');
+        }
+
+        $email->attach($pdfData['path']);
+
+        if ($email->send()) {
+            if (file_exists($pdfData['path'])) {
+                unlink($pdfData['path']);
+            }
+
+            return $this->responseSetJSON('success', 'Correo enviado exitosamente.');
+        }
+
+        if (file_exists($pdfData['path'])) {
+            unlink($pdfData['path']);
+        }
+
+        return $this->responseSetJSON('warning', 'Error al enviar el email, Verifique configuracion SMTP: ' . $email->printDebugger());
     }
 }

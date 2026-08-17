@@ -22,7 +22,7 @@
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/kardex/kardex' }">
                     <a @click.prevent="navigate('<?= site_url() ?>/kardex/kardex')" class="nav-link" style="cursor: pointer">
                         <i class="far fa-dashboard nav-icon sidebarColorIcon"></i>
-                        <p> Dashboard</p>
+                        <p> Inicio</p>
                     </a>
                 </li>
                 <li class="nav-item sidebarSubMenuColor" :class="{ 'bg-system': pathname === '<?= site_url() ?>/kardex/producto' }">

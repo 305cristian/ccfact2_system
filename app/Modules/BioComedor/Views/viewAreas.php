@@ -52,7 +52,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </td>
                             <td>
                                 <template v-if="admin">
-                                    <button @click="loadArea(area), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalArea">
+                                    <button @click="loadArea(area)" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </template>
@@ -62,13 +62,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </table>
             </div>
 
-            <div id="modalArea" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div id="modalArea" ref="modalArea" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 v-if="estadoSave"><i class="fas fa-file-alt"></i> Crear Area</h5>
                             <h5 v-else><i class="fas fa-file-alt"></i> Actualizar Area</h5>
-                            <button @click="clear()" class="btn btn-danger btn-sm" data-bs-dismiss="modal" :disabled="loadingSave">X</button>
+                            <button @click="cerrarModalArea()" class="btn btn-danger btn-sm" :disabled="loadingSave">X</button>
                         </div>
 
                         <div class="modal-body">
@@ -125,7 +125,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-else-if="estadoSave"><i class="fas fa-save"></i> Crear</span>
                                 <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
                             </button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="cerrarModalArea()" class="btn btn-danger" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -160,10 +160,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaAreas: [],
                 listaDepartamentos: listaDepartamentos,
                 formValidacion: [],
+                modalArea: null,
             };
         },
         created() {
             this.getAreas();
+        },
+        mounted() {
+            this.modalArea = new bootstrap.Modal(this.$refs.modalArea);
         },
         methods: {
             emptyArea() {
@@ -206,8 +210,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     areaDescripcion: area.area_descripcion,
                     areaEstado: area.area_estado,
                 };
+                this.estadoSave = false;
                 this.idEdit = area.id;
                 this.formValidacion = [];
+                this.modalArea.show();
             },
             async saveUpdateArea() {
                 if (this.loadingSave) {
@@ -228,10 +234,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
-                        this.clear();
+                        this.cerrarModalArea();
                         this.getAreas();
-                        $('#modalArea').modal('hide');
-                        $('.modal-backdrop').remove();
                     } else if (response.data.status === 'existe') {
                         sweet_msg_dialog('warning', response.data.msg);
                     } else if (response.data.status === 'vacio') {
@@ -248,6 +252,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.estadoSave = true;
                 this.idEdit = '';
                 this.formValidacion = [];
+            },
+            cerrarModalArea() {
+                this.clear();
+                this.modalArea.hide();
             },
             formData(obj) {
                 var formData = new FormData();

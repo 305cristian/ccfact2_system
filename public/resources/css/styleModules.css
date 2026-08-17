@@ -2,13 +2,13 @@
     min-height: 150px;
     background: #fff;
     width: 97%;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
     margin-bottom: 20px;
     padding: 15px;
-    border-radius: 0px;
+    border-radius: 8px;
 }
 .info-box:hover {
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
 }
 .info-box:before {
     content:"";
@@ -140,5 +140,65 @@
  	background: #ffc107 linear-gradient(180deg, #f3d782, #ffdd07) repeat-x!important;
  	color: #1f2d3d
  }
- 
- 
+
+.module-home-hero {
+    border: 1px solid #dbe8e6;
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at top right, rgba(23, 63, 79, .08), transparent 24rem),
+        linear-gradient(135deg, #ffffff 0%, #f6fbfa 100%);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .05);
+}
+
+.module-home-eyebrow {
+    color: var(--colorSystem2);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.module-home-title {
+    color: #142c38;
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.module-home-subtitle {
+    max-width: 760px;
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.module-home-project {
+    border: 1px solid #dbe8e6;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .86);
+    box-shadow: inset 4px 0 0 rgba(204, 204, 204, 1);
+}
+
+.module-home-project-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex: 0 0 auto;
+}
+
+.module-home-project-label {
+    color: #667085;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.module-home-project-name {
+    color: #142c38;
+    font-size: 13px;
+    font-weight: 800;
+}

@@ -20,7 +20,24 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         </div>
 
         <div class="card-body">
-            <div class="border rounded p-3 mb-3">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <button
+                    type="button"
+                    class="btn btn-sm"
+                    :class="panelMarcacionActivo === 'manual' ? 'btn-primary' : 'btn-outline-primary'"
+                    @click="seleccionarPanelMarcacion('manual')">
+                    <i class="fas fa-keyboard me-1"></i> Registro manual
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-sm"
+                    :class="panelMarcacionActivo === 'excel' ? 'btn-success' : 'btn-outline-success'"
+                    @click="seleccionarPanelMarcacion('excel')">
+                    <i class="fas fa-file-excel me-1"></i> Carga masiva Excel
+                </button>
+            </div>
+
+            <div v-if="panelMarcacionActivo === 'manual'" class="border rounded p-3 mb-3">
                 <h6 class="text-system fw-bold mb-3"><i class="fas fa-keyboard"></i> Registro manual</h6>
 
                 <div class="row align-items-end">
@@ -69,7 +86,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <select v-model="newMarcacion.tipoIdentificacion" class="form-select border" id="tipoIdentificacion">
                             <option value="CODIGO">CODIGO</option>
                             <option value="RFID">UID RFID</option>
-                            <option value="BIOMETRICO">BIOMETRICO</option>
+                            <!--<option value="BIOMETRICO">BIOMETRICO</option>-->
                         </select>
                         <div v-html="formValidacion.tipoIdentificacion" class="text-danger"></div>
                     </div>
@@ -113,6 +130,38 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <span v-if="resultadoMarcacion.data">Servicio: <b>{{ resultadoMarcacion.data.servicio }}</b></span>
                         <span v-if="resultadoMarcacion.data && parseInt(resultadoMarcacion.data.retraso) === 1" class="badge bg-danger">CON RETRASO</span>
                         <span v-else-if="resultadoMarcacion.data" class="badge bg-success">NORMAL</span>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="panelMarcacionActivo === 'excel'" class="border rounded p-3 mb-3">
+                <h6 class="text-system fw-bold mb-3"><i class="fas fa-file-excel"></i> Carga masiva por Excel</h6>
+                <div class="row align-items-end">
+                    <div class="col-md-7 mb-3">
+                        <label class="col-form-label col-form-label-sm"><i class="fal fa-file-excel"></i> Plantilla de marcaciones</label>
+                        <input
+                            ref="fileImportMarcaciones"
+                            type="file"
+                            class="form-control"
+                            accept=".xlsx,.xls"
+                            :disabled="loadingImportPreview || loadingImportSave"
+                            @change="onFileImportMarcacionesChange">
+                        <small class="text-muted">
+                            Columnas esperadas: cedula/dni, comensal, fecha, hora, comedor, codigo de equipo y servicio.
+                        </small>
+                    </div>
+
+                    <div class="col-md-3 mb-3">
+                        <button class="btn btn-success w-100" :disabled="loadingImportPreview || !archivoMarcaciones" @click="previewImportMarcaciones()">
+                            <span v-if="loadingImportPreview"><i class="fas fa-spinner fa-spin"></i> Validando...</span>
+                            <span v-else><i class="fas fa-search"></i> Validar plantilla</span>
+                        </button>
+                    </div>
+
+                    <div class="col-md-2 mb-3">
+                        <button class="btn btn-outline-secondary w-100" :disabled="loadingImportPreview || loadingImportSave" @click="limpiarArchivoImportMarcaciones()">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -242,10 +291,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             <td>{{ marcacion.marc_observacion ? marcacion.marc_observacion : '-' }}</td>
                             <td>
                                 <template v-if="admin && marcacion.marc_estado !== 'ANULADA'">
-                                    <button @click="loadMarcacionEdit(marcacion)" class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#modalEditarMarcacion">
+                                    <button @click="loadMarcacionEdit(marcacion)" class="btn btn-warning btn-sm me-1">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button @click="loadMarcacionAnular(marcacion)" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalAnularMarcacion">
+                                    <button @click="loadMarcacionAnular(marcacion)" class="btn btn-danger btn-sm">
                                         <i class="fas fa-ban"></i>
                                     </button>
                                 </template>
@@ -256,12 +305,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 </table>
             </div>
 
-            <div id="modalEditarMarcacion" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+            <?php echo view('\Modules\BioComedor\Views\viewMarcacionesModalValidar') ?>
+
+            <div id="modalEditarMarcacion" ref="modalEditarMarcacion" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5><i class="fas fa-edit"></i> Corregir Marcacion</h5>
-                            <button @click="clearEdit()" class="btn btn-danger btn-sm" data-bs-dismiss="modal" :disabled="loadingEdit">X</button>
+                            <button @click="cerrarModalEditar()" class="btn btn-danger btn-sm" :disabled="loadingEdit">X</button>
                         </div>
 
                         <div class="modal-body">
@@ -354,18 +405,18 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-if="loadingEdit"><i class="fas fa-spinner fa-spin"></i> Corrigiendo...</span>
                                 <span v-else><i class="fas fa-save"></i> Guardar Correccion</span>
                             </button>
-                            <button @click="clearEdit()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingEdit"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="cerrarModalEditar()" class="btn btn-danger" :disabled="loadingEdit"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="modalAnularMarcacion" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div id="modalAnularMarcacion" ref="modalAnularMarcacion" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5><i class="fas fa-ban"></i> Anular Marcacion</h5>
-                            <button @click="clearAnular()" class="btn btn-danger btn-sm" data-bs-dismiss="modal" :disabled="loadingAnular">X</button>
+                            <button @click="cerrarModalAnular()" class="btn btn-danger btn-sm" :disabled="loadingAnular">X</button>
                         </div>
 
                         <div class="modal-body">
@@ -385,7 +436,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-if="loadingAnular"><i class="fas fa-spinner fa-spin"></i> Anulando...</span>
                                 <span v-else><i class="fas fa-ban"></i> Anular Marcacion</span>
                             </button>
-                            <button @click="clearAnular()" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="loadingAnular"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="cerrarModalAnular()" class="btn btn-secondary" :disabled="loadingAnular"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -418,10 +469,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 loadingSave: false,
                 loadingEdit: false,
                 loadingAnular: false,
+                loadingImportPreview: false,
+                loadingImportSave: false,
+                panelMarcacionActivo: '',
                 listaComedores: listaComedores,
                 listaEquipos: listaEquipos,
                 listaServicios: listaServicios,
                 listaMarcaciones: [],
+                archivoMarcaciones: null,
+                previewImportacion: this.emptyPreviewImportacion(),
                 newMarcacion: this.emptyMarcacion(),
                 editMarcacion: this.emptyEditMarcacion(),
                 anularMarcacionData: this.emptyAnularMarcacion(),
@@ -432,9 +488,16 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 resultadoMarcacion: null,
                 marcacionEditResumen: null,
                 marcacionAnularResumen: null,
+
+                modalEditarMarcacion: null,
+                modalAnularMarcacion: null,
+                modalPreviewImportMarcaciones: null
             };
         },
         computed: {
+            filasValidasImportacion() {
+                return (this.previewImportacion.filas || []).filter(fila => fila.valido);
+            },
             equiposFiltrados() {
                 if (!this.newMarcacion.fkComedor) {
                     return [];
@@ -458,6 +521,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             this.getMarcaciones();
         },
         mounted() {
+
+            this.modalEditarMarcacion = new bootstrap.Modal(this.$refs.modalEditarMarcacion);
+            this.modalAnularMarcacion = new bootstrap.Modal(this.$refs.modalAnularMarcacion);
+            this.modalPreviewImportMarcaciones = new bootstrap.Modal(this.$refs.modalPreviewImportMarcaciones);
+
             flatpickr(this.$refs.dateRangeMarcaciones, {
                 mode: 'range',
                 dateFormat: 'Y-m-d',
@@ -508,6 +576,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     marcRetraso: '',
                     texto: '',
                 };
+            },
+            emptyPreviewImportacion() {
+                return {
+                    filas: [],
+                    total: 0,
+                    correctas: 0,
+                    errores: 0,
+                };
+            },
+            seleccionarPanelMarcacion(panel) {
+                this.panelMarcacionActivo = this.panelMarcacionActivo === panel ? '' : panel;
             },
             async getMarcaciones() {
                 this.loadingList = true;
@@ -562,7 +641,82 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     this.loadingSave = false;
                 }
             },
+            onFileImportMarcacionesChange(event) {
+                this.archivoMarcaciones = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+                this.previewImportacion = this.emptyPreviewImportacion();
+            },
+            limpiarArchivoImportMarcaciones() {
+                this.archivoMarcaciones = null;
+                this.previewImportacion = this.emptyPreviewImportacion();
+
+                if (this.$refs.fileImportMarcaciones) {
+                    this.$refs.fileImportMarcaciones.value = '';
+                }
+            },
+            async previewImportMarcaciones() {
+                if (this.loadingImportPreview) {
+                    return;
+                }
+
+                if (!this.archivoMarcaciones) {
+                    sweet_msg_dialog('warning', 'Debe seleccionar un archivo Excel.');
+                    return;
+                }
+
+                this.loadingImportPreview = true;
+
+                try {
+                    let datos = new FormData();
+                    datos.append('file', this.archivoMarcaciones);
+                    let response = await axios.post(this.url + '/biocomedor/marcaciones/previewImportExcel', datos);
+
+                    if (response.data.status === 'success') {
+                        this.previewImportacion = response.data.data || this.emptyPreviewImportacion();
+                        this.modalPreviewImportMarcaciones.show();
+                    } else {
+                        sweet_msg_dialog(response.data.status || 'warning', response.data.msg || 'No se pudo validar el archivo.');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || 'Error al validar el archivo Excel.');
+                } finally {
+                    this.loadingImportPreview = false;
+                }
+            },
+            async guardarMarcacionesImportadas() {
+                if (this.loadingImportSave) {
+                    return;
+                }
+
+                if (this.filasValidasImportacion.length === 0) {
+                    sweet_msg_dialog('warning', 'No existen filas correctas para registrar.');
+                    return;
+                }
+
+                this.loadingImportSave = true;
+
+                try {
+                    const datos = {
+                        filas: this.filasValidasImportacion
+                    };
+                    let response = await axios.post(this.url + '/biocomedor/marcaciones/guardarMarcacionesValidas', datos);
+
+                    if (response.data.status === 'success') {
+                        sweet_msg_dialog('success', response.data.msg);
+                        this.cerrarModalPreviewImport();
+                        this.limpiarArchivoImportMarcaciones();
+                        this.getMarcaciones();
+                    } else {
+                        sweet_msg_dialog(response.data.status || 'warning', response.data.msg || 'No se pudieron registrar las marcaciones.');
+                    }
+                } catch (e) {
+                    sweet_msg_dialog('error', '', '', e.response?.data?.message || 'Error al guardar las marcaciones importadas.');
+                } finally {
+                    this.loadingImportSave = false;
+                }
+            },
             loadMarcacionEdit(marcacion) {
+
+                this.modalEditarMarcacion.show();
                 this.editMarcacion = {
                     idMarcacion: marcacion.id,
                     fkComedor: marcacion.fk_comedor ? marcacion.fk_comedor : '',
@@ -594,8 +748,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         sweet_msg_dialog('success', response.data.msg);
                         this.clearEdit();
                         this.getMarcaciones();
-                        $('#modalEditarMarcacion').modal('hide');
-                        $('.modal-backdrop').remove();
+
+                        this.modalEditarMarcacion.hide();
                     } else if (response.data.status === 'vacio') {
                         this.formValidacionEdit = response.data.msg;
                     } else if (response.data.status === 'warning') {
@@ -608,6 +762,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 }
             },
             loadMarcacionAnular(marcacion) {
+                this.modalAnularMarcacion.show();
                 this.anularMarcacionData = {
                     idMarcacion: marcacion.id,
                     motivoAnulacion: '',
@@ -634,8 +789,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         sweet_msg_dialog('success', response.data.msg);
                         this.clearAnular();
                         this.getMarcaciones();
-                        $('#modalAnularMarcacion').modal('hide');
-                        $('.modal-backdrop').remove();
+                        this.modalAnularMarcacion.hide();
                     } else if (response.data.status === 'vacio') {
                         this.formValidacionAnular = response.data.msg;
                     } else if (response.data.status === 'warning') {
@@ -698,6 +852,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.anularMarcacionData = this.emptyAnularMarcacion();
                 this.formValidacionAnular = [];
                 this.marcacionAnularResumen = null;
+            },
+            cerrarModalEditar() {
+                this.clearEdit();
+                this.modalEditarMarcacion.hide();
+            },
+            cerrarModalAnular() {
+                this.clearAnular();
+                this.modalAnularMarcacion.hide();
+            },
+            cerrarModalPreviewImport() {
+                this.modalPreviewImportMarcaciones.hide();
             },
             setFechaHoraActual() {
                 let ahora = new Date();

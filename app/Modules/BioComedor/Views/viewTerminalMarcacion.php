@@ -24,7 +24,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
         <link rel="stylesheet" href="<?= base_url(); ?>/resources/plugins/vueSelect/vue-select.css">
         <link rel="stylesheet" href="<?= base_url(); ?>/resources/css/cclibrary.css">
         <link rel="stylesheet" href="<?= base_url(); ?>/resources/css/styleModules.css">
-        <link rel="stylesheet" href="<?= base_url(); ?>/resources/css/styleBioTerminal.css">
+        <link rel="stylesheet" href="<?= base_url(); ?>/resources/css/modules/bioComedor/styleBioTerminal.css">
 
         <script>
             var baseUrl = '<?= base_url(); ?>';
@@ -47,6 +47,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         <i class="fas fa-tv me-2"></i> Terminal de Marcación
                     </h5>
                     <div class="terminal-header-actions d-flex align-items-center gap-2">
+                        <div class="terminal-connection-status" :class="internetActivo ? 'online' : 'offline'">
+                            <i class="fas" :class="internetActivo ? 'fa-wifi' : 'fa-wifi-slash'"></i>
+                            <span>{{ internetActivo ? ' Internet' : ' Sin internet' }}</span>
+                        </div>
                         <div class="terminal-theme-menu" ref="themeMenu">
                             <button class="btn btn-outline-secondary btn-sm terminal-theme-button" title="Cambiar tema" @click="toggleTemaMenu()">
                                 <i class="fas fa-palette"></i>
@@ -65,6 +69,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 </button>
                             </div>
                         </div>
+                        <button class="btn btn-outline-success btn-sm" :disabled="!equipoSeleccionado" title="Descargar marcaciones" @click="abrirModalExportMarcaciones()">
+                            <i class="fas fa-file-excel"></i>
+                        </button>
                         <button class="btn btn-outline-primary btn-sm" @click="activarPantallaCompleta()">
                             <i class="fas fa-expand"></i>
                         </button>
@@ -137,10 +144,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     ref="inputMarcacion"
                                     v-model.trim="identificador"
                                     @keyup.enter="registrarMarcacion()"
-                                    :disabled="loadingSave || !equipoSeleccionado"
+                                    :disabled="loadingSave || !equipoSeleccionado || !internetActivo"
                                     type="text"
                                     class="form-control terminal-input"
-                                    placeholder="LEER CODIGO"
+                                    :placeholder="internetActivo ? 'LEER CODIGO' : 'SIN INTERNET'"
                                     autocomplete="off" />
                                 <div v-html="formValidacion.identificador" class="text-danger mt-2"></div>
 
@@ -155,9 +162,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <hr>
 
                                 <div class="terminal-label">Estado de lectura</div>
-                                <div class="terminal-value" :class="equipoSeleccionado ? 'text-success' : 'text-danger'">
-                                    <i class="fas" :class="equipoSeleccionado ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
-                                    {{ equipoSeleccionado ? 'LISTO PARA MARCAR' : 'SIN DISPOSITIVO' }}
+                                <div class="terminal-value" :class="estadoLecturaClass">
+                                    <i class="fas" :class="estadoLecturaIcon"></i>
+                                    {{ estadoLecturaTexto }}
                                 </div>
                             </div>
                         </div>
@@ -273,6 +280,46 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     </div>
                 </div>
             </div>
+
+            <div ref="modalExportMarcaciones" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-sm modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="modal-title mb-0">
+                                <i class="fas fa-file-excel me-1"></i> Descargar marcaciones
+                            </h6>
+                            <button type="button" class="btn btn-danger btn-sm" @click="cerrarModalExportMarcaciones()">X</button>
+                        </div>
+
+                        <div class="modal-body">
+                            <div v-if="equipoSeleccionado" class="alert alert-info py-2 small">
+                                <b>{{ equipoSeleccionado.com_codigo }} - {{ equipoSeleccionado.com_nombre }}</b><br>
+                                Equipo: <b>{{ equipoSeleccionado.eq_codigo }} - {{ equipoSeleccionado.eq_nombre }}</b>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="col-form-label col-form-label-sm"><i class="fal fa-calendar"></i> Desde</label>
+                                <input v-model="exportMarcaciones.fechaDesde" type="date" class="form-control">
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="col-form-label col-form-label-sm"><i class="fal fa-calendar"></i> Hasta</label>
+                                <input v-model="exportMarcaciones.fechaHasta" type="date" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-success btn-sm" @click="descargarPlantillaMarcaciones()">
+                                <i class="fas fa-download me-1"></i> Descargar
+                            </button>
+                            <button class="btn btn-secondary btn-sm" @click="cerrarModalExportMarcaciones()">
+                                <i class="fas fa-stop me-1"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <script>
@@ -294,11 +341,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 fkEquipo: '',
                                 identificador: '',
                                 loadingSave: false,
+                                internetActivo: navigator.onLine,
                                 formValidacion: [],
                                 resultadoMarcacion: null,
                                 servicioActual: null,
                                 inputConFoco: false,
                                 ultimaMarcacionHora: '',
+                                exportMarcaciones: this.emptyExportMarcaciones(),
                                 temaSeleccionado: 'verde',
                                 temaMenuAbierto: false,
                                 temasTerminal: [
@@ -408,6 +457,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 intervalReloj: null,
                                 intervalServicio: null,
                                 intervalFocus: null,
+                                modalExportMarcaciones: null,
+                                exportModalAbierto: false,
                                 sonidos: {},
                             };
                         },
@@ -442,8 +493,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 let partes = this.resultadoMarcacion.data.comensal.split(' ').filter(Boolean);
                                 return partes.slice(0, 2).map(parte => parte.charAt(0)).join('');
                             },
+                            estadoLecturaTexto() {
+                                if (!this.internetActivo) {
+                                    return 'SIN INTERNET';
+                                }
+
+                                return this.equipoSeleccionado ? 'LISTO PARA MARCAR' : 'SIN DISPOSITIVO';
+                            },
+                            estadoLecturaClass() {
+                                if (!this.internetActivo) {
+                                    return 'text-danger';
+                                }
+
+                                return this.equipoSeleccionado ? 'text-success' : 'text-danger';
+                            },
+                            estadoLecturaIcon() {
+                                if (!this.internetActivo) {
+                                    return 'fa-wifi-slash';
+                                }
+
+                                return this.equipoSeleccionado ? 'fa-circle-check' : 'fa-circle-xmark';
+                            },
                         },
                         mounted() {
+                            this.modalExportMarcaciones = new bootstrap.Modal(this.$refs.modalExportMarcaciones);
                             this.cargarTemaTerminal();
                             this.cargarDispositivoGuardado();
                             this.actualizarReloj();
@@ -452,6 +525,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             this.intervalServicio = setInterval(this.getServicioActual, 60000);
                             this.intervalFocus = setInterval(this.focusInput, 1200);
                             document.addEventListener('click', this.cerrarTemaMenuClickFuera);
+                            window.addEventListener('online', this.actualizarEstadoConexion);
+                            window.addEventListener('offline', this.actualizarEstadoConexion);
                             this.cargarSonidos();
                             this.focusInput();
                         },
@@ -460,8 +535,64 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             clearInterval(this.intervalServicio);
                             clearInterval(this.intervalFocus);
                             document.removeEventListener('click', this.cerrarTemaMenuClickFuera);
+                            window.removeEventListener('online', this.actualizarEstadoConexion);
+                            window.removeEventListener('offline', this.actualizarEstadoConexion);
                         },
                         methods: {
+                            actualizarEstadoConexion() {
+                                this.internetActivo = navigator.onLine;
+
+                                if (!this.internetActivo) {
+                                    this.inputConFoco = false;
+                                    this.identificador = '';
+                                    this.formValidacion.identificador = 'No hay conexion a internet. La lectura esta deshabilitada.';
+                                    return;
+                                }
+
+                                this.formValidacion.identificador = '';
+                                this.focusInput();
+                            },
+                            emptyExportMarcaciones() {
+                                let fecha = this.fechaInputActual();
+                                return {
+                                    fechaDesde: fecha,
+                                    fechaHasta: fecha,
+                                };
+                            },
+                            abrirModalExportMarcaciones() {
+                                if (!this.equipoSeleccionado) {
+                                    return;
+                                }
+
+                                this.exportMarcaciones = this.emptyExportMarcaciones();
+                                this.exportModalAbierto = true;
+                                this.modalExportMarcaciones.show();
+                            },
+                            cerrarModalExportMarcaciones() {
+                                this.exportModalAbierto = false;
+                                this.modalExportMarcaciones.hide();
+                                this.focusInput();
+                            },
+                            descargarPlantillaMarcaciones() {
+                                if (!this.equipoSeleccionado) {
+                                    alert('Debe seleccionar el dispositivo de marcacion.');
+                                    return;
+                                }
+
+                                if (!this.exportMarcaciones.fechaDesde || !this.exportMarcaciones.fechaHasta) {
+                                    alert('Debe seleccionar el rango de fechas.');
+                                    return;
+                                }
+
+                                let params = new URLSearchParams({
+                                    fkEquipo: this.fkEquipo,
+                                    fechaDesde: this.exportMarcaciones.fechaDesde,
+                                    fechaHasta: this.exportMarcaciones.fechaHasta,
+                                });
+
+                                window.location.href = this.url + '/biocomedor/terminal/descargarPlantillaMarcaciones?' + params.toString();
+                                this.cerrarModalExportMarcaciones();
+                            },
                             cargarTemaTerminal() {
                                 let tema = localStorage.getItem('bioTerminalTema') || this.temaSeleccionado;
                                 this.temaSeleccionado = this.paletasTerminal[tema] ? tema : 'verde';
@@ -534,6 +665,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 if (!this.equipoSeleccionado) {
                                     this.formValidacion.fkEquipo = 'Debe seleccionar el dispositivo de marcacion.';
                                     this.playSound('warning');
+                                    return;
+                                }
+
+                                if (!this.internetActivo) {
+                                    this.formValidacion.identificador = 'No hay conexion a internet. No se puede registrar la marcacion.';
+                                    this.playSound('error');
                                     return;
                                 }
 
@@ -641,8 +778,15 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                     day: 'numeric',
                                 });
                             },
+                            fechaInputActual() {
+                                let fecha = new Date();
+                                let year = fecha.getFullYear();
+                                let month = String(fecha.getMonth() + 1).padStart(2, '0');
+                                let day = String(fecha.getDate()).padStart(2, '0');
+                                return `${year}-${month}-${day}`;
+                            },
                             focusInput() {
-                                if (!this.equipoSeleccionado || this.temaMenuAbierto) {
+                                if (!this.equipoSeleccionado || !this.internetActivo || this.temaMenuAbierto || this.exportModalAbierto) {
                                     this.inputConFoco = false;
                                     return;
                                 }

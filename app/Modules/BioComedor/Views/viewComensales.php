@@ -89,7 +89,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </td>
                             <td>
                                 <template v-if="admin">
-                                    <button @click="loadComensal(comensal), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalComensal">
+                                    <button @click="loadComensal(comensal)" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </template>
@@ -100,13 +100,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             </div>
 
             <!--MODAL CREATE COMENSAL-->
-            <div id="modalComensal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div id="modalComensal" ref="modalComensal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 v-if="estadoSave"><i class="fas fa-file-alt"></i> Crear Comensal</h5>
                             <h5 v-else><i class="fas fa-file-alt"></i> Actualizar Comensal</h5>
-                            <button @click="clear()" class="btn btn-danger btn-sm" data-bs-dismiss="modal" :disabled="loadingSave">X</button>
+                            <button @click="cerrarModalComensal()" class="btn btn-danger btn-sm" :disabled="loadingSave">X</button>
                         </div>
 
                         <div class="modal-body">
@@ -259,7 +259,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-else-if="estadoSave"><i class="fas fa-save"></i> Crear</span>
                                 <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
                             </button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="cerrarModalComensal()" class="btn btn-danger" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -305,10 +305,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaDepartamentos: listaDepartamentos,
                 listaAreas: listaAreas,
                 formValidacion: [],
+                modalComensal: null,
             };
         },
         created() {
             this.getComensales();
+        },
+        mounted() {
+            this.modalComensal = new bootstrap.Modal(this.$refs.modalComensal);
         },
         computed: {
             areasFiltradas() {
@@ -374,8 +378,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 };
                 this.comensFotoFile = null;
                 this.comensFotoPreview = comensal.comens_foto ? this.urlAssets + '/uploads/img/bio_comensales/' + comensal.comens_foto : '';
+                this.estadoSave = false;
                 this.idEdit = comensal.id;
                 this.formValidacion = [];
+                this.modalComensal.show();
             },
             onDepartamentoChange() {
                 if (!this.newComensal.fkDepartamento) {
@@ -414,8 +420,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                         this.clear();
                         this.getCodigoComensal();
                         this.getComensales();
-                        $('#modalComensal').modal('hide');
-                        $('.modal-backdrop').remove();
+                        this.modalComensal.hide();
                     } else if (response.data.status === 'existe') {
                         sweet_msg_dialog('warning', response.data.msg);
                     } else if (response.data.status === 'vacio') {
@@ -439,6 +444,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 if (this.$refs.comensFotoInput) {
                     this.$refs.comensFotoInput.value = '';
                 }
+            },
+            cerrarModalComensal() {
+                this.clear();
+                this.modalComensal.hide();
             },
             onFotoComensalChange(event) {
                 let file = event.target.files[0] || null;

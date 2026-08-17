@@ -205,7 +205,63 @@ class VentasModel extends Model {
                 ->get()
                 ->getResult();
 
+        $venta->cxc = $this->getCxcVenta($ventaId);
+        $venta->cuotas = $venta->cxc ? $this->getCuotasCxc((int) $venta->cxc->id) : [];
+        $venta->cobros = $venta->cxc ? $this->getCobrosCxc((int) $venta->cxc->id) : [];
+
         return $venta;
+    }
+
+    private function getCxcVenta(int $ventaId): ?object {
+
+        $builder = $this->db->table('cc_cxc cxc');
+        $builder->select('cxc.*');
+        $builder->where('cxc.fk_venta', $ventaId);
+        $builder->where('cxc.fk_proyecto', getProyectoId());
+
+        return $builder->get()->getRow();
+    }
+
+    private function getCuotasCxc(int $cxcId): array {
+
+        $builder = $this->db->table('cc_cxc_cuotas cuota');
+        $builder->select('cuota.*');
+        $builder->where('cuota.fk_cxc', $cxcId);
+        $builder->where('cuota.fk_proyecto', getProyectoId());
+        $builder->orderBy('cuota.cxcc_numero', 'ASC');
+
+        return $builder->get()->getResult();
+    }
+
+    private function getCobrosCxc(int $cxcId): array {
+
+        $builder = $this->db->table('cc_cobros_det detalle');
+        $builder->select(
+                'detalle.cobd_valor,'
+                . ' detalle.fk_cuota,'
+                . ' cobro.id,'
+                . ' cobro.cob_numero_secuencial,'
+                . ' cobro.cob_fecha,'
+                . ' cobro.fk_forma_pago,'
+                . ' cobro.cob_referencia,'
+                . ' cobro.cob_valor,'
+                . ' cobro.cob_valor_recibido,'
+                . ' cobro.cob_cambio,'
+                . ' cobro.cob_estado,'
+                . ' cobro.cob_observacion,'
+                . ' forma.fp_nombre AS forma_pago,'
+                . ' banco.banc_nombre AS banco'
+        );
+        $builder->join('cc_cobros cobro', 'cobro.id = detalle.fk_cobro');
+        $builder->join('cc_formas_pago forma', 'forma.cod = cobro.fk_forma_pago', 'left');
+        $builder->join('cc_bancos_list banco', 'banco.id = cobro.fk_banco', 'left');
+        $builder->where('detalle.fk_cxc', $cxcId);
+        $builder->where('detalle.fk_proyecto', getProyectoId());
+        $builder->where('cobro.fk_proyecto', getProyectoId());
+        $builder->orderBy('cobro.cob_fecha', 'ASC');
+        $builder->orderBy('cobro.cob_numero_secuencial', 'ASC');
+
+        return $builder->get()->getResult();
     }
 
     public function getAsientosContablesVenta(int $ventaId): array {

@@ -219,6 +219,84 @@ class BioModel extends Model {
         return $builder->get()->getRow();
     }
 
+    public function getComensalActivoPorCedula(string $cedula): ?object {
+
+        $builder = $this->db->table("cc_bio_comensales tb1");
+        $builder->select("
+            tb1.*,
+            tb2.cont_nombre,
+            tb3.proy_nombre,
+            tb4.area_nombre,
+            tb5.dep_nombre
+        ");
+        $builder->join("cc_bio_contratistas tb2", "tb2.id = tb1.fk_contratista", "left");
+        $builder->join("cc_bio_proyectos tb3", "tb3.id = tb1.fk_proyecto", "left");
+        $builder->join("cc_bio_areas tb4", "tb4.id = tb1.fk_area", "left");
+        $builder->join("cc_bio_departamentos tb5", "tb5.id = tb4.fk_departamento", "left");
+        $builder->where([
+            "tb1.comens_cedula" => $cedula,
+            "tb1.comens_estado" => 1,
+        ]);
+        return $builder->get()->getRow();
+    }
+
+    public function getComedorActivoPorTexto(string $texto): ?object {
+
+        $builder = $this->db->table("cc_bio_comedores tb1");
+        $builder->select("tb1.id, tb1.com_codigo, tb1.com_nombre");
+        $builder->where([
+            "tb1.com_estado" => 1,
+            "tb1.fk_proyecto_sistema" => getProyectoId(),
+        ]);
+        $builder->groupStart();
+        $builder->where("tb1.com_codigo", $texto);
+        $builder->orWhere("tb1.com_nombre", mb_strtoupper($texto, "UTF-8"));
+        $builder->groupEnd();
+        return $builder->get()->getRow();
+    }
+
+    public function getServicioActivoPorTexto(string $texto): ?object {
+
+        $builder = $this->db->table("cc_bio_servicios tb1");
+        $builder->select("tb1.id, tb1.serv_codigo, tb1.serv_nombre");
+        $builder->where("tb1.serv_estado", 1);
+        $builder->groupStart();
+        $builder->where("tb1.serv_codigo", $texto);
+        $builder->orWhere("tb1.serv_nombre", mb_strtoupper($texto, "UTF-8"));
+        $builder->groupEnd();
+        return $builder->get()->getRow();
+    }
+
+    public function getPrimerEquipoActivoComedor(int $comedorId): ?object {
+
+        $builder = $this->db->table("cc_bio_equipos tb1");
+        $builder->select("tb1.id, tb1.eq_codigo, tb1.eq_nombre, tb1.fk_comedor");
+        $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where([
+            "tb1.fk_comedor" => $comedorId,
+            "tb1.eq_estado" => 1,
+            "tb2.com_estado" => 1,
+            "tb2.fk_proyecto_sistema" => getProyectoId(),
+        ]);
+        $builder->orderBy("tb1.id", "ASC");
+        return $builder->get()->getRow();
+    }
+
+    public function getEquipoActivoPorCodigoComedor(int $comedorId, string $codigoEquipo): ?object {
+
+        $builder = $this->db->table("cc_bio_equipos tb1");
+        $builder->select("tb1.id, tb1.eq_codigo, tb1.eq_nombre, tb1.fk_comedor");
+        $builder->join("cc_bio_comedores tb2", "tb2.id = tb1.fk_comedor");
+        $builder->where([
+            "tb1.fk_comedor" => $comedorId,
+            "tb1.eq_codigo" => $codigoEquipo,
+            "tb1.eq_estado" => 1,
+            "tb2.com_estado" => 1,
+            "tb2.fk_proyecto_sistema" => getProyectoId(),
+        ]);
+        return $builder->get()->getRow();
+    }
+
     public function getEquipoActivo(int $equipoId, int $comedorId): ?object {
 
         $builder = $this->db->table("cc_bio_equipos tb1");
@@ -344,6 +422,38 @@ class BioModel extends Model {
         $builder->where("marc_fecha_hora <=", $fechaHoraHasta);
         $builder->orderBy("marc_fecha_hora", "DESC");
         return $builder->get()->getRow();
+    }
+
+    public function getMarcacionesTerminalExport(int $equipoId, string $fechaDesde, string $fechaHasta): array {
+
+        $builder = $this->db->table("cc_bio_marcaciones tb1");
+        $builder->select("
+            tb2.comens_cedula,
+            CONCAT(tb2.comens_nombres, ' ', tb2.comens_apellidos) AS comensal,
+            tb1.marc_fecha,
+            tb1.marc_hora,
+            tb3.com_codigo,
+            tb3.com_nombre,
+            tb4.eq_codigo,
+            tb4.eq_nombre,
+            tb5.serv_nombre
+        ");
+        $builder->join("cc_bio_comensales tb2", "tb2.id = tb1.fk_comensal");
+        $builder->join("cc_bio_comedores tb3", "tb3.id = tb1.fk_comedor");
+        $builder->join("cc_bio_equipos tb4", "tb4.id = tb1.fk_equipo");
+        $builder->join("cc_bio_servicios tb5", "tb5.id = tb1.fk_servicio");
+        $builder->where([
+            "tb1.fk_equipo" => $equipoId,
+            "tb1.fk_proyecto_sistema" => getProyectoId(),
+            "tb3.fk_proyecto_sistema" => getProyectoId(),
+            "tb1.marc_origen" => "TERMINAL",
+        ]);
+        $builder->where("tb1.marc_estado !=", "ANULADA");
+        $builder->where("tb1.marc_fecha >=", $fechaDesde);
+        $builder->where("tb1.marc_fecha <=", $fechaHasta);
+        $builder->orderBy("tb1.marc_fecha", "ASC");
+        $builder->orderBy("tb1.marc_hora", "ASC");
+        return $builder->get()->getResult();
     }
 
     public function getReporteMarcacionesResumen(array $filtros = []): object {

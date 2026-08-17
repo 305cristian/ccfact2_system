@@ -60,7 +60,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                             </td>
                             <td>
                                 <template v-if="admin">
-                                    <button @click="loadEquipo(equipo), estadoSave = false" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEquipo">
+                                    <button @click="loadEquipo(equipo)" class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                 </template>
@@ -71,13 +71,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             </div>
 
             <!--MODAL CREATE EQUIPO-->
-            <div id="modalEquipo" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div id="modalEquipo" ref="modalEquipo" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 v-if="estadoSave"><i class="fas fa-file-alt"></i> Crear Equipo</h5>
                             <h5 v-else><i class="fas fa-file-alt"></i> Actualizar Equipo</h5>
-                            <button @click="clear()" class="btn btn-danger btn-sm" data-bs-dismiss="modal" :disabled="loadingSave">X</button>
+                            <button @click="cerrarModalEquipo()" class="btn btn-danger btn-sm" :disabled="loadingSave">X</button>
                         </div>
 
                         <div class="modal-body">
@@ -156,7 +156,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                                 <span v-else-if="estadoSave"><i class="fas fa-save"></i> Crear</span>
                                 <span v-else><i class="fas fa-refresh"></i> Actualizar</span>
                             </button>
-                            <button @click="clear()" class="btn btn-danger" data-bs-dismiss="modal" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
+                            <button @click="cerrarModalEquipo()" class="btn btn-danger" :disabled="loadingSave"><i class="fas fa-stop"></i> Cancelar</button>
                         </div>
                     </div>
                 </div>
@@ -202,10 +202,14 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 listaEquipos: [],
                 listaComedores: listaComedores,
                 formValidacion: [],
+                modalEquipo: null,
             };
         },
         created() {
             this.getEquipos();
+        },
+        mounted() {
+            this.modalEquipo = new bootstrap.Modal(this.$refs.modalEquipo);
         },
         methods: {
             async getEquipos() {
@@ -243,8 +247,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     eqUbicacion: equipo.eq_ubicacion,
                     eqEstado: equipo.eq_estado,
                 };
+                this.estadoSave = false;
                 this.idEdit = equipo.id;
                 this.formValidacion = [];
+                this.modalEquipo.show();
             },
             async saveUpdateEquipo() {
                 if (this.loadingSave) {
@@ -265,10 +271,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                     if (response.data.status === 'success') {
                         sweet_msg_dialog('success', response.data.msg);
-                        this.clear();
+                        this.cerrarModalEquipo();
                         this.getEquipos();
-                        $('#modalEquipo').modal('hide');
-                        $('.modal-backdrop').remove();
                     } else if (response.data.status === 'existe') {
                         sweet_msg_dialog('warning', response.data.msg);
                     } else if (response.data.status === 'vacio') {
@@ -295,6 +299,10 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.estadoSave = true;
                 this.idEdit = '';
                 this.formValidacion = [];
+            },
+            cerrarModalEquipo() {
+                this.clear();
+                this.modalEquipo.hide();
             },
             formData(obj) {
                 var formData = new FormData();

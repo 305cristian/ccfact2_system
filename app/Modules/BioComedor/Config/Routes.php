@@ -32,6 +32,7 @@ $routes->group('biocomedor', ['namespace' => '\Modules\BioComedor\Controllers'],
     $subroutes->post('reportes/getReportes', 'DashboardController::getReportes');
     $subroutes->get('terminal', 'TerminalController::index');
     $subroutes->get('terminal/getServicioActual', 'TerminalController::getServicioActual');
+    $subroutes->get('terminal/descargarPlantillaMarcaciones', 'TerminalController::descargarPlantillaMarcaciones');
     $subroutes->post('terminal/registrarMarcacion', 'TerminalController::registrarMarcacion');
     $subroutes->get('comedores', 'ComedoresController::index');
     $subroutes->get('comedores/getComedores', 'ComedoresController::getComedores');
@@ -75,6 +76,8 @@ $routes->group('biocomedor', ['namespace' => '\Modules\BioComedor\Controllers'],
     $subroutes->post('marcaciones/registrarMarcacionManual', 'MarcacionesController::registrarMarcacionManual');
     $subroutes->post('marcaciones/updateMarcacion', 'MarcacionesController::updateMarcacion');
     $subroutes->post('marcaciones/anularMarcacion', 'MarcacionesController::anularMarcacion');
+    $subroutes->post('marcaciones/previewImportExcel', 'LoadMarcacionesController::previewImportExcel');
+    $subroutes->post('marcaciones/guardarMarcacionesValidas', 'LoadMarcacionesController::guardarMarcacionesValidas');
 
 });
 

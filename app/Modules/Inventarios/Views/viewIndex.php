@@ -12,7 +12,7 @@
  */
 ?>
 
-<div class="container-fluid">
+<div class="container-fluid fondo-gradiante">
 
     <div class="row">
         <?php if ($listaSubModulos) {

@@ -22,6 +22,23 @@
         $proyectoCodigo = getProyectoCodigo();
         $proyectoNombre = getProyectoNombre();
         $listaProyectosHeader = getProyectosEmpleadoSistema((int) $userId);
+        $hasSidebar = !empty($sidebar);
+        $systemDevelop = function_exists('getSettings') ? (int) getSettings('SYSTEM_DEVELOP') : 2;
+        $ambientesSistema = [
+            0 => [
+                'texto' => 'LOCAL',
+                'descripcion' => 'Ambiente local',
+                'clase' => 'local',
+                'icono' => 'fa-laptop-code',
+            ],
+            1 => [
+                'texto' => 'QA',
+                'descripcion' => 'Ambiente de pruebas',
+                'clase' => 'qa',
+                'icono' => 'fa-vial',
+            ],
+        ];
+        $ambienteSistema = $ambientesSistema[$systemDevelop] ?? null;
 
         $foto = $fotoUser;
         if (empty($fotoUser)) {
@@ -138,6 +155,60 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .system-env-indicator {
+            min-height: 28px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .25rem .75rem;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, .38);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
+            backdrop-filter: blur(4px);
+        }
+
+        .system-env-indicator.local {
+            background: linear-gradient(90deg, rgba(217, 119, 6, .92), rgba(245, 158, 11, .92));
+        }
+
+        .system-env-indicator.qa {
+            background: linear-gradient(90deg, rgba(3, 105, 161, .92), rgba(14, 165, 233, .92));
+        }
+
+        body.module-home-no-sidebar .main-header,
+        body.module-home-no-sidebar .content-wrapper,
+        body.module-home-no-sidebar .main-footer,
+        body.sidebar-mini.sidebar-collapse.module-home-no-sidebar .main-header,
+        body.sidebar-mini.sidebar-collapse.module-home-no-sidebar .content-wrapper,
+        body.sidebar-mini.sidebar-collapse.module-home-no-sidebar .main-footer {
+            margin-left: 0 !important;
+        }
+
+        body.module-home-no-sidebar .main-header {
+            left: 0 !important;
+        }
+       body.module-home-no-sidebar .content-wrapper {
+            background:
+                radial-gradient(circle at 15% 20%, rgba(25, 135, 84, .16), transparent 28rem),
+            radial-gradient(circle at 85% 12%, rgba(13, 110, 253, .12), transparent 26rem),
+            linear-gradient(135deg, #eef4f1 0%, #f8fafc 48%, #e9f1f5 100%);
+        }
+
+        body.module-home-no-sidebar #content-main-vue {
+            padding: 2rem 4rem !important;
+        }
+
+        @media (max-width: 768px) {
+            body.module-home-no-sidebar #content-main-vue {
+                padding: 1rem !important;
+            }
         }
     </style>
 
@@ -257,21 +328,32 @@
 
 <!--<body class="hold-transition sidebar-mini">-->
 <?php if (!empty($pathname) == 'welcome') { ?>
-    <body  class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed sidebar-collapse">
+    <body  class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed sidebar-collapse <?= !$hasSidebar ? 'module-home-no-sidebar' : '' ?>">
 
     <?php } else { ?>
-    <body  class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed">
+    <body  class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed <?= !$hasSidebar ? 'module-home-no-sidebar' : '' ?>">
 
     <?php } ?>
     <div  class="wrapper">
         <div  id="v_app">
             <nav   class="navbar navbar-expand-lg bg-gradient-system fixed-top main-header"><!--clase main-header de anmintle-->
-                <div class="ml-2">
-                    <button class="btn btn-outline-light" data-widget="pushmenu" id="menu-toggle"><span class="fas fa-bars"></span></button>
-                </div>
+                <?php if ($hasSidebar) { ?>
+                    <div class="ml-2">
+                        <button class="btn btn-outline-light" data-widget="pushmenu" id="menu-toggle"><span class="fas fa-bars"></span></button>
+                    </div>
+                <?php } ?>
                 <div class="sidebar-heading text-white font-weight-bold ml-2">
                     <a class="nav-link text-white" href="<?php echo site_url(); ?>">Sistema Web</a><!--Solo especifica la base url base como esta logeado lo redirecciona al dasboard principal-->
                 </div>
+
+                <?php if (!empty($ambienteSistema)) { ?>
+                    <div class="ms-3 d-none d-md-flex">
+                        <span class="system-env-indicator <?= $ambienteSistema['clase'] ?>" title="<?= $ambienteSistema['descripcion'] ?>">
+                            <i class="fas <?= $ambienteSistema['icono'] ?>"></i>
+                            <?= $ambienteSistema['texto'] ?>
+                        </span>
+                    </div>
+                <?php } ?>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="fas fa-bars text-white"></span>
@@ -390,25 +472,23 @@
             </div>
             <!--Fin Modal soporte-->
         </div>
-        <aside id="app2" class="main-sidebar elevation-4 bg-gradient-system">
+        <?php if ($hasSidebar) { ?>
+            <aside id="app2" class="main-sidebar elevation-4 bg-gradient-system">
 
-            <a href="<?php echo site_url(); ?>/welcome" class="brand-link" style="text-decoration: none; color: white">
-                <img src="<?php echo base_url() ?>/uploads/img/enterprice/logo.png" alt="Logo" height="50" class="brand-image img-circle elevation-3" style="opacity: .9">
-                <span class="brand-text font-weight-bold"><?= $enterprice->epr_nombre_comercial?></span>
-            </a>
-            <div class="sidebar">  
+                <a href="<?php echo site_url(); ?>/welcome" class="brand-link" style="text-decoration: none; color: white">
+                    <img src="<?php echo base_url() ?>/uploads/img/enterprice/logo.png" alt="Logo" height="50" class="brand-image img-circle elevation-3" style="opacity: .9">
+                    <span class="brand-text font-weight-bold"><?= $enterprice->epr_nombre_comercial ?></span>
+                </a>
+                <div class="sidebar">  
 
-                <!--Sidebar Menu--> 
-                <?php
-                if (!empty($sidebar)) {
+                    <!--Sidebar Menu--> 
+                    <?php
                     echo $sidebar;
-                } else {
-                    //echo 'ccfact';
-                }
-                ?>
+                    ?>
 
-            </div>
-        </aside>
+                </div>
+            </aside>
+        <?php } ?>
 
         <!-- DE AQUI EN ADELANTE EMPIESA EL CONTENT MAIN-->
         <div class="content-wrapper mt-5">
@@ -474,7 +554,9 @@
                 }
             }
         });
-        appNavigate.mount('#app2');
+        if (document.getElementById('app2')) {
+            appNavigate.mount('#app2');
+        }
 
         if (window.appDashboard) {
             window.appDashboard.unmount();
