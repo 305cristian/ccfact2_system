@@ -380,24 +380,33 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
 
                 switch (transaccionCod) {
 
+                    case '11': // NDC (Salida) Factura NDC
+                        ruta = "compras/getDataDetalle";
+                        this.titleHead = " DE LA COMPRA";
+                        break;
+                    case '31': // NDC (Entrada) Anulacion de la ndc
+                        ruta = "compras/getDataDetalle";
+                        this.titleHead = " DE LA COMPRA";
+                        break;
+                        
                     case '02': // COMPRAS (Ingreso) Factura compra
-                        ruta = "compras/ver";
+                        ruta = "compras/getDataDetalle";
                         this.titleHead = " DE LA COMPRA";
                         break;
 
                     case '09': // COMPRAS (Salida) Anulación de Factura compra
-                        ruta = "compras/ver";
+                        ruta = "compras/getDataDetalle";
                         this.titleHead = " DE LA ANULACIÓN DE COMPRA";
                         break;
 
 
                     case '01': // VENTAS (Salida) Factura venta
-                        ruta = "ventas/ver";
+                        ruta = "ventas/getDataDetalle";
                         this.titleHead = " DE LA VENTA";
                         break;
 
                     case '08': // VENTAS (Entrada)Anulación de Factura venta
-                        ruta = "ventas/ver";
+                        ruta = "ventas/getDataDetalle";
                         this.titleHead = " DE LA ANULACIÓN DE LA VENTA";
                         break;
 

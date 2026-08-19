@@ -48,8 +48,8 @@ class KardexModel extends \CodeIgniter\Model {
                             CASE
                                 WHEN tb3.tr_codigo IN ("38","40","42")THEN CONCAT_WS(" ",cli.clie_nombres,cli.clie_apellidos)
                                 WHEN tb3.tr_codigo IN ("39","41") THEN CONCAT_WS(" ",prov.prov_nombres,prov.prov_apellidos)
-                                -- WHEN tb3.tr_codigo IN ("01","01") THEN CONCAT_WS(" ",cli.clie_nombres,cli.clie_apellidos)
-                                -- WHEN tb3.tr_codigo IN ("02","02") THEN CONCAT_WS(" ",prov.prov_nombres,prov.prov_apellidos)
+                                WHEN tb3.tr_codigo IN ("01","08") THEN CONCAT_WS(" ",cli_.clie_nombres,cli_.clie_apellidos)
+                                WHEN tb3.tr_codigo IN ("02","09") THEN CONCAT_WS(" ",prov_.prov_nombres,prov_.prov_apellidos)
                                 ELSE NULL
                             END AS prov_clie_nombre,
   
@@ -57,8 +57,8 @@ class KardexModel extends \CodeIgniter\Model {
                                 WHEN tb3.tr_codigo IN ("38","40","42") THEN ajs.ajes_secuencial
                                 WHEN tb3.tr_codigo IN ("17","44") THEN trb.trb_secuencial
                                 WHEN tb3.tr_codigo IN ("39","41") THEN aje.ajen_secuencial
-                                -- WHEN tb3.tr_codigo IN ("01","01") THEN ven.ven_secuencial
-                                -- WHEN tb3.tr_codigo IN ("02","02") THEN comp.comp_secuencial
+                                WHEN tb3.tr_codigo IN ("01","08") THEN ven.ven_secuencial
+                                WHEN tb3.tr_codigo IN ("02","09") THEN comp.comp_secuencial
                                 ELSE NULL
                             END AS num_documento');
 
@@ -74,9 +74,11 @@ class KardexModel extends \CodeIgniter\Model {
 
         // LEFT JOINs opcionales
         $builder->join('cc_lotes tb5', 'tb5.id = tb1.fk_lote', 'left');
-        $builder->join('cc_ajuste_salida ajs', 'ajs.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo = "38"', 'left');
-        $builder->join('cc_ajuste_entrada aje', 'aje.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo = "39"', 'left');
-        $builder->join('cc_transferencia_bodega trb', 'trb.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo = "17"', 'left');
+        $builder->join('cc_ajuste_salida ajs', 'ajs.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo IN ("38","40","42") ', 'left');
+        $builder->join('cc_ajuste_entrada aje', 'aje.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo IN ("39","41") ', 'left');
+        $builder->join('cc_transferencia_bodega trb', 'trb.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo IN ("17") ', 'left');
+        $builder->join('cc_ventas ven', 'ven.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo IN ("01","08") ', 'left');
+        $builder->join('cc_compras comp', 'comp.id = tb1.' . $abrev . '_documento_id AND tb3.tr_codigo IN ("02","09") ', 'left');
 
         //JOINS especiales para obtener el nombre del cliente proveedor
 
@@ -85,7 +87,13 @@ class KardexModel extends \CodeIgniter\Model {
 
         $caseClie = " CASE WHEN tb3.tr_codigo IN ('38','40','42') THEN ajs.fk_cliente ELSE NULL END";
         $builder->join('cc_clientes cli', "cli.id = $caseClie ", 'left');
-
+        
+        $caseProvComp = " CASE WHEN tb3.tr_codigo IN ('02','09') THEN comp.fk_proveedor ELSE NULL END";
+        $builder->join('cc_proveedores prov_', "prov_.id =  $caseProvComp ", 'left');
+        
+        $caseProvVent = " CASE WHEN tb3.tr_codigo IN ('01','08') THEN ven.fk_cliente ELSE NULL END";
+        $builder->join('cc_clientes cli_', "cli_.id =  $caseProvVent ", 'left');
+        
 //        DE AQUI EN ADELANTE TOCA CARGAR LOS JOINS DE VENTAS Y COMPRAS
         // WHERE
 
@@ -293,29 +301,45 @@ class KardexModel extends \CodeIgniter\Model {
         // =========================
         switch ($movimiento) {
 
-            case 'COMPRAS':
-                $builder->whereIn('k.kar_codigo_transaccion', ['02']);
+            case 'NDC':
+                $builder->whereIn('k.kar_codigo_transaccion', ['11']);
 
-                $builder->select("c.comp_numero_factura AS documento, CONCAT(prov.nombres,' ',prov.apellidos) AS proveedor_cliente, c.comp_fecha_emision AS fecha_emision");
+                $builder->select("c.comp_numero_comprobante AS documento, CONCAT(prov.prov_nombres,' ',prov.prov_apellidos) AS proveedor_cliente, c.comp_fecha_emision AS fecha_emision");
 
                 $builder->join('cc_compras c', 'c.id = k.kar_documento_id');
-                $builder->join('cc_proveedores prov', 'prov.id = c.cmp_proveedor_id');
+                $builder->join('cc_proveedores prov', 'prov.id = c.fk_proveedor');
 
                 if (!empty($fDesdeEmi) && !empty($fHastaEmi)) {
                     $builder->where(['c.comp_fecha_emision <= ' => $fHastaEmi, 'c.comp_fecha_emision >= ' => $fDesdeEmi]);
                 }
 
-                $builder->where('c.cmp_estado', 2); //SOLO ARCHIVADAS
+                $builder->where('c.comp_estado', 2); //SOLO ARCHIVADAS
+
+                break;
+                
+            case 'COMPRAS':
+                $builder->whereIn('k.kar_codigo_transaccion', ['02']);
+
+                $builder->select("c.comp_numero_comprobante AS documento, CONCAT(prov.prov_nombres,' ',prov.prov_apellidos) AS proveedor_cliente, c.comp_fecha_emision AS fecha_emision");
+
+                $builder->join('cc_compras c', 'c.id = k.kar_documento_id');
+                $builder->join('cc_proveedores prov', 'prov.id = c.fk_proveedor');
+
+                if (!empty($fDesdeEmi) && !empty($fHastaEmi)) {
+                    $builder->where(['c.comp_fecha_emision <= ' => $fHastaEmi, 'c.comp_fecha_emision >= ' => $fDesdeEmi]);
+                }
+
+                $builder->where('c.comp_estado', 2); //SOLO ARCHIVADAS
 
                 break;
 
             case 'VENTAS':
                 $builder->whereIn('k.kar_codigo_transaccion', ['01']);
 
-                $builder->select("v.ven_secuencial AS documento, CONCAT(cli.nombres, ' ', cli.apellidos) AS proveedor_cliente, v.ven_fecha_emision AS fecha_emision");
+                $builder->select("v.ven_secuencial AS documento, CONCAT(cli.clie_nombres, ' ', cli.clie_apellidos) AS proveedor_cliente, v.ven_fecha_emision AS fecha_emision");
 
                 $builder->join('cc_ventas v', 'v.id = k.kar_documento_id');
-                $builder->join('cc_clientes cli', 'cli.id = v.ven_cliente_id');
+                $builder->join('cc_clientes cli', 'cli.id = v.fk_cliente');
 
                 if (!empty($fDesdeEmi) && !empty($fHastaEmi)) {
                     $builder->where(['v.ven_fecha_emision <= ' => $fHastaEmi, 'v.ven_fecha_emision >= ' => $fDesdeEmi]);

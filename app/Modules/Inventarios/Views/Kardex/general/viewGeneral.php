@@ -58,6 +58,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                     <div class="col-md-6 form-group-custom">
                         <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
 
+                            <input type="radio" class="btn-check" id="btnradio0" value="NDC" v-model="filtros.movimiento" autocomplete="off">
+                            <label class="btn btn-outline-secondary" for="btnradio0">
+                                <i class="fas fa-cart-plus me-2"></i> NDC
+                            </label>
+                            
                             <input type="radio" class="btn-check" id="btnradio1" value="COMPRAS" v-model="filtros.movimiento" autocomplete="off">
                             <label class="btn btn-outline-success" for="btnradio1">
                                 <i class="fas fa-cart-plus me-2"></i> COMPRAS
@@ -434,11 +439,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             },
             mostrarProvClie() {
                 return this.filtros.movimiento === 'COMPRAS'
-                        || this.filtros.movimiento === 'VENTAS';
+                        || this.filtros.movimiento === 'VENTAS'
+                        || this.filtros.movimiento === 'NDC';
             },
             mostrarDocumento() {
                 return this.filtros.movimiento === 'COMPRAS'
-                        || this.filtros.movimiento === 'VENTAS';
+                        || this.filtros.movimiento === 'VENTAS'
+                        || this.filtros.movimiento === 'NDC';
             }
 
         },
@@ -447,13 +454,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 this.showContent = false;
                 this.listaKardexGeneral = [];
                 this.pagination.currentPage = 1;
-            },
-//            filtros: {
-//                handler() {
-//                    this.showContent = false;
-//                },
-//                deep: true
-//            }
+            }
+
         },
         methods: {
             getColStyle() {
@@ -462,6 +464,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let borderColor = '';
 
                 switch (this.filtros.movimiento) {
+                    case 'NDC':
+                        baseColor = '#D1D5DC';   // suave
+                        borderColor = '#99A1AF'; // fuerte
+                        break;
+                        
                     case 'COMPRAS':
                         baseColor = '#ecfdf5';   // suave
                         borderColor = '#16a34a'; // fuerte
@@ -496,6 +503,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
             titleDocumentoExport() {
                 let titulo = 'REPORTE KARDEX GENERAL';
                 switch (this.filtros.movimiento) {
+                    case 'NDC':
+                        titulo = 'REPORTE DE NDC';   // suave
+                        break;
                     case 'COMPRAS':
                         titulo = 'REPORTE DE COMPRAS';   // suave
                         break;
@@ -519,20 +529,29 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHPWebPage.php to 
                 let ruta = '';
                 switch (transaccionCod) {
 
+                    case '11': // COMPRAS (Salida) Factura compra
+                        ruta = "compras/getDataDetalle";
+                        this.titleHead = " DE LA NDC";
+                        break;
+                    case '31': // COMPRAS (Ingreso) Factura compra
+                        ruta = "compras/getDataDetalle";
+                        this.titleHead = " DE LA NDC";
+                        break;
+                        
                     case '02': // COMPRAS (Ingreso) Factura compra
-                        ruta = "compras/ver";
+                        ruta = "compras/getDataDetalle";
                         this.titleHead = " DE LA COMPRA";
                         break;
                     case '09': // COMPRAS (Salida) Anulación de Factura compra
-                        ruta = "compras/ver";
+                        ruta = "compras/getDataDetalle";
                         this.titleHead = " DE LA ANULACIÓN DE COMPRA";
                         break;
                     case '01': // VENTAS (Salida) Factura venta
-                        ruta = "ventas/ver";
+                        ruta = "ventas/getDataDetalle";
                         this.titleHead = " DE LA VENTA";
                         break;
                     case '08': // VENTAS (Entrada)Anulación de Factura venta
-                        ruta = "ventas/ver";
+                        ruta = "ventas/getDataDetalle";
                         this.titleHead = " DE LA ANULACIÓN DE LA VENTA";
                         break;
                     case '39': // AJUSTES (Entrada) Registro de ingreso de Entrada
